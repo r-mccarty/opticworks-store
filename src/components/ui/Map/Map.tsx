@@ -85,12 +85,12 @@ export const Map = () => {
         </svg>
       </div>
 
-      <div className="pt-12 text-base font-semibold tracking-tight text-orange-400 sm:pt-20 sm:text-lg">
+      <div className="pt-12 text-base tracking-tight text-orange-400 sm:pt-20 sm:text-lg">
         Farm Management
       </div>
       <h2
         id="management-title"
-        className="mt-6 max-w-[700px] text-center text-2xl font-semibold tracking-tight text-balance text-white md:text-5xl"
+        className="font-regular mt-6 max-w-[700px] text-center text-2xl tracking-tight text-balance text-white md:text-5xl"
       >
         Monitoring & Control for Precision Agriculture
       </h2>

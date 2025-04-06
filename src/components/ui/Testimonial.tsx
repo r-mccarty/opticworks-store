@@ -24,7 +24,7 @@ export default function Testimonial() {
         <div className="">
           <blockquote className="relative max-w-2xl text-xl leading-relaxed tracking-tight text-gray-900 md:text-2xl lg:text-3xl">
             <p className="before:absolute before:top-0 before:right-full before:content-['“'] after:text-gray-900/70 after:content-['”']">
-              <strong className="font-semibold">
+              <strong className="font-medium">
                 Solar transformed our environmental monitoring capabilities.
               </strong>{" "}
               <span className="text-gray-900/70">
@@ -46,9 +46,7 @@ export default function Testimonial() {
             />
           </div>
           <div>
-            <div className="text-base font-medium text-gray-900">
-              Dr. Sarah Miller
-            </div>
+            <div className="text-base text-gray-900">Dr. Sarah Miller</div>
             <div className="text-sm text-[#C33621]/80">
               Director of Conservation Technologies
             </div>

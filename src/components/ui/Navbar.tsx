@@ -29,7 +29,7 @@ export function NavBar() {
             <SolarLogo className="w-22" />
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
-            <div className="flex items-center gap-10 font-medium">
+            <div className="flex items-center gap-10 font-normal">
               <Link className="px-2 py-1 text-gray-900" href="#solutions">
                 Solutions
               </Link>
@@ -43,7 +43,7 @@ export function NavBar() {
           </nav>
           <Button
             variant="secondary"
-            className="hidden h-10 font-semibold sm:block"
+            className="hidden h-10 font-medium sm:block"
           >
             Get a quote
           </Button>
@@ -72,7 +72,7 @@ export function NavBar() {
             open ? "" : "hidden",
           )}
         >
-          <ul className="space-y-4 font-medium">
+          <ul className="space-y-4 font-normal">
             <li onClick={() => setOpen(false)}>
               <Link href="#solutions">Solutions</Link>
             </li>

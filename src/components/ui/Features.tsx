@@ -129,11 +129,11 @@ export default function Features() {
       <div className="grid grid-cols-1 gap-12 md:grid-cols-4 md:gap-0">
         {/* Content */}
         <div className="col-span-2 my-auto px-2">
-          <h2 className="relative text-lg font-semibold tracking-tight text-orange-500">
+          <h2 className="relative text-lg tracking-tight text-orange-500">
             Smart Farming Solutions
             <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
           </h2>
-          <p className="mt-2 text-3xl font-semibold tracking-tighter text-balance text-gray-900 md:text-4xl">
+          <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
             A network of autonomous systems for complete farm monitoring
           </p>
           <p className="mt-4 text-balance text-gray-700">
@@ -297,7 +297,7 @@ export default function Features() {
         </div>
 
         <div className="col-span-2 my-auto px-2">
-          <h2 className="relative text-lg font-semibold tracking-tight text-orange-500">
+          <h2 className="relative text-lg tracking-tight text-orange-500">
             Precision Agriculture
             <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
           </h2>
@@ -427,11 +427,11 @@ export default function Features() {
           </div>
         </div>
         <div className="col-span-2 my-auto px-2">
-          <h2 className="relative text-lg font-semibold tracking-tight text-orange-500">
+          <h2 className="relative text-lg tracking-tight text-orange-500">
             Easy Expansion
             <div className="absolute top-1 -left-[7px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
           </h2>
-          <p className="mt-2 text-3xl font-semibold tracking-tighter text-balance text-gray-900 md:text-4xl">
+          <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
             Scale your smart farm with plug-and-play simplicity
           </p>
           <p className="mt-4 text-balance text-gray-700">
