@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/* Font utility classes (Keep these - they might still be useful for specific elements) */
+.font-barlow {
+  font-family:
+    var(--font-barlow),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif; /* Correct variable */
+}
+
+.font-colfax {
+  font-family:
+    var(--font-colfax),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif; /* Correct variable */
+}
+
+@layer base {
+  /* Set Colfax as the default font for the body */
+  body {
+    font-family:
+      var(--font-colfax),
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
+  /* Set Barlow specifically for h1 elements */
+  h1 {
+    font-family:
+      var(--font-barlow),
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      sans-serif;
+  }
+
+  /* Keep your existing border compatibility styles */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+}
+
+/* Rest of your original CSS */
+@theme {
+  --animate-hide: hide 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* ... all your animations ... */
+}
+
+.mask {
+  mask-image: radial-gradient(rgba(0, 0, 0, 1) 0%, transparent 80%);
+}
+
+@keyframes gridMovingLine {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  20% {
+    opacity: 100;
+  }
+  100% {
+    transform: translateX(-100%);
+    opacity: 100;
+  }
+}
