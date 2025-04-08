@@ -129,14 +129,14 @@ export default function Features() {
       <div className="grid grid-cols-1 gap-12 md:grid-cols-4 md:gap-0">
         {/* Content */}
         <div className="col-span-2 my-auto px-2">
-          <h2 className="relative text-lg tracking-tight text-orange-500">
+          <h2 className="font barlow relative text-lg font-medium tracking-normal text-blue-500 uppercase">
             Smart Farming Solutions
-            <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
+            <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-blue-500" />
           </h2>
-          <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
+          <p className="font-barlow mt-2 text-3xl font-medium tracking-tight text-balance text-gray-900 md:text-4xl">
             A network of autonomous systems for complete farm monitoring
           </p>
-          <p className="mt-4 text-balance text-gray-700">
+          <p className="mt-4 text-lg leading-tight text-balance text-gray-700">
             Deploy intelligent monitoring and automated response systems across
             your fields, irrigation networks, and aerial operations with our
             integrated platform.
@@ -191,11 +191,11 @@ export default function Features() {
                     <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
                     <div className="absolute -top-5 left-4">
                       <div className="flex gap-1">
-                        <div className="flex items-center justify-center rounded-l-full bg-red-500 p-1 text-xs ring-1 ring-gray-200">
+                        <div className="flex items-center justify-center rounded-l-full bg-blue-500 p-1 text-xs ring-1 ring-gray-200">
                           <RiCircleLine className="size-3 shrink-0 text-white" />
                         </div>
                         <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs whitespace-nowrap ring-1 ring-gray-200">
-                          Drivetrain Error
+                          Webhook Actions
                         </div>
                       </div>
                     </div>
@@ -203,7 +203,7 @@ export default function Features() {
                       style={{
                         animationDelay: "1s",
                       }}
-                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-orange-500/50"
+                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-blue-500/50"
                     ></div>
                   </div>,
 
@@ -227,7 +227,7 @@ export default function Features() {
                       style={{
                         animationDelay: "4s",
                       }}
-                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-orange-500/50"
+                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-blue-500/50"
                     ></div>
                   </div>,
 
@@ -241,7 +241,7 @@ export default function Features() {
                       style={{
                         animationDelay: "2s",
                       }}
-                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-orange-500/50"
+                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-blue-500/50"
                     ></div>
                   </div>,
                   <div
@@ -252,7 +252,7 @@ export default function Features() {
                     <div className="absolute size-10 rounded-full bg-white/50 ring-1 shadow-lg ring-black/5"></div>
                     <div className="absolute -top-5 left-4">
                       <div className="flex gap-1">
-                        <div className="flex items-center justify-center rounded-l-full bg-emerald-500 p-1 text-xs ring-1 ring-gray-200">
+                        <div className="flex items-center justify-center rounded-l-full bg-blue-500 p-1 text-xs ring-1 ring-gray-200">
                           <RiCheckLine className="size-3 shrink-0 text-white" />
                         </div>
                         <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs ring-1 ring-gray-200">
@@ -265,7 +265,7 @@ export default function Features() {
                       style={{
                         animationDelay: "6s",
                       }}
-                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-orange-500/50"
+                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-blue-500/50"
                     ></div>
                   </div>,
                   <div
@@ -278,7 +278,7 @@ export default function Features() {
                       style={{
                         animationDelay: "3s",
                       }}
-                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-orange-500/50"
+                      className="absolute size-10 animate-[ping_7s_ease_infinite] rounded-full ring-1 ring-blue-500/50"
                     ></div>
                   </div>,
                 ]}
@@ -288,7 +288,7 @@ export default function Features() {
                     <div className="relative z-10 flex size-20 items-center justify-center rounded-full bg-white ring-1 shadow-[inset_0px_-15px_20px_rgba(0,0,0,0.1),0_7px_10px_0_rgba(0,0,0,0.15)] ring-black/20">
                       <SolarMark className="size-10" />
                     </div>
-                    <div className="absolute inset-12 animate-[spin_8s_linear_infinite] rounded-full bg-linear-to-t from-transparent via-orange-400 to-transparent blur-lg" />
+                    <div className="absolute inset-12 animate-[spin_8s_linear_infinite] rounded-full bg-linear-to-t from-transparent via-blue-400 to-transparent blur-lg" />
                   </div>
                 </div>
               </Orbit>
