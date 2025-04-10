@@ -7,7 +7,7 @@
     ui-sans-serif,
     system-ui,
     -apple-system,
-    sans-serif; /* Correct variable */
+    sans-serif;
 }
 
 .font-colfax {
@@ -16,10 +16,27 @@
     ui-sans-serif,
     system-ui,
     -apple-system,
-    sans-serif; /* Correct variable */
+    sans-serif;
+}
+
+
+.font-feature {
+  font-family:
+    var(--font-feature),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+/* ---> ADD THIS CLASS for the Condensed Feature font <--- */
+.font-feature-condensed {
+  font-family: var(--font-feature-condensed), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Note: font-stretch: condensed; is likely NOT needed here as the var points directly to condensed files */
 }
 
 @layer base {
+
   /* Set Colfax as the default font for the body */
   body {
     font-family:
@@ -65,9 +82,11 @@
     transform: translateX(100%);
     opacity: 0;
   }
+
   20% {
     opacity: 100;
   }
+
   100% {
     transform: translateX(-100%);
     opacity: 100;

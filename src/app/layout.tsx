@@ -47,6 +47,42 @@ const colfaxFont = localFont({
   display: "swap",
 })
 
+
+const featureFont = localFont({
+  src: [
+    {
+      path: "../../public/fonts/FeatureFlatHeadline.c189951b.woff2",
+      weight: "400",
+      style: "normal"
+    },
+    {
+      path: "../../public/fonts/FeatureFlatText-Bold.4f87c9cd.otf",
+      weight: "700",
+      style: "normal"
+    }
+  ],
+  variable: "--font-feature",
+  display: "swap",
+})
+
+const featureCondensedFont = localFont({
+  src: [
+    {
+      path: "../../public/fonts/FeatureFlatCond-Regular.a6231343.woff2",
+      weight: "400", // Corresponds to Regular
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/FeatureFlatCond-Medium.595cb47e.woff2",
+      weight: "500", // Corresponds to Medium
+      style: "normal",
+    },
+    // Add other CONDENSED weights/styles if you have them
+  ],
+  variable: "--font-feature-condensed", // Distinct variable name
+  display: "swap",
+})
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://yoururl.com"),
   title: siteConfig.name,
@@ -84,7 +120,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable}`}>
+    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`}>
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600">
         <NavBar />
         {children}
