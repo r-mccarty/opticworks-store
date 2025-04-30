@@ -25,7 +25,7 @@ export default function Testimonial() {
           <blockquote className="relative max-w-2xl text-xl leading-relaxed tracking-tight text-gray-900 md:text-2xl lg:text-3xl">
             <p className="before:absolute before:top-0 before:right-full before:content-['“'] after:text-gray-900/70 after:content-['”']">
               <strong className="font-medium">
-                Solar transformed our environmental monitoring capabilities.
+                Solar transformed our household data.
               </strong>{" "}
               <span className="text-gray-900/70">
                 Their autonomous network provides real-time data on forest

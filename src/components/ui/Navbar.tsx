@@ -31,13 +31,13 @@ export function NavBar() {
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
             <div className="flex items-center gap-10 font-normal">
               <Link className="px-2 py-1 text-gray-900" href="#solutions">
-                Solutions
+                Products
               </Link>
               <Link className="px-2 py-1 text-gray-900" href="#farm-management">
-                Farm Management
+                Solutions
               </Link>
               <Link className="px-2 py-1 text-gray-900" href="#solar-analytics">
-                Analytics
+                Resources
               </Link>
             </div>
           </nav>

@@ -20,7 +20,7 @@ export function Hero() {
               </span>
               <span className="flex items-center gap-1 truncate">
                 <span className="w-full truncate">
-                  Smart Irrigation System Launch
+                  Introducing our Desktop E-Ink Dashboard
                 </span>
 
                 <RiArrowRightUpLine className="size-4 shrink-0 text-gray-700" />
@@ -29,14 +29,14 @@ export function Hero() {
           </a>
         </FadeDiv>
         <h1 className="font-barlow mt-8 text-center text-8xl font-normal tracking-[1px] text-gray-900 uppercase sm:leading-[5.5rem]">
-          <FadeSpan>Autonomy</FadeSpan> <FadeSpan>for</FadeSpan>
+          <FadeSpan>Data</FadeSpan> <FadeSpan>for</FadeSpan>
           <br />
-          <FadeSpan>every</FadeSpan> <FadeSpan>Farm</FadeSpan>
+          <FadeSpan>every</FadeSpan> <FadeSpan>House</FadeSpan>
         </h1>
         <p className="font-colfax mt-5 max-w-xl text-center text-2xl leading-[30px] text-balance text-gray-700 sm:mt-8">
-          <FadeSpan>Revolutionizing agriculture with AI-powered</FadeSpan>{" "}
+          <FadeSpan>Revolutionizing home automation with</FadeSpan>{" "}
           <FadeSpan>sensors, drones, and automation for</FadeSpan>{" "}
-          <FadeSpan>sustainable and efficient farming.</FadeSpan>
+          <FadeSpan>sustainable and efficient living.</FadeSpan>
         </p>
         <FadeDiv>
           <a
