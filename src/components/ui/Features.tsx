@@ -129,14 +129,14 @@ export default function Features() {
       <div className="grid grid-cols-1 gap-12 md:grid-cols-4 md:gap-0">
         {/* Content */}
         <div className="col-span-2 my-auto px-2">
-          <h2 className="font barlow relative text-lg font-medium tracking-normal text-blue-500 uppercase">
+          <h2 className="relative text-lg font-medium tracking-tighter text-blue-500 uppercase">
             Smart Farming Solutions
             <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-blue-500" />
           </h2>
-          <p className="font-barlow mt-2 text-3xl font-medium tracking-tight text-balance text-gray-900 md:text-4xl">
+          <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
             A network of autonomous systems for complete farm monitoring
           </p>
-          <p className="mt-4 text-lg leading-tight text-balance text-gray-700">
+          <p className="mt-4 text-balance text-gray-700">
             Deploy intelligent monitoring and automated response systems across
             your fields, irrigation networks, and aerial operations with our
             integrated platform.
@@ -301,10 +301,10 @@ export default function Features() {
             Precision Agriculture
             <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
           </h2>
-          <p className="mt-2 text-3xl font-feature font-bold tracking-tighter text-balance text-gray-900 md:text-4xl">
+          <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
             Turn every acre into a data-driven powerhouse
           </p>
-          <p className="mt-4 text-balance font-feature-condensed text-gray-700">
+          <p className="mt-4 text-balance text-gray-700">
             Revolutionize your farming operation with edge-computing AI that
             transforms raw field data into actionable insights in real-time.
             Make informed decisions faster, reduce resource waste, and maximize
