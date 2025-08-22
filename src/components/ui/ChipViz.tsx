@@ -17,7 +17,7 @@ const ChipViz = () => {
       transition: {
         duration: 2,
         times: [0, 0.2, 1],
-        ease: [0.23, 1, 0.32, 1],
+        ease: [0.23, 1, 0.32, 1] as const,
         repeat: Infinity,
         repeatDelay: 2,
         delay,

@@ -27,10 +27,12 @@ pnpm run lint
 
 This is a Solar/Farm technology marketing website template built with:
 
-- **Framework**: Next.js 15 with App Router
+- **Framework**: Next.js 15.5.0 with App Router
+- **Runtime**: React 19.1.1
+- **Language**: TypeScript 5.9.2
 - **Styling**: Tailwind CSS v4.1.12 (stable) + custom CSS variables
 - **UI Components**: Custom components inspired by Tremor design system
-- **Animations**: Motion library for smooth animations
+- **Animations**: Motion library 12.23.12 for smooth animations
 - **Icons**: Remix Icons (@remixicon/react)
 - **Typography**: Multiple custom fonts (Barlow, Colfax, Feature family)
 
@@ -72,3 +74,9 @@ This is a Solar/Farm technology marketing website template built with:
 - Button variants follow Tremor patterns with `tailwind-variants`
 - SVG icons are typically from Remix Icons or custom React components
 - Custom fonts should use the established CSS variable system
+
+### Motion Library Types
+
+When using Motion library animations, ensure proper TypeScript typing:
+- Use `as const` for transition types: `type: "spring" as const`
+- Use `as const` for ease arrays: `ease: [0.23, 1, 0.32, 1] as const`

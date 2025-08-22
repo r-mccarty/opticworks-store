@@ -24,7 +24,7 @@ const item = {
     y: 0,
     filter: "blur(0px)",
     transition: {
-      type: "spring",
+      type: "spring" as const,
       stiffness: 150,
       damping: 19,
       mass: 1.2,
