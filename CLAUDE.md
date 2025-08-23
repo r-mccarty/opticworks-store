@@ -80,3 +80,23 @@ This is a Solar/Farm technology marketing website template built with:
 When using Motion library animations, ensure proper TypeScript typing:
 - Use `as const` for transition types: `type: "spring" as const`
 - Use `as const` for ease arrays: `ease: [0.23, 1, 0.32, 1] as const`
+
+### Logo System
+
+The template uses two SVG logo components located in `/public/`:
+
+**SolarLogo** (`/public/SolarLogo.tsx`):
+- Full logo with text, dimensions: `viewBox="0 0 123 42"` (2.9:1 aspect ratio)
+- Used in: Navbar (`w-22` class) and Footer (`w-20` class)
+- Contains: Icon + "Solar" text in dark gray (#0f172a) with orange accent (#F97316)
+
+**SolarMark** (`/public/SolarMark.tsx`):
+- Icon-only version, dimensions: `viewBox="0 0 42 42"` (square)
+- Used throughout Features, ChipViz, and other decorative components
+- Contains: Orange directional star/compass icon (#F97316)
+
+To replace with custom branding:
+1. Create new TSX components following the same pattern
+2. Update imports in: Navbar.tsx, Footer.tsx, Features.tsx, ChipViz.tsx
+3. Maintain similar aspect ratios for consistent layout
+4. Use React SVGProps<SVGSVGElement> for proper typing
