@@ -1,11 +1,11 @@
 import { RiArrowRightUpLine } from "@remixicon/react"
 import { FadeContainer, FadeDiv, FadeSpan } from "../Fade"
-import GameOfLife from "./HeroBackground"
+import { VideoBackground } from "./VideoBackground"
 
 export function Hero() {
   return (
-    <section aria-label="hero">
-      <FadeContainer className="relative flex flex-col items-center justify-center">
+    <section aria-label="hero" className="relative min-h-screen">
+      <FadeContainer className="relative flex flex-col items-center justify-center min-h-screen px-4">
         <FadeDiv className="mx-auto">
           <a
             aria-label="View latest update the changelog page"
@@ -28,12 +28,12 @@ export function Hero() {
             </div>
           </a>
         </FadeDiv>
-        <h1 className="font-barlow mt-8 text-center text-8xl font-normal tracking-[1px] text-gray-900 uppercase sm:leading-[5.5rem]">
+        <h1 className="font-barlow mt-8 text-center text-8xl font-normal tracking-[1px] text-white drop-shadow-2xl uppercase sm:leading-[5.5rem]">
           <FadeSpan>Data</FadeSpan> <FadeSpan>for</FadeSpan>
           <br />
           <FadeSpan>every</FadeSpan> <FadeSpan>House</FadeSpan>
         </h1>
-        <p className="font-colfax mt-5 max-w-xl text-center text-2xl leading-[30px] text-balance text-gray-700 sm:mt-8">
+        <p className="font-colfax mt-5 max-w-xl text-center text-2xl leading-[30px] text-balance text-white drop-shadow-lg sm:mt-8">
           <FadeSpan>Revolutionizing home automation with</FadeSpan>{" "}
           <FadeSpan>sensors, drones, and automation for</FadeSpan>{" "}
           <FadeSpan>sustainable and efficient living.</FadeSpan>
@@ -46,8 +46,11 @@ export function Hero() {
             Automate now
           </a>
         </FadeDiv>
-        <div className="absolute inset-0 -z-10 flex items-center justify-center">
-          <GameOfLife />
+        <div className="absolute inset-0 -z-10">
+          <VideoBackground 
+            videoUrl="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+            posterUrl="https://media.w3.org/2010/05/sintel/poster.png"
+          />
         </div>
       </FadeContainer>
     </section>

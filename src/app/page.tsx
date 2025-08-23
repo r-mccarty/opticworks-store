@@ -9,9 +9,7 @@ import Testimonial from "@/components/ui/Testimonial"
 export default function Home() {
   return (
     <main className="relative mx-auto flex flex-col">
-      <div className="pt-56">
-        <Hero />
-      </div>
+      <Hero />
       <div className="mt-52 px-4 xl:px-0">
         <Features />
       </div>
