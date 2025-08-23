@@ -30,14 +30,17 @@ export function NavBar() {
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
             <div className="flex items-center gap-10 font-normal">
-              <Link className="px-2 py-1 text-gray-900" href="#solutions">
+              <Link className="px-2 py-1 text-gray-900" href="#products">
                 Products
               </Link>
-              <Link className="px-2 py-1 text-gray-900" href="#farm-management">
-                Solutions
+              <Link className="px-2 py-1 text-gray-900" href="#store">
+                Store
               </Link>
-              <Link className="px-2 py-1 text-gray-900" href="#solar-analytics">
-                Resources
+              <Link className="px-2 py-1 text-gray-900" href="#support">
+                Customer Support
+              </Link>
+              <Link className="px-2 py-1 text-gray-900" href="#install-guides">
+                Install Guides
               </Link>
             </div>
           </nav>
@@ -45,7 +48,7 @@ export function NavBar() {
             variant="secondary"
             className="hidden h-10 font-medium sm:block"
           >
-            Get a quote
+            Shop Now
           </Button>
           <Button
             onClick={() => setOpen(!open)}
@@ -74,17 +77,20 @@ export function NavBar() {
         >
           <ul className="space-y-4 font-normal">
             <li onClick={() => setOpen(false)}>
-              <Link href="#solutions">Solutions</Link>
+              <Link href="#products">Products</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="#farm-management">Farm Management</Link>
+              <Link href="#store">Store</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="#solar-analytics">Analytics</Link>
+              <Link href="#support">Customer Support</Link>
+            </li>
+            <li onClick={() => setOpen(false)}>
+              <Link href="#install-guides">Install Guides</Link>
             </li>
           </ul>
           <Button variant="secondary" className="text-lg">
-            Get a quote
+            Shop Now
           </Button>
         </nav>
       </div>

@@ -10,51 +10,48 @@ const CURRENT_YEAR = new Date().getFullYear()
 
 const Footer = () => {
   const sections = {
-    solutions: {
-      title: "Solutions",
+    products: {
+      title: "Products",
       items: [
-        { label: "Crop Monitoring", href: "#" },
-        { label: "Irrigation Control", href: "#" },
-        { label: "Soil Analytics", href: "#" },
-        { label: "Weather Integration", href: "#" },
-        { label: "Documentation", href: "#" },
-        { label: "Smart Farming Guide", href: "#" },
-        { label: "Equipment", href: "#" },
+        { label: "CyberShade IRX", href: "#products" },
+        { label: "Tesla Model Y Kits", href: "#products" },
+        { label: "DIY Tinting Kits", href: "#products" },
+        { label: "Professional Tools", href: "#products" },
+        { label: "Accessories", href: "#products" },
+        { label: "Replacement Parts", href: "#products" },
       ],
     },
-    company: {
-      title: "Company",
+    store: {
+      title: "Store",
       items: [
-        { label: "About us", href: "#" },
-        { label: "Blog", href: "#" },
-        { label: "Careers", href: "#" },
-        { label: "Success Stories", href: "#" },
-        { label: "Sustainability", href: "#" },
+        { label: "Shop All Products", href: "#store" },
+        { label: "New Arrivals", href: "#store" },
+        { label: "Best Sellers", href: "#store" },
+        { label: "Bundles & Deals", href: "#store" },
+        { label: "Gift Cards", href: "#store" },
       ],
     },
-    resources: {
-      title: "Resources",
+    support: {
+      title: "Customer Support",
       items: [
-        { label: "Farmer Network", href: "#" },
-        {
-          label: "Community",
-          href: "#",
-          external: true,
-        },
-        { label: "Contact", href: "#" },
-        { label: "Support", href: "#" },
-        { label: "Privacy Policy", href: "#" },
-        { label: "Terms of Service", href: "#" },
-        { label: "Report an Issue", href: "#" },
+        { label: "Contact Us", href: "#support" },
+        { label: "Live Chat", href: "#support" },
+        { label: "Order Status", href: "#support" },
+        { label: "Returns & Exchanges", href: "#support" },
+        { label: "Warranty Claims", href: "#support" },
+        { label: "FAQ", href: "#support" },
+        { label: "Troubleshooting", href: "#support" },
       ],
     },
-    partners: {
-      title: "Partners",
+    guides: {
+      title: "Install Guides",
       items: [
-        { label: "Dealer Network", href: "#", external: true },
-        { label: "System Status", href: "#", external: true },
-        { label: "Research Partners", href: "#", external: true },
-        { label: "Integration Guide", href: "#" },
+        { label: "Installation Videos", href: "#install-guides" },
+        { label: "Step-by-Step Guide", href: "#install-guides" },
+        { label: "Tools Required", href: "#install-guides" },
+        { label: "Tips & Tricks", href: "#install-guides" },
+        { label: "Common Mistakes", href: "#install-guides" },
+        { label: "Professional Services", href: "#install-guides" },
       ],
     },
   }
@@ -188,7 +185,7 @@ const Footer = () => {
               </Link>
             </div>
             <div className="ml-2 hidden text-sm text-gray-700 lg:inline">
-              &copy; {CURRENT_YEAR} Solar Technologies, Inc.
+              &copy; {CURRENT_YEAR} OpticWorks LLC
             </div>
           </div>
         </div>
