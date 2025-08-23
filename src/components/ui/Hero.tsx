@@ -5,7 +5,7 @@ import { VideoBackground } from "./VideoBackground"
 export function Hero() {
   return (
     <section aria-label="hero" className="relative min-h-screen">
-      <FadeContainer className="relative flex flex-col items-center justify-center min-h-screen px-4">
+      <FadeContainer className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
         <FadeDiv className="mx-auto">
           <a
             aria-label="View latest update the changelog page"
@@ -48,8 +48,7 @@ export function Hero() {
         </FadeDiv>
         <div className="absolute inset-0 -z-10">
           <VideoBackground 
-            videoUrl="https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
-            posterUrl="https://media.w3.org/2010/05/sintel/poster.png"
+            videoUrl="https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/demo-video.mp4"
           />
         </div>
       </FadeContainer>
