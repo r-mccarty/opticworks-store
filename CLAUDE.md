@@ -100,3 +100,40 @@ To replace with custom branding:
 2. Update imports in: Navbar.tsx, Footer.tsx, Features.tsx, ChipViz.tsx
 3. Maintain similar aspect ratios for consistent layout
 4. Use React SVGProps<SVGSVGElement> for proper typing
+
+### Video Background System (Feature Branch)
+
+This branch includes a video background implementation for the hero section:
+
+**VideoBackground Component** (`/src/components/ui/VideoBackground.tsx`):
+- Replaces the Game of Life canvas animation with video background
+- Play-on-demand functionality with overlay button
+- Comprehensive error handling and loading states
+- Graceful fallback to animated gradient background on video failure
+
+**Key Features**:
+- **Video Sources**: Accepts `videoUrl` and optional `posterUrl` props
+- **User Control**: Play button overlay that disappears after video starts
+- **Accessibility**: Proper ARIA labels and keyboard navigation
+- **Performance**: Only loads video when user initiates playback
+- **Fallback**: Blue-to-black animated gradient when video fails
+- **Responsive**: Object-cover scaling for all screen sizes
+
+**Implementation Example**:
+```tsx
+<VideoBackground 
+  videoUrl="https://your-video-cdn.com/video.mp4"
+  posterUrl="https://your-video-cdn.com/poster.jpg"
+/>
+```
+
+**Hero Section Changes**:
+- Removed `pt-56` padding that caused navbar spacing issues
+- Full-screen height with `min-h-screen` classes
+- White text with drop shadows for better contrast over video
+- Gradient overlays for improved text readability
+
+**Branch Management**:
+- Main branch: Original Game of Life animation
+- Feature branch: Video background system
+- Easy switching between implementations
