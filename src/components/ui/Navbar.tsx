@@ -4,14 +4,17 @@ import { siteConfig } from "@/app/siteConfig"
 import useScroll from "@/lib/useScroll"
 import { cx } from "@/lib/utils"
 import { RiCloseFill, RiMenuFill } from "@remixicon/react"
+import { ShoppingCartIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import React from "react"
 import { SolarLogo } from "../../../public/SolarLogo"
 import { Button } from "../Button"
+import { useCart } from "@/hooks/useCart"
 
 export function NavBar() {
   const [open, setOpen] = React.useState(false)
   const scrolled = useScroll(15)
+  const { getTotalItems } = useCart()
 
   return (
     <header
@@ -29,11 +32,11 @@ export function NavBar() {
             <SolarLogo className="w-22" />
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
-            <div className="flex items-center gap-10 font-normal">
+            <div className="flex items-center gap-10 font-bold">
               <Link className="px-2 py-1 text-gray-900" href="#products">
                 Products
               </Link>
-              <Link className="px-2 py-1 text-gray-900" href="#store">
+              <Link className="px-2 py-1 text-gray-900" href="/store">
                 Store
               </Link>
               <Link className="px-2 py-1 text-gray-900" href="#support">
@@ -44,12 +47,29 @@ export function NavBar() {
               </Link>
             </div>
           </nav>
-          <Button
-            variant="secondary"
-            className="hidden h-10 font-medium sm:block"
-          >
-            Shop Now
-          </Button>
+          <div className="hidden sm:flex items-center gap-3">
+            <Button
+              asChild
+              variant="ghost"
+              className="relative p-2"
+            >
+              <Link href="/store/cart">
+                <ShoppingCartIcon className="w-5 h-5" />
+                {getTotalItems() > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                    {getTotalItems()}
+                  </span>
+                )}
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="secondary"
+              className="h-10 font-medium"
+            >
+              <Link href="/store">Shop Now</Link>
+            </Button>
+          </div>
           <Button
             onClick={() => setOpen(!open)}
             variant="secondary"
@@ -75,12 +95,12 @@ export function NavBar() {
             open ? "" : "hidden",
           )}
         >
-          <ul className="space-y-4 font-normal">
+          <ul className="space-y-4 font-bold">
             <li onClick={() => setOpen(false)}>
               <Link href="#products">Products</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="#store">Store</Link>
+              <Link href="/store">Store</Link>
             </li>
             <li onClick={() => setOpen(false)}>
               <Link href="#support">Customer Support</Link>
@@ -89,8 +109,8 @@ export function NavBar() {
               <Link href="#install-guides">Install Guides</Link>
             </li>
           </ul>
-          <Button variant="secondary" className="text-lg">
-            Shop Now
+          <Button asChild variant="secondary" className="text-lg">
+            <Link href="/store">Shop Now</Link>
           </Button>
         </nav>
       </div>
