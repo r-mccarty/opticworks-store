@@ -8,5 +8,9 @@ export const siteConfig = {
     cart: "/store/cart",
     installGuides: "/install-guides",
     products: "/products",
+    support: "/support",
+    supportFaq: "/support/faq",
+    supportContact: "/support/contact",
+    supportWarranty: "/support/warranty",
   },
 }

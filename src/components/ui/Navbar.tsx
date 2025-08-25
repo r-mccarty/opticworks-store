@@ -39,7 +39,7 @@ export function NavBar() {
               <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/store">
                 Store
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="#support">
+              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href={siteConfig.baseLinks.support}>
                 Customer Support
               </Link>
               <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/install-guides">
@@ -103,7 +103,7 @@ export function NavBar() {
               <Link href="/store" className="hover:text-orange-600 transition-colors">Store</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="#support" className="hover:text-orange-600 transition-colors">Customer Support</Link>
+              <Link href={siteConfig.baseLinks.support} className="hover:text-orange-600 transition-colors">Customer Support</Link>
             </li>
             <li onClick={() => setOpen(false)}>
               <Link href="/install-guides" className="hover:text-orange-600 transition-colors">Install Guides</Link>
