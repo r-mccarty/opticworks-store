@@ -28,7 +28,7 @@ export function CartPage() {
   if (items.length === 0) {
     return (
       <main className="relative">
-        <FadeContainer className="relative px-6 pt-20 pb-16 lg:px-8">
+        <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
           <div className="mx-auto max-w-4xl">
             <FadeDiv className="text-center">
               <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
@@ -49,7 +49,7 @@ export function CartPage() {
 
   return (
     <main className="relative">
-      <FadeContainer className="relative px-6 pt-20 pb-16 lg:px-8">
+      <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FadeDiv>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-8">

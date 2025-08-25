@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function StorePage() {
   return (
     <main className="relative">
-      <FadeContainer className="relative px-6 pt-20 pb-16 lg:px-8">
+      <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
         <div className="mx-auto max-w-7xl">
           {/* Header */}
           <FadeDiv className="text-center mb-16">
