@@ -21,19 +21,19 @@ const highlightedTools = [
   {
     name: "3D-Printed Door Latch Tool",
     description: "Our patent-pending tool that secures your window in the perfect position and prevents accidental door closure.",
-    image: "https://via.placeholder.com/200x150/3498db/ffffff?text=Door+Latch+Tool",
+    image: "https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=200&h=150&fit=crop&crop=center",
     highlight: "Game Changer"
   },
   {
     name: "Pre-cut CyberShade IRX Film",
     description: "Precision-cut and pre-shrunk films that fit your Model Y perfectly. No measuring, no cutting, no stress.",
-    image: "https://via.placeholder.com/200x150/27ae60/ffffff?text=Pre-cut+Film",
+    image: "https://images.unsplash.com/photo-1621274790572-7c32596bc67f?w=200&h=150&fit=crop&crop=center",
     highlight: "Perfect Fit"
   },
   {
     name: "Professional Squeegee Set",
     description: "Ergonomic hard card squeegee designed specifically for bubble-free application and professional results.",
-    image: "https://via.placeholder.com/200x150/e74c3c/ffffff?text=Squeegee+Set",
+    image: "https://images.unsplash.com/photo-1606107557103-3da2b7142e4e?w=200&h=150&fit=crop&crop=center",
     highlight: "Pro Quality"
   }
 ]

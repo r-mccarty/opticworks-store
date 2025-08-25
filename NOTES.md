@@ -51,12 +51,13 @@
 - [ ] Set up Google Analytics
 - [ ] Develop returns policy and oops policy pages
 - [ ] Set up UTM tags for social campaigns
+- [ ] Add empty state illustrations (shop as for empty shopping cart)
 
 ### Bugs
 - [ ] 
 
 ### Technical Debt
-- [ ] **URGENT: Fix image serving** - Images are being proxied through Next.js instead of served directly from Cloudflare R2
+- [x] **URGENT: Fix image serving** - Images are being proxied through Next.js instead of served directly from Cloudflare R2
 
 ## Architecture Notes
 
