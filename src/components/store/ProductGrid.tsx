@@ -8,6 +8,7 @@ import { ShoppingCartIcon } from "@heroicons/react/24/outline"
 import { products } from "@/lib/products"
 import { useCart } from "@/hooks/useCart"
 import Image from "next/image"
+import Link from "next/link"
 
 export function ProductGrid() {
   const { addToCart } = useCart()
@@ -36,9 +37,11 @@ export function ProductGrid() {
             
             <CardContent className="flex-1 p-4">
               <div className="space-y-2">
-                <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
-                  {product.name}
-                </h3>
+                <Link href={`/products/${product.id}`}>
+                  <h3 className="font-semibold text-lg text-gray-900 line-clamp-2 hover:text-orange-600 transition-colors cursor-pointer">
+                    {product.name}
+                  </h3>
+                </Link>
                 <p className="text-sm text-gray-600 line-clamp-3">
                   {product.description}
                 </p>
@@ -78,25 +81,42 @@ export function ProductGrid() {
               </div>
             </CardContent>
             
-            <CardFooter className="p-4 pt-0 flex items-center justify-between">
-              <div className="flex flex-col">
-                <span className="text-2xl font-bold text-gray-900">
-                  ${product.price}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-sm text-gray-500 line-through">
-                    ${product.originalPrice}
+            <CardFooter className="p-4 pt-0 flex flex-col gap-3">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex flex-col">
+                  <span className="text-2xl font-bold text-gray-900">
+                    ${product.price}
                   </span>
+                  {product.originalPrice && (
+                    <span className="text-sm text-gray-500 line-through">
+                      ${product.originalPrice}
+                    </span>
+                  )}
+                </div>
+                {product.reviews && (
+                  <div className="text-right">
+                    <div className="flex items-center gap-1">
+                      <span className="text-sm font-medium">★{product.reviews.rating}</span>
+                      <span className="text-xs text-gray-500">({product.reviews.count})</span>
+                    </div>
+                  </div>
                 )}
               </div>
-              <Button
-                onClick={() => addToCart(product)}
-                className="flex items-center gap-2"
-                disabled={!product.inStock}
-              >
-                <ShoppingCartIcon className="w-4 h-4" />
-                {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-              </Button>
+              <div className="flex gap-2 w-full">
+                <Button asChild variant="outline" className="flex-1">
+                  <Link href={`/products/${product.id}`}>
+                    View Details
+                  </Link>
+                </Button>
+                <Button
+                  onClick={() => addToCart(product)}
+                  className="flex items-center gap-2 flex-1"
+                  disabled={!product.inStock}
+                >
+                  <ShoppingCartIcon className="w-4 h-4" />
+                  {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                </Button>
+              </div>
             </CardFooter>
           </Card>
         </FadeDiv>

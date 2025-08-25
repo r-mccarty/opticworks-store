@@ -24,9 +24,73 @@ export interface Product {
   }
   inStock: boolean
   featured?: boolean
+  variants?: Array<{
+    id: string
+    name: string
+    price: number
+    vlt: string
+    description: string
+  }>
+  reviews?: {
+    rating: number
+    count: number
+  }
+  installGuide?: string
 }
 
 export const products: Product[] = [
+  // Featured CyberShade IRX Tesla Model Y Kit
+  {
+    id: 'cybershade-irx-tesla-model-y',
+    name: 'CyberShade IRX™ Tesla Model Y Kit (2025+ Juniper)',
+    description: 'Professional tint. Foolproof DIY. Get a flawless, heat-blocking ceramic tint on your Model Y front windows in under an hour. Complete all-in-one kit with precision pre-cut film and revolutionary installation tools.',
+    price: 149.99,
+    image: 'https://via.placeholder.com/400x400/3498db/ffffff?text=CyberShade+IRX+Tesla+Kit',
+    // TODO: Replace with R2 URL when uploaded:
+    // image: 'https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/products/cybershade-irx-tesla-model-y.jpg',
+    category: 'kit',
+    badge: 'Featured',
+    specifications: {
+      vlt: '35% (Recommended)',
+      thickness: '1.5 mil',
+      heatRejection: 'Up to 99% IR',
+      uvRejection: '99%',
+      warranty: 'Lifetime',
+      coverage: 'Front windows only',
+      difficulty: 'Beginner'
+    },
+    variants: [
+      {
+        id: 'cybershade-irx-tesla-35',
+        name: '35% VLT - Recommended',
+        price: 149.99,
+        vlt: '35%',
+        description: 'Perfect balance of visibility and heat rejection. Legal in most states.'
+      },
+      {
+        id: 'cybershade-irx-tesla-15',
+        name: '15% VLT - Dark',
+        price: 149.99,
+        vlt: '15%',
+        description: 'Maximum privacy and heat rejection. Check local laws.'
+      },
+      {
+        id: 'cybershade-irx-tesla-5',
+        name: '5% VLT - Limo',
+        price: 149.99,
+        vlt: '5%',
+        description: 'Ultimate privacy. Professional appearance. Verify legality.'
+      }
+    ],
+    reviews: {
+      rating: 4.9,
+      count: 124
+    },
+    installGuide: '/install-guides/cybershade-irx-tesla-model-y',
+    inStock: true,
+    featured: true
+  },
+  
   // Premium Films
   {
     id: 'cybershade-irx-35',

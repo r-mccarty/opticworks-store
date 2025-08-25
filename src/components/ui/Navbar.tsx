@@ -33,16 +33,16 @@ export function NavBar() {
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
             <div className="flex items-center gap-10 font-bold">
-              <Link className="px-2 py-1 text-gray-900" href="#products">
+              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/products">
                 Products
               </Link>
-              <Link className="px-2 py-1 text-gray-900" href="/store">
+              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/store">
                 Store
               </Link>
-              <Link className="px-2 py-1 text-gray-900" href="#support">
+              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="#support">
                 Customer Support
               </Link>
-              <Link className="px-2 py-1 text-gray-900" href="#install-guides">
+              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/install-guides">
                 Install Guides
               </Link>
             </div>
@@ -97,16 +97,16 @@ export function NavBar() {
         >
           <ul className="space-y-4 font-bold">
             <li onClick={() => setOpen(false)}>
-              <Link href="#products">Products</Link>
+              <Link href="/products" className="hover:text-orange-600 transition-colors">Products</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="/store">Store</Link>
+              <Link href="/store" className="hover:text-orange-600 transition-colors">Store</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="#support">Customer Support</Link>
+              <Link href="#support" className="hover:text-orange-600 transition-colors">Customer Support</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="#install-guides">Install Guides</Link>
+              <Link href="/install-guides" className="hover:text-orange-600 transition-colors">Install Guides</Link>
             </li>
           </ul>
           <Button asChild variant="secondary" className="text-lg">

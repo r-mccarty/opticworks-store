@@ -1,8 +1,12 @@
 export const siteConfig = {
-  name: "Solar Technologies",
-  url: "https://solar.tremor.so",
-  description: "Automation for every Farm.",
+  name: "OpticWorks Window Tinting",
+  url: "https://opticworks.com",
+  description: "Professional-grade DIY window tinting kits and installation solutions. Transform your vehicle with precision-cut ceramic films and foolproof installation tools.",
   baseLinks: {
     home: "/",
+    store: "/store",
+    cart: "/store/cart",
+    installGuides: "/install-guides",
+    products: "/products",
   },
 }
