@@ -28,7 +28,7 @@ const supportCategories = [
     title: "Order & Shipping Questions",
     description: "Track your order, shipping info, and delivery questions",
     icon: RiShoppingBag3Line,
-    href: "/support/contact?category=orders",
+    href: siteConfig.baseLinks.supportOrders,
     color: "bg-green-50 text-green-600"
   },
   {
@@ -50,14 +50,14 @@ const supportCategories = [
     title: "Payment & Billing Support",
     description: "Payment issues, billing questions, and refund requests",
     icon: RiBankCardLine,
-    href: "/support/contact?category=billing",
+    href: siteConfig.baseLinks.supportBilling,
     color: "bg-purple-50 text-purple-600"
   },
   {
     title: "Product Compatibility",
     description: "Check if our kits work with your vehicle make and model",
     icon: RiCarLine,
-    href: "/support/contact?category=compatibility",
+    href: siteConfig.baseLinks.supportCompatibility,
     color: "bg-indigo-50 text-indigo-600"
   },
   {

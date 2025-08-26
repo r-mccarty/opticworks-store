@@ -17,5 +17,8 @@ export const siteConfig = {
     supportTintingLaws: "/support/legal/tinting-laws",
     supportPrivacy: "/support/legal/privacy",
     supportTerms: "/support/legal/terms",
+    supportOrders: "/support/orders",
+    supportBilling: "/support/billing",
+    supportCompatibility: "/support/compatibility",
   },
 }
