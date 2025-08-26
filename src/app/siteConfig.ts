@@ -13,5 +13,9 @@ export const siteConfig = {
     supportContact: "/support/contact",
     supportWarranty: "/support/warranty",
     supportOops: "/support/oops",
+    supportLegal: "/support/legal",
+    supportTintingLaws: "/support/legal/tinting-laws",
+    supportPrivacy: "/support/legal/privacy",
+    supportTerms: "/support/legal/terms",
   },
 }

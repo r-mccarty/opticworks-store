@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+**OpticWorks Window Tinting E-commerce Platform** - A comprehensive DIY window tinting solution specializing in Tesla and automotive applications. This is a full-featured e-commerce platform, not just a marketing website template.
+
+**Business Context:**
+- **Target Market**: Tesla owners, automotive enthusiasts, DIY installers
+- **Products**: Pre-cut ceramic tinting films, installation kits, professional tools
+- **USP**: "Foolproof DIY" - Professional results with guided installation system
+- **Key Features**: State-specific tinting law compliance, Tesla Model Y specialization, comprehensive support system
+
 ## Development Commands
 
 This is a Next.js 15 project with TypeScript. Use pnpm as the package manager.
@@ -23,59 +33,281 @@ pnpm run start
 pnpm run lint
 ```
 
+## Complete Tech Stack
+
+### Core Framework
+- **Framework**: Next.js 15.5.0 with App Router
+- **Runtime**: React 19.1.1 
+- **Language**: TypeScript 5.9.2
+- **Package Manager**: pnpm
+
+### Styling & UI System
+- **CSS Framework**: Tailwind CSS 4.1.12 (stable release)
+- **UI Components**: Hybrid system combining:
+  - **Shadcn/ui**: 10 modern, accessible base components
+  - **Custom Tremor-inspired**: 16 business-specific components
+- **Component Variants**: class-variance-authority (cva)
+- **Utility Functions**: clsx + tailwind-merge
+- **Animations**: Motion 12.23.12
+
+### UI Primitives & Forms
+- **Base Primitives**: Radix UI components (@radix-ui/react-*)
+- **Form Handling**: React Hook Form 7.62.0
+- **Validation**: Zod 4.1.0
+- **Form Components**: Shadcn form primitives with custom styling
+
+### State Management
+- **Global State**: Zustand 5.0.8 with persistence middleware
+- **Cart Management**: Persistent shopping cart with local storage
+- **Support System**: Ticket management and form state
+
+### Icons & Typography
+- **Icon Libraries**: Remix Icons (@remixicon/react), Heroicons, Lucide React
+- **Typography**: Four custom font families via next/font/local:
+  - Barlow (headings): 400, 500, 700 weights
+  - Colfax (body): Regular, Medium weights
+  - Feature (display): Headline, Condensed variants
+- **Font System**: CSS variables with fallbacks
+
+### Build & Development
+- **Bundler**: Next.js built-in (Turbopack in dev)
+- **Linting**: ESLint with Next.js config
+- **Code Formatting**: Prettier with Tailwind plugin
+- **TypeScript**: Strict mode enabled
+
 ## Architecture Overview
 
-This is an OpticWorks technology marketing website template built with:
+### Site Structure (16 Pages)
 
-- **Framework**: Next.js 15.5.0 with App Router
-- **Runtime**: React 19.1.1
-- **Language**: TypeScript 5.9.2
-- **Styling**: Tailwind CSS v4.1.12 (stable) + custom CSS variables
-- **UI Components**: Custom components inspired by Tremor design system
-- **Animations**: Motion library 12.23.12 for smooth animations
-- **Icons**: Remix Icons (@remixicon/react)
-- **Typography**: Multiple custom fonts (Barlow, Colfax, Feature family)
+**Core E-commerce Flow:**
+- `/` - Landing page with hero, features, social proof
+- `/products` - Product catalog with filtering
+- `/products/[slug]` - Dynamic product detail pages (11 products)
+- `/store` - E-commerce storefront
+- `/store/cart` - Shopping cart with Zustand state
 
-### Key Architecture Patterns
+**Support & Education:**
+- `/install-guides` - Installation tutorial hub
+- `/install-guides/cybershade-irx-tesla-model-y` - Tesla-specific guide
+- `/support` - Customer support dashboard
+- `/support/faq` - FAQ system with search/filtering
+- `/support/contact` - Contact form with file upload
+- `/support/warranty` - Warranty claim processing
+- `/support/oops` - Oops Protection policy ($15 replacement program)
 
-**Component Structure:**
-- `/src/components/` - Reusable components (Button, Icons, etc.)
-- `/src/components/ui/` - Page-specific UI components (Hero, Features, etc.)
-- Components use Tremor-inspired design patterns with `tailwind-variants` for styling
+**Legal & Compliance:**
+- `/support/legal` - Legal hub page
+- `/support/legal/tinting-laws` - Interactive state-by-state tinting law checker
+- `/support/legal/privacy` - GDPR/CCPA compliant privacy policy  
+- `/support/legal/terms` - Comprehensive terms of service
 
-**Font System:**
-- Four custom font families loaded via `next/font/local`
-- CSS variables: `--font-barlow`, `--font-colfax`, `--font-feature`, `--font-feature-condensed`
-- Default body font is Colfax (`font-colfax` class)
+### Component Architecture
 
-**Styling Approach:**
-- Tailwind CSS with custom utilities in `/src/lib/utils.ts`
-- `cx()` function combines `clsx` and `tailwind-merge` for conditional classes
-- Predefined focus ring and input styling utilities
-- Custom color scheme with orange accent colors
+**Hybrid UI System (26 components in /src/components/ui/):**
 
-**Page Layout:**
-- Root layout (`/src/app/layout.tsx`) includes global navigation and footer
-- Main page (`/src/app/page.tsx`) is sectioned into distinct components:
-  - Hero with animated background
-  - Features showcase
-  - Testimonials
-  - Interactive map
-  - Solar analytics dashboard
-  - Call-to-action
+**Shadcn/ui Components (10):** Modern, accessible primitives
+- `button.tsx` - cva-based button variants with focus management
+- `card.tsx` - Flexible card container with slots
+- `form.tsx` - React Hook Form integration with Zod validation
+- `input.tsx`, `textarea.tsx`, `label.tsx` - Form input primitives
+- `select.tsx` - Radix Select with custom styling
+- `dialog.tsx` - Modal dialogs with Radix Dialog
+- `badge.tsx` - Status and category badges
+- `separator.tsx`, `collapsible.tsx` - Layout utilities
 
-**Configuration:**
-- Site metadata and URLs centralized in `/src/app/siteConfig.ts`
-- Tailwind config is minimal (v4 stable uses mostly defaults)
+**Custom Tremor-inspired Components (16):** Business-specific UI
+- **Layout**: `Navbar.tsx`, `Footer.tsx`, `Hero.tsx`, `VideoBackground.tsx`
+- **Marketing**: `Features.tsx`, `CallToAction.tsx`, `Testimonial.tsx`
+- **Business Logic**: `AnalyticsIllustration.tsx`, `ChipViz.tsx`, `SolarAnalytics.tsx`
+- **Interactive**: `Map/` directory with SVG map components
 
-### Component Conventions
+**Domain Components:** Specialized business logic components
+- **Products** (`/src/components/products/`): 7 components for product pages
+- **Store** (`/src/components/store/`): Cart and product grid components  
+- **Support** (`/src/components/support/`): 9 components for customer service
 
-- Use `FadeContainer`, `FadeDiv`, `FadeSpan` from `@/components/Fade` for animations
-- Button variants follow Tremor patterns with `tailwind-variants`
-- SVG icons are typically from Remix Icons or custom React components
-- Custom fonts should use the established CSS variable system
+### Data Layer & Business Logic
 
-## Branch Management
+**Product Management:**
+- **Interface**: `Product` with variants, specifications, pricing
+- **Catalog**: 11 products across film/kit/tool/accessory categories
+- **Features**: VLT percentages, heat rejection, warranty info, Tesla compatibility
+- **Images**: Unsplash integration with Cloudflare R2 CDN ready
 
-- Main branch: Original Game of Life animation
-- Feature branch: Video background system
+**E-commerce Flow:**
+- **Cart**: Zustand store with persistence, quantity management
+- **Checkout**: Stripe integration ready (stubs in place)
+- **Inventory**: Stock level tracking, availability management
+
+**Support System:**
+- **FAQ Database**: Categorized questions with search functionality
+- **Ticket Management**: Contact forms, warranty claims, file uploads
+- **State Management**: Support ticket tracking with Zustand
+
+**Legal Compliance:**
+- **Tinting Laws API**: State-by-state VLT requirements with compliance checking
+- **Data Structure**: Complete `TintingLaw` interface with penalties, restrictions
+- **Privacy**: GDPR/CCPA compliant data handling documentation
+
+### Utility System & Patterns
+
+**Styling Utilities:**
+```typescript
+// Shadcn pattern - used in form components
+import { cn } from "@/lib/utils" // clsx + tailwind-merge
+
+// Tremor pattern - used in custom components  
+import { cx } from "@/lib/utils" // alias for cn function
+
+// Focus management utilities
+import { focusInput, focusRing, hasErrorInput } from "@/lib/utils"
+```
+
+**Component Patterns:**
+- **Shadcn Components**: Use `cn()`, Radix primitives, cva for variants
+- **Custom Components**: Use `cx()`, Motion animations, custom styling
+- **Animations**: `FadeContainer`, `FadeDiv`, `FadeSpan` from `@/components/Fade`
+
+**State Patterns:**
+```typescript
+// Cart management (Zustand)
+const { addToCart, items, getTotalPrice } = useCartStore()
+
+// Support tickets (Zustand)  
+const { submitTicket, tickets } = useSupportStore()
+```
+
+## Configuration & Setup
+
+### Next.js Configuration
+```typescript
+// next.config.ts
+- Image optimization for Unsplash, Cloudflare R2, placeholders
+- Remote patterns for external image sources
+- Production-ready build configuration
+```
+
+### Tailwind Configuration
+```javascript
+// tailwind.config.js - Minimal v4 setup
+- Content paths for all TypeScript/JSX files
+- No custom theme (using v4 defaults)
+- Form plugin integration (@tailwindcss/forms)
+```
+
+### Site Configuration
+```typescript
+// src/app/siteConfig.ts - Centralized configuration
+- Site metadata and SEO settings
+- All internal route definitions (20+ routes)
+- Consistent linking across components
+```
+
+## Development Workflow & Best Practices
+
+### Component Development
+1. **Choose UI Pattern**: Shadcn for primitives/forms, custom for business logic
+2. **Styling**: Use `cn()` for Shadcn components, `cx()` for custom components
+3. **Animations**: Apply Fade components for page transitions
+4. **TypeScript**: Strict typing with proper interfaces
+5. **Accessibility**: Leverage Radix primitives for keyboard/screen reader support
+
+### Form Handling
+```typescript
+// Standard pattern with Shadcn + React Hook Form + Zod
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { Form, FormField, FormItem } from "@/components/ui/form"
+
+// Validation schema
+const schema = z.object({
+  email: z.string().email(),
+  message: z.string().min(10)
+})
+```
+
+### State Management
+```typescript
+// Zustand pattern with persistence
+interface Store {
+  items: Item[]
+  addItem: (item: Item) => void
+}
+
+export const useStore = create<Store>()(
+  persist(
+    (set) => ({
+      items: [],
+      addItem: (item) => set((state) => ({ 
+        items: [...state.items, item] 
+      }))
+    }),
+    { name: 'store-name' }
+  )
+)
+```
+
+### Image Handling
+- **Development**: Unsplash images with Next.js Image optimization
+- **Production Ready**: Cloudflare R2 CDN configuration
+- **Formats**: WebP/AVIF optimization via Next.js Image component
+- **Responsive**: Multiple breakpoints with proper sizing
+
+### Build Process
+- **Pages**: 16 static pages + dynamic product pages
+- **Build Size**: Optimized bundle splitting with Next.js
+- **Performance**: Motion animations, image optimization, font loading
+- **SEO**: Proper metadata, Open Graph, structured data ready
+
+## API Integration & Future Roadmap
+
+### Current API Layer (Stubs)
+```typescript
+// src/lib/api/ - Ready for Supabase integration
+- tintingLaws.ts: State law database with compliance checking
+- Future: Support tickets, user management, inventory
+```
+
+### Planned Integrations
+1. **Supabase Backend**: Database, authentication, real-time features
+2. **Stripe Payments**: Checkout flow, subscription management
+3. **Email System**: React Email + Resend for transactional emails
+4. **Analytics**: Google Analytics, conversion tracking
+5. **CRM Integration**: Customer support ticket system
+
+### Deployment Configuration
+- **Vercel Ready**: Optimized for Vercel deployment
+- **Environment Variables**: Configured for API keys, database URLs
+- **Performance**: Edge functions, ISR for product pages
+- **Monitoring**: Error tracking and performance monitoring setup
+
+## Component Conventions & Standards
+
+### File Organization
+```
+src/
+├── app/                    # Next.js app router pages
+├── components/
+│   ├── ui/                # Shadcn + custom UI components
+│   ├── products/          # Product-specific components  
+│   ├── support/           # Support system components
+│   └── store/             # E-commerce components
+├── lib/
+│   ├── api/               # API layer and integrations
+│   └── utils.ts           # Utility functions
+└── hooks/                 # Custom React hooks
+```
+
+### Naming Conventions
+- **Components**: PascalCase (`ProductGrid.tsx`)
+- **Hooks**: camelCase with `use` prefix (`useCartStore.ts`)
+- **Utilities**: camelCase (`siteConfig.ts`)
+- **API**: camelCase with descriptive names (`tintingLaws.ts`)
+
+### Code Standards
+- **TypeScript**: Strict mode, proper interface definitions
+- **ESLint**: Next.js configuration with accessibility rules
+- **Prettier**: Tailwind plugin for class sorting
+- **Comments**: Minimal comments, self-documenting code preferred
+
+This documentation reflects the current state of a sophisticated, production-ready e-commerce platform with comprehensive business logic, legal compliance, and modern development practices.

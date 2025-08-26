@@ -55,6 +55,15 @@ const Footer = () => {
         { label: "Get Help", href: siteConfig.baseLinks.support },
       ],
     },
+    legal: {
+      title: "Legal & Compliance",
+      items: [
+        { label: "Tinting Laws", href: siteConfig.baseLinks.supportTintingLaws },
+        { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
+        { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
+        { label: "Legal Support", href: siteConfig.baseLinks.supportLegal },
+      ],
+    },
   }
 
   return (
@@ -185,6 +194,21 @@ const Footer = () => {
             </div>
             <div className="ml-2 hidden text-sm text-gray-700 lg:inline">
               &copy; {CURRENT_YEAR} OpticWorks LLC
+            </div>
+            <div className="ml-2 mt-2 text-xs text-gray-600 lg:inline lg:block">
+              <Link 
+                href={siteConfig.baseLinks.supportPrivacy}
+                className="hover:text-gray-900 transition-colors"
+              >
+                Privacy Policy
+              </Link>
+              {" • "}
+              <Link 
+                href={siteConfig.baseLinks.supportTerms}
+                className="hover:text-gray-900 transition-colors"
+              >
+                Terms of Service
+              </Link>
             </div>
           </div>
         </div>
