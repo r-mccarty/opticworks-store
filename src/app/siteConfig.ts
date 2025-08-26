@@ -12,5 +12,6 @@ export const siteConfig = {
     supportFaq: "/support/faq",
     supportContact: "/support/contact",
     supportWarranty: "/support/warranty",
+    supportOops: "/support/oops",
   },
 }

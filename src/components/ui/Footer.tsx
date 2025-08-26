@@ -6,6 +6,7 @@ import {
 } from "@remixicon/react"
 import Link from "next/link"
 import { SolarLogo } from "../../../public/SolarLogo"
+import { siteConfig } from "@/app/siteConfig"
 const CURRENT_YEAR = new Date().getFullYear()
 
 const Footer = () => {
@@ -13,45 +14,45 @@ const Footer = () => {
     products: {
       title: "Products",
       items: [
-        { label: "CyberShade IRX", href: "#products" },
-        { label: "Tesla Model Y Kits", href: "#products" },
-        { label: "DIY Tinting Kits", href: "#products" },
-        { label: "Professional Tools", href: "#products" },
-        { label: "Accessories", href: "#products" },
-        { label: "Replacement Parts", href: "#products" },
+        { label: "CyberShade IRX", href: "/products/cybershade-irx-35" },
+        { label: "Tesla Model Y Kits", href: "/products/cybershade-irx-tesla-model-y" },
+        { label: "DIY Tinting Kits", href: siteConfig.baseLinks.store },
+        { label: "Professional Tools", href: siteConfig.baseLinks.store },
+        { label: "Accessories", href: siteConfig.baseLinks.store },
+        { label: "Replacement Parts", href: siteConfig.baseLinks.store },
       ],
     },
     store: {
       title: "Store",
       items: [
-        { label: "Shop All Products", href: "#store" },
-        { label: "New Arrivals", href: "#store" },
-        { label: "Best Sellers", href: "#store" },
-        { label: "Bundles & Deals", href: "#store" },
-        { label: "Gift Cards", href: "#store" },
+        { label: "Shop All Products", href: siteConfig.baseLinks.store },
+        { label: "New Arrivals", href: siteConfig.baseLinks.store },
+        { label: "Best Sellers", href: siteConfig.baseLinks.store },
+        { label: "Bundles & Deals", href: siteConfig.baseLinks.store },
+        { label: "Shopping Cart", href: siteConfig.baseLinks.cart },
       ],
     },
     support: {
       title: "Customer Support",
       items: [
-        { label: "Contact Us", href: "#support" },
-        { label: "Live Chat", href: "#support" },
-        { label: "Order Status", href: "#support" },
-        { label: "Returns & Exchanges", href: "#support" },
-        { label: "Warranty Claims", href: "#support" },
-        { label: "FAQ", href: "#support" },
-        { label: "Troubleshooting", href: "#support" },
+        { label: "Contact Us", href: siteConfig.baseLinks.supportContact },
+        { label: "Live Chat", href: siteConfig.baseLinks.supportContact },
+        { label: "Order Status", href: siteConfig.baseLinks.supportContact },
+        { label: "Returns & Exchanges", href: siteConfig.baseLinks.supportWarranty },
+        { label: "Warranty Claims", href: siteConfig.baseLinks.supportWarranty },
+        { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
+        { label: "Oops Protection", href: siteConfig.baseLinks.supportOops },
       ],
     },
     guides: {
       title: "Install Guides",
       items: [
-        { label: "Installation Videos", href: "#install-guides" },
-        { label: "Step-by-Step Guide", href: "#install-guides" },
-        { label: "Tools Required", href: "#install-guides" },
-        { label: "Tips & Tricks", href: "#install-guides" },
-        { label: "Common Mistakes", href: "#install-guides" },
-        { label: "Professional Services", href: "#install-guides" },
+        { label: "Installation Videos", href: siteConfig.baseLinks.installGuides },
+        { label: "Tesla Model Y Guide", href: "/install-guides/cybershade-irx-tesla-model-y" },
+        { label: "Step-by-Step Guide", href: siteConfig.baseLinks.installGuides },
+        { label: "Tips & Tricks", href: siteConfig.baseLinks.installGuides },
+        { label: "Common Mistakes", href: siteConfig.baseLinks.supportFaq },
+        { label: "Get Help", href: siteConfig.baseLinks.support },
       ],
     },
   }
@@ -152,7 +153,7 @@ const Footer = () => {
             <div className="mt-4 flex items-center">
               {/* Social Icons */}
               <Link
-                href="#"
+                href="https://twitter.com/opticworks"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
@@ -160,7 +161,7 @@ const Footer = () => {
                 <RiTwitterXFill className="size-5" />
               </Link>
               <Link
-                href="#"
+                href="https://youtube.com/@opticworks"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
@@ -168,7 +169,7 @@ const Footer = () => {
                 <RiYoutubeFill className="size-5" />
               </Link>
               <Link
-                href="#"
+                href="https://github.com/opticworks"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
@@ -176,9 +177,7 @@ const Footer = () => {
                 <RiGithubFill className="size-5" />
               </Link>
               <Link
-                href="#"
-                target="_blank"
-                rel="noopener noreferrer"
+                href={siteConfig.baseLinks.supportContact}
                 className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
               >
                 <RiSlackFill className="size-5" />

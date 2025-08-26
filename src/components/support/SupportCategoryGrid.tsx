@@ -39,6 +39,14 @@ const supportCategories = [
     color: "bg-orange-50 text-orange-600"
   },
   {
+    title: "Oops Protection",
+    description: "Damaged film during install? Get a replacement for just shipping cost",
+    icon: RiRefreshLine,
+    href: siteConfig.baseLinks.supportOops,
+    color: "bg-emerald-50 text-emerald-600",
+    popular: true
+  },
+  {
     title: "Payment & Billing Support",
     description: "Payment issues, billing questions, and refund requests",
     icon: RiBankCardLine,
