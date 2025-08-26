@@ -27,7 +27,7 @@ export default function TermsOfServicePage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-20 pb-16">
+      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
@@ -350,7 +350,6 @@ export default function TermsOfServicePage() {
                   <div className="space-y-2 text-sm text-gray-600 mb-6">
                     <p><strong>Email:</strong> legal@opticworks.com</p>
                     <p><strong>Mail:</strong> OpticWorks LLC, Legal Department, [Address]</p>
-                    <p><strong>Phone:</strong> 1-800-OPTIC-WORKS</p>
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">

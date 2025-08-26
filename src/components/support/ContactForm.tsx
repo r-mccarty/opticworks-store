@@ -45,7 +45,6 @@ const categories = [
   { value: "billing", label: "Payment & Billing" },
   { value: "compatibility", label: "Product Compatibility" },
   { value: "returns", label: "Returns & Refunds" },
-  { value: "live", label: "Request Live Chat" },
   { value: "other", label: "Other" },
 ]
 

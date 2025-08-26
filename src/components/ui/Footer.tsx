@@ -36,10 +36,10 @@ const Footer = () => {
       title: "Customer Support",
       items: [
         { label: "Contact Us", href: siteConfig.baseLinks.supportContact },
-        { label: "Live Chat", href: siteConfig.baseLinks.supportContact },
-        { label: "Order Status", href: siteConfig.baseLinks.supportContact },
+        { label: "Order Status", href: siteConfig.baseLinks.supportOrders },
+        { label: "Payment & Billing", href: siteConfig.baseLinks.supportBilling },
+        { label: "Product Compatibility", href: siteConfig.baseLinks.supportCompatibility },
         { label: "Returns & Exchanges", href: siteConfig.baseLinks.supportWarranty },
-        { label: "Warranty Claims", href: siteConfig.baseLinks.supportWarranty },
         { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
         { label: "Oops Protection", href: siteConfig.baseLinks.supportOops },
       ],

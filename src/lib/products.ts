@@ -1,8 +1,10 @@
 // PRODUCT IMAGES STATUS:
-// - Currently using placeholder.com URLs for immediate functionality
-// - TODO: Upload real product images to R2 and replace URLs
+// - Using gradient placeholders for consistent layout testing
+// - TODO: Upload real product images to R2 and replace with actual URLs
 // - See R2-PRODUCT-IMAGES.md for upload guide and commands
 // - R2 base URL: https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/products/
+
+import { getProductImage } from './gradients'
 
 export interface Product {
   id: string
@@ -45,7 +47,7 @@ export const products: Product[] = [
     name: 'CyberShade IRX™ Tesla Model Y Kit (2025+ Juniper)',
     description: 'Professional tint. Foolproof DIY. Get a flawless, heat-blocking ceramic tint on your Model Y front windows in under an hour. Complete all-in-one kit with precision pre-cut film and revolutionary installation tools.',
     price: 149.99,
-    image: 'https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('cybershade-irx-tesla-model-y'),
     // TODO: Replace with R2 URL when uploaded:
     // image: 'https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/products/cybershade-irx-tesla-model-y.jpg',
     category: 'kit',
@@ -98,7 +100,7 @@ export const products: Product[] = [
     description: 'Our flagship ceramic window film with superior heat rejection and crystal-clear optics. Perfect for year-round comfort.',
     price: 189,
     originalPrice: 229,
-    image: 'https://images.unsplash.com/photo-1609521263047-f8f205293f24?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('cybershade-irx-35'),
     // TODO: Replace with R2 URL when uploaded:
     // image: 'https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/products/cybershade-irx-35.jpg',
     category: 'film',
@@ -119,7 +121,7 @@ export const products: Product[] = [
     name: 'CyberShade IRX 20% VLT',
     description: 'Darker ceramic film for maximum privacy and heat rejection. Professional-grade performance.',
     price: 199,
-    image: 'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('cybershade-irx-20'),
     category: 'film',
     specifications: {
       vlt: '20%',
@@ -140,7 +142,7 @@ export const products: Product[] = [
     description: 'Pre-cut window tinting kit specifically designed for Tesla Model Y. Includes all side and rear windows.',
     price: 299,
     originalPrice: 349,
-    image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('pro-squeegee'),
     category: 'kit',
     badge: 'New',
     specifications: {
@@ -159,7 +161,7 @@ export const products: Product[] = [
     name: 'Tesla Model 3 Complete Kit',
     description: 'Perfect-fit pre-cut kit for Tesla Model 3. Premium ceramic film with professional results.',
     price: 279,
-    image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('installation-gel'),
     category: 'kit',
     specifications: {
       vlt: '35% or 20%',
@@ -178,7 +180,7 @@ export const products: Product[] = [
     name: 'DIY Beginner Tinting Kit',
     description: 'Everything you need to start tinting. Includes tools, film, and detailed installation guide.',
     price: 149,
-    image: 'https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('heat-gun'),
     category: 'kit',
     specifications: {
       vlt: '35%',
@@ -196,7 +198,7 @@ export const products: Product[] = [
     name: 'DIY Professional Kit',
     description: 'Advanced DIY kit with premium ceramic film and professional-grade tools for experienced installers.',
     price: 399,
-    image: 'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('cutting-knife'),
     category: 'kit',
     badge: 'Pro Choice',
     specifications: {
@@ -217,7 +219,7 @@ export const products: Product[] = [
     name: 'Precision Squeegee Set',
     description: 'Professional-grade squeegees for bubble-free installation. Set of 4 different sizes.',
     price: 59,
-    image: 'https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('microfiber-cloth'),
     category: 'tool',
     specifications: {
       warranty: '2 years'
@@ -229,7 +231,7 @@ export const products: Product[] = [
     name: 'Professional Heat Gun',
     description: 'Variable temperature heat gun for film shaping and activation. Essential for professional results.',
     price: 129,
-    image: 'https://images.unsplash.com/photo-1606107557103-3da2b7142e4e?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('spray-bottle'),
     category: 'tool',
     specifications: {
       warranty: '3 years'
@@ -243,7 +245,7 @@ export const products: Product[] = [
     name: 'Premium Slip Solution',
     description: 'Professional-grade installation solution for smooth film application and easy positioning.',
     price: 29,
-    image: 'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('application-cards'),
     category: 'accessory',
     specifications: {
       coverage: '50 installations'
@@ -255,7 +257,7 @@ export const products: Product[] = [
     name: 'Precision Cutting Blades',
     description: 'Ultra-sharp replacement blades for clean, precise cuts. Pack of 10.',
     price: 19,
-    image: 'https://images.unsplash.com/photo-1609081219090-a6d81d3085bf?w=400&h=400&fit=crop&crop=center',
+    image: getProductImage('edge-sealing-pen'),
     category: 'accessory',
     specifications: {},
     inStock: true

@@ -6,7 +6,6 @@ import {
   RiRefreshLine, 
   RiBankCardLine,
   RiCarLine,
-  RiCustomerService2Line,
   RiQuestionLine,
   RiFileTextLine
 } from "@remixicon/react"
@@ -61,13 +60,6 @@ const supportCategories = [
     color: "bg-indigo-50 text-indigo-600"
   },
   {
-    title: "Live Chat & Phone Support",
-    description: "Speak directly with our tinting experts for immediate help",
-    icon: RiCustomerService2Line,
-    href: "/support/contact?category=live",
-    color: "bg-red-50 text-red-600"
-  },
-  {
     title: "Frequently Asked Questions",
     description: "Quick answers to the most common questions",
     icon: RiQuestionLine,
@@ -86,7 +78,7 @@ const supportCategories = [
 
 export function SupportCategoryGrid() {
   return (
-    <section className="py-24 sm:py-32">
+    <section className="py-16">
       <FadeContainer className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <FadeDiv>
           <div className="text-center">
@@ -99,7 +91,7 @@ export function SupportCategoryGrid() {
           </div>
         </FadeDiv>
 
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-2 xl:grid-cols-4">
+        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-2 xl:grid-cols-3">
           {supportCategories.map((category) => (
             <FadeDiv key={category.title}>
               <div className="group relative">
@@ -144,29 +136,6 @@ export function SupportCategoryGrid() {
           ))}
         </div>
 
-        {/* Additional Help Section */}
-        <FadeDiv>
-          <div className="mt-20 rounded-2xl bg-gradient-to-r from-orange-50 to-orange-100 p-8 text-center">
-            <h3 className="text-xl font-semibold text-gray-900">
-              Still need help?
-            </h3>
-            <p className="mt-2 text-gray-600">
-              Our tinting experts are standing by to help with any question
-            </p>
-            <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Button asChild className="bg-orange-600 hover:bg-orange-700">
-                <Link href={siteConfig.baseLinks.supportContact}>
-                  Contact Support
-                </Link>
-              </Button>
-              <Button asChild variant="outline">
-                <Link href={siteConfig.baseLinks.supportFaq}>
-                  Browse FAQ
-                </Link>
-              </Button>
-            </div>
-          </div>
-        </FadeDiv>
       </FadeContainer>
     </section>
   )

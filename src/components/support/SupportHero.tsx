@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { RiSearchLine, RiPhoneLine, RiMailLine } from "@remixicon/react"
+import { RiSearchLine, RiMailLine, RiCustomerService2Line } from "@remixicon/react"
 import { FadeContainer, FadeDiv } from "../Fade"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
@@ -20,7 +20,7 @@ export function SupportHero() {
   }
 
   return (
-    <section className="relative bg-gradient-to-br from-orange-50 via-white to-orange-50 py-24 sm:py-32">
+    <section className="relative bg-gradient-to-br from-orange-50 via-white to-orange-50 pt-24 pb-16">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(251,146,60,0.1),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(251,146,60,0.05),transparent_50%)]" />
       
@@ -71,28 +71,6 @@ export function SupportHero() {
               <div className="group relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-all duration-200">
                 <div>
                   <span className="inline-flex rounded-lg bg-orange-50 p-3 ring-4 ring-white">
-                    <RiPhoneLine className="h-6 w-6 text-orange-600" />
-                  </span>
-                </div>
-                <div className="mt-4">
-                  <h3 className="text-base font-semibold leading-7 text-gray-900">
-                    Call Us
-                  </h3>
-                  <p className="mt-2 text-sm leading-6 text-gray-600">
-                    Speak with a tinting expert
-                  </p>
-                  <p className="mt-2 text-lg font-semibold text-orange-600">
-                    1-800-TINT-PRO
-                  </p>
-                  <p className="text-xs text-gray-500">
-                    Mon-Fri 8AM-6PM PST
-                  </p>
-                </div>
-              </div>
-
-              <div className="group relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-all duration-200">
-                <div>
-                  <span className="inline-flex rounded-lg bg-orange-50 p-3 ring-4 ring-white">
                     <RiMailLine className="h-6 w-6 text-orange-600" />
                   </span>
                 </div>
@@ -110,6 +88,30 @@ export function SupportHero() {
                   </Button>
                   <p className="text-xs text-gray-500 mt-2">
                     Response within 2 hours
+                  </p>
+                </div>
+              </div>
+
+              <div className="group relative rounded-2xl bg-white p-6 shadow-sm ring-1 ring-gray-200 hover:shadow-md transition-all duration-200">
+                <div>
+                  <span className="inline-flex rounded-lg bg-orange-50 p-3 ring-4 ring-white">
+                    <RiCustomerService2Line className="h-6 w-6 text-orange-600" />
+                  </span>
+                </div>
+                <div className="mt-4">
+                  <h3 className="text-base font-semibold leading-7 text-gray-900">
+                    Self-Service Tools
+                  </h3>
+                  <p className="mt-2 text-sm leading-6 text-gray-600">
+                    Track orders, check compatibility, manage billing
+                  </p>
+                  <Button asChild variant="outline" className="mt-3">
+                    <Link href={siteConfig.baseLinks.support}>
+                      Browse Tools
+                    </Link>
+                  </Button>
+                  <p className="text-xs text-gray-500 mt-2">
+                    Available 24/7
                   </p>
                 </div>
               </div>

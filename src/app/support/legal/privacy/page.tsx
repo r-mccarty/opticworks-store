@@ -24,7 +24,7 @@ export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-20 pb-16">
+      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
@@ -83,7 +83,7 @@ export default function PrivacyPolicyPage() {
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Personal Information You Provide</h4>
                     <ul className="list-disc list-inside space-y-2 text-gray-600">
-                      <li><strong>Contact Information:</strong> Name, email address, phone number, mailing address</li>
+                      <li><strong>Contact Information:</strong> Name, email address, mailing address</li>
                       <li><strong>Account Information:</strong> Username, password, profile information</li>
                       <li><strong>Payment Information:</strong> Credit card details, billing address (processed securely by our payment processors)</li>
                       <li><strong>Order Information:</strong> Purchase history, product preferences, vehicle information</li>
@@ -353,7 +353,6 @@ export default function PrivacyPolicyPage() {
                   <div className="space-y-2 text-sm text-gray-600 mb-6">
                     <p><strong>Email:</strong> privacy@opticworks.com</p>
                     <p><strong>Mail:</strong> OpticWorks LLC, Privacy Department, [Address]</p>
-                    <p><strong>Phone:</strong> 1-800-OPTIC-WORKS</p>
                   </div>
                   
                   <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
