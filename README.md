@@ -66,6 +66,3 @@ This project is built with a modern, component-based architecture:
 -   **UI Components:** [Tremor](https://tremor.so/)
 -   **Language:** [TypeScript](https://www.typescriptlang.org/)
 
-## License
-
-This site template is a commercial product and is licensed under the [Tremor License](https://blocks.tremor.so/license).
