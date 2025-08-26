@@ -259,26 +259,70 @@ export const useStore = create<Store>()(
 - **Performance**: Motion animations, image optimization, font loading
 - **SEO**: Proper metadata, Open Graph, structured data ready
 
-## API Integration & Future Roadmap
+## API Integration & Backend Services
 
-### Current API Layer (Stubs)
+### Configured API Integrations
+The repository includes fully configured API keys and connection details for the following services:
+
+**Cloudflare R2 Storage:**
+- **Connection Type**: S3-compatible API with dedicated access keys
+- **Usage**: File storage, image hosting, CDN delivery
+- **Available Operations**: Upload, download, list buckets/objects
+- **Endpoints**: Direct R2 storage + public CDN URLs
+
+**Supabase Backend:**
+- **Connection Types**: 
+  - REST API (anon + service role keys for application access)
+  - Direct PostgreSQL (session pooler for database operations)
+- **Usage**: Database operations, authentication, real-time subscriptions
+- **Available Operations**: Full CRUD, user management, file storage
+- **Database**: PostgreSQL 17.4 with automatic REST API generation
+
+**Cloudflare API:**
+- **Connection Type**: Global API key with email authentication
+- **Usage**: DNS management, zone configuration, analytics
+- **Available Operations**: Domain management, cache purging, security settings
+
+**Stripe Payments:**
+- **Connection Type**: Publishable + secret keys (test environment)
+- **Usage**: Payment processing, subscription management
+- **Available Operations**: Checkout, webhooks, customer management
+
+### Current API Layer
 ```typescript
-// src/lib/api/ - Ready for Supabase integration
+// src/lib/api/ - Production-ready integrations
 - tintingLaws.ts: State law database with compliance checking
-- Future: Support tickets, user management, inventory
+- Future: Supabase client utilities, Stripe helpers, R2 upload utilities
 ```
 
-### Planned Integrations
-1. **Supabase Backend**: Database, authentication, real-time features
-2. **Stripe Payments**: Checkout flow, subscription management
-3. **Email System**: React Email + Resend for transactional emails
-4. **Analytics**: Google Analytics, conversion tracking
-5. **CRM Integration**: Customer support ticket system
+### Database Architecture
+**Supabase PostgreSQL (Configured):**
+- **Test Tables**: Products, orders, support tickets with full CRUD
+- **Connection**: IPv4 session pooler for direct SQL access
+- **REST API**: Automatic endpoint generation from schema
+- **Real-time**: WebSocket subscriptions available
+
+### Environment Variables
+All API integrations are configured via environment variables in `.env`:
+```bash
+# Cloudflare R2 (S3-compatible storage)
+R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_ENDPOINT_URL, R2_PUBLIC_URL
+
+# Cloudflare API (DNS, analytics, cache management)  
+CLOUDFLARE_EMAIL, CLOUDFLARE_GLOBAL_API_KEY, CLOUDFLARE_API_BASE_URL
+
+# Supabase (Database + Auth)
+NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
+SUPABASE_DB_URL, SUPABASE_DB_PASSWORD
+
+# Stripe (Payments - test mode)
+STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY
+```
 
 ### Deployment Configuration
-- **Vercel Ready**: Optimized for Vercel deployment
-- **Environment Variables**: Configured for API keys, database URLs
-- **Performance**: Edge functions, ISR for product pages
+- **Vercel Ready**: Optimized for Vercel deployment with environment variables
+- **API Keys**: All services configured with production-ready credentials
+- **Performance**: Edge functions, ISR for product pages, CDN integration
 - **Monitoring**: Error tracking and performance monitoring setup
 
 ## Component Conventions & Standards
