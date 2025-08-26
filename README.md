@@ -1,47 +1,71 @@
-# Tremor – Solar
+# OpticWorks E-commerce Website
 
-`Solar` is a website template from [Tremor](https://tremor.so). It's built
-using [`Tremor`](https://tremor.so/docs/getting-started/installation) and
-[Next.js](https://nextjs.org).
+This repository contains the source code for the OpticWorks e-commerce website. Built with Next.js, Tailwind CSS, and Tremor, this project serves as the online storefront for OpticWorks' line of professional-grade, DIY window tinting solutions.
 
-## Getting started
+## Getting Started
 
-1. Install the dependencies. We recommend using pnpm. If you want to use `npm`,
-   just replace `pnpm` with `npm`.
+Follow these instructions to get the project up and running on your local machine for development and testing purposes.
 
-```bash
-pnpm install
-```
+### Prerequisites
 
-2. Then, start the development server:
+- [Node.js](https://nodejs.org/en/) (v18 or later recommended)
+- [pnpm](https://pnpm.io/installation) (recommended package manager)
 
-```bash
-pnpm run dev
-```
+### Installation
 
-3. Visit [http://localhost:3000](http://localhost:3000) in your browser to view
-   the template.
+1.  **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/your-repo-name.git
+    cd your-repo-name
+    ```
 
-## Notes
+2.  **Install dependencies:**
+    We recommend using `pnpm` for faster and more reliable dependency management.
+    ```bash
+    pnpm install
+    ```
+    Alternatively, you can use `npm` or `yarn`:
+    ```bash
+    npm install
+    # or
+    yarn install
+    ```
 
-This project uses
-[`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to
-automatically optimize and load Inter, a custom Google Font.
+3.  **Run the development server:**
+    ```bash
+    pnpm run dev
+    ```
+    The application will be available at [http://localhost:3000](http://localhost:3000).
 
-This project uses
-[`Tremor`](https://raw.tremor.so/docs/getting-started/installation) components
-for the UI.
+## Project Structure
+
+Here is a high-level overview of the key directories and files in this project:
+
+-   `src/app/`: Contains the core application logic, including pages and layouts, following the Next.js App Router structure.
+-   `src/components/`: Home to all the reusable React components used throughout the application.
+-   `src/lib/`: Includes shared utilities, data sources (like product information), and API handlers.
+-   `public/`: Stores static assets like images, fonts, and icons that are served directly.
+-   `tailwind.config.js`: Configuration file for Tailwind CSS.
+-   `next.config.ts`: Configuration file for Next.js.
+
+## Available Scripts
+
+In the `package.json` file, you will find several scripts for running common tasks:
+
+-   `pnpm run dev`: Starts the development server with hot-reloading.
+-   `pnpm run build`: Creates a production-ready build of the application.
+-   `pnpm run start`: Starts the production server (requires a build to be created first).
+-   `pnpm run lint`: Lints the codebase for potential errors and style issues using ESLint.
+
+## Technology Stack
+
+This project is built with a modern, component-based architecture:
+
+-   **Framework:** [Next.js](https://nextjs.org/)
+-   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+-   **UI Components:** [Tremor](https://tremor.so/)
+-   **Language:** [TypeScript](https://www.typescriptlang.org/)
 
 ## License
 
-This site template is a commercial product and is licensed under the
-[Tremor License](https://blocks.tremor.so/license).
-
-## Learn more
-
-For a deeper understanding of the technologies used in this template, check out
-the resources listed below:
-
-- [Tailwind CSS v4 beta](https://tailwindcss.com) - A utility-first CSS framework
-- [Next.js](https://nextjs.org/docs) - Next.js documentation
-- [Radix UI](https://www.radix-ui.com) - Radix UI Website
+This site template is a commercial product and is licensed under the [Tremor License](https://blocks.tremor.so/license).
