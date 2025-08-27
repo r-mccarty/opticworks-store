@@ -1,0 +1,1562 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "OpticWorks API",
+    "description": "API for the OpticWorks Window Tinting E-commerce Platform",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://api.opticworks.com/v1",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/invoices/{identifier}": {
+      "get": {
+        "summary": "Fetch an invoice",
+        "description": "Fetches an invoice by order number or invoice number and email.",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The order number or invoice number."
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The customer's email address."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The invoice.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invoice"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invoice not found."
+          }
+        }
+      }
+    },
+    "/invoices/{invoiceNumber}/download": {
+      "post": {
+        "summary": "Generate invoice PDF",
+        "description": "Generates a PDF download URL for an invoice.",
+        "parameters": [
+          {
+            "name": "invoiceNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The invoice number."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The PDF download URL.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "downloadUrl": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invoice not found."
+          }
+        }
+      }
+    },
+    "/refunds": {
+      "post": {
+        "summary": "Request a refund",
+        "description": "Submits a refund request.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefundRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The refund request ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid refund request."
+          }
+        }
+      }
+    },
+    "/orders/{orderNumber}/retry-payment": {
+      "post": {
+        "summary": "Retry a failed payment",
+        "description": "Retries a failed payment for an order.",
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The order number."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "paymentMethodId": {
+                    "type": "string"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The payment intent ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "paymentIntentId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid payment retry request."
+          }
+        }
+      }
+    },
+    "/disputes": {
+      "post": {
+        "summary": "Submit a billing dispute",
+        "description": "Submits a billing dispute.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BillingDispute"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The dispute ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "disputeId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid dispute request."
+          }
+        }
+      }
+    },
+    "/billing/analytics": {
+      "get": {
+        "summary": "Get billing analytics",
+        "description": "Gets billing analytics for admin/reporting.",
+        "responses": {
+          "200": {
+            "description": "The billing analytics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalRevenue": {
+                      "type": "number"
+                    },
+                    "pendingPayments": {
+                      "type": "number"
+                    },
+                    "refundRequests": {
+                      "type": "number"
+                    },
+                    "averageOrderValue": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tinting-laws/{stateCode}": {
+      "get": {
+        "summary": "Fetch tinting laws",
+        "description": "Fetches tinting laws for a specific state.",
+        "parameters": [
+          {
+            "name": "stateCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The state code (e.g., CA, TX)."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The tinting laws for the state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TintingLaw"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "State not found."
+          }
+        }
+      }
+    },
+    "/tinting-laws/states": {
+      "get": {
+        "summary": "Fetch available states",
+        "description": "Gets all available states with tinting law data.",
+        "responses": {
+          "200": {
+            "description": "A list of available states.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tinting-laws/{stateCode}/compliance-check": {
+      "post": {
+        "summary": "Check tint compliance",
+        "description": "Checks if a specific VLT percentage complies with state laws.",
+        "parameters": [
+          {
+            "name": "stateCode",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The state code (e.g., CA, TX)."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "vltPercentage": {
+                    "type": "number"
+                  },
+                  "windowType": {
+                    "type": "string",
+                    "enum": ["front-side", "back-side", "rear"]
+                  }
+                },
+                "required": ["vltPercentage", "windowType"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The compliance check result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ComplianceCheck"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tinting-laws/search": {
+      "get": {
+        "summary": "Search tinting laws",
+        "description": "Searches tinting laws by partial state name.",
+        "parameters": [
+          {
+            "name": "searchTerm",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The search term."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of tinting laws.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TintingLaw"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicle-makes": {
+      "get": {
+        "summary": "Fetch vehicle makes",
+        "description": "Fetches all available vehicle makes.",
+        "responses": {
+          "200": {
+            "description": "A list of vehicle makes.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VehicleMake"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicle-models": {
+      "get": {
+        "summary": "Fetch vehicle models",
+        "description": "Fetches vehicle models for a specific make and year range.",
+        "parameters": [
+          {
+            "name": "makeId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the vehicle make."
+          },
+          {
+            "name": "startYear",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The starting year of the range."
+          },
+          {
+            "name": "endYear",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer"
+            },
+            "description": "The ending year of the range."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of vehicle models.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/compatibility": {
+      "get": {
+        "summary": "Check product compatibility",
+        "description": "Checks compatibility between a product and a vehicle.",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the vehicle."
+          },
+          {
+            "name": "productId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the product."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The compatibility result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompatibilityResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/{vehicleId}/recommended-products": {
+      "get": {
+        "summary": "Get recommended products",
+        "description": "Gets recommended products for a specific vehicle.",
+        "parameters": [
+          {
+            "name": "vehicleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The ID of the vehicle."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of recommended products.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CompatibilityResult"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/vehicles/search": {
+      "get": {
+        "summary": "Search vehicles",
+        "description": "Searches vehicles by make, model, or year.",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The search query."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of vehicles.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Vehicle"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/installation/analytics": {
+      "get": {
+        "summary": "Get installation analytics",
+        "description": "Gets installation difficulty statistics.",
+        "responses": {
+          "200": {
+            "description": "The installation analytics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalCompatibilities": {
+                      "type": "integer"
+                    },
+                    "perfectFits": {
+                      "type": "integer"
+                    },
+                    "difficultInstallations": {
+                      "type": "integer"
+                    },
+                    "averageDifficulty": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderNumber}": {
+      "get": {
+        "summary": "Fetch order status",
+        "description": "Fetches order details by order number and email.",
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The order number."
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The customer's email address."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The order details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Order"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Order not found."
+          }
+        }
+      }
+    },
+    "/shipping/{trackingNumber}": {
+      "get": {
+        "summary": "Fetch shipping tracking",
+        "description": "Fetches shipping tracking information.",
+        "parameters": [
+          {
+            "name": "trackingNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The tracking number."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A list of shipping updates.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ShippingUpdate"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderNumber}/modification": {
+      "post": {
+        "summary": "Request order modification",
+        "description": "Submits an order modification request.",
+        "parameters": [
+          {
+            "name": "orderNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The order number."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderModificationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The modification request ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid modification request."
+          }
+        }
+      }
+    },
+    "/shipping/estimate": {
+      "post": {
+        "summary": "Get shipping estimate",
+        "description": "Gets a shipping estimate for a given location and items.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "zipCode": {
+                    "type": "string"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "weight": {
+                          "type": "number"
+                        },
+                        "dimensions": {
+                          "type": "object",
+                          "properties": {
+                            "length": {
+                              "type": "number"
+                            },
+                            "width": {
+                              "type": "number"
+                            },
+                            "height": {
+                              "type": "number"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The shipping estimate.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "standard": {
+                      "type": "object",
+                      "properties": {
+                        "price": {
+                          "type": "number"
+                        },
+                        "days": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "expedited": {
+                      "type": "object",
+                      "properties": {
+                        "price": {
+                          "type": "number"
+                        },
+                        "days": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "overnight": {
+                      "type": "object",
+                      "properties": {
+                        "price": {
+                          "type": "number"
+                        },
+                        "days": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/analytics": {
+      "get": {
+        "summary": "Get order analytics",
+        "description": "Gets order statistics for admin/reporting.",
+        "responses": {
+          "200": {
+            "description": "The order analytics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "totalOrders": {
+                      "type": "integer"
+                    },
+                    "pendingOrders": {
+                      "type": "integer"
+                    },
+                    "shippedOrders": {
+                      "type": "integer"
+                    },
+                    "averageOrderValue": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TintingLaw": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string"
+          },
+          "stateCode": {
+            "type": "string"
+          },
+          "frontWindshield": {
+            "type": "object",
+            "properties": {
+              "allowedVlt": {
+                "type": "string"
+              },
+              "restrictions": {
+                "type": "string"
+              }
+            }
+          },
+          "frontSideWindows": {
+            "type": "object",
+            "properties": {
+              "minVlt": {
+                "type": "number"
+              },
+              "maxVlt": {
+                "type": "number"
+              },
+              "restrictions": {
+                "type": "string"
+              }
+            }
+          },
+          "backSideWindows": {
+            "type": "object",
+            "properties": {
+              "minVlt": {
+                "type": "number"
+              },
+              "maxVlt": {
+                "type": "number"
+              },
+              "restrictions": {
+                "type": "string"
+              }
+            }
+          },
+          "rearWindow": {
+            "type": "object",
+            "properties": {
+              "minVlt": {
+                "type": "number"
+              },
+              "maxVlt": {
+                "type": "number"
+              },
+              "restrictions": {
+                "type": "string"
+              }
+            }
+          },
+          "reflectivity": {
+            "type": "object",
+            "properties": {
+              "metallic": {
+                "type": "boolean"
+              },
+              "maxReflection": {
+                "type": "number"
+              }
+            }
+          },
+          "colors": {
+            "type": "object",
+            "properties": {
+              "allowed": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "restricted": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "medicalExemptions": {
+            "type": "boolean"
+          },
+          "penalties": {
+            "type": "object",
+            "properties": {
+              "firstOffense": {
+                "type": "string"
+              },
+              "repeatOffense": {
+                "type": "string"
+              }
+            }
+          },
+          "lastUpdated": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "ComplianceCheck": {
+        "type": "object",
+        "properties": {
+          "isCompliant": {
+            "type": "boolean"
+          },
+          "violations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "riskLevel": {
+            "type": "string",
+            "enum": ["low", "medium", "high"]
+          }
+        }
+      },
+      "Order": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "customerEmail": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "processing", "shipped", "delivered", "cancelled"]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OrderItem"
+            }
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "shipping": {
+            "type": "number"
+          },
+          "tax": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "shippingAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "billingAddress": {
+            "$ref": "#/components/schemas/Address"
+          },
+          "trackingNumber": {
+            "type": "string"
+          },
+          "estimatedDelivery": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "OrderItem": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "productName": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "integer"
+          },
+          "price": {
+            "type": "number"
+          },
+          "image": {
+            "type": "string"
+          }
+        }
+      },
+      "Address": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string"
+          },
+          "lastName": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "address1": {
+            "type": "string"
+          },
+          "address2": {
+            "type": "string"
+          },
+          "city": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string"
+          },
+          "zipCode": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          }
+        }
+      },
+      "ShippingUpdate": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          }
+        }
+      },
+      "OrderModificationRequest": {
+        "type": "object",
+        "properties": {
+          "orderNumber": {
+            "type": "string"
+          },
+          "requestType": {
+            "type": "string",
+            "enum": ["address_change", "item_change", "cancellation"]
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "newAddress": {
+                "$ref": "#/components/schemas/Address"
+              },
+              "itemChanges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "productId": {
+                      "type": "string"
+                    },
+                    "newQuantity": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              },
+              "cancellationReason": {
+                "type": "string"
+              }
+            }
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "requestDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Vehicle": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "year": {
+            "type": "integer"
+          },
+          "make": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "bodyStyle": {
+            "type": "string"
+          },
+          "generation": {
+            "type": "string"
+          },
+          "trim": {
+            "type": "string"
+          }
+        }
+      },
+      "VehicleMake": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "logo": {
+            "type": "string"
+          },
+          "popular": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ProductCompatibility": {
+        "type": "object",
+        "properties": {
+          "productId": {
+            "type": "string"
+          },
+          "vehicleId": {
+            "type": "string"
+          },
+          "compatibility": {
+            "type": "string",
+            "enum": ["perfect", "good", "difficult", "incompatible"]
+          },
+          "installationDifficulty": {
+            "type": "string",
+            "enum": ["beginner", "intermediate", "professional"]
+          },
+          "notes": {
+            "type": "string"
+          },
+          "specificIssues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "alternativeProducts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "installationTime": {
+            "type": "string"
+          },
+          "requiredTools": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CompatibilityResult": {
+        "type": "object",
+        "properties": {
+          "vehicle": {
+            "$ref": "#/components/schemas/Vehicle"
+          },
+          "product": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "image": {
+                "type": "string"
+              },
+              "price": {
+                "type": "number"
+              }
+            }
+          },
+          "compatibility": {
+            "$ref": "#/components/schemas/ProductCompatibility"
+          },
+          "recommendations": {
+            "type": "object",
+            "properties": {
+              "recommended": {
+                "type": "boolean"
+              },
+              "reasons": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "alternatives": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "productId": {
+                      "type": "string"
+                    },
+                    "productName": {
+                      "type": "string"
+                    },
+                    "price": {
+                      "type": "number"
+                    },
+                    "whyBetter": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "Invoice": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "customerEmail": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["paid", "pending", "overdue", "cancelled", "refunded"]
+          },
+          "subtotal": {
+            "type": "number"
+          },
+          "tax": {
+            "type": "number"
+          },
+          "shipping": {
+            "type": "number"
+          },
+          "total": {
+            "type": "number"
+          },
+          "paidAmount": {
+            "type": "number"
+          },
+          "refundedAmount": {
+            "type": "number"
+          },
+          "paymentMethod": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": ["credit_card", "paypal", "apple_pay", "google_pay"]
+              },
+              "last4": {
+                "type": "string"
+              },
+              "brand": {
+                "type": "string"
+              },
+              "expiryMonth": {
+                "type": "integer"
+              },
+              "expiryYear": {
+                "type": "integer"
+              }
+            }
+          },
+          "billingAddress": {
+            "type": "object",
+            "properties": {
+              "firstName": {
+                "type": "string"
+              },
+              "lastName": {
+                "type": "string"
+              },
+              "company": {
+                "type": "string"
+              },
+              "address1": {
+                "type": "string"
+              },
+              "address2": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              },
+              "state": {
+                "type": "string"
+              },
+              "zipCode": {
+                "type": "string"
+              },
+              "country": {
+                "type": "string"
+              }
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "paidAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dueDate": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RefundRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "requestedAmount": {
+            "type": "number"
+          },
+          "reason": {
+            "type": "string",
+            "enum": ["defective_product", "wrong_item", "not_as_described", "duplicate_charge", "other"]
+          },
+          "reasonDetails": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "approved", "processing", "completed", "rejected"]
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "requestDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "processedDate": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "refundMethod": {
+            "type": "string",
+            "enum": ["original_payment", "store_credit"]
+          },
+          "adminNotes": {
+            "type": "string"
+          }
+        }
+      },
+      "BillingDispute": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderNumber": {
+            "type": "string"
+          },
+          "invoiceNumber": {
+            "type": "string"
+          },
+          "disputeType": {
+            "type": "string",
+            "enum": ["unauthorized_charge", "billing_error", "service_not_received", "refund_not_processed", "other"]
+          },
+          "description": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "description": {
+                "type": "string"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["submitted", "under_review", "resolved", "escalated"]
+          },
+          "submittedBy": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolvedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "resolution": {
+            "type": "string"
+          }
+        }
+      },
+      "PaymentRetryRequest": {
+        "type": "object",
+        "properties": {
+          "orderNumber": {
+            "type": "string"
+          },
+          "paymentMethodId": {
+            "type": "string"
+          },
+          "amount": {
+            "type": "number"
+          },
+          "currency": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
