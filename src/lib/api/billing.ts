@@ -279,6 +279,7 @@ export async function requestRefund(
 export async function retryPayment(
   orderNumber: string,
   email: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _paymentMethodId?: string
 ): Promise<{ success: boolean; paymentIntentId?: string; error?: string }> {
   // Simulate API delay
@@ -333,6 +334,7 @@ export async function retryPayment(
 export async function submitBillingDispute(
   orderNumber: string,
   email: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _disputeDetails: {
     disputeType: BillingDispute['disputeType'];
     description: string;

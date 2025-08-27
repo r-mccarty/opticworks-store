@@ -224,6 +224,7 @@ export async function fetchShippingTracking(trackingNumber: string): Promise<Shi
 export async function requestOrderModification(
   orderNumber: string,
   email: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _modification: Omit<OrderModificationRequest, 'orderNumber' | 'requestedBy' | 'requestDate'>
 ): Promise<{ success: boolean; requestId?: string; error?: string }> {
   // Simulate API delay
@@ -273,7 +274,8 @@ export async function requestOrderModification(
  * TODO: Replace with actual shipping calculator API when backend is implemented
  */
 export async function getShippingEstimate(
-  zipCode: string, 
+  zipCode: string,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _items: { weight: number; dimensions: { length: number; width: number; height: number } }[]
 ): Promise<{
   standard: { price: number; days: string };

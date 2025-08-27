@@ -13,8 +13,13 @@ import { useCart } from "@/hooks/useCart"
 
 export function NavBar() {
   const [open, setOpen] = React.useState(false)
+  const [mounted, setMounted] = React.useState(false)
   const scrolled = useScroll(15)
   const { getTotalItems } = useCart()
+
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
   return (
     <header
@@ -55,7 +60,7 @@ export function NavBar() {
             >
               <Link href="/store/cart">
                 <ShoppingCartIcon className="w-5 h-5" />
-                {getTotalItems() > 0 && (
+                {mounted && getTotalItems() > 0 && (
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {getTotalItems()}
                   </span>

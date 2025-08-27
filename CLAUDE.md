@@ -124,6 +124,7 @@ pnpm run lint
 **Domain Components:** Specialized business logic components
 - **Products** (`/src/components/products/`): 7 components for product pages
 - **Store** (`/src/components/store/`): Cart and product grid components  
+- **Checkout** (`/src/components/checkout/`): Complete Stripe payment integration
 - **Support** (`/src/components/support/`): 9 components for customer service
 
 ### Data Layer & Business Logic
@@ -136,7 +137,7 @@ pnpm run lint
 
 **E-commerce Flow:**
 - **Cart**: Zustand store with persistence, quantity management
-- **Checkout**: Stripe integration ready (stubs in place)
+- **Checkout**: Complete Stripe payment processing (on-site, no redirects)
 - **Inventory**: Stock level tracking, availability management
 
 **Support System:**
@@ -284,15 +285,17 @@ The repository includes fully configured API keys and connection details for the
 - **Available Operations**: Domain management, cache purging, security settings
 
 **Stripe Payments:**
-- **Connection Type**: Publishable + secret keys (test environment)
-- **Usage**: Payment processing, subscription management
-- **Available Operations**: Checkout, webhooks, customer management
+- **Status**: ✅ Production-ready integration (see `STRIPE_INTEGRATION.md`)
+- **Components**: `CheckoutWrapper.tsx`, `PaymentForm.tsx` in `/src/components/checkout/`
+- **APIs**: `/api/stripe/create-payment-intent`, `/api/stripe/webhook`
+- **Features**: Card/Apple Pay/Google Pay, tax calculation, email notifications
 
 ### Current API Layer
 ```typescript
 // src/lib/api/ - Production-ready integrations
 - tintingLaws.ts: State law database with compliance checking
-- Future: Supabase client utilities, Stripe helpers, R2 upload utilities
+- Stripe integration: Complete payment processing (see `STRIPE_INTEGRATION.md`)
+- Future: Enhanced Supabase utilities, R2 upload helpers
 ```
 
 ### Database Architecture
@@ -315,8 +318,8 @@ CLOUDFLARE_EMAIL, CLOUDFLARE_GLOBAL_API_KEY, CLOUDFLARE_API_BASE_URL
 NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY
 SUPABASE_DB_URL, SUPABASE_DB_PASSWORD
 
-# Stripe (Payments - test mode)
-STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY
+# Stripe (Payments - production ready)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
 ```
 
 ### Deployment Configuration

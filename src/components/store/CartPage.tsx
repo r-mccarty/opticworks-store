@@ -7,22 +7,56 @@ import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { FadeContainer, FadeDiv } from "@/components/Fade"
 import { useCart } from "@/hooks/useCart"
-import { MinusIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline"
+import { MinusIcon, PlusIcon, TrashIcon, CreditCardIcon } from "@heroicons/react/24/outline"
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
+import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 
 export function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  
+  // Customer info state
+  const [customerInfo, setCustomerInfo] = useState({
+    email: '',
+    name: ''
+  })
+  
+  // Shipping address state
+  const [shippingAddress, setShippingAddress] = useState({
+    line1: '',
+    line2: '',
+    city: '',
+    state: '',
+    postal_code: '',
+    country: 'US'
+  })
 
-  const handleCheckout = async () => {
-    setIsCheckingOut(true)
-    // Simulate checkout process
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    alert('Order placed successfully! (This is a demo)')
+  const handlePaymentSuccess = (paymentIntentId: string) => {
+    console.log('Payment successful:', paymentIntentId)
+    alert(`Payment successful! Order confirmation will be sent to ${customerInfo.email}`)
     clearCart()
+    setShowPaymentForm(false)
     setIsCheckingOut(false)
+  }
+
+  const handlePaymentError = (error: string) => {
+    console.error('Payment error:', error)
+    setIsCheckingOut(false)
+  }
+
+  const handleProceedToPayment = () => {
+    // Validate required fields
+    if (!customerInfo.email || !customerInfo.name || !shippingAddress.line1 || 
+        !shippingAddress.city || !shippingAddress.state || !shippingAddress.postal_code) {
+      alert('Please fill in all required fields')
+      return
+    }
+    
+    setIsCheckingOut(true)
+    setShowPaymentForm(true)
   }
 
   if (items.length === 0) {
@@ -153,55 +187,129 @@ export function CartPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Tax</span>
-                      <span>${Math.round(getTotalPrice() * 0.08).toLocaleString()}</span>
+                      <span>Calculated at checkout</span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Total</span>
-                      <span>${Math.round(getTotalPrice() * 1.08).toLocaleString()}</span>
+                      <span>Calculated at checkout</span>
                     </div>
                   </CardContent>
                 </Card>
               </FadeDiv>
 
-              <FadeDiv>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Checkout</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="your@email.com" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Full Name</Label>
-                      <Input id="name" placeholder="John Doe" />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Address</Label>
-                      <Input id="address" placeholder="123 Main St" />
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
+              {!showPaymentForm ? (
+                <FadeDiv>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Customer Information</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="City" />
+                        <Label htmlFor="email">Email *</Label>
+                        <Input 
+                          id="email" 
+                          type="email" 
+                          placeholder="your@email.com" 
+                          value={customerInfo.email}
+                          onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                          required
+                        />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="zip">ZIP Code</Label>
-                        <Input id="zip" placeholder="12345" />
+                        <Label htmlFor="name">Full Name *</Label>
+                        <Input 
+                          id="name" 
+                          placeholder="John Doe" 
+                          value={customerInfo.name}
+                          onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                          required
+                        />
                       </div>
-                    </div>
-                    <Button 
-                      className="w-full" 
-                      onClick={handleCheckout}
-                      disabled={isCheckingOut}
-                    >
-                      {isCheckingOut ? 'Processing...' : 'Place Order'}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </FadeDiv>
+                    </CardContent>
+                  </Card>
+                </FadeDiv>
+              ) : null}
+
+              {!showPaymentForm ? (
+                <FadeDiv>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Shipping Address</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="address1">Address *</Label>
+                        <Input 
+                          id="address1" 
+                          placeholder="123 Main St" 
+                          value={shippingAddress.line1}
+                          onChange={(e) => setShippingAddress({...shippingAddress, line1: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="address2">Address 2 (Optional)</Label>
+                        <Input 
+                          id="address2" 
+                          placeholder="Apt, suite, etc." 
+                          value={shippingAddress.line2}
+                          onChange={(e) => setShippingAddress({...shippingAddress, line2: e.target.value})}
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="space-y-2">
+                          <Label htmlFor="city">City *</Label>
+                          <Input 
+                            id="city" 
+                            placeholder="City" 
+                            value={shippingAddress.city}
+                            onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="state">State *</Label>
+                          <Input 
+                            id="state" 
+                            placeholder="CA" 
+                            value={shippingAddress.state}
+                            onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="zip">ZIP Code *</Label>
+                        <Input 
+                          id="zip" 
+                          placeholder="12345" 
+                          value={shippingAddress.postal_code}
+                          onChange={(e) => setShippingAddress({...shippingAddress, postal_code: e.target.value})}
+                          required
+                        />
+                      </div>
+                      <Button 
+                        className="w-full" 
+                        onClick={handleProceedToPayment}
+                        disabled={isCheckingOut}
+                      >
+                        <CreditCardIcon className="w-5 h-5 mr-2" />
+                        {isCheckingOut ? 'Preparing Payment...' : 'Proceed to Payment'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </FadeDiv>
+              ) : (
+                <FadeDiv>
+                  <CheckoutWrapper
+                    customerInfo={customerInfo}
+                    shippingAddress={shippingAddress}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
+                </FadeDiv>
+              )}
             </div>
           </div>
         </div>
