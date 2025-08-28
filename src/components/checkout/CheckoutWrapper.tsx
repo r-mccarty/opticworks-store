@@ -145,7 +145,7 @@ export default function CheckoutWrapper({
       colorBackground: '#ffffff',
       colorText: '#1f2937',
       colorDanger: '#ef4444',
-      fontFamily: 'Inter, system-ui, sans-serif',
+      fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       spacingUnit: '4px',
       borderRadius: '8px',
     },
@@ -154,6 +154,18 @@ export default function CheckoutWrapper({
   const options = {
     clientSecret,
     appearance,
+    fonts: [
+      {
+        family: 'Colfax',
+        src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
+        display: 'swap'
+      },
+      {
+        family: 'Colfax',
+        src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
+        display: 'swap'
+      }
+    ]
   };
 
   return (

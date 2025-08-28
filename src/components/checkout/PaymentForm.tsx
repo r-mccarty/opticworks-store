@@ -181,16 +181,16 @@ export default function PaymentForm({
       <Button
         type="submit"
         disabled={isProcessing || !stripe || !elements}
-        className="w-full py-3 text-lg"
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 text-xl shadow-lg hover:shadow-xl transition-all duration-200"
         size="lg"
       >
         {isProcessing ? (
           <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Processing Payment...
           </>
         ) : (
-          `Pay $${totals.total.toFixed(2)}`
+          `Complete Payment • $${totals.total.toFixed(2)}`
         )}
       </Button>
 

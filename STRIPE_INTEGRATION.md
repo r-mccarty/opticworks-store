@@ -14,6 +14,7 @@ OpticWorks uses Stripe for secure payment processing with an on-site checkout ex
 - **Email Notifications** - Order confirmation via React Email + Resend
 - **Webhook Processing** - Real-time payment status updates
 - **Mobile Optimized** - Responsive design with touch support
+- **Custom Typography** - Colfax font integration with CORS-configured R2 CDN
 
 ## Architecture
 
@@ -132,7 +133,7 @@ Processes Stripe webhook events for real-time payment status updates.
 
 ### CheckoutWrapper
 
-Manages Stripe Elements initialization and payment intent creation.
+Manages Stripe Elements initialization and payment intent creation with custom font integration.
 
 ```typescript
 import CheckoutWrapper from '@/components/checkout/CheckoutWrapper'
@@ -144,6 +145,11 @@ import CheckoutWrapper from '@/components/checkout/CheckoutWrapper'
   onError={(error) => console.error('Payment failed', error)}
 />
 ```
+
+**Font Configuration:**
+- Colfax font files hosted on Cloudflare R2 CDN
+- CORS configured to allow `https://js.stripe.com` access
+- CustomFontSource approach for direct font file loading
 
 ### PaymentForm
 
@@ -259,6 +265,91 @@ NEXT_PUBLIC_FROM_EMAIL            # Order confirmation sender email
 - **Error Tracking**: Monitor application logs for payment-related errors
 - **Email Delivery**: Verify order confirmations are being sent
 
+## Custom Font Integration
+
+### Overview
+Stripe PaymentElement uses the site's **Colfax** font family to maintain consistent typography throughout the checkout experience.
+
+### Implementation
+```typescript
+// CheckoutWrapper.tsx - Font configuration
+const options = {
+  clientSecret,
+  appearance: {
+    variables: {
+      fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      // ... other appearance variables
+    }
+  },
+  fonts: [
+    {
+      family: 'Colfax',
+      src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
+      display: 'swap'
+    },
+    {
+      family: 'Colfax',
+      src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
+      display: 'swap'
+    }
+  ]
+}
+```
+
+### R2 CDN Setup
+
+**Font Files Hosted:**
+- `ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2` (400 weight)
+- `ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2` (500 weight)
+- `colfax-fonts.css` (CSS definitions)
+
+**CORS Configuration:**
+```json
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["https://js.stripe.com"],
+      "AllowedMethods": ["GET"],
+      "AllowedHeaders": ["*"],
+      "MaxAgeSeconds": 3600
+    }
+  ]
+}
+```
+
+**Applied via AWS CLI:**
+```bash
+aws s3api put-bucket-cors \
+  --bucket opticworks-public \
+  --cors-configuration file://cors.json \
+  --endpoint-url=https://39f8fd4a5b0c7558aed585facd57ec3b.r2.cloudflarestorage.com
+```
+
+### Font Loading Methods
+
+**Method 1: CustomFontSource (Current)**
+- Direct font file URLs
+- More reliable for cross-origin access
+- Individual font weight configuration
+
+**Method 2: CssFontSource (Alternative)**
+- Single CSS file with @font-face definitions
+- May require additional CSP configuration
+
+### Troubleshooting Font Issues
+
+**CORS Errors:**
+```
+Access to font at '...' from origin 'https://js.stripe.com' 
+has been blocked by CORS policy
+```
+**Solution:** Verify R2 bucket CORS configuration includes `https://js.stripe.com`
+
+**Font Not Loading:**
+- Check browser Network tab for 404/403 errors on font requests
+- Verify font files are publicly accessible via R2 public URLs
+- Clear browser cache and hard refresh
+
 ---
 
-**Integration Status**: Complete and production-ready with full e-commerce functionality.
+**Integration Status**: Complete and production-ready with full e-commerce functionality and custom typography.

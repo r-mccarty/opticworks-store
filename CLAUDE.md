@@ -288,7 +288,9 @@ The repository includes fully configured API keys and connection details for the
 - **Status**: ✅ Production-ready integration (see `STRIPE_INTEGRATION.md`)
 - **Components**: `CheckoutWrapper.tsx`, `PaymentForm.tsx` in `/src/components/checkout/`
 - **APIs**: `/api/stripe/create-payment-intent`, `/api/stripe/webhook`
-- **Features**: Card/Apple Pay/Google Pay, tax calculation, email notifications
+- **Features**: On-site checkout, card/Apple Pay/Google Pay, automatic tax calculation, email notifications
+- **Flow**: Cart → Customer Info → Shipping → Payment → Success (no external redirects)
+- **Testing**: Use `stripe listen --forward-to localhost:3000/api/stripe/webhook` for development
 
 ### Current API Layer
 ```typescript

@@ -84,21 +84,21 @@ export function CartPage() {
   return (
     <main className="relative">
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <FadeDiv>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-8">
               Shopping Cart
             </h1>
           </FadeDiv>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Cart Items */}
-            <div className="lg:col-span-2 space-y-4">
+            <div className="lg:col-span-3 space-y-4">
               {items.map((item) => (
                 <FadeDiv key={item.id}>
                   <Card>
                     <CardContent className="p-6">
-                      <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-6">
                         <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
                           <Image
                             src={item.image}
@@ -170,7 +170,7 @@ export function CartPage() {
             </div>
 
             {/* Order Summary & Checkout */}
-            <div className="space-y-6">
+            <div className="lg:col-span-2 space-y-8">
               <FadeDiv>
                 <Card>
                   <CardHeader>
@@ -205,26 +205,28 @@ export function CartPage() {
                       <CardTitle>Customer Information</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Email *</Label>
-                        <Input 
-                          id="email" 
-                          type="email" 
-                          placeholder="your@email.com" 
-                          value={customerInfo.email}
-                          onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="name">Full Name *</Label>
-                        <Input 
-                          id="name" 
-                          placeholder="John Doe" 
-                          value={customerInfo.name}
-                          onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                          required
-                        />
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="email">Email *</Label>
+                          <Input 
+                            id="email" 
+                            type="email" 
+                            placeholder="your@email.com" 
+                            value={customerInfo.email}
+                            onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="name">Full Name *</Label>
+                          <Input 
+                            id="name" 
+                            placeholder="John Doe" 
+                            value={customerInfo.name}
+                            onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
+                            required
+                          />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -257,7 +259,7 @@ export function CartPage() {
                           onChange={(e) => setShippingAddress({...shippingAddress, line2: e.target.value})}
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="city">City *</Label>
                           <Input 
@@ -290,7 +292,8 @@ export function CartPage() {
                         />
                       </div>
                       <Button 
-                        className="w-full" 
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
+                        size="lg"
                         onClick={handleProceedToPayment}
                         disabled={isCheckingOut}
                       >
