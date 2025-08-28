@@ -1,60 +1,52 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo } from 'react'
 import Scene from './Scene'
 import TeslaModel from './TeslaModel'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 interface Tesla3DViewerProps {
-  className?: string
+  scrollProgress: number
 }
 
-export default function Tesla3DViewer({ className }: Tesla3DViewerProps) {
-  const [showTint, setShowTint] = useState(false)
-  const [highlightWindows, setHighlightWindows] = useState(false)
+export default function Tesla3DViewer({ scrollProgress }: Tesla3DViewerProps) {
+  const { showTint, highlightWindows } = useMemo(() => {
+    // Example animation logic based on scroll progress:
+    // 0% -> 25%: No tint, no highlight
+    // 25% -> 50%: Highlight windows
+    // 50% -> 100%: Show tint and highlight
+
+    const highlight = scrollProgress > 0.25
+    const tint = scrollProgress > 0.5
+
+    return { showTint: tint, highlightWindows: highlight }
+  }, [scrollProgress])
 
   return (
-    <div className={className}>
-      <div className="relative">
-        <Scene className="w-full h-96 rounded-lg overflow-hidden bg-gradient-to-b from-blue-50 to-blue-100">
-          <TeslaModel showTint={showTint} highlightWindows={highlightWindows} />
-        </Scene>
-        
-        {/* Controls Overlay */}
-        <div className="absolute top-4 left-4 space-y-2">
-          <Badge variant="outline" className="bg-white/90">
-            3D Tesla Model Y
+    <div className="w-full h-full">
+      <Scene className="w-full h-full bg-gradient-to-b from-blue-50 to-blue-100">
+        <TeslaModel showTint={showTint} highlightWindows={highlightWindows} scrollProgress={scrollProgress} />
+      </Scene>
+
+      {/* Instructions */}
+      <div className="absolute bottom-4 right-4 pointer-events-none">
+        <div className="bg-white/80 backdrop-blur-sm rounded-lg px-3 py-2 text-sm text-gray-600 ring-1 ring-black/5">
+          <p className="font-medium mb-1">3D Controls:</p>
+          <p>• Drag to rotate</p>
+          <p>• Scroll to zoom</p>
+          <p>• Right-click + drag to pan</p>
+        </div>
+      </div>
+
+      {/* Scroll-based animation status */}
+      <div className="absolute top-4 left-4 pointer-events-none">
+        <div className="space-y-2">
+          <Badge variant={highlightWindows ? 'default' : 'outline'} className="bg-white/80 backdrop-blur-sm transition-all duration-300">
+            {highlightWindows ? 'Windows Highlighted' : 'Windows Normal'}
           </Badge>
-        </div>
-        
-        <div className="absolute bottom-4 left-4 space-x-2">
-          <Button
-            size="sm"
-            variant={showTint ? "default" : "outline"}
-            onClick={() => setShowTint(!showTint)}
-            className={showTint ? "bg-orange-500 hover:bg-orange-600" : ""}
-          >
-            {showTint ? "Remove Tint" : "Apply Tint"}
-          </Button>
-          
-          <Button
-            size="sm"
-            variant={highlightWindows ? "default" : "outline"}
-            onClick={() => setHighlightWindows(!highlightWindows)}
-          >
-            {highlightWindows ? "Hide Highlight" : "Highlight Windows"}
-          </Button>
-        </div>
-        
-        {/* Instructions */}
-        <div className="absolute bottom-4 right-4">
-          <div className="bg-white/90 rounded-lg px-3 py-2 text-sm text-gray-600">
-            <p className="font-medium mb-1">3D Controls:</p>
-            <p>• Drag to rotate</p>
-            <p>• Scroll to zoom</p>
-            <p>• Right-click + drag to pan</p>
-          </div>
+          <Badge variant={showTint ? 'default' : 'outline'} className="bg-white/80 backdrop-blur-sm transition-all duration-300">
+            {showTint ? 'Tint Applied' : 'Tint Not Applied'}
+          </Badge>
         </div>
       </div>
     </div>
