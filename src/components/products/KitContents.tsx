@@ -21,19 +21,19 @@ const highlightedTools = [
   {
     name: "3D-Printed Door Latch Tool",
     description: "Our patent-pending tool that secures your window in the perfect position and prevents accidental door closure.",
-    image: "https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=200&h=150&fit=crop&crop=center",
+    image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMzMzMzk5O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2NjZiYjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZDEpIiAvPgo8L3N2Zz4=",
     highlight: "Game Changer"
   },
   {
     name: "Pre-cut CyberShade IRX Film",
     description: "Precision-cut and pre-shrunk films that fit your Model Y perfectly. No measuring, no cutting, no stress.",
-    image: "https://images.unsplash.com/photo-1621274790572-7c32596bc67f?w=200&h=150&fit=crop&crop=center",
+    image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMTBiOTgyO3N0b3Atb3BhY2l0eToxIiAvPgogICAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA1OTY2OTtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZDIpIiAvPgo8L3N2Zz4=",
     highlight: "Perfect Fit"
   },
   {
     name: "Professional Squeegee Set",
     description: "Ergonomic hard card squeegee designed specifically for bubble-free application and professional results.",
-    image: "https://images.unsplash.com/photo-1606107557103-3da2b7142e4e?w=200&h=150&fit=crop&crop=center",
+    image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZjU5ZTBiO3N0b3Atb3BhY2l0eToxIiAvPgogICAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2RjMjYyNjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZDMpIiAvPgo8L3N2Zz4=",
     highlight: "Pro Quality"
   }
 ]
@@ -49,7 +49,7 @@ export function KitContents() {
                 Everything You Need for a Perfect Finish.
               </h2>
               <p className="text-lg text-gray-600">
-                Our complete kit includes professional-grade tools and materials 
+                Our complete kit includes professional-grade tools and materials
                 - no need to buy anything else.
               </p>
             </div>
@@ -57,14 +57,13 @@ export function KitContents() {
             {/* Hero Kit Image */}
             <div className="mb-12">
               <Card className="overflow-hidden">
-                <div className="aspect-video relative bg-gray-100">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="text-6xl mb-4">📦</div>
-                      <p className="text-gray-600 font-medium">Complete Kit Contents</p>
-                      <p className="text-sm text-gray-500">Professional flat-lay photo coming soon</p>
-                    </div>
-                  </div>
+                <div className="aspect-video relative">
+                  <img
+                    src="https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/cybershade-kit-mockup.png"
+                    alt="Complete CyberShade IRX Tesla Model Y Kit Contents - Professional flat-lay showing all tools, films, and accessories"
+                    className="absolute inset-0 w-full h-full object-cover"
+                    loading="eager"
+                  />
                 </div>
               </Card>
             </div>
@@ -117,7 +116,7 @@ export function KitContents() {
                       Professional Kit Value: $300+
                     </h4>
                     <p className="text-orange-700 text-sm">
-                      If you bought all these tools and materials separately, you&apos;d spend over $300. 
+                      If you bought all these tools and materials separately, you&apos;d spend over $300.
                       Our complete kit gives you everything for just $149.99.
                     </p>
                   </div>
