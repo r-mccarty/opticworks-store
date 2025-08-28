@@ -7,7 +7,7 @@ export const StickerCard = ({
 }: {
   title: string
   description: string
-  Icon: React.ElementType
+  Icon: React.ComponentType<{ className?: string }>
 }) => (
   <div className="relative">
     <a

@@ -13,6 +13,7 @@ import {
 } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import Image from "next/image"
+import Tesla3DSection from "@/components/products/Tesla3DSection"
 
 export const metadata: Metadata = {
   title: "CyberShade IRX Tesla Model Y Installation Guide - OpticWorks",
@@ -153,20 +154,8 @@ export default function CyberShadeIRXInstallGuide() {
             </div>
           </FadeDiv>
 
-          {/* Video/Image Hero */}
-          <FadeDiv className="mb-12">
-            <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M8 5v14l11-7z"/>
-                  </svg>
-                </div>
-                <p className="text-gray-600 font-medium">3-Minute Installation Video</p>
-                <p className="text-sm text-gray-500">Click to watch the complete process</p>
-              </div>
-            </div>
-          </FadeDiv>
+          {/* Interactive 3D Tesla Model */}
+          <Tesla3DSection />
 
           {/* Installation Steps */}
           <FadeDiv className="mb-12">

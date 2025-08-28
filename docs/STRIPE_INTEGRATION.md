@@ -266,35 +266,7 @@ NEXT_PUBLIC_FROM_EMAIL            # Order confirmation sender email
 - **Email Delivery**: Verify order confirmations are being sent
 
 ## Custom Font Integration
-
-### Overview
-Stripe PaymentElement uses the site's **Colfax** font family to maintain consistent typography throughout the checkout experience.
-
-### Implementation
-```typescript
-// CheckoutWrapper.tsx - Font configuration
-const options = {
-  clientSecret,
-  appearance: {
-    variables: {
-      fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      // ... other appearance variables
-    }
-  },
-  fonts: [
-    {
-      family: 'Colfax',
-      src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
-      display: 'swap'
-    },
-    {
-      family: 'Colfax',
-      src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
-      display: 'swap'
-    }
-  ]
-}
-```
+TBD
 
 ### R2 CDN Setup
 
