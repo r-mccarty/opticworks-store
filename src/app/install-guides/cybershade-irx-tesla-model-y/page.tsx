@@ -13,7 +13,12 @@ import {
 } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import Image from "next/image"
-import Tesla3DSection from "@/components/products/Tesla3DSection"
+import dynamic from "next/dynamic"
+
+const Tesla3DBackground = dynamic(
+  () => import("@/components/3d/Tesla3DBackground"),
+  { ssr: false }
+)
 
 export const metadata: Metadata = {
   title: "CyberShade IRX Tesla Model Y Installation Guide - OpticWorks",
@@ -106,6 +111,7 @@ const troubleshooting = [
 export default function CyberShadeIRXInstallGuide() {
   return (
     <main className="relative">
+      <Tesla3DBackground />
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
         <div className="mx-auto max-w-4xl">
           {/* Header */}
@@ -153,9 +159,6 @@ export default function CyberShadeIRXInstallGuide() {
               </div>
             </div>
           </FadeDiv>
-
-          {/* Interactive 3D Tesla Model */}
-          <Tesla3DSection />
 
           {/* Installation Steps */}
           <FadeDiv className="mb-12">
