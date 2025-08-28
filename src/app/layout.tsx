@@ -3,7 +3,7 @@ import localFont from "next/font/local"
 import "./globals.css"
 
 import Footer from "@/components/ui/Footer"
-import { MenuBar } from "@/components/menu-bar"
+import { NavBar } from "@/components/ui/Navbar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "./siteConfig"
 
@@ -124,7 +124,7 @@ export default function RootLayout({
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <MenuBar />
+          <NavBar />
           {children}
           <Footer />
         </ThemeProvider>
