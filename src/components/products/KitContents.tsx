@@ -58,11 +58,12 @@ export function KitContents() {
             <div className="mb-12">
               <Card className="overflow-hidden">
                 <div className="aspect-video relative">
-                  <img
+                  <Image
                     src="https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/cybershade-kit-mockup.png"
                     alt="Complete CyberShade IRX Tesla Model Y Kit Contents - Professional flat-lay showing all tools, films, and accessories"
                     className="absolute inset-0 w-full h-full object-cover"
-                    loading="eager"
+                    fill
+                    priority
                   />
                 </div>
               </Card>
