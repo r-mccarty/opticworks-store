@@ -158,9 +158,9 @@ const Footer = () => {
             <span className="sr-only">Solar Logo (go home)</span>
           </Link>
 
-          <div>
-            <div className="mt-4 flex items-center">
-              {/* Social Icons */}
+          <div className="flex flex-col space-y-3">
+            {/* Social Icons */}
+            <div className="flex items-center">
               <Link
                 href="https://twitter.com/opticworks"
                 target="_blank"
@@ -192,17 +192,21 @@ const Footer = () => {
                 <RiSlackFill className="size-5" />
               </Link>
             </div>
-            <div className="ml-2 hidden text-sm text-gray-700 lg:inline">
+            
+            {/* Copyright */}
+            <div className="ml-2 text-sm text-gray-700">
               &copy; {CURRENT_YEAR} OpticWorks LLC
             </div>
-            <div className="ml-2 mt-2 text-xs text-gray-600 lg:inline lg:block">
+            
+            {/* Legal Links */}
+            <div className="ml-2 text-xs text-gray-600">
               <Link 
                 href={siteConfig.baseLinks.supportPrivacy}
                 className="hover:text-gray-900 transition-colors"
               >
                 Privacy Policy
               </Link>
-              {" • "}
+              <span className="mx-2">•</span>
               <Link 
                 href={siteConfig.baseLinks.supportTerms}
                 className="hover:text-gray-900 transition-colors"
