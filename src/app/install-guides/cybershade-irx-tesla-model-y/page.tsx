@@ -13,12 +13,7 @@ import {
 } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import Image from "next/image"
-import dynamic from "next/dynamic"
-
-const Tesla3DBackground = dynamic(
-  () => import("@/components/3d/Tesla3DBackground"),
-  { ssr: false }
-)
+import Tesla3DBackground from "@/components/3d/Tesla3DBackground"
 
 export const metadata: Metadata = {
   title: "CyberShade IRX Tesla Model Y Installation Guide - OpticWorks",
