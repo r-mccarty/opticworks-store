@@ -7,20 +7,28 @@ import { Mesh } from 'three'
 interface TeslaModelProps {
   showTint?: boolean
   highlightWindows?: boolean
+  scrollProgress?: number
 }
 
-export default function TeslaModel({ showTint = false, highlightWindows = false }: TeslaModelProps) {
+import { Group } from 'three'
+
+export default function TeslaModel({ showTint = false, highlightWindows = false, scrollProgress = 0 }: TeslaModelProps) {
   const carBodyRef = useRef<Mesh>(null)
+  const groupRef = useRef<Group>(null)
   const [hovered, setHovered] = useState(false)
 
   useFrame((state) => {
     if (carBodyRef.current) {
       carBodyRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1
     }
+    if (groupRef.current) {
+      groupRef.current.position.y = -1 + Math.sin(scrollProgress * Math.PI) * 0.2
+      groupRef.current.rotation.y = scrollProgress * Math.PI / 4
+    }
   })
 
   return (
-    <group position={[0, -1, 0]}>
+    <group ref={groupRef} position={[0, -1, 0]}>
       {/* Car Body */}
       <mesh
         ref={carBodyRef}

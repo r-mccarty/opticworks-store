@@ -1,7 +1,6 @@
 "use client"
 
 import { siteConfig } from "@/app/siteConfig"
-import useScroll from "@/lib/useScroll"
 import { cx } from "@/lib/utils"
 import { RiCloseFill, RiMenuFill } from "@remixicon/react"
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"
@@ -14,11 +13,20 @@ import { useCart } from "@/hooks/useCart"
 export function NavBar() {
   const [open, setOpen] = React.useState(false)
   const [mounted, setMounted] = React.useState(false)
-  const scrolled = useScroll(15)
+  const [scrolled, setScrolled] = React.useState(false)
   const { getTotalItems } = useCart()
 
   React.useEffect(() => {
     setMounted(true)
+
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 15)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    handleScroll() // Initial check
+
+    return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
   return (

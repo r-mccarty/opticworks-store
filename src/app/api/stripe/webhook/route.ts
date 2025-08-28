@@ -3,17 +3,17 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation, sendPaymentFailed } from '@/lib/api/email';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
-
 // Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// const supabase = createClient(
+//   process.env.NEXT_PUBLIC_SUPABASE_URL!,
+//   process.env.SUPABASE_SERVICE_ROLE_KEY!
+// );
 
 export async function POST(request: NextRequest) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-08-27.basil',
+  });
+
   const body = await request.text();
   const signature = request.headers.get('stripe-signature');
 
@@ -49,11 +49,11 @@ export async function POST(request: NextRequest) {
   try {
     switch (event.type) {
       case 'payment_intent.succeeded':
-        await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent);
+        await handlePaymentSucceeded(stripe, event.data.object as Stripe.PaymentIntent);
         break;
 
       case 'payment_intent.payment_failed':
-        await handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
+        await handlePaymentFailed(stripe, event.data.object as Stripe.PaymentIntent);
         break;
 
       case 'customer.created':
@@ -75,7 +75,12 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentSucceeded(stripe: Stripe, paymentIntent: Stripe.PaymentIntent) {
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+
   console.log('Payment succeeded:', paymentIntent.id);
 
   try {
@@ -150,7 +155,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   }
 }
 
-async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
+async function handlePaymentFailed(stripe: Stripe, paymentIntent: Stripe.PaymentIntent) {
   console.log('Payment failed:', paymentIntent.id);
 
   try {
