@@ -81,20 +81,24 @@ export default function InstallGuidesPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {featuredGuides.map((guide) => (
                   <Card key={guide.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <div className="aspect-video relative">
-                      <Image
-                        src={guide.image}
-                        alt={guide.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 1024px) 100vw, 50vw"
-                      />
-                      <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
-                        Featured
-                      </Badge>
-                    </div>
+                    <Link href={guide.href}>
+                      <div className="aspect-video relative">
+                        <Image
+                          src={guide.image}
+                          alt={guide.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 1024px) 100vw, 50vw"
+                        />
+                        <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
+                          Featured
+                        </Badge>
+                      </div>
+                    </Link>
                     <CardHeader>
-                      <CardTitle className="text-xl">{guide.title}</CardTitle>
+                      <Link href={guide.href}>
+                        <CardTitle className="text-xl">{guide.title}</CardTitle>
+                      </Link>
                       <p className="text-gray-600">{guide.description}</p>
                     </CardHeader>
                     <CardContent>
@@ -131,17 +135,21 @@ export default function InstallGuidesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {otherGuides.map((guide) => (
                   <Card key={guide.id} className="hover:shadow-lg transition-shadow">
-                    <div className="aspect-video relative">
-                      <Image
-                        src={guide.image}
-                        alt={guide.title}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                      />
-                    </div>
+                    <Link href={guide.href}>
+                      <div className="aspect-video relative">
+                        <Image
+                          src={guide.image}
+                          alt={guide.title}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                      </div>
+                    </Link>
                     <CardHeader>
-                      <CardTitle className="text-lg">{guide.title}</CardTitle>
+                      <Link href={guide.href}>
+                        <CardTitle className="text-lg">{guide.title}</CardTitle>
+                      </Link>
                       <p className="text-sm text-gray-600">{guide.description}</p>
                     </CardHeader>
                     <CardContent>

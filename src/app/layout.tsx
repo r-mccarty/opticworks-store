@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
 
+import { Toaster } from "@/components/ui/sonner"
 import Footer from "@/components/ui/Footer"
 import { MenuBar } from "@/components/menu-bar"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -127,6 +128,7 @@ export default function RootLayout({
           <MenuBar />
           {children}
           <Footer />
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

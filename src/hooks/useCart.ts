@@ -2,6 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { toast } from "sonner"
 import { Product } from '@/lib/products'
 
 export interface CartItem extends Product {
@@ -43,6 +44,9 @@ export const useCart = create<CartStore>()(
             items: [...items, { ...product, quantity: 1 }]
           })
         }
+        toast.success("Added to cart", {
+          description: `${product.name} has been added to your cart.`,
+        })
       },
       
       removeFromCart: (productId) => {

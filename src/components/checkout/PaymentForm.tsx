@@ -138,33 +138,16 @@ export default function PaymentForm({
         </CardContent>
       </Card>
 
-      {/* Order Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Order Summary</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span>${totals.subtotal.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Shipping:</span>
-              <span>${totals.shipping.toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Tax:</span>
-              <span>${totals.tax.toFixed(2)}</span>
-            </div>
-            <hr className="my-2" />
-            <div className="flex justify-between font-bold text-lg">
-              <span>Total:</span>
-              <span>${totals.total.toFixed(2)}</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Order Total Summary */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+        <div className="flex justify-between items-center">
+          <span className="text-lg font-semibold text-gray-900">Order Total:</span>
+          <span className="text-2xl font-bold text-gray-900">${totals.total.toFixed(2)}</span>
+        </div>
+        <div className="text-sm text-gray-600 mt-1">
+          Includes ${totals.tax.toFixed(2)} tax and ${totals.shipping.toFixed(2)} shipping
+        </div>
+      </div>
 
       {/* Error Message */}
       {message && (
