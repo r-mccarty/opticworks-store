@@ -109,7 +109,10 @@ export function CartPage() {
                       <div className="flex-1 space-y-6">
                         {/* Large Product Image */}
                         <div className="flex justify-center">
-                          <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-xl overflow-hidden bg-gray-100">
+                          <Link
+                            href={`/products/${items[0].id}`}
+                            className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-xl overflow-hidden bg-gray-100"
+                          >
                             <Image
                               src={items[0].image}
                               alt={items[0].name}
@@ -117,13 +120,15 @@ export function CartPage() {
                               className="object-cover"
                               sizes="(max-width: 640px) 128px, (max-width: 1024px) 160px, 192px"
                             />
-                          </div>
+                          </Link>
                         </div>
                         
                         {/* Product Information */}
                         <div className="text-center space-y-4">
                           <h3 className="text-xl lg:text-2xl font-bold text-gray-900">
-                            {items[0].name}
+                            <Link href={`/products/${items[0].id}`} className="hover:underline">
+                              {items[0].name}
+                            </Link>
                           </h3>
                           
                           {/* Rich Specifications */}
@@ -235,7 +240,10 @@ export function CartPage() {
                     <Card>
                       <CardContent className="p-6">
                         <div className="flex items-start space-x-4 sm:space-x-6">
-                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                          <Link
+                            href={`/products/${item.id}`}
+                            className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"
+                          >
                             <Image
                               src={item.image}
                               alt={item.name}
@@ -243,11 +251,13 @@ export function CartPage() {
                               className="object-cover"
                               sizes="(max-width: 640px) 64px, 80px"
                             />
-                          </div>
-                          
+                          </Link>
+
                           <div className="flex-1 min-w-0">
                             <h3 className="text-lg font-semibold text-gray-900 truncate">
-                              {item.name}
+                              <Link href={`/products/${item.id}`} className="hover:underline">
+                                {item.name}
+                              </Link>
                             </h3>
                             <p className="text-sm text-gray-600 mt-1">
                               {item.specifications.vlt && `VLT: ${item.specifications.vlt}`}
