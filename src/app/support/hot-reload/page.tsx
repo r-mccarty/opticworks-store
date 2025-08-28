@@ -15,12 +15,12 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Oops Protection Policy - OpticWorks Window Tinting",
-  description: "Damaged a film during installation? No problem! Our Oops Protection policy provides replacement films for just a small shipping & handling fee.",
-  keywords: ["oops protection", "replacement", "damaged film", "installation mistake", "support"],
+  title: "Hot Reload Policy - OpticWorks Window Tinting",
+  description: "Damaged a film during installation? No problem! Our Hot Reload policy provides replacement films for just a small shipping & handling fee.",
+  keywords: ["hot reload", "replacement", "damaged film", "installation mistake", "support"],
 }
 
-export default function OopsPage() {
+export default function HotReloadPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       {/* Hero Section */}
@@ -32,10 +32,10 @@ export default function OopsPage() {
                 <RiShieldCheckLine className="h-8 w-8 text-orange-600" />
               </div>
               <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Oops Protection Policy
+                Hot Reload Policy
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-                Mistakes happen. That&apos;s why we&apos;ve got you covered with our Oops Protection program.
+                Mistakes happen. That&apos;s why we&apos;ve got you covered with our Hot Reload program.
               </p>
               <Badge className="mt-4 bg-green-100 text-green-800 hover:bg-green-200">
                 Hassle-Free Replacements
@@ -45,13 +45,13 @@ export default function OopsPage() {
         </FadeContainer>
       </section>
 
-      {/* What is Oops Protection */}
+      {/* What is Hot Reload */}
       <section className="py-16">
         <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <FadeDiv>
             <Card className="border-0 shadow-lg">
               <CardHeader className="bg-gradient-to-r from-orange-500 to-orange-600 text-white">
-                <CardTitle className="text-2xl font-bold">What is Oops Protection?</CardTitle>
+                <CardTitle className="text-2xl font-bold">What is Hot Reload?</CardTitle>
               </CardHeader>
               <CardContent className="p-8">
                 <p className="text-lg leading-relaxed text-gray-700 mb-6">
@@ -59,7 +59,7 @@ export default function OopsPage() {
                   Maybe the film got damaged during installation, or perhaps you want to start over for the perfect finish.
                 </p>
                 <p className="text-lg leading-relaxed text-gray-700 mb-6">
-                  Our <strong>Oops Protection</strong> program ensures you can get a replacement film quickly and affordably, 
+                  Our <strong>Hot Reload</strong> program ensures you can get a replacement film quickly and affordably,
                   so your DIY project doesn&apos;t turn into a costly mistake.
                 </p>
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
@@ -85,7 +85,7 @@ export default function OopsPage() {
           <FadeDiv>
             <div className="text-center mb-12">
               <h2 className="font-barlow text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                How Oops Protection Works
+                How Hot Reload Works
               </h2>
               <p className="mt-4 text-lg text-gray-600">
                 Getting a replacement is simple and fast

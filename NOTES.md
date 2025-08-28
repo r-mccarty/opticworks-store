@@ -6,10 +6,10 @@
 - ✅ **Complete Legal & Compliance System**: Implemented comprehensive legal section with tinting laws checker, privacy policy, and terms of service
 - ✅ **Interactive Tinting Laws Database**: State-by-state VLT requirements with compliance checking and API stubs for Supabase integration
 - ✅ **Complete Image System Overhaul**: Replaced 25+ placeholder images with professional Tesla/automotive Unsplash images
-- ✅ **Oops Protection Policy**: Created comprehensive `/support/oops` page with $15 replacement policy
+- ✅ **Hot Reload Policy**: Created comprehensive `/support/hot-reload` page with $15 replacement policy
 - ✅ **Footer Navigation Fix**: All footer links now properly route to existing pages instead of placeholder anchors
 - ✅ **Build System Clean**: Resolved all TypeScript/ESLint errors for clean production builds
-- ✅ **Support System Enhancement**: Added Oops Protection to support category grid with popular badge
+- ✅ **Support System Enhancement**: Added Hot Reload to support category grid with popular badge
 - ✅ **Customer Support Integration**: Complete revamp of support section with dedicated functional pages
 - ✅ **CLAUDE.md Documentation**: Comprehensive rewrite from template guide to full platform documentation
 - ✅ **Interactive Support Tools**: Order tracking, invoice lookup, and vehicle compatibility checker
@@ -39,7 +39,7 @@
 - [x] Set up support state management with Zustand
 - [x] Replace all placeholder images with high-quality Unsplash Tesla images
 - [x] Fix Next.js image optimization by adding Unsplash to remotePatterns
-- [x] Create comprehensive Oops Protection policy page
+- [x] Create comprehensive Hot Reload policy page
 - [x] Fix all footer navigation links and update social media URLs
 - [x] Debug and resolve all build errors (apostrophe escaping, unused imports)
 - [x] Implement complete legal & compliance section (/support/legal)
@@ -88,7 +88,7 @@
 - [ ] Link product stock level to Google Sheets API/master biz logic spreadsheet
 - [ ] Set up Tesla as an OAuth2 provider for optional account ID/registration
 - [ ] Set up Google Analytics
-- [x] Develop returns policy and oops policy pages
+- [x] Develop returns policy and hot reload policy pages
 - [ ] Set up UTM tags for social campaigns
 - [ ] Add empty state illustrations (such as for empty shopping cart)
 

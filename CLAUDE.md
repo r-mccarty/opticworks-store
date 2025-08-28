@@ -93,7 +93,7 @@ pnpm run lint
 - `/support/faq` - FAQ system with search/filtering
 - `/support/contact` - Contact form with file upload
 - `/support/warranty` - Warranty claim processing
-- `/support/oops` - Oops Protection policy ($15 replacement program)
+- `/support/hot-reload` - Hot Reload policy ($15 replacement program)
 
 **Legal & Compliance:**
 - `/support/legal` - Legal hub page

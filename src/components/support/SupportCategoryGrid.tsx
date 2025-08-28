@@ -38,10 +38,10 @@ const supportCategories = [
     color: "bg-orange-50 text-orange-600"
   },
   {
-    title: "Oops Protection",
+    title: "Hot Reload",
     description: "Damaged film during install? Get a replacement for just shipping cost",
     icon: RiRefreshLine,
-    href: siteConfig.baseLinks.supportOops,
+    href: siteConfig.baseLinks.supportHotReload,
     color: "bg-emerald-50 text-emerald-600",
     popular: true
   },

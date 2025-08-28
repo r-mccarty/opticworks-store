@@ -41,7 +41,7 @@ const Footer = () => {
         { label: "Product Compatibility", href: siteConfig.baseLinks.supportCompatibility },
         { label: "Returns & Exchanges", href: siteConfig.baseLinks.supportWarranty },
         { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
-        { label: "Oops Protection", href: siteConfig.baseLinks.supportOops },
+        { label: "Hot Reload", href: siteConfig.baseLinks.supportHotReload },
       ],
     },
     guides: {

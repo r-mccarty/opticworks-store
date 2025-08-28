@@ -223,10 +223,10 @@ export default function TermsOfServicePage() {
                   </div>
                   
                   <div>
-                    <h4 className="font-semibold text-lg mb-3">Oops Protection Program</h4>
+                    <h4 className="font-semibold text-lg mb-3">Hot Reload Program</h4>
                     <p className="text-gray-600 text-sm mb-2">
-                      Our Oops Protection program provides replacement films for installation mistakes at reduced cost. 
-                      See our <Link href="/support/oops" className="text-orange-600 hover:text-orange-700 underline">Oops Protection Policy</Link> for full details.
+                      Our Hot Reload program provides replacement films for installation mistakes at reduced cost.
+                      See our <Link href="/support/hot-reload" className="text-orange-600 hover:text-orange-700 underline">Hot Reload Policy</Link> for full details.
                     </p>
                   </div>
                 </CardContent>
