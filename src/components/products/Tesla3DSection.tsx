@@ -5,20 +5,8 @@ import { FadeDiv } from '@/components/Fade'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import dynamic from 'next/dynamic'
 import ThreeDErrorBoundary from '@/components/3d/ErrorBoundary'
-
-const Tesla3DViewer = dynamic(() => import('@/components/3d/Tesla3DViewer'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading 3D Model...</p>
-      </div>
-    </div>
-  )
-})
+import Tesla3DViewer from '@/components/3d/Tesla3DViewer'
 
 export default function Tesla3DSection() {
   const [show3D, setShow3D] = useState(false)
