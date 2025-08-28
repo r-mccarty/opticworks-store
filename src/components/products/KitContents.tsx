@@ -68,7 +68,7 @@ export function KitContents() {
                 </div>
               </Card>
             </div>
-
+            
             {/* Highlighted Tools */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               {highlightedTools.map((tool, index) => (

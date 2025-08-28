@@ -163,6 +163,20 @@
   }
 }
 
+/* MenuBar Performance Optimizations */
+.nav-link {
+  transition: color 0.15s ease-out;
+}
+
+.nav-link:hover .nav-icon {
+  color: var(--icon-color);
+  transition: color 0.15s ease-out;
+}
+
+.nav-link .nav-icon {
+  transition: color 0.15s ease-out;
+}
+
 /*
   The default border color has changed to `currentColor` in Tailwind CSS v4,
   so we've added these compatibility styles to make sure everything still
