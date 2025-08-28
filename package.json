@@ -33,6 +33,7 @@
     "react-dom": "19.1.1",
     "react-hook-form": "^7.62.0",
     "resend": "^6.0.1",
+    "sonner": "^1.5.0",
     "stripe": "^18.4.0",
     "tailwind-merge": "^2.6.0",
     "tailwind-variants": "^0.3.1",
