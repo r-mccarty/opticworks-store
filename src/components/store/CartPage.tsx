@@ -91,86 +91,231 @@ export function CartPage() {
             </h1>
           </FadeDiv>
 
-          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-5 gap-8">
-            {/* Cart Items */}
-            <div className="lg:col-span-3 space-y-4">
-              {items.map((item) => (
-                <FadeDiv key={item.id}>
-                  <Card>
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-6">
-                        <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            className="object-cover"
-                            sizes="80px"
-                          />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:items-start">
+            {/* Cart Items - Dynamic width based on item count */}
+            <div className={`${
+              items.length === 1 
+                ? 'lg:col-span-4 lg:h-full' 
+                : items.length <= 3 
+                ? 'lg:col-span-6 space-y-4' 
+                : 'lg:col-span-7 space-y-4'
+            }`}>
+              {items.length === 1 ? (
+                // Enhanced single item layout
+                <FadeDiv key={items[0].id} className="h-full">
+                  <Card className="h-full lg:min-h-[600px]">
+                    <CardContent className="p-8 h-full flex flex-col justify-between">
+                      {/* Product Header */}
+                      <div className="flex-1 space-y-6">
+                        {/* Large Product Image */}
+                        <div className="flex justify-center">
+                          <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-xl overflow-hidden bg-gray-100">
+                            <Image
+                              src={items[0].image}
+                              alt={items[0].name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 128px, (max-width: 1024px) 160px, 192px"
+                            />
+                          </div>
                         </div>
                         
-                        <div className="flex-1 min-w-0">
-                          <h3 className="text-lg font-semibold text-gray-900 truncate">
-                            {item.name}
+                        {/* Product Information */}
+                        <div className="text-center space-y-4">
+                          <h3 className="text-xl lg:text-2xl font-bold text-gray-900">
+                            {items[0].name}
                           </h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {item.specifications.vlt && `VLT: ${item.specifications.vlt}`}
-                            {item.specifications.coverage && ` • Coverage: ${item.specifications.coverage}`}
-                          </p>
-                          <div className="flex items-center mt-3 space-x-3">
-                            <div className="flex items-center border border-gray-300 rounded-md">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <MinusIcon className="h-4 w-4" />
-                              </Button>
-                              <Input
-                                type="number"
-                                value={item.quantity}
-                                onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
-                                className="h-8 w-16 text-center border-0 bg-transparent"
-                                min="1"
-                              />
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                className="h-8 w-8 p-0"
-                              >
-                                <PlusIcon className="h-4 w-4" />
-                              </Button>
+                          
+                          {/* Rich Specifications */}
+                          <div className="bg-gray-50 rounded-lg p-4 text-left">
+                            <h4 className="font-semibold text-gray-900 mb-3">Specifications</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
+                              {items[0].specifications.vlt && (
+                                <div className="flex justify-between">
+                                  <span>VLT:</span>
+                                  <span className="font-medium">{items[0].specifications.vlt}</span>
+                                </div>
+                              )}
+                              {items[0].specifications.heatRejection && (
+                                <div className="flex justify-between">
+                                  <span>Heat Rejection:</span>
+                                  <span className="font-medium">{items[0].specifications.heatRejection}</span>
+                                </div>
+                              )}
+                              {items[0].specifications.uvRejection && (
+                                <div className="flex justify-between">
+                                  <span>UV Block:</span>
+                                  <span className="font-medium">{items[0].specifications.uvRejection}</span>
+                                </div>
+                              )}
+                              {items[0].specifications.warranty && (
+                                <div className="flex justify-between">
+                                  <span>Warranty:</span>
+                                  <span className="font-medium">{items[0].specifications.warranty}</span>
+                                </div>
+                              )}
+                              {items[0].specifications.coverage && (
+                                <div className="flex justify-between">
+                                  <span>Coverage:</span>
+                                  <span className="font-medium">{items[0].specifications.coverage}</span>
+                                </div>
+                              )}
+                              {items[0].specifications.difficulty && (
+                                <div className="flex justify-between">
+                                  <span>Difficulty:</span>
+                                  <span className="font-medium">{items[0].specifications.difficulty}</span>
+                                </div>
+                              )}
                             </div>
+                          </div>
+                          
+                          {/* Product Description */}
+                          <div className="text-sm text-gray-600 leading-relaxed text-left">
+                            {items[0].description}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Controls Section */}
+                      <div className="mt-8 pt-6 border-t border-gray-200 space-y-4">
+                        <div className="flex items-center justify-center space-x-4">
+                          <div className="flex items-center border border-gray-300 rounded-lg">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => removeFromCart(item.id)}
-                              className="text-red-600 hover:text-red-700"
+                              onClick={() => updateQuantity(items[0].id, items[0].quantity - 1)}
+                              className="h-10 w-10 p-0"
                             >
-                              <TrashIcon className="h-4 w-4" />
+                              <MinusIcon className="h-5 w-5" />
+                            </Button>
+                            <Input
+                              type="number"
+                              value={items[0].quantity}
+                              onChange={(e) => updateQuantity(items[0].id, parseInt(e.target.value) || 1)}
+                              className="h-10 w-20 text-center border-0 bg-transparent font-semibold"
+                              min="1"
+                            />
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => updateQuantity(items[0].id, items[0].quantity + 1)}
+                              className="h-10 w-10 p-0"
+                            >
+                              <PlusIcon className="h-5 w-5" />
                             </Button>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeFromCart(items[0].id)}
+                            className="text-red-600 hover:text-red-700 h-10 px-4"
+                          >
+                            <TrashIcon className="h-5 w-5 mr-2" />
+                            Remove
+                          </Button>
                         </div>
                         
-                        <div className="text-right">
-                          <div className="text-lg font-semibold text-gray-900">
-                            ${(item.price * item.quantity).toLocaleString()}
+                        {/* Pricing */}
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-gray-900">
+                            ${(items[0].price * items[0].quantity).toLocaleString()}
                           </div>
-                          <div className="text-sm text-gray-500">
-                            ${item.price} each
+                          <div className="text-sm text-gray-500 mt-1">
+                            ${items[0].price} each {items[0].quantity > 1 && `× ${items[0].quantity}`}
                           </div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                 </FadeDiv>
-              ))}
+              ) : (
+                // Multiple items - compact layout
+                items.map((item) => (
+                  <FadeDiv key={item.id}>
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-start space-x-4 sm:space-x-6">
+                          <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                            <Image
+                              src={item.image}
+                              alt={item.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 640px) 64px, 80px"
+                            />
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+                              {item.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {item.specifications.vlt && `VLT: ${item.specifications.vlt}`}
+                              {item.specifications.coverage && ` • Coverage: ${item.specifications.coverage}`}
+                            </p>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-3">
+                              <div className="flex items-center space-x-3">
+                                <div className="flex items-center border border-gray-300 rounded-md">
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <MinusIcon className="h-4 w-4" />
+                                  </Button>
+                                  <Input
+                                    type="number"
+                                    value={item.quantity}
+                                    onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                                    className="h-8 w-16 text-center border-0 bg-transparent"
+                                    min="1"
+                                  />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <PlusIcon className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeFromCart(item.id)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <TrashIcon className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              
+                              <div className="text-right sm:text-right">
+                                <div className="text-lg font-semibold text-gray-900">
+                                  ${(item.price * item.quantity).toLocaleString()}
+                                </div>
+                                <div className="text-sm text-gray-500">
+                                  ${item.price} each
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </FadeDiv>
+                ))
+              )}
             </div>
 
-            {/* Order Summary & Checkout */}
-            <div className="lg:col-span-2 space-y-8">
+            {/* Order Summary & Checkout - Dynamic width based on item count */}
+            <div className={`space-y-6 ${
+              items.length === 1 
+                ? 'lg:col-span-8' 
+                : items.length <= 3 
+                ? 'lg:col-span-6' 
+                : 'lg:col-span-5'
+            }`}>
               <FadeDiv>
                 <Card>
                   <CardHeader>
@@ -205,7 +350,7 @@ export function CartPage() {
                       <CardTitle>Customer Information</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="email">Email *</Label>
                           <Input 
@@ -259,7 +404,7 @@ export function CartPage() {
                           onChange={(e) => setShippingAddress({...shippingAddress, line2: e.target.value})}
                         />
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <div className="space-y-2">
                           <Label htmlFor="city">City *</Label>
                           <Input 
@@ -280,16 +425,16 @@ export function CartPage() {
                             required
                           />
                         </div>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="zip">ZIP Code *</Label>
-                        <Input 
-                          id="zip" 
-                          placeholder="12345" 
-                          value={shippingAddress.postal_code}
-                          onChange={(e) => setShippingAddress({...shippingAddress, postal_code: e.target.value})}
-                          required
-                        />
+                        <div className="space-y-2">
+                          <Label htmlFor="zip">ZIP Code *</Label>
+                          <Input 
+                            id="zip" 
+                            placeholder="12345" 
+                            value={shippingAddress.postal_code}
+                            onChange={(e) => setShippingAddress({...shippingAddress, postal_code: e.target.value})}
+                            required
+                          />
+                        </div>
                       </div>
                       <Button 
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
