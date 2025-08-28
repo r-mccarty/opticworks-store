@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FadeDiv } from "@/components/Fade"
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"
-import { products } from "@/lib/products"
+import { products, Product } from "@/lib/products"
 import { useCart } from "@/hooks/useCart"
 import Image from "next/image"
 import Link from "next/link"
@@ -13,7 +13,7 @@ import Link from "next/link"
 export function ProductGrid() {
   const { addToCart } = useCart()
 
-  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>, product: any) => {
+  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
     e.preventDefault()
     e.stopPropagation()
     addToCart(product)
