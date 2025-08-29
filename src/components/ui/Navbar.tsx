@@ -37,17 +37,34 @@ export function NavBar() {
             <SolarLogo className="w-22" />
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
-            <div className="flex items-center gap-10 font-bold">
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/products">
+            <div
+              className={cx(
+                "flex items-center gap-10 font-bold transition-colors",
+                scrolled || open ? "text-gray-900" : "text-white",
+              )}
+            >
+              <Link
+                className="px-2 py-1 hover:text-orange-600 transition-colors"
+                href="/products"
+              >
                 Products
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/store">
+              <Link
+                className="px-2 py-1 hover:text-orange-600 transition-colors"
+                href="/store"
+              >
                 Store
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href={siteConfig.baseLinks.support}>
+              <Link
+                className="px-2 py-1 hover:text-orange-600 transition-colors"
+                href={siteConfig.baseLinks.support}
+              >
                 Customer Support
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/install-guides">
+              <Link
+                className="px-2 py-1 hover:text-orange-600 transition-colors"
+                href="/install-guides"
+              >
                 Install Guides
               </Link>
             </div>
@@ -56,7 +73,10 @@ export function NavBar() {
             <Button
               asChild
               variant="ghost"
-              className="relative p-2"
+              className={cx(
+                "relative p-2 transition-colors",
+                scrolled || open ? "text-gray-900" : "text-white",
+              )}
             >
               <Link href="/store/cart">
                 <ShoppingCartIcon className="w-5 h-5" />
@@ -83,7 +103,10 @@ export function NavBar() {
           >
             {!open ? (
               <RiMenuFill
-                className="size-6 shrink-0 text-gray-900"
+                className={cx(
+                  "size-6 shrink-0 transition-colors",
+                  scrolled || open ? "text-gray-900" : "text-white",
+                )}
                 aria-hidden
               />
             ) : (
