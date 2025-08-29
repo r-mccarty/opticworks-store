@@ -91,10 +91,26 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     const tax = 0; // TODO: Implement tax calculation when API supports it
     const total = paymentIntent.amount / 100;
 
-    // Get customer details
-    const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
-    const customerEmail = customer.email!;
-    const customerName = customer.name || 'Customer';
+    // Get customer details - prioritize receipt_email over customer.email
+    const customerEmail = paymentIntent.receipt_email;
+    
+    if (!customerEmail) {
+      console.error('No customer email found in payment intent');
+      return;
+    }
+
+    // Get customer name from shipping info first, then customer object, then fallback
+    let customerName = paymentIntent.shipping?.name || 'Customer';
+    
+    try {
+      if (paymentIntent.customer) {
+        const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+        customerName = customer.name || paymentIntent.shipping?.name || 'Customer';
+      }
+    } catch (error) {
+      console.warn('Could not retrieve customer details:', error);
+      // Use shipping name as fallback
+    }
 
     // Generate order number
     const orderNumber = `ORD-${Date.now()}`;
@@ -116,7 +132,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     }
 
     // Send order confirmation email
-    const shippingAddress = customer.shipping?.address || paymentIntent.shipping?.address;
+    const shippingAddress = paymentIntent.shipping?.address;
     if (shippingAddress) {
       console.log(`📧 Attempting to send order confirmation email for ${orderNumber} to ${customerEmail}`);
       
@@ -169,10 +185,26 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   console.log('Payment failed:', paymentIntent.id);
 
   try {
-    // Get customer details
-    const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
-    const customerEmail = customer.email!;
-    const customerName = customer.name || 'Customer';
+    // Get customer details - prioritize receipt_email over customer.email
+    const customerEmail = paymentIntent.receipt_email;
+    
+    if (!customerEmail) {
+      console.error('No customer email found in failed payment intent');
+      return;
+    }
+
+    // Get customer name from shipping info first, then customer object, then fallback
+    let customerName = paymentIntent.shipping?.name || 'Customer';
+    
+    try {
+      if (paymentIntent.customer) {
+        const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+        customerName = customer.name || paymentIntent.shipping?.name || 'Customer';
+      }
+    } catch (error) {
+      console.warn('Could not retrieve customer details for failed payment:', error);
+      // Use shipping name as fallback
+    }
 
     // Generate retry URL (would link back to checkout page)
     const retryUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.mccarty.ventures'}/store/cart?retry=${paymentIntent.id}`;
