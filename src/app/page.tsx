@@ -8,7 +8,7 @@ import Testimonial from "@/components/ui/Testimonial"
 
 export default function Home() {
   return (
-    <>
+    <main className="relative mx-auto flex flex-col">
       <Hero />
       <div className="mt-52 px-4 xl:px-0">
         <Features />
@@ -28,6 +28,6 @@ export default function Home() {
       <div className="mt-10 mb-40 px-4 xl:px-0">
         <CallToAction />
       </div>
-    </>
+    </main>
   )
 }

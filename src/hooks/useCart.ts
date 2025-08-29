@@ -46,12 +46,6 @@ export const useCart = create<CartStore>()(
         }
         toast.success("Added to cart", {
           description: `${product.name} has been added to your cart.`,
-          action: {
-            label: "View cart",
-            onClick: () => {
-              window.location.href = "/store/cart"
-            },
-          },
         })
       },
       
