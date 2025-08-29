@@ -3,8 +3,9 @@ import localFont from "next/font/local"
 import "./globals.css"
 
 import { Toaster } from "@/components/ui/sonner"
+import Footer from "@/components/ui/Footer"
+import { MenuBar } from "@/components/menu-bar"
 import { ThemeProvider } from "@/components/theme-provider"
-import PageWrapper from "@/components/ui/PageWrapper"
 import { siteConfig } from "./siteConfig"
 
 // Define Barlow font
@@ -124,7 +125,9 @@ export default function RootLayout({
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <PageWrapper>{children}</PageWrapper>
+          <MenuBar />
+          {children}
+          <Footer />
           <Toaster />
         </ThemeProvider>
       </body>

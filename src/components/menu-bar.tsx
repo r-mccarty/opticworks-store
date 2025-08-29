@@ -71,35 +71,61 @@ const fastTransition = {
   ease: "easeOut" as const,
 }
 
-interface MenuBarProps {
-  isLandingPage?: boolean;
-}
+import { cx } from "@/lib/utils"
+import useScroll from "@/lib/useScroll"
+import { usePathname } from "next/navigation"
 
-export const MenuBar = React.memo(function MenuBar({ isLandingPage = false }: MenuBarProps) {
+const lightRoutes = ["/products", "/store", "/install-guides", "/support"]
+
+export const MenuBar = React.memo(function MenuBar() {
   const totalItems = useCart(
     (state) => state.items.reduce((total, item) => total + item.quantity, 0)
   )
   const [mounted, setMounted] = React.useState(false)
+  const scrolled = useScroll(15)
+  const pathname = usePathname()
+
+  const isLightPage = React.useMemo(() => {
+    return lightRoutes.some((route) => pathname.startsWith(route))
+  }, [pathname])
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
 
-  const headerClass = isLandingPage
-    ? "fixed inset-x-4 top-4 z-50 mx-auto flex max-w-6xl justify-center"
-    : "fixed top-4 z-50 flex w-full justify-center px-4"
-
-  const navClass = isLandingPage
-    ? "p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full will-change-transform"
-    : "p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full max-w-6xl will-change-transform"
+  // Memoize expensive calculations
+  const totalItemsCount = React.useMemo(() => {
+    return mounted ? totalItems : 0
+  }, [mounted, totalItems])
 
   return (
-    <header className={headerClass}>
-      <nav className={navClass}>
-        <div className="flex items-center justify-between relative ">
+    <header
+      className={cx(
+        "fixed inset-x-0 top-0 z-50 mx-auto flex max-w-full justify-center transition-all duration-300",
+        scrolled ? "p-4" : "p-6",
+      )}
+    >
+      <nav
+        className={cx(
+          "p-3 rounded-2xl relative w-full will-change-transform transition-all duration-300 max-w-6xl",
+          scrolled
+            ? "bg-white/90 border border-gray-200/50 shadow-lg"
+            : "bg-transparent border-transparent",
+        )}
+      >
+        <div className="flex items-center justify-between relative">
           {/* Logo */}
-          <Link href={siteConfig.baseLinks.home} aria-label="Home" className="flex-shrink-0">
-            <SolarLogo className="w-20" />
+          <Link
+            href={siteConfig.baseLinks.home}
+            aria-label="Home"
+            className="flex-shrink-0"
+          >
+            <SolarLogo
+              className={cx(
+                "w-20 transition-colors duration-300",
+                scrolled || isLightPage ? "text-gray-900" : "text-white",
+              )}
+            />
           </Link>
 
           {/* Navigation Menu */}
@@ -126,14 +152,19 @@ export const MenuBar = React.memo(function MenuBar({ isLandingPage = false }: Me
                 >
                   <Link
                     href={item.href}
-                    className="flex items-center gap-2 px-3 py-2 text-gray-700 hover:text-gray-900 rounded-xl text-sm font-medium will-change-transform nav-link"
-                    style={{
-                      '--icon-color': item.iconColor,
-                    } as React.CSSProperties}
+                    className={cx(
+                      "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium will-change-transform nav-link transition-colors duration-300",
+                      scrolled || isLightPage
+                        ? "text-gray-700 hover:text-gray-900"
+                        : "text-white hover:text-gray-200",
+                    )}
+                    style={
+                      {
+                        "--icon-color": item.iconColor,
+                      } as React.CSSProperties
+                    }
                   >
-                    <span className="nav-icon">
-                      {item.icon}
-                    </span>
+                    <span className="nav-icon">{item.icon}</span>
                     <span className="hidden xl:block">{item.label}</span>
                   </Link>
                 </motion.div>
@@ -151,12 +182,22 @@ export const MenuBar = React.memo(function MenuBar({ isLandingPage = false }: Me
             >
               <Link
                 href="/store/cart"
-                className="flex items-center justify-center w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 transition-colors"
+                className={cx(
+                  "flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300",
+                  scrolled || isLightPage
+                    ? "bg-gray-100 hover:bg-gray-200"
+                    : "bg-white/10 hover:bg-white/20",
+                )}
               >
-                <ShoppingCart className="w-5 h-5 text-gray-700" />
-                {mounted && totalItems > 0 && (
+                <ShoppingCart
+                  className={cx(
+                    "w-5 h-5 transition-colors duration-300",
+                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                  )}
+                />
+                {mounted && totalItemsCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {totalItems}
+                    {totalItemsCount}
                   </span>
                 )}
               </Link>
