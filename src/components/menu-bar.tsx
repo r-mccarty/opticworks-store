@@ -3,7 +3,6 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { Home, Package, Store, Headphones, BookOpen, ShoppingCart } from "lucide-react"
-import { useTheme } from "next-themes"
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
@@ -77,20 +76,14 @@ interface MenuBarProps {
 }
 
 export const MenuBar = React.memo(function MenuBar({ isLandingPage = false }: MenuBarProps) {
-  const { theme } = useTheme()
-  const { getTotalItems } = useCart()
+  const totalItems = useCart(
+    (state) => state.items.reduce((total, item) => total + item.quantity, 0)
+  )
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
     setMounted(true)
   }, [])
-
-  // Memoize expensive calculations
-  const totalItems = React.useMemo(() => {
-    return mounted ? getTotalItems() : 0
-  }, [mounted, getTotalItems])
-
-  // const isDarkTheme = theme === "dark" // Removed for now, not used in simplified version
 
   const headerClass = isLandingPage
     ? "fixed inset-x-4 top-4 z-50 mx-auto flex max-w-6xl justify-center"
