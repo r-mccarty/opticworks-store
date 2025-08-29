@@ -3,7 +3,6 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { Home, Package, Store, Headphones, BookOpen, ShoppingCart } from "lucide-react"
-import { useTheme } from "next-themes"
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
@@ -79,8 +78,9 @@ import { usePathname } from "next/navigation"
 const lightRoutes = ["/products", "/store", "/install-guides", "/support"]
 
 export const MenuBar = React.memo(function MenuBar() {
-  const { theme } = useTheme()
-  const { getTotalItems } = useCart()
+  const totalItems = useCart(
+    (state) => state.items.reduce((total, item) => total + item.quantity, 0)
+  )
   const [mounted, setMounted] = React.useState(false)
   const scrolled = useScroll(15)
   const pathname = usePathname()
@@ -94,11 +94,9 @@ export const MenuBar = React.memo(function MenuBar() {
   }, [])
 
   // Memoize expensive calculations
-  const totalItems = React.useMemo(() => {
-    return mounted ? getTotalItems() : 0
-  }, [mounted, getTotalItems])
-
-  // const isDarkTheme = theme === "dark" // Removed for now, not used in simplified version
+  const totalItemsCount = React.useMemo(() => {
+    return mounted ? totalItems : 0
+  }, [mounted, totalItems])
 
   return (
     <header
@@ -197,9 +195,9 @@ export const MenuBar = React.memo(function MenuBar() {
                     scrolled || isLightPage ? "text-gray-700" : "text-white",
                   )}
                 />
-                {mounted && totalItems > 0 && (
+                {mounted && totalItemsCount > 0 && (
                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
-                    {totalItems}
+                    {totalItemsCount}
                   </span>
                 )}
               </Link>
