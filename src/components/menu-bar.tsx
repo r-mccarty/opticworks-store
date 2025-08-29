@@ -3,7 +3,6 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { Home, Package, Store, Headphones, BookOpen, ShoppingCart } from "lucide-react"
-import { useTheme } from "next-themes"
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
@@ -79,7 +78,6 @@ import { usePathname } from "next/navigation"
 const lightRoutes = ["/products", "/store", "/install-guides", "/support"]
 
 export const MenuBar = React.memo(function MenuBar() {
-  const { theme } = useTheme()
   const { getTotalItems } = useCart()
   const [mounted, setMounted] = React.useState(false)
   const scrolled = useScroll(15)
