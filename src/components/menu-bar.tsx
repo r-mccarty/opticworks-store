@@ -72,7 +72,11 @@ const fastTransition = {
   ease: "easeOut" as const,
 }
 
-export const MenuBar = React.memo(function MenuBar() {
+interface MenuBarProps {
+  isLandingPage?: boolean;
+}
+
+export const MenuBar = React.memo(function MenuBar({ isLandingPage = false }: MenuBarProps) {
   const { theme } = useTheme()
   const { getTotalItems } = useCart()
   const [mounted, setMounted] = React.useState(false)
@@ -88,9 +92,17 @@ export const MenuBar = React.memo(function MenuBar() {
 
   // const isDarkTheme = theme === "dark" // Removed for now, not used in simplified version
 
+  const headerClass = isLandingPage
+    ? "fixed inset-x-4 top-4 z-50 mx-auto flex max-w-6xl justify-center"
+    : "fixed top-4 z-50 flex w-full justify-center px-4"
+
+  const navClass = isLandingPage
+    ? "p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full will-change-transform"
+    : "p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full max-w-6xl will-change-transform"
+
   return (
-    <header className="fixed top-4 z-50 flex w-full justify-center px-4">
-      <nav className="p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full max-w-6xl will-change-transform">
+    <header className={headerClass}>
+      <nav className={navClass}>
         <div className="flex items-center justify-between relative ">
           {/* Logo */}
           <Link href={siteConfig.baseLinks.home} aria-label="Home" className="flex-shrink-0">

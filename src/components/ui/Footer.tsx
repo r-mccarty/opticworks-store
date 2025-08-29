@@ -9,7 +9,11 @@ import { SolarLogo } from "../../../public/SolarLogo"
 import { siteConfig } from "@/app/siteConfig"
 const CURRENT_YEAR = new Date().getFullYear()
 
-const Footer = () => {
+interface FooterProps {
+  isLandingPage?: boolean;
+}
+
+const Footer = ({ isLandingPage = false }: FooterProps) => {
   const sections = {
     products: {
       title: "Products",
@@ -66,8 +70,10 @@ const Footer = () => {
     },
   }
 
+  const containerClass = isLandingPage ? "px-4 xl:px-0" : ""
+
   return (
-    <div className="">
+    <div className={containerClass}>
       <footer
         id="footer"
         className="relative mx-auto flex max-w-6xl flex-wrap pt-4"

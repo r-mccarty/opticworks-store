@@ -1,3 +1,5 @@
+"use client"
+
 import type { Metadata } from "next"
 import localFont from "next/font/local"
 import "./globals.css"
@@ -116,20 +118,25 @@ export const metadata: Metadata = {
   },
 }
 
+import { usePathname } from "next/navigation"
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const pathname = usePathname()
+  const isLandingPage = pathname === "/"
+
+  const mainContainerClass = !isLandingPage ? "mx-auto max-w-6xl px-4" : ""
+
   return (
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
-          <MenuBar />
-          <main className="flex flex-col mx-auto max-w-6xl px-4">
-            {children}
-          </main>
-          <Footer />
+          <MenuBar isLandingPage={isLandingPage} />
+          <main className={mainContainerClass}>{children}</main>
+          <Footer isLandingPage={isLandingPage} />
           <Toaster />
         </ThemeProvider>
       </body>

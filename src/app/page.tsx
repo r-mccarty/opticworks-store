@@ -10,22 +10,22 @@ export default function Home() {
   return (
     <>
       <Hero />
-      <div className="mt-52">
+      <div className="mt-52 px-4 xl:px-0">
         <Features />
       </div>
-      <div className="mt-32">
+      <div className="mt-32 px-4 xl:px-0">
         <Testimonial />
       </div>
       <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="">
+      <div className="px-4 xl:px-0">
         <Map />
       </div>
       <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-12 mb-40">
+      <div className="mt-12 mb-40 px-4 xl:px-0">
         <SolarAnalytics />
       </div>
       <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-10 mb-40">
+      <div className="mt-10 mb-40 px-4 xl:px-0">
         <CallToAction />
       </div>
     </>
