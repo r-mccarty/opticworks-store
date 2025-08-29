@@ -56,7 +56,7 @@ export default function OrderConfirmation({
           {/* Header */}
           <Section style={header}>
             <Img
-              src="https://www.mccarty.ventures/logo.png"
+              src="https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/logo.png"
               width="180"
               height="auto"
               alt="OpticWorks"
@@ -125,8 +125,12 @@ export default function OrderConfirmation({
               <Heading style={h3}>What&apos;s Next?</Heading>
               <Text style={text}>
                 • You&apos;ll receive a shipping notification with tracking information within 1-2 business days<br />
-                • Your installation guide will be available at <Link href="https://www.mccarty.ventures/install-guides" style={link}>mccarty.ventures/install-guides</Link><br />
-                • Need help? Contact our support team at <Link href="mailto:support@mccarty.ventures" style={link}>support@mccarty.ventures</Link>
+                • Your installation guides are available at <Link href="https://optic.works/install-guides" style={link}>optic.works/install-guides</Link><br />
+                {items.some(item => item.name.toLowerCase().includes('tesla')) && (
+                  <>• Tesla-specific installation guide: <Link href="https://optic.works/install-guides/cybershade-irx-tesla-model-y" style={link}>Model Y Guide</Link><br /></>
+                )}
+                • Need help? Contact our support team at <Link href="mailto:support@notifications.optic.works" style={link}>support@notifications.optic.works</Link><br />
+                • &quot;Oops Protection&quot; warranty available at <Link href="https://optic.works/support/oops" style={link}>optic.works/support/oops</Link>
               </Text>
             </Section>
           </Section>
@@ -135,7 +139,7 @@ export default function OrderConfirmation({
           <Section style={footer}>
             <Text style={footerText}>
               OpticWorks - Premium DIY Window Tinting Solutions<br />
-              <Link href="https://www.mccarty.ventures" style={footerLink}>www.mccarty.ventures</Link>
+              <Link href="https://optic.works" style={footerLink}>www.optic.works</Link>
             </Text>
           </Section>
         </Container>

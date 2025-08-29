@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import React from 'react';
 import { render } from '@react-email/render';
-import { sendEmail, type EmailTemplate } from '@/lib/api/email';
+import { Resend } from 'resend';
+import { type EmailTemplate } from '@/lib/api/email';
 import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import PaymentFailed from '@/lib/email/templates/PaymentFailed';
 
@@ -67,16 +68,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // TODO: Production email sending with Resend
-    /*
+    // Production email sending with Resend
     const resend = new Resend(process.env.RESEND_API_KEY);
     const TemplateComponent = templates[template];
     
+    // Create React element and render it
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const element = React.createElement(TemplateComponent as any, data);
+    
     const { data: emailData, error } = await resend.emails.send({
-      from: 'OpticWorks <orders@mccarty.ventures>',
+      from: process.env.NEXT_PUBLIC_FROM_EMAIL!,
       to,
       subject,
-      react: TemplateComponent(data),
+      react: element,
     });
 
     if (error) {
@@ -90,22 +94,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       messageId: emailData?.id
-    });
-    */
-
-    // For now, use the stub function
-    const result = await sendEmail({ to, subject, template, data });
-    
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({
-      success: true,
-      messageId: result.messageId
     });
 
   } catch (error) {

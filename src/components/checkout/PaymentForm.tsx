@@ -34,8 +34,20 @@ export default function PaymentForm({
         case 'succeeded':
           setMessage('Payment succeeded!');
           onSuccess(paymentIntent.id);
-          // Redirect to success page
-          window.location.href = '/store/cart/success';
+          // Redirect to success page with order information
+          const orderData = {
+            paymentIntentId: paymentIntent.id,
+            customerName: customerInfo.name,
+            customerEmail: customerInfo.email,
+            total: totals.total
+          };
+          const searchParams = new URLSearchParams({
+            payment_intent: paymentIntent.id,
+            payment_intent_client_secret: clientSecret,
+          });
+          // Store order data temporarily in sessionStorage for success page
+          sessionStorage.setItem('orderData', JSON.stringify(orderData));
+          window.location.href = `/store/cart/success?${searchParams.toString()}`;
           break;
         case 'processing':
           setMessage('Your payment is processing.');
@@ -50,7 +62,7 @@ export default function PaymentForm({
           break;
       }
     });
-  }, [stripe, clientSecret, onSuccess]);
+  }, [stripe, clientSecret, onSuccess, customerInfo.email, customerInfo.name, totals.total]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -63,6 +75,14 @@ export default function PaymentForm({
     setMessage(null);
 
     // Confirm payment with Stripe
+    // Store order data for success page
+    const orderData = {
+      customerName: customerInfo.name,
+      customerEmail: customerInfo.email,
+      total: totals.total
+    };
+    sessionStorage.setItem('orderData', JSON.stringify(orderData));
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {

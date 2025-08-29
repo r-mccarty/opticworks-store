@@ -1,5 +1,8 @@
-// Email service API stubs for React Email + Resend integration
-// These functions will be replaced with actual Resend calls when backend is implemented
+// Email service API for React Email + Resend integration
+import React from 'react';
+import { Resend } from 'resend';
+import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
+import PaymentFailed from '@/lib/email/templates/PaymentFailed';
 
 export interface EmailTemplate {
   to: string;
@@ -14,49 +17,74 @@ export interface EmailResult {
   error?: string;
 }
 
+// Initialize Resend client
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+// Email template mapping
+const templates = {
+  'order-confirmation': OrderConfirmation,
+  'payment-failed': PaymentFailed,
+  // Add more templates as they're created
+  'shipping-notification': OrderConfirmation, // Placeholder
+  'support-response': OrderConfirmation, // Placeholder
+  'warranty-claim': OrderConfirmation, // Placeholder
+};
+
 /**
  * Send email using React Email templates and Resend
- * TODO: Replace with actual Resend integration when backend is implemented
  */
 export async function sendEmail(email: EmailTemplate): Promise<EmailResult> {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  try {
+    // In development, also log email details for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log('📧 Sending email:', {
+        to: email.to,
+        subject: email.subject,
+        template: email.template,
+        dataKeys: Object.keys(email.data)
+      });
+    }
 
-  // In development, log email details instead of sending
-  if (process.env.NODE_ENV === 'development') {
-    console.log('📧 Email would be sent:', {
+    // Get the template component
+    const TemplateComponent = templates[email.template];
+    if (!TemplateComponent) {
+      return {
+        success: false,
+        error: `Template '${email.template}' not found`
+      };
+    }
+
+    // Create React element and render it
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const element = React.createElement(TemplateComponent as any, email.data);
+
+    // Send email via Resend
+    const { data, error } = await resend.emails.send({
+      from: process.env.NEXT_PUBLIC_FROM_EMAIL!,
       to: email.to,
       subject: email.subject,
-      template: email.template,
-      data: email.data
+      react: element,
     });
-    
+
+    if (error) {
+      console.error('Resend error:', error);
+      return {
+        success: false,
+        error: 'Failed to send email'
+      };
+    }
+
+    console.log('✅ Email sent successfully:', data?.id);
     return {
       success: true,
-      messageId: `dev_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+      messageId: data?.id
     };
-  }
 
-  // TODO: Replace with actual Resend call
-  // const { data, error } = await resend.emails.send({
-  //   from: 'OpticWorks <orders@mccarty.ventures>',
-  //   to: email.to,
-  //   subject: email.subject,
-  //   react: await renderEmailTemplate(email.template, email.data),
-  // });
-
-  // Simulate success/failure for demo
-  const success = Math.random() > 0.1; // 90% success rate
-
-  if (success) {
-    return {
-      success: true,
-      messageId: `msg_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
-    };
-  } else {
+  } catch (error) {
+    console.error('Email service error:', error);
     return {
       success: false,
-      error: 'Failed to send email. Please try again.'
+      error: 'Failed to send email'
     };
   }
 }
@@ -86,12 +114,22 @@ export async function sendOrderConfirmation(orderDetails: {
     zipCode: string;
   };
 }): Promise<EmailResult> {
-  return sendEmail({
+  console.log('📧 Sending order confirmation email to:', orderDetails.customerEmail);
+  
+  const result = await sendEmail({
     to: orderDetails.customerEmail,
     subject: `Order Confirmation - ${orderDetails.orderNumber}`,
     template: 'order-confirmation',
     data: orderDetails
   });
+
+  if (result.success) {
+    console.log('✅ Order confirmation email sent successfully');
+  } else {
+    console.error('❌ Failed to send order confirmation email:', result.error);
+  }
+
+  return result;
 }
 
 /**
@@ -104,12 +142,22 @@ export async function sendPaymentFailed(paymentDetails: {
   amount: number;
   retryUrl: string;
 }): Promise<EmailResult> {
-  return sendEmail({
+  console.log('📧 Sending payment failed notification to:', paymentDetails.customerEmail);
+  
+  const result = await sendEmail({
     to: paymentDetails.customerEmail,
     subject: `Payment Failed - ${paymentDetails.orderNumber}`,
     template: 'payment-failed',
     data: paymentDetails
   });
+
+  if (result.success) {
+    console.log('✅ Payment failed notification sent successfully');
+  } else {
+    console.error('❌ Failed to send payment failed notification:', result.error);
+  }
+
+  return result;
 }
 
 /**

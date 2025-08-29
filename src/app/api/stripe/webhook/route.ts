@@ -118,28 +118,43 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     // Send order confirmation email
     const shippingAddress = customer.shipping?.address || paymentIntent.shipping?.address;
     if (shippingAddress) {
-      await sendOrderConfirmation({
-        customerEmail,
-        customerName,
-        orderNumber,
-        items: items.map((item) => ({
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-        })),
-        subtotal,
-        tax,
-        shipping,
-        total,
-        shippingAddress: {
-          name: shippingAddress.line1 ? customerName : 'No address provided',
-          address1: shippingAddress.line1 || 'Address not provided',
-          address2: shippingAddress.line2 || undefined,
-          city: shippingAddress.city || 'City not provided',
-          state: shippingAddress.state || 'State not provided',
-          zipCode: shippingAddress.postal_code || 'Zip not provided',
-        },
-      });
+      console.log(`📧 Attempting to send order confirmation email for ${orderNumber} to ${customerEmail}`);
+      
+      try {
+        const emailResult = await sendOrderConfirmation({
+          customerEmail,
+          customerName,
+          orderNumber,
+          items: items.map((item) => ({
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+          subtotal,
+          tax,
+          shipping,
+          total,
+          shippingAddress: {
+            name: shippingAddress.line1 ? customerName : 'No address provided',
+            address1: shippingAddress.line1 || 'Address not provided',
+            address2: shippingAddress.line2 || undefined,
+            city: shippingAddress.city || 'City not provided',
+            state: shippingAddress.state || 'State not provided',
+            zipCode: shippingAddress.postal_code || 'Zip not provided',
+          },
+        });
+
+        if (emailResult.success) {
+          console.log(`✅ Order confirmation email sent successfully to ${customerEmail}, messageId: ${emailResult.messageId}`);
+        } else {
+          console.error(`❌ Failed to send order confirmation email to ${customerEmail}: ${emailResult.error}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Exception while sending order confirmation email:', emailError);
+        // Don't fail the webhook - payment was successful
+      }
+    } else {
+      console.warn(`⚠️ No shipping address found for payment ${paymentIntent.id}, skipping order confirmation email`);
     }
 
     console.log(`Order ${orderNumber} created successfully for ${customerEmail}`);
