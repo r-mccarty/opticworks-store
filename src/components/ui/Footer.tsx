@@ -67,7 +67,7 @@ const Footer = () => {
   }
 
   return (
-    <div className="px-4 xl:px-0">
+    <div className="">
       <footer
         id="footer"
         className="relative mx-auto flex max-w-6xl flex-wrap pt-4"

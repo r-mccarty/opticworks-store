@@ -8,26 +8,26 @@ import Testimonial from "@/components/ui/Testimonial"
 
 export default function Home() {
   return (
-    <main className="relative mx-auto flex flex-col">
+    <>
       <Hero />
-      <div className="mt-52 px-4 xl:px-0">
+      <div className="mt-52">
         <Features />
       </div>
-      <div className="mt-32 px-4 xl:px-0">
+      <div className="mt-32">
         <Testimonial />
       </div>
       <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="px-4 xl:px-0">
+      <div className="">
         <Map />
       </div>
       <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-12 mb-40 px-4 xl:px-0">
+      <div className="mt-12 mb-40">
         <SolarAnalytics />
       </div>
       <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-10 mb-40 px-4 xl:px-0">
+      <div className="mt-10 mb-40">
         <CallToAction />
       </div>
-    </main>
+    </>
   )
 }

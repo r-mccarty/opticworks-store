@@ -89,9 +89,9 @@ export const MenuBar = React.memo(function MenuBar() {
   // const isDarkTheme = theme === "dark" // Removed for now, not used in simplified version
 
   return (
-    <header className="fixed inset-x-4 top-4 z-50 mx-auto flex max-w-6xl justify-center">
-      <nav className="p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full will-change-transform">
-        <div className="flex items-center justify-between relative">
+    <header className="fixed top-4 z-50 flex w-full justify-center px-4">
+      <nav className="p-3 rounded-2xl bg-white/90 border border-gray-200/50 shadow-lg relative w-full max-w-6xl will-change-transform">
+        <div className="flex items-center justify-between relative ">
           {/* Logo */}
           <Link href={siteConfig.baseLinks.home} aria-label="Home" className="flex-shrink-0">
             <SolarLogo className="w-20" />
