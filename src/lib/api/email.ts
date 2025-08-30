@@ -17,7 +17,15 @@ export interface EmailResult {
   error?: string;
 }
 
-// Initialize Resend client
+// Initialize Resend client with environment variable validation
+if (!process.env.RESEND_API_KEY) {
+  console.error('❌ RESEND_API_KEY environment variable is not set');
+}
+
+if (!process.env.NEXT_PUBLIC_FROM_EMAIL) {
+  console.error('❌ NEXT_PUBLIC_FROM_EMAIL environment variable is not set');
+}
+
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email template mapping
@@ -34,31 +42,57 @@ const templates = {
  * Send email using React Email templates and Resend
  */
 export async function sendEmail(email: EmailTemplate): Promise<EmailResult> {
+  console.log(`📧 Attempting to send ${email.template} email to ${email.to}`);
+  
   try {
+    // Validate required environment variables
+    if (!process.env.RESEND_API_KEY) {
+      const errorMsg = 'RESEND_API_KEY environment variable is not configured';
+      console.error(`❌ ${errorMsg}`);
+      return {
+        success: false,
+        error: errorMsg
+      };
+    }
+
+    if (!process.env.NEXT_PUBLIC_FROM_EMAIL) {
+      const errorMsg = 'NEXT_PUBLIC_FROM_EMAIL environment variable is not configured';
+      console.error(`❌ ${errorMsg}`);
+      return {
+        success: false,
+        error: errorMsg
+      };
+    }
+
     // In development, also log email details for debugging
     if (process.env.NODE_ENV === 'development') {
-      console.log('📧 Sending email:', {
+      console.log('📧 Email details:', {
         to: email.to,
         subject: email.subject,
         template: email.template,
-        dataKeys: Object.keys(email.data)
+        dataKeys: Object.keys(email.data),
+        from: process.env.NEXT_PUBLIC_FROM_EMAIL
       });
     }
 
     // Get the template component
     const TemplateComponent = templates[email.template];
     if (!TemplateComponent) {
+      const errorMsg = `Template '${email.template}' not found`;
+      console.error(`❌ ${errorMsg}`);
       return {
         success: false,
-        error: `Template '${email.template}' not found`
+        error: errorMsg
       };
     }
 
     // Create React element and render it
+    console.log(`🔧 Rendering ${email.template} template...`);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const element = React.createElement(TemplateComponent as any, email.data);
 
     // Send email via Resend
+    console.log(`📤 Calling Resend API to send email to ${email.to}...`);
     const { data, error } = await resend.emails.send({
       from: process.env.NEXT_PUBLIC_FROM_EMAIL!,
       to: email.to,
@@ -67,24 +101,24 @@ export async function sendEmail(email: EmailTemplate): Promise<EmailResult> {
     });
 
     if (error) {
-      console.error('Resend error:', error);
+      console.error('❌ Resend API error:', error);
       return {
         success: false,
-        error: 'Failed to send email'
+        error: `Resend API error: ${JSON.stringify(error)}`
       };
     }
 
-    console.log('✅ Email sent successfully:', data?.id);
+    console.log('✅ Email sent successfully via Resend, messageId:', data?.id);
     return {
       success: true,
       messageId: data?.id
     };
 
   } catch (error) {
-    console.error('Email service error:', error);
+    console.error('❌ Email service exception:', error);
     return {
       success: false,
-      error: 'Failed to send email'
+      error: `Email service exception: ${error instanceof Error ? error.message : 'Unknown error'}`
     };
   }
 }
