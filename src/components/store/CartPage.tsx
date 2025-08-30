@@ -3,7 +3,6 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
 import { FadeContainer, FadeDiv } from "@/components/Fade"
 import { useCart } from "@/hooks/useCart"
@@ -25,14 +24,10 @@ export function CartPage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [isAddressValid, setIsAddressValid] = useState(false)
   
-  // Customer info state
-  const [customerInfo, setCustomerInfo] = useState({
+  // Unified customer and address state - will be populated by Stripe Address Element
+  const [customerAddress, setCustomerAddress] = useState({
+    name: '',
     email: '',
-    name: ''
-  })
-  
-  // Shipping address state - will be populated by Stripe Address Element
-  const [shippingAddress, setShippingAddress] = useState({
     line1: '',
     line2: '',
     city: '',
@@ -43,7 +38,7 @@ export function CartPage() {
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
     console.log('Payment successful:', paymentIntentId)
-    alert(`Payment successful! Order confirmation will be sent to ${customerInfo.email}`)
+    alert(`Payment successful! Order confirmation will be sent to ${customerAddress.email}`)
     clearCart()
     setShowPaymentForm(false)
     setIsCheckingOut(false)
@@ -54,8 +49,8 @@ export function CartPage() {
     setIsCheckingOut(false)
   }
 
-  const handleAddressChange = (address: typeof shippingAddress) => {
-    setShippingAddress(address);
+  const handleAddressChange = (address: typeof customerAddress) => {
+    setCustomerAddress(address);
   };
 
   const handleAddressValidityChange = (isValid: boolean) => {
@@ -64,7 +59,7 @@ export function CartPage() {
 
   const handleProceedToPayment = () => {
     // Validate required fields
-    if (!customerInfo.email || !customerInfo.name) {
+    if (!customerAddress.email || !customerAddress.name) {
       alert('Please fill in your email and name')
       return
     }
@@ -374,45 +369,11 @@ export function CartPage() {
 
               {!showPaymentForm ? (
                 <FadeDiv>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle>Customer Information</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email *</Label>
-                          <Input 
-                            id="email" 
-                            type="email" 
-                            placeholder="your@email.com" 
-                            value={customerInfo.email}
-                            onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="name">Full Name *</Label>
-                          <Input 
-                            id="name" 
-                            placeholder="John Doe" 
-                            value={customerInfo.name}
-                            onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                            required
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </FadeDiv>
-              ) : null}
-
-              {!showPaymentForm ? (
-                <FadeDiv>
                   <Elements stripe={stripePromise}>
                     <AddressForm 
                       onAddressChange={handleAddressChange}
                       onValidityChange={handleAddressValidityChange}
+                      initialValues={customerAddress}
                     />
                   </Elements>
                 </FadeDiv>
@@ -442,8 +403,7 @@ export function CartPage() {
               ) : (
                 <FadeDiv>
                   <CheckoutWrapper
-                    customerInfo={customerInfo}
-                    shippingAddress={shippingAddress}
+                    customerAddress={customerAddress}
                     onSuccess={handlePaymentSuccess}
                     onError={handlePaymentError}
                   />

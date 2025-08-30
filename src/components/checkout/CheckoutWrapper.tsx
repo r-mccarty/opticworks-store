@@ -11,13 +11,11 @@ import { Loader2 } from 'lucide-react';
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
 interface CheckoutWrapperProps {
-  customerInfo: {
-    email: string;
+  customerAddress: {
     name: string;
-  };
-  shippingAddress: {
+    email: string;
     line1: string;
-    line2?: string;
+    line2: string;
     city: string;
     state: string;
     postal_code: string;
@@ -28,8 +26,7 @@ interface CheckoutWrapperProps {
 }
 
 export default function CheckoutWrapper({
-  customerInfo,
-  shippingAddress,
+  customerAddress,
   onSuccess,
   onError
 }: CheckoutWrapperProps) {
@@ -64,8 +61,18 @@ export default function CheckoutWrapper({
         },
         body: JSON.stringify({
           items: paymentItems,
-          customerInfo,
-          shippingAddress,
+          customerInfo: {
+            name: customerAddress.name,
+            email: customerAddress.email
+          },
+          shippingAddress: {
+            line1: customerAddress.line1,
+            line2: customerAddress.line2,
+            city: customerAddress.city,
+            state: customerAddress.state,
+            postal_code: customerAddress.postal_code,
+            country: customerAddress.country
+          },
         }),
       });
 
@@ -85,7 +92,7 @@ export default function CheckoutWrapper({
       setIsLoading(false);
       onError(err instanceof Error ? err.message : 'Failed to initialize payment');
     }
-  }, [items, customerInfo, shippingAddress, onError]);
+  }, [items, customerAddress, onError]);
 
   useEffect(() => {
     if (items.length === 0) {
@@ -95,7 +102,7 @@ export default function CheckoutWrapper({
     }
 
     createPaymentIntent();
-  }, [items, customerInfo, shippingAddress, createPaymentIntent]);
+  }, [items, createPaymentIntent]);
 
   const handlePaymentSuccess = (paymentIntentId: string) => {
     onSuccess(paymentIntentId);
@@ -174,8 +181,18 @@ export default function CheckoutWrapper({
         clientSecret={clientSecret}
         onSuccess={handlePaymentSuccess}
         onError={handlePaymentError}
-        customerInfo={customerInfo}
-        shippingAddress={shippingAddress}
+        customerInfo={{
+          name: customerAddress.name,
+          email: customerAddress.email
+        }}
+        shippingAddress={{
+          line1: customerAddress.line1,
+          line2: customerAddress.line2,
+          city: customerAddress.city,
+          state: customerAddress.state,
+          postal_code: customerAddress.postal_code,
+          country: customerAddress.country
+        }}
         totals={totals}
       />
     </Elements>
