@@ -9,7 +9,7 @@ import { useCart } from "@/hooks/useCart"
 import { MinusIcon, PlusIcon, TrashIcon, CreditCardIcon } from "@heroicons/react/24/outline"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements } from '@stripe/react-stripe-js'
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
@@ -23,6 +23,13 @@ export function CartPage() {
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
   const [isAddressValid, setIsAddressValid] = useState(false)
+  const [clientSecret, setClientSecret] = useState<string>('');
+  const [totals, setTotals] = useState({
+    subtotal: 0,
+    shipping: 0,
+    tax: 0,
+    total: 0,
+  });
   
   // Unified customer and address state - will be populated by Stripe Address Element
   const [customerAddress, setCustomerAddress] = useState({
@@ -57,7 +64,56 @@ export function CartPage() {
     setIsAddressValid(isValid);
   };
 
-  const handleProceedToPayment = () => {
+  const createPaymentIntent = useCallback(async () => {
+    try {
+      // Convert cart items to payment intent format
+      const paymentItems = items.map(item => ({
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      const response = await fetch('/api/stripe/create-payment-intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: paymentItems,
+          customerInfo: {
+            name: customerAddress.name,
+            email: customerAddress.email
+          },
+          shippingAddress: {
+            line1: customerAddress.line1,
+            line2: customerAddress.line2,
+            city: customerAddress.city,
+            state: customerAddress.state,
+            postal_code: customerAddress.postal_code,
+            country: customerAddress.country
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to create payment intent');
+      }
+
+      const data = await response.json();
+      setClientSecret(data.clientSecret);
+      setTotals(data.totals);
+      return data.clientSecret;
+
+    } catch (err) {
+      console.error('Payment intent creation error:', err);
+      handlePaymentError(err instanceof Error ? err.message : 'Failed to initialize payment');
+      return null;
+    }
+  }, [items, customerAddress]);
+
+  const handleProceedToPayment = async () => {
     // Validate required fields
     if (!customerAddress.email || !customerAddress.name) {
       alert('Please fill in your email and name')
@@ -70,7 +126,11 @@ export function CartPage() {
     }
     
     setIsCheckingOut(true)
-    setShowPaymentForm(true)
+    const secret = await createPaymentIntent();
+    if (secret) {
+      setShowPaymentForm(true)
+    }
+    setIsCheckingOut(false);
   }
 
   if (items.length === 0) {
@@ -96,6 +156,7 @@ export function CartPage() {
   }
 
   const options = {
+    clientSecret,
     fonts: [
       {
         family: 'Colfax',
@@ -107,7 +168,19 @@ export function CartPage() {
         src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
         display: 'swap'
       }
-    ]
+    ],
+    appearance: {
+      theme: 'stripe' as const,
+      variables: {
+        colorPrimary: '#3b82f6',
+        colorBackground: '#ffffff',
+        colorText: '#1f2937',
+        colorDanger: '#ef4444',
+        fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        spacingUnit: '4px',
+        borderRadius: '8px',
+      },
+    },
   };
 
   return (
@@ -420,6 +493,7 @@ export function CartPage() {
                     customerAddress={customerAddress}
                     onSuccess={handlePaymentSuccess}
                     onError={handlePaymentError}
+                    totals={totals}
                   />
                 </FadeDiv>
               )}
