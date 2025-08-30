@@ -126,7 +126,7 @@ export default function RootLayout({
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
-          {children}
+          <main className="pt-32">{children}</main>
           <Footer />
           <Toaster />
         </ThemeProvider>
