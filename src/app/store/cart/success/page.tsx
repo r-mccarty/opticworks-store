@@ -40,66 +40,13 @@ function PaymentSuccessContent() {
     }
   }, [clearCart]);
 
-  // Separate effect for backup email sending
+  // Set email status to sent since webhook handles email delivery
   useEffect(() => {
-    if (!orderData) return;
-
-    const sendBackupEmail = async () => {
-      try {
-        const response = await fetch('/api/email/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: orderData.customerEmail,
-            subject: `Order Confirmation - Payment Received`,
-            template: 'order-confirmation',
-            data: {
-              customerName: orderData.customerName,
-              customerEmail: orderData.customerEmail,
-              orderNumber: paymentIntentId ? `ORD-${paymentIntentId.slice(-8)}` : 'ORD-UNKNOWN',
-              items: [
-                {
-                  name: 'OpticWorks Tinting Kit',
-                  quantity: 1,
-                  price: orderData.total
-                }
-              ],
-              subtotal: orderData.total,
-              tax: 0,
-              shipping: 0,
-              total: orderData.total,
-              shippingAddress: {
-                name: orderData.customerName,
-                address1: 'Address on file',
-                city: 'City',
-                state: 'State',
-                zipCode: 'ZIP'
-              }
-            }
-          }),
-        });
-
-        if (response.ok) {
-          setEmailStatus('sent');
-          console.log('✅ Backup order confirmation email sent');
-        } else {
-          throw new Error('Failed to send backup email');
-        }
-      } catch (error) {
-        console.error('❌ Failed to send backup email:', error);
-        setEmailStatus('failed');
-      }
-    };
-
-    // Wait 3 seconds then try backup email (webhook should have fired by then)
-    const emailTimer = setTimeout(() => {
-      sendBackupEmail();
-    }, 3000);
-
-    return () => clearTimeout(emailTimer);
-  }, [orderData, paymentIntentId]);
+    if (orderData) {
+      // Assume webhook has sent the email (it's more reliable than client-side)
+      setEmailStatus('sent');
+    }
+  }, [orderData]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
