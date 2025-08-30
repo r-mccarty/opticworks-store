@@ -36,6 +36,8 @@ export default function CheckoutWrapper({
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const stripe = useStripe();
+  const elements = useElements();
 
   const createPaymentIntent = useCallback(async () => {
     try {
@@ -109,6 +111,28 @@ export default function CheckoutWrapper({
     onError(error);
   };
 
+  useEffect(() => {
+    if (!stripe || !elements || !clientSecret) {
+      return;
+    }
+    const appearance = {
+      theme: 'stripe' as const,
+      variables: {
+        colorPrimary: '#3b82f6',
+        colorBackground: '#ffffff',
+        colorText: '#1f2937',
+        colorDanger: '#ef4444',
+        fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        spacingUnit: '4px',
+        borderRadius: '8px',
+      },
+    };
+    elements.update({
+      clientSecret,
+      appearance,
+    });
+  }, [stripe, elements, clientSecret]);
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
@@ -140,56 +164,6 @@ export default function CheckoutWrapper({
       </div>
     );
   }
-
-  const appearance = {
-    theme: 'stripe' as const,
-    variables: {
-      colorPrimary: '#3b82f6',
-      colorBackground: '#ffffff',
-      colorText: '#1f2937',
-      colorDanger: '#ef4444',
-      fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-      spacingUnit: '4px',
-      borderRadius: '8px',
-    },
-  };
-
-  const stripe = useStripe();
-  const elements = useElements();
-
-  useEffect(() => {
-    if (!stripe || !elements || !clientSecret) {
-      return;
-    }
-    const appearance = {
-      theme: 'stripe' as const,
-      variables: {
-        colorPrimary: '#3b82f6',
-        colorBackground: '#ffffff',
-        colorText: '#1f2937',
-        colorDanger: '#ef4444',
-        fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-        spacingUnit: '4px',
-        borderRadius: '8px',
-      },
-    };
-    elements.update({
-      clientSecret,
-      appearance,
-      fonts: [
-        {
-          family: 'Colfax',
-          src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
-          display: 'swap'
-        },
-        {
-          family: 'Colfax',
-          src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
-          display: 'swap'
-        }
-      ]
-    });
-  }, [stripe, elements, clientSecret]);
 
   return (
     <PaymentForm
