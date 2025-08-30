@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { AddressElement, useElements } from '@stripe/react-stripe-js';
+import { AddressElement } from '@stripe/react-stripe-js';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -24,7 +24,6 @@ interface AddressFormProps {
 }
 
 export default function AddressForm({ onAddressChange, onValidityChange, initialValues }: AddressFormProps) {
-  const elements = useElements();
   const [email, setEmail] = useState(initialValues?.email || '');
   const [addressData, setAddressData] = useState({
     name: initialValues?.name || '',
@@ -45,42 +44,25 @@ export default function AddressForm({ onAddressChange, onValidityChange, initial
     onAddressChange(combinedData);
   }, [email, addressData, onAddressChange]);
 
-  useEffect(() => {
-    if (!elements) return;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleAddressChange = (event: any) => {
+    const isAddressValid = event.complete;
+    const isEmailValid = email.trim() !== '';
+    onValidityChange(isAddressValid && isEmailValid);
 
-    const addressElement = elements.getElement('address');
-    if (!addressElement) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const handleAddressChange = (event: any) => {
-      const isAddressValid = event.complete;
-      const isEmailValid = email.trim() !== '';
-      onValidityChange(isAddressValid && isEmailValid);
-      
-      if (event.complete && event.value) {
-        // Extract both name and address from Stripe AddressElement
-        const { name, address } = event.value;
-        setAddressData({
-          name: name || '',
-          line1: address.line1 || '',
-          line2: address.line2 || '',
-          city: address.city || '',
-          state: address.state || '',
-          postal_code: address.postal_code || '',
-          country: address.country || 'US'
-        });
-      }
-    };
-
-    // Use addEventListener for compatibility
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (addressElement as any).on('change', handleAddressChange);
-    
-    return () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (addressElement as any).off('change', handleAddressChange);
-    };
-  }, [elements, email, onValidityChange]);
+    if (event.complete && event.value) {
+      const { name, address } = event.value;
+      setAddressData({
+        name: name || '',
+        line1: address.line1 || '',
+        line2: address.line2 || '',
+        city: address.city || '',
+        state: address.state || '',
+        postal_code: address.postal_code || '',
+        country: address.country || 'US'
+      });
+    }
+  };
 
   // Handle email changes and validation
   const handleEmailChange = (value: string) => {
@@ -113,7 +95,8 @@ export default function AddressForm({ onAddressChange, onValidityChange, initial
         <div className="space-y-2">
           <Label>Shipping Address *</Label>
           <div className="border rounded-md p-3">
-            <AddressElement 
+            <AddressElement
+              key={JSON.stringify(initialValues)}
               options={{
                 mode: 'shipping',
                 allowedCountries: ['US'], // Restrict to US for now
@@ -134,7 +117,8 @@ export default function AddressForm({ onAddressChange, onValidityChange, initial
                     country: initialValues?.country || 'US'
                   }
                 }
-              }} 
+              }}
+              onChange={handleAddressChange}
             />
           </div>
           <p className="text-sm text-gray-600">
