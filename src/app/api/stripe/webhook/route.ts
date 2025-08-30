@@ -241,7 +241,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
 
   try {
     // Get customer details - prioritize receipt_email over customer.email
-    const customerEmail = paymentIntent.receipt_email;
+    let customerEmail = paymentIntent.receipt_email;
     
     if (!customerEmail) {
       console.error('❌ No customer email found in failed payment intent');
@@ -251,7 +251,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
           const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
           if (customer.email) {
             console.log('✅ Found customer email from customer object:', customer.email);
-            // Continue with this email
+            customerEmail = customer.email;
           } else {
             console.warn('⚠️ No email found in customer object either, skipping payment failed notification');
             return;
