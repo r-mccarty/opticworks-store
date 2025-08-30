@@ -49,16 +49,19 @@ function PaymentSuccessContent() {
   }, [orderData]);
 
   return (
-    <div className="bg-gray-50 pt-16 pb-24 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
-        <div className="text-center mb-8">
-          <CheckCircleIcon className="mx-auto h-20 w-20 text-green-500" />
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Payment Successful!
-          </h1>
-          <p className="text-lg text-gray-600">
-            Thank you for your order! Your OpticWorks tinting kit will be on its way soon.
-          </p>
+        <div className="flex flex-col items-center justify-center space-y-6 text-center">
+          <CheckCircleIcon className="h-20 w-20 text-green-500" />
+          <div className="space-y-2">
+            <h1 className="text-4xl font-bold text-gray-900">
+              Payment Successful!
+            </h1>
+            <p className="text-lg text-gray-600">
+              Thank you for your order! Your OpticWorks tinting kit will be on
+              its way soon.
+            </p>
+          </div>
         </div>
 
         {/* Order Details */}
