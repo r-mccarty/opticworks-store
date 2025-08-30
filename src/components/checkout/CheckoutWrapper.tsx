@@ -1,14 +1,10 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
 import PaymentForm from './PaymentForm';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
-
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
+import { useElements, useStripe } from '@stripe/react-stripe-js';
 
 interface CheckoutWrapperProps {
   customerAddress: {
@@ -158,43 +154,61 @@ export default function CheckoutWrapper({
     },
   };
 
-  const options = {
-    clientSecret,
-    appearance,
-    fonts: [
-      {
-        family: 'Colfax',
-        src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
-        display: 'swap'
+  const stripe = useStripe();
+  const elements = useElements();
+
+  useEffect(() => {
+    if (!stripe || !elements || !clientSecret) {
+      return;
+    }
+    const appearance = {
+      theme: 'stripe' as const,
+      variables: {
+        colorPrimary: '#3b82f6',
+        colorBackground: '#ffffff',
+        colorText: '#1f2937',
+        colorDanger: '#ef4444',
+        fontFamily: 'Colfax, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        spacingUnit: '4px',
+        borderRadius: '8px',
       },
-      {
-        family: 'Colfax',
-        src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
-        display: 'swap'
-      }
-    ]
-  };
+    };
+    elements.update({
+      clientSecret,
+      appearance,
+      fonts: [
+        {
+          family: 'Colfax',
+          src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
+          display: 'swap'
+        },
+        {
+          family: 'Colfax',
+          src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
+          display: 'swap'
+        }
+      ]
+    });
+  }, [stripe, elements, clientSecret]);
 
   return (
-    <Elements options={options} stripe={stripePromise}>
-      <PaymentForm
-        clientSecret={clientSecret}
-        onSuccess={handlePaymentSuccess}
-        onError={handlePaymentError}
-        customerInfo={{
-          name: customerAddress.name,
-          email: customerAddress.email
-        }}
-        shippingAddress={{
-          line1: customerAddress.line1,
-          line2: customerAddress.line2,
-          city: customerAddress.city,
-          state: customerAddress.state,
-          postal_code: customerAddress.postal_code,
-          country: customerAddress.country
-        }}
-        totals={totals}
-      />
-    </Elements>
+    <PaymentForm
+      clientSecret={clientSecret}
+      onSuccess={handlePaymentSuccess}
+      onError={handlePaymentError}
+      customerInfo={{
+        name: customerAddress.name,
+        email: customerAddress.email
+      }}
+      shippingAddress={{
+        line1: customerAddress.line1,
+        line2: customerAddress.line2,
+        city: customerAddress.city,
+        state: customerAddress.state,
+        postal_code: customerAddress.postal_code,
+        country: customerAddress.country
+      }}
+      totals={totals}
+    />
   );
 }
