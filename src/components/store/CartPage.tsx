@@ -11,12 +11,19 @@ import { MinusIcon, PlusIcon, TrashIcon, CreditCardIcon } from "@heroicons/react
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements } from '@stripe/react-stripe-js'
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
+import AddressForm from "@/components/checkout/AddressForm"
+
+// Initialize Stripe
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [isAddressValid, setIsAddressValid] = useState(false)
   
   // Customer info state
   const [customerInfo, setCustomerInfo] = useState({
@@ -24,7 +31,7 @@ export function CartPage() {
     name: ''
   })
   
-  // Shipping address state
+  // Shipping address state - will be populated by Stripe Address Element
   const [shippingAddress, setShippingAddress] = useState({
     line1: '',
     line2: '',
@@ -47,11 +54,23 @@ export function CartPage() {
     setIsCheckingOut(false)
   }
 
+  const handleAddressChange = (address: typeof shippingAddress) => {
+    setShippingAddress(address);
+  };
+
+  const handleAddressValidityChange = (isValid: boolean) => {
+    setIsAddressValid(isValid);
+  };
+
   const handleProceedToPayment = () => {
     // Validate required fields
-    if (!customerInfo.email || !customerInfo.name || !shippingAddress.line1 || 
-        !shippingAddress.city || !shippingAddress.state || !shippingAddress.postal_code) {
-      alert('Please fill in all required fields')
+    if (!customerInfo.email || !customerInfo.name) {
+      alert('Please fill in your email and name')
+      return
+    }
+    
+    if (!isAddressValid) {
+      alert('Please enter a valid shipping address')
       return
     }
     
@@ -390,71 +409,33 @@ export function CartPage() {
 
               {!showPaymentForm ? (
                 <FadeDiv>
+                  <Elements stripe={stripePromise}>
+                    <AddressForm 
+                      onAddressChange={handleAddressChange}
+                      onValidityChange={handleAddressValidityChange}
+                    />
+                  </Elements>
+                </FadeDiv>
+              ) : null}
+
+              {!showPaymentForm ? (
+                <FadeDiv>
                   <Card>
-                    <CardHeader>
-                      <CardTitle>Shipping Address</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="address1">Address *</Label>
-                        <Input 
-                          id="address1" 
-                          placeholder="123 Main St" 
-                          value={shippingAddress.line1}
-                          onChange={(e) => setShippingAddress({...shippingAddress, line1: e.target.value})}
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="address2">Address 2 (Optional)</Label>
-                        <Input 
-                          id="address2" 
-                          placeholder="Apt, suite, etc." 
-                          value={shippingAddress.line2}
-                          onChange={(e) => setShippingAddress({...shippingAddress, line2: e.target.value})}
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="city">City *</Label>
-                          <Input 
-                            id="city" 
-                            placeholder="City" 
-                            value={shippingAddress.city}
-                            onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="state">State *</Label>
-                          <Input 
-                            id="state" 
-                            placeholder="CA" 
-                            value={shippingAddress.state}
-                            onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
-                            required
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="zip">ZIP Code *</Label>
-                          <Input 
-                            id="zip" 
-                            placeholder="12345" 
-                            value={shippingAddress.postal_code}
-                            onChange={(e) => setShippingAddress({...shippingAddress, postal_code: e.target.value})}
-                            required
-                          />
-                        </div>
-                      </div>
+                    <CardContent className="pt-6">
                       <Button 
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
                         size="lg"
                         onClick={handleProceedToPayment}
-                        disabled={isCheckingOut}
+                        disabled={isCheckingOut || !isAddressValid}
                       >
                         <CreditCardIcon className="w-5 h-5 mr-2" />
                         {isCheckingOut ? 'Preparing Payment...' : 'Proceed to Payment'}
                       </Button>
+                      {!isAddressValid && (
+                        <p className="text-sm text-gray-500 text-center mt-2">
+                          Please enter a valid address to continue
+                        </p>
+                      )}
                     </CardContent>
                   </Card>
                 </FadeDiv>
