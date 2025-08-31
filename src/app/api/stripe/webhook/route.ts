@@ -55,6 +55,16 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Full event data:', JSON.stringify(event, null, 2));
     
     switch (event.type) {
+      // Checkout Session events (new primary flow)
+      case 'checkout.session.completed':
+        await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        break;
+
+      case 'checkout.session.expired':
+        await handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
+        break;
+
+      // Payment Intent events (legacy support)
       case 'payment_intent.succeeded':
         await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
@@ -308,6 +318,139 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   } catch (error) {
     console.error('❌ Error processing failed payment:', error);
     // Don't throw - this is a best-effort notification
+  }
+}
+
+async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  console.log('🛒 Checkout session completed:', session.id);
+  console.log('🔍 FULL Checkout Session object:', JSON.stringify(session, null, 2));
+
+  try {
+    // Extract customer information from session
+    const customerEmail = session.customer_details?.email || session.metadata?.customer_email;
+    const customerName = session.customer_details?.name || session.metadata?.customer_name;
+    
+    if (!customerEmail) {
+      console.error('❌ No customer email found in checkout session');
+      return;
+    }
+
+    console.log(`✅ Processing completed checkout for ${customerEmail}`);
+
+    // Get line items from the session
+    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+      expand: ['data.price.product'],
+    });
+
+    // Process order items (exclude shipping)
+    const orderItems = lineItems.data
+      .filter(item => {
+        const product = item.price?.product as Stripe.Product;
+        return product?.name !== 'Shipping';
+      })
+      .map(item => {
+        const product = item.price?.product as Stripe.Product;
+        return {
+          name: product?.name || 'Unknown Product',
+          quantity: item.quantity || 1,
+          price: (item.price?.unit_amount || 0) / 100, // Convert from cents
+        };
+      });
+
+    // Calculate totals from session
+    const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const shippingCost = (session.shipping_cost?.amount_total || 0) / 100;
+    const taxAmount = (session.total_details?.amount_tax || 0) / 100;
+    const totalAmount = (session.amount_total || 0) / 100;
+
+    // Generate order number
+    const orderNumber = `ORD-${Date.now()}-${session.id.slice(-8).toUpperCase()}`;
+
+    console.log('🔍 Order details:', {
+      orderNumber,
+      items: orderItems,
+      subtotal,
+      shipping: shippingCost,
+      tax: taxAmount,
+      total: totalAmount,
+    });
+
+    // Store order in database
+    const { error: dbError } = await supabase
+      .from('test_orders')
+      .insert({
+        customer_email: customerEmail,
+        total_amount: totalAmount,
+        status: 'completed',
+        order_number: orderNumber,
+        checkout_session_id: session.id,
+        stripe_payment_intent_id: session.payment_intent as string,
+      });
+
+    if (dbError) {
+      console.error('❌ Database error:', dbError);
+    } else {
+      console.log('✅ Order stored in database successfully');
+    }
+
+    // Send order confirmation email  
+    if (session.customer_details?.address) {
+      console.log(`📧 Sending order confirmation email for ${orderNumber} to ${customerEmail}`);
+      
+      try {
+        const emailResult = await sendOrderConfirmation({
+          customerEmail,
+          customerName: customerName || 'Customer',
+          orderNumber,
+          items: orderItems,
+          subtotal,
+          tax: taxAmount,
+          shipping: shippingCost,
+          total: totalAmount,
+          shippingAddress: {
+            name: customerName || 'Customer',
+            address1: session.customer_details?.address?.line1 || '',
+            address2: session.customer_details?.address?.line2 || undefined,
+            city: session.customer_details?.address?.city || '',
+            state: session.customer_details?.address?.state || '',
+            zipCode: session.customer_details?.address?.postal_code || '',
+          },
+        });
+
+        if (emailResult.success) {
+          console.log(`✅ Order confirmation email sent successfully to ${customerEmail}, messageId: ${emailResult.messageId}`);
+        } else {
+          console.error(`❌ Failed to send order confirmation email: ${emailResult.error}`);
+        }
+      } catch (emailError) {
+        console.error('❌ Exception while sending order confirmation email:', emailError);
+      }
+    } else {
+      console.warn(`⚠️ No shipping address found for session ${session.id}, skipping order confirmation email`);
+    }
+
+    console.log(`✅ Checkout session ${session.id} processing complete for ${customerEmail}`);
+
+  } catch (error) {
+    console.error('❌ Error processing completed checkout session:', error);
+    if (error instanceof Error) {
+      console.error('❌ Error stack:', error.stack);
+    }
+  }
+}
+
+async function handleCheckoutSessionExpired(session: Stripe.Checkout.Session) {
+  console.log('⏰ Checkout session expired:', session.id);
+  
+  try {
+    const customerEmail = session.customer_details?.email || session.metadata?.customer_email;
+    
+    if (customerEmail) {
+      console.log(`📧 Checkout session expired for ${customerEmail} - session: ${session.id}`);
+      // Could send abandoned cart email here in the future
+    }
+  } catch (error) {
+    console.error('❌ Error processing expired checkout session:', error);
   }
 }
 

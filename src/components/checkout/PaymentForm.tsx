@@ -13,7 +13,6 @@ import type { PaymentFormProps } from '@/types/checkout';
 
 export default function PaymentForm({
   clientSecret,
-  onSuccess,
   onError,
   customerInfo,
   shippingAddress,
@@ -23,94 +22,75 @@ export default function PaymentForm({
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [checkout, setCheckout] = useState<any>(null);
 
   useEffect(() => {
-    if (!stripe) return;
+    if (!stripe || !clientSecret) return;
 
-    // Only check for succeeded/processing states on initial load
-    // Don't show error messages until user actually attempts payment
-    stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
-      switch (paymentIntent?.status) {
-        case 'succeeded':
-          setMessage('Payment succeeded!');
-          onSuccess(paymentIntent.id);
-          // Redirect to success page with order information
-          const orderData = {
-            paymentIntentId: paymentIntent.id,
-            customerName: customerInfo.name,
-            customerEmail: customerInfo.email,
-            total: totals.total
-          };
-          const searchParams = new URLSearchParams({
-            payment_intent: paymentIntent.id,
-            payment_intent_client_secret: clientSecret,
-          });
-          // Store order data temporarily in sessionStorage for success page
-          sessionStorage.setItem('orderData', JSON.stringify(orderData));
-          window.location.href = `/store/cart/success?${searchParams.toString()}`;
-          break;
-        case 'processing':
-          setMessage('Your payment is processing.');
-          break;
-        case 'requires_payment_method':
-          // Don't show error message on initial load - this is the expected state
-          setMessage(null);
-          break;
-        default:
-          // Only show generic error for truly unexpected states
-          setMessage('Something went wrong.');
-          break;
+    // Initialize embedded checkout for custom UI mode
+    const initializeCheckout = async () => {
+      try {
+        const checkoutInstance = await stripe.initEmbeddedCheckout({
+          fetchClientSecret: async () => clientSecret
+        });
+        setCheckout(checkoutInstance);
+      } catch (error) {
+        console.error('Failed to initialize checkout:', error);
+        setMessage('Failed to initialize payment form');
+        onError('Failed to initialize payment form');
       }
-    });
-  }, [stripe, clientSecret, onSuccess, customerInfo.email, customerInfo.name, totals.total]);
+    };
+
+    initializeCheckout();
+  }, [stripe, clientSecret, onError]);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements) {
+    if (!stripe || !elements || !checkout) {
       return;
     }
 
     setIsProcessing(true);
     setMessage(null);
 
-    // Confirm payment with Stripe
-    // Store order data for success page
-    const orderData = {
-      customerName: customerInfo.name,
-      customerEmail: customerInfo.email,
-      total: totals.total
-    };
-    sessionStorage.setItem('orderData', JSON.stringify(orderData));
+    try {
+      // Store order data for success page
+      const orderData = {
+        customerName: customerInfo.name,
+        customerEmail: customerInfo.email,
+        total: totals.total
+      };
+      sessionStorage.setItem('orderData', JSON.stringify(orderData));
 
-    const { error, paymentIntent } = await stripe.confirmPayment({
-      elements,
-      confirmParams: {
-        return_url: `${window.location.origin}/store/cart/success`,
-        receipt_email: customerInfo.email,
-      },
-      redirect: 'if_required', // Prevent automatic redirect
-    });
+      // Submit the checkout session
+      const { error } = await checkout.submit();
 
-    if (error) {
-      if (error.type === 'card_error' || error.type === 'validation_error') {
-        setMessage(error.message || 'Payment failed');
-        onError(error.message || 'Payment failed');
+      if (error) {
+        if (error.type === 'card_error' || error.type === 'validation_error') {
+          setMessage(error.message || 'Payment failed');
+          onError(error.message || 'Payment failed');
+        } else {
+          setMessage('An unexpected error occurred.');
+          onError('An unexpected error occurred.');
+        }
       } else {
-        setMessage('An unexpected error occurred.');
-        onError('An unexpected error occurred.');
+        // Success - checkout session will handle the redirect
+        setMessage('Payment processing...');
+        // The checkout session will automatically redirect to the return_url
+        // which is configured in the create-checkout-session API
       }
-    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      setMessage('Payment succeeded!');
-      onSuccess(paymentIntent.id);
-      // Redirect to success page
-      window.location.href = '/store/cart/success';
+    } catch (error) {
+      console.error('Checkout submission error:', error);
+      setMessage('An unexpected error occurred.');
+      onError('An unexpected error occurred.');
     }
 
     setIsProcessing(false);
   };
 
-  if (!stripe || !elements) {
+  if (!stripe || !elements || !checkout) {
     return (
       <div className="flex justify-center items-center py-8">
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -183,7 +163,7 @@ export default function PaymentForm({
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isProcessing || !stripe || !elements}
+        disabled={isProcessing || !stripe || !elements || !checkout}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 text-xl shadow-lg hover:shadow-xl transition-all duration-200"
         size="lg"
       >

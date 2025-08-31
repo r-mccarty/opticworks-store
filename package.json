@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@easypost/api": "^8.2.0",
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-collapsible": "^1.1.12",
