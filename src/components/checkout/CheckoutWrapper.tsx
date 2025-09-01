@@ -101,14 +101,31 @@ export default function CheckoutWrapper({
         const checkoutInstance = await stripe.initCheckout({
           fetchClientSecret: fetchClientSecret,
           elementsOptions: {
-            // @ts-ignore
-            fonts: [{ cssSrc: '/colfax-fonts.css' }],
+            // --- THIS IS THE UPDATED SECTION ---
+            fonts: [
+              {
+                family: 'Colfax',
+                src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
+                weight: '400',
+                style: 'normal',
+                display: 'swap',
+              },
+              {
+                family: 'Colfax',
+                src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
+                weight: '500',
+                style: 'normal',
+                display: 'swap',
+              }
+            ],
+            // The appearance object is correct and can stay the same
             appearance: {
               theme: 'stripe',
               variables: {
                 fontFamily: '"Colfax",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
               },
             },
+            // --- END OF UPDATED SECTION ---
           }
         });
         
