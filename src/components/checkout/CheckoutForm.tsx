@@ -5,6 +5,8 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 
 // Using unknown for Stripe types to avoid conflicts with official types
@@ -23,6 +25,7 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
   const [elementsReady, setElementsReady] = useState(false);
   const [paymentElement, setPaymentElement] = useState<StripeElement | null>(null);
   const [addressElement, setAddressElement] = useState<StripeElement | null>(null);
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     if (!checkout || elementsReady) return; // Prevent duplicate initialization
@@ -66,14 +69,14 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
       if (addressElement) {
         try {
           (addressElement as any).unmount();
-        } catch (e) {
+        } catch {
           console.log('Address element already unmounted');
         }
       }
       if (paymentElement) {
         try {
           (paymentElement as any).unmount();
-        } catch (e) {
+        } catch {
           console.log('Payment element already unmounted');
         }
       }
@@ -88,11 +91,19 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
       return;
     }
 
+    if (!email) {
+      setMessage('Please enter your email address.');
+      return;
+    }
+
     console.log('🔄 Starting payment confirmation...');
     setIsProcessing(true);
     setMessage(null);
 
     try {
+      // Update email before confirming
+      await (checkout as any).updateEmail(email);
+
       // Confirm payment using the checkout object
       const result = await (checkout as any).confirm({
         // Optional parameters
@@ -141,6 +152,25 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Email Address */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Contact Information</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Label htmlFor="email">Email Address</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="mt-1"
+          />
+        </CardContent>
+      </Card>
+
       {/* Shipping Address */}
       <Card>
         <CardHeader>

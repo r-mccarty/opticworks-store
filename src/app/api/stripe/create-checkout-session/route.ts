@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-07-30.basil',
+    });
+  }
+  return stripe;
+}
 
 export interface CreateCheckoutSessionRequest {
   items: Array<{
@@ -45,7 +51,7 @@ export async function POST(request: NextRequest) {
 
 
     // Create checkout session for Option B - Elements with Checkout Sessions API
-    const checkoutSession = await stripe.checkout.sessions.create({
+    const checkoutSession = await getStripe().checkout.sessions.create({
       ui_mode: 'custom', // Enable custom UI for Elements integration
       line_items: lineItems,
       mode: 'payment',
