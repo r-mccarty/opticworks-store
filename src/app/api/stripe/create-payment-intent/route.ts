@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-07-30.basil',
+    });
+  }
+  return stripe;
+}
 
 export interface CreatePaymentIntentRequest {
   items: Array<{
@@ -47,7 +53,7 @@ export async function POST(request: NextRequest) {
 
     // Create or retrieve customer
     let customer: Stripe.Customer;
-    const existingCustomers = await stripe.customers.list({
+    const existingCustomers = await getStripe().customers.list({
       email: customerInfo.email,
       limit: 1,
     });
@@ -55,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (existingCustomers.data.length > 0) {
       customer = existingCustomers.data[0];
     } else {
-      customer = await stripe.customers.create({
+      customer = await getStripe().customers.create({
         email: customerInfo.email,
         name: customerInfo.name,
         shipping: {
@@ -66,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create payment intent with automatic tax calculation
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount: Math.round((subtotal + shippingCost) * 100), // Amount in cents
       currency: 'usd',
       customer: customer.id,

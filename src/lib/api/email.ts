@@ -17,16 +17,23 @@ export interface EmailResult {
   error?: string;
 }
 
-// Initialize Resend client with environment variable validation
-if (!process.env.RESEND_API_KEY) {
-  console.error('❌ RESEND_API_KEY environment variable is not set');
-}
+// Lazily initialize Resend client to avoid build errors
+let resend: Resend | null = null;
 
-if (!process.env.NEXT_PUBLIC_FROM_EMAIL) {
-  console.error('❌ NEXT_PUBLIC_FROM_EMAIL environment variable is not set');
+function getResendClient(): Resend {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error('RESEND_API_KEY is not set in production environment');
+      }
+      console.error('❌ RESEND_API_KEY environment variable is not set');
+      // In non-production, we can return a mock or throw. For build, let's throw.
+      throw new Error('RESEND_API_KEY is not set.');
+    }
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
 }
-
-const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Email template mapping
 const templates = {
@@ -93,7 +100,8 @@ export async function sendEmail(email: EmailTemplate): Promise<EmailResult> {
 
     // Send email via Resend
     console.log(`📤 Calling Resend API to send email to ${email.to}...`);
-    const { data, error } = await resend.emails.send({
+    const client = getResendClient();
+    const { data, error } = await client.emails.send({
       from: process.env.NEXT_PUBLIC_FROM_EMAIL!,
       to: email.to,
       subject: email.subject,

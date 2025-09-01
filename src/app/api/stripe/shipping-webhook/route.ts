@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-07-30.basil',
+    });
+  }
+  return stripe;
+}
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Shipping webhook secret not configured');
     }
 
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
     console.log(`✅ Shipping webhook signature verified for event: ${event.type} (ID: ${event.id})`);
   } catch (err) {
     console.error('❌ Shipping webhook signature verification failed:', err);
@@ -84,7 +90,7 @@ async function handleAddressUpdated(session: Stripe.Checkout.Session) {
     console.log('🔍 Shipping address:', shippingAddress);
 
     // Get line items to calculate shipping based on weight/dimensions
-    const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+    const lineItems = await getStripe().checkout.sessions.listLineItems(session.id);
     const items = lineItems.data.map(item => ({
       id: item.price?.metadata?.product_id || 'unknown',
       weight: 1, // Default weight in pounds
@@ -99,7 +105,7 @@ async function handleAddressUpdated(session: Stripe.Checkout.Session) {
     const shippingRates = await calculateShippingRates(shippingAddress.postal_code || '', items);
 
     // Update the checkout session with dynamic shipping options
-    await stripe.checkout.sessions.update(session.id, {
+    await getStripe().checkout.sessions.update(session.id, {
       shipping_options: shippingRates.map(rate => ({
         shipping_rate_data: {
           type: 'fixed_amount',

@@ -3,9 +3,15 @@ import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 import { sendOrderConfirmation, sendPaymentFailed } from '@/lib/api/email';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-07-30.basil',
-});
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-07-30.basil',
+    });
+  }
+  return stripe;
+}
 
 // Initialize Supabase client
 const supabase = createClient(
@@ -40,7 +46,7 @@ export async function POST(request: NextRequest) {
       throw new Error('Webhook secret not configured');
     }
 
-    event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
     console.log(`✅ Webhook signature verified for event: ${event.type} (ID: ${event.id})`);
   } catch (err) {
     console.error('❌ Webhook signature verification failed:', err);
@@ -138,7 +144,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     if (!customerEmail && paymentIntent.customer) {
       console.log('🔍 DEBUG: receipt_email is null, trying customer object...');
       try {
-        const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+        const customer = await getStripe().customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
         console.log('🔍 DEBUG: Retrieved customer object:', JSON.stringify(customer, null, 2));
         customerEmail = customer.email;
         console.log('🔍 DEBUG: Customer email from customer object:', customerEmail);
@@ -168,7 +174,7 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     
     try {
       if (paymentIntent.customer) {
-        const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+        const customer = await getStripe().customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
         customerName = customer.name || paymentIntent.shipping?.name || 'Customer';
         console.log('🔍 DEBUG: Final customerName:', customerName);
       }
@@ -264,7 +270,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
       // Try to get email from customer object if available
       if (paymentIntent.customer) {
         try {
-          const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+          const customer = await getStripe().customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
           if (customer.email) {
             console.log('✅ Found customer email from customer object:', customer.email);
             customerEmail = customer.email;
@@ -287,7 +293,7 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
     
     try {
       if (paymentIntent.customer) {
-        const customer = await stripe.customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
+        const customer = await getStripe().customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
         customerName = customer.name || paymentIntent.shipping?.name || 'Customer';
       }
     } catch (error) {
@@ -344,7 +350,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     console.log(`✅ Processing completed checkout for ${customerEmail}`);
 
     // Get line items from the session
-    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
+    const lineItems = await getStripe().checkout.sessions.listLineItems(session.id, {
       expand: ['data.price.product'],
     });
 
