@@ -148,12 +148,6 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
         <CardContent>
           <div id="address-element" className="border rounded-md p-3">
             {/* AddressElement will be mounted here */}
-            {!elementsReady && (
-              <div className="flex items-center justify-center py-8 text-gray-500">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Loading address form...
-              </div>
-            )}
           </div>
           <p className="text-sm text-gray-600 mt-2">
             Shipping rates and tax will be calculated automatically based on your address.
@@ -169,15 +163,17 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
         <CardContent>
           <div id="payment-element">
             {/* PaymentElement will be mounted here */}
-            {!elementsReady && (
-              <div className="flex items-center justify-center py-8 text-gray-500">
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Loading payment form...
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Loading indicator for elements */}
+      {!elementsReady && (
+        <div className="flex items-center justify-center py-8 text-gray-500">
+          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+          Loading payment form...
+        </div>
+      )}
 
       {/* Error Message */}
       {message && (
