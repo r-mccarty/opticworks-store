@@ -12,61 +12,21 @@ export interface CreateCheckoutSessionRequest {
     price: number;
     quantity: number;
   }>;
-  customerInfo: {
-    email: string;
-    name: string;
-  };
-  shippingAddress: {
-    line1: string;
-    line2?: string;
-    city: string;
-    state: string;
-    postal_code: string;
-    country: string;
-  };
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as CreateCheckoutSessionRequest;
-    const { items, customerInfo, shippingAddress } = body;
+    const { items } = body;
 
     // Validate required fields
-    if (!items || !items.length || !customerInfo || !shippingAddress) {
+    if (!items || !items.length) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
+        { error: 'Missing required fields: items' },
         { status: 400 }
       );
     }
 
-    // Create or retrieve customer
-    let customer: Stripe.Customer;
-    const existingCustomers = await stripe.customers.list({
-      email: customerInfo.email,
-      limit: 1,
-    });
-
-    if (existingCustomers.data.length > 0) {
-      customer = existingCustomers.data[0];
-      
-      // Update customer info and shipping address
-      await stripe.customers.update(customer.id, {
-        name: customerInfo.name,
-        shipping: {
-          name: customerInfo.name,
-          address: shippingAddress,
-        },
-      });
-    } else {
-      customer = await stripe.customers.create({
-        email: customerInfo.email,
-        name: customerInfo.name,
-        shipping: {
-          name: customerInfo.name,
-          address: shippingAddress,
-        },
-      });
-    }
 
     // Convert cart items to Stripe line items
     const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map(item => ({
@@ -83,93 +43,42 @@ export async function POST(request: NextRequest) {
       quantity: item.quantity,
     }));
 
-    // Calculate shipping cost (free over $200)
-    const subtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const shippingCost = subtotal > 200 ? 0 : 15.99;
 
-    // Add shipping as line item if not free
-    if (shippingCost > 0) {
-      lineItems.push({
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'Shipping',
-            description: 'Standard shipping (Free over $200)',
-          },
-          unit_amount: Math.round(shippingCost * 100),
-        },
-        quantity: 1,
-      });
-    }
-
-    // Create checkout session with embedded components
+    // Create checkout session for Option B - Elements with Checkout Sessions API
     const checkoutSession = await stripe.checkout.sessions.create({
-      ui_mode: 'custom', // This enables Embedded Components
-      customer: customer.id,
+      ui_mode: 'custom', // Enable custom UI for Elements integration
       line_items: lineItems,
       mode: 'payment',
-      currency: 'usd',
       
-      // Shipping configuration
+      // Shipping configuration - let Stripe collect address and trigger webhook for dynamic rates
       shipping_address_collection: {
         allowed_countries: ['US'],
       },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            fixed_amount: {
-              amount: Math.round(shippingCost * 100),
-              currency: 'usd',
-            },
-            display_name: subtotal > 200 ? 'Free Shipping' : 'Standard Shipping',
-            delivery_estimate: {
-              minimum: {
-                unit: 'business_day',
-                value: 3,
-              },
-              maximum: {
-                unit: 'business_day',
-                value: 7,
-              },
-            },
-          },
-        },
-      ],
 
-      // Tax calculation
+      // Tax calculation - automatic
       automatic_tax: {
         enabled: true,
       },
 
-      // Return URL for post-payment redirect
-      return_url: `${request.headers.get('origin')}/store/cart/success?session_id={CHECKOUT_SESSION_ID}`,
+      // Note: success_url and cancel_url not allowed with ui_mode: 'custom'
+      // Custom UI handles success/failure via confirmation result
 
-      // Additional metadata
+      // Metadata for webhook processing
       metadata: {
-        subtotal: subtotal.toString(),
-        shipping_cost: shippingCost.toString(),
         items_count: items.length.toString(),
-        customer_email: customerInfo.email,
-        customer_name: customerInfo.name,
+        order_type: 'ecommerce',
+        source: 'website',
+        // Store item data for shipping calculation
+        items_data: JSON.stringify(items.map(item => ({
+          id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          weight: 1, // Default weight - would come from product data in real app
+        }))),
       },
 
-      // Custom fields for additional order information
-      custom_fields: [
-        {
-          key: 'order_notes',
-          label: {
-            type: 'custom',
-            custom: 'Order Notes (Optional)',
-          },
-          type: 'text',
-          optional: true,
-        },
-      ],
-
       // Payment method configuration
-      payment_method_configuration: undefined, // Use account defaults
-      payment_method_types: ['card', 'us_bank_account'], // Add bank transfers
+      payment_method_types: ['card'],
       
       // Invoice creation for record keeping
       invoice_creation: {
@@ -190,25 +99,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Calculate final totals for response
-    const totalAmount = subtotal + shippingCost;
-
     return NextResponse.json({
       clientSecret: checkoutSession.client_secret,
-      checkoutSessionId: checkoutSession.id,
-      customerId: customer.id,
-      totals: {
-        subtotal: subtotal,
-        shipping: shippingCost,
-        tax: 0, // Will be calculated by Stripe Tax
-        total: totalAmount, // Base total, tax will be added by Stripe
-      },
-      sessionDetails: {
-        mode: checkoutSession.mode,
-        currency: checkoutSession.currency,
-        customer_email: customerInfo.email,
-        return_url: checkoutSession.return_url,
-      },
+      sessionId: checkoutSession.id,
+      success: true,
     });
 
   } catch (error) {

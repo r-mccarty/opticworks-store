@@ -10,38 +10,20 @@ import { MinusIcon, PlusIcon, TrashIcon, CreditCardIcon } from "@heroicons/react
 import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
-import { loadStripe } from '@stripe/stripe-js'
-import { Elements } from '@stripe/react-stripe-js'
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
-import AddressForm from "@/components/checkout/AddressForm"
-
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 export function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
-  const [isAddressValid, setIsAddressValid] = useState(false)
-  
-  // Unified customer and address state - will be populated by Stripe Address Element
-  const [customerAddress, setCustomerAddress] = useState({
-    name: '',
-    email: '',
-    line1: '',
-    line2: '',
-    city: '',
-    state: '',
-    postal_code: '',
-    country: 'US'
-  })
 
-  const handlePaymentSuccess = (paymentIntentId: string) => {
-    console.log('Payment successful:', paymentIntentId)
-    alert(`Payment successful! Order confirmation will be sent to ${customerAddress.email}`)
+  const handlePaymentSuccess = (sessionId: string) => {
+    console.log('Payment successful:', sessionId)
     clearCart()
     setShowPaymentForm(false)
     setIsCheckingOut(false)
+    // Redirect to success page
+    window.location.href = `/store/cart/success?session_id=${sessionId}`
   }
 
   const handlePaymentError = (error: string) => {
@@ -49,26 +31,8 @@ export function CartPage() {
     setIsCheckingOut(false)
   }
 
-  const handleAddressChange = (address: typeof customerAddress) => {
-    setCustomerAddress(address);
-  };
-
-  const handleAddressValidityChange = (isValid: boolean) => {
-    setIsAddressValid(isValid);
-  };
 
   const handleProceedToPayment = () => {
-    // Validate required fields
-    if (!customerAddress.email || !customerAddress.name) {
-      alert('Please fill in your email and name')
-      return
-    }
-    
-    if (!isAddressValid) {
-      alert('Please enter a valid shipping address')
-      return
-    }
-    
     setIsCheckingOut(true)
     setShowPaymentForm(true)
   }
@@ -367,17 +331,6 @@ export function CartPage() {
                 </Card>
               </FadeDiv>
 
-              {!showPaymentForm ? (
-                <FadeDiv>
-                  <Elements stripe={stripePromise}>
-                    <AddressForm 
-                      onAddressChange={handleAddressChange}
-                      onValidityChange={handleAddressValidityChange}
-                      initialValues={customerAddress}
-                    />
-                  </Elements>
-                </FadeDiv>
-              ) : null}
 
               {!showPaymentForm ? (
                 <FadeDiv>
@@ -387,23 +340,17 @@ export function CartPage() {
                         className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
                         size="lg"
                         onClick={handleProceedToPayment}
-                        disabled={isCheckingOut || !isAddressValid}
+                        disabled={isCheckingOut}
                       >
                         <CreditCardIcon className="w-5 h-5 mr-2" />
                         {isCheckingOut ? 'Preparing Payment...' : 'Proceed to Payment'}
                       </Button>
-                      {!isAddressValid && (
-                        <p className="text-sm text-gray-500 text-center mt-2">
-                          Please enter a valid address to continue
-                        </p>
-                      )}
                     </CardContent>
                   </Card>
                 </FadeDiv>
               ) : (
                 <FadeDiv>
                   <CheckoutWrapper
-                    customerAddress={customerAddress}
                     onSuccess={handlePaymentSuccess}
                     onError={handlePaymentError}
                   />

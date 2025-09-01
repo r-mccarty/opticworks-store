@@ -64,6 +64,12 @@ export async function POST(request: NextRequest) {
         await handleCheckoutSessionExpired(event.data.object as Stripe.Checkout.Session);
         break;
 
+      // Dynamic shipping rates webhook (handled separately but logged here)
+      // Note: checkout.session.address_updated not available in current Stripe API version
+      // case 'checkout.session.address_updated':
+      //   console.log('📍 Address updated event received - this should be handled by shipping webhook endpoint');
+      //   break;
+
       // Payment Intent events (legacy support)
       case 'payment_intent.succeeded':
         await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent);

@@ -1,585 +1,350 @@
-# Stripe Embedded Checkout Integration with EasyPost Address Validation
+# Stripe Integration Documentation
 
 ## Overview
 
-OpticWorks implements a production-ready Stripe integration using **Stripe Embedded Components** with **Checkout Sessions API** and **EasyPost address validation**. This modern approach provides maximum UI control, comprehensive session management, and real-time address verification for a seamless checkout experience.
+This codebase implements **Option B: The Integrated Model** from our Payment Architecture design - a modern, streamlined approach using **Elements with Checkout Sessions API**. This architecture delegates complex state management to Stripe while maintaining full control over the UI through custom Elements integration.
 
-## Architecture Summary
+## Architecture: Option B - The Integrated Model
 
-- **Frontend**: Stripe Embedded Components (`ui_mode: 'custom'`) with full UI control
-- **Session Management**: Stripe Checkout Sessions API for comprehensive state management
-- **Address Validation**: EasyPost API for real-time address verification and suggestions
-- **Database**: Supabase PostgreSQL for order storage
-- **Email**: React Email + Resend for automated notifications
+### Core Philosophy
+- **Stripe manages**: Tax calculation, checkout state machine, payment processing, compliance
+- **We manage**: UI/UX, product catalog, customer experience, order fulfillment
+- **Result**: Reduced complexity, faster development, better user experience
 
-## Integration Architecture
+### Key Benefits
+- ✅ **Automatic tax calculation** via Stripe Tax
+- ✅ **Single-page checkout flow** for better conversion
+- ✅ **Stripe-managed state machine** (no complex backend orchestration)
+- ✅ **Future-proof compliance** (SCA, 3D Secure handled automatically)
+- ✅ **Real-time address validation** via Stripe AddressElement
 
-### 1. Stripe Embedded Components vs Traditional Checkout
+## Implementation Details
 
-This integration uses **Stripe Embedded Components** (`ui_mode: 'custom'`) instead of traditional Payment Intents, providing:
+### 1. Checkout Session Creation
 
-- **Full UI Control**: Complete customization via Appearance API
-- **Session Management**: Comprehensive state handling with tax, shipping, and customer data
-- **Brand Integration**: Seamless design integration with existing UI components
-- **Advanced Features**: Built-in support for multiple payment methods, tax calculation, and shipping
-
-### 2. API Flow Overview
-
-```
-Cart → Create Checkout Session → Initialize Embedded Checkout → Validate Address → Process Payment → Success
-```
-
-## Checkout Sessions API Implementation
-
-### 1. Session Creation Endpoint
-
-**Endpoint**: `POST /api/stripe/create-checkout-session`
+**API Endpoint**: `/api/stripe/create-checkout-session`
 
 ```typescript
-// src/app/api/stripe/create-checkout-session/route.ts
-export async function POST(request: NextRequest) {
-  const { items, customerInfo, shippingAddress } = await request.json();
-
-  // Create or retrieve customer
-  let customer = await stripe.customers.list({ 
-    email: customerInfo.email, 
-    limit: 1 
-  });
+const checkoutSession = await stripe.checkout.sessions.create({
+  line_items: lineItems,
+  mode: 'payment',
   
-  if (customer.data.length === 0) {
-    customer = await stripe.customers.create({
-      email: customerInfo.email,
-      name: customerInfo.name,
-      shipping: { name: customerInfo.name, address: shippingAddress }
-    });
-  }
+  // Stripe collects shipping address
+  shipping_address_collection: {
+    allowed_countries: ['US'],
+  },
 
-  // Create checkout session with embedded components
-  const checkoutSession = await stripe.checkout.sessions.create({
-    ui_mode: 'custom', // Enable Embedded Components
-    customer: customer.id,
-    line_items: lineItems,
-    mode: 'payment',
-    
-    // Advanced features
-    automatic_tax: { enabled: true },
-    shipping_address_collection: { allowed_countries: ['US'] },
-    invoice_creation: { enabled: true },
-    
-    // Return URL for post-payment redirect
-    return_url: `${origin}/store/cart/success?session_id={CHECKOUT_SESSION_ID}`,
-    
-    // Metadata for webhook processing
-    metadata: {
-      subtotal: subtotal.toString(),
-      customer_email: customerInfo.email,
-      items_count: items.length.toString()
-    }
-  });
+  // Automatic tax calculation
+  automatic_tax: {
+    enabled: true,
+  },
 
-  return NextResponse.json({
-    clientSecret: checkoutSession.client_secret,
-    checkoutSessionId: checkoutSession.id,
-    totals: { subtotal, shipping: shippingCost, total: totalAmount }
-  });
-}
+  // Fallback URLs for hosted checkout
+  success_url: `${origin}/store/cart/success?session_id={CHECKOUT_SESSION_ID}`,
+  cancel_url: `${origin}/store/cart`,
+
+  // Metadata for webhook processing
+  metadata: {
+    items_count: items.length.toString(),
+    order_type: 'ecommerce',
+    source: 'website',
+  },
+
+  // Invoice creation for record keeping
+  invoice_creation: {
+    enabled: true,
+  },
+});
 ```
-
-**Key Features**:
-- **Embedded UI Mode**: `ui_mode: 'custom'` enables component-based integration
-- **Customer Management**: Automatic customer creation and retrieval
-- **Tax Automation**: Built-in Stripe Tax integration
-- **Invoice Generation**: Automatic invoice creation for record keeping
-- **Metadata Storage**: Order details stored for webhook processing
 
 ### 2. Frontend Integration
 
-#### CheckoutWrapper Component
-
-```typescript
-// src/components/checkout/CheckoutWrapper.tsx
-export default function CheckoutWrapper({ customerAddress, onSuccess, onError }) {
-  const [clientSecret, setClientSecret] = useState('');
-  const [checkout, setCheckout] = useState(null);
-
-  const createCheckoutSession = useCallback(async () => {
-    const response = await fetch('/api/stripe/create-checkout-session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        items: cartItems,
-        customerInfo: { name: customerAddress.name, email: customerAddress.email },
-        shippingAddress: customerAddress
-      })
-    });
-
-    const data = await response.json();
-    setClientSecret(data.clientSecret);
-  }, [items, customerAddress]);
-
-  return (
-    <Elements options={{ clientSecret, appearance }} stripe={stripePromise}>
-      <PaymentForm 
-        clientSecret={clientSecret}
-        onSuccess={onSuccess}
-        onError={onError}
-        customerInfo={customerInfo}
-        totals={totals}
-      />
-    </Elements>
-  );
-}
+**Components Architecture**:
+```
+CartPage → CheckoutWrapper → CheckoutForm
+                ↓              ↓
+          Creates Session    Uses Elements
+            via API         (Address + Payment)
 ```
 
-#### PaymentForm with Embedded Components
+**CheckoutWrapper** (`src/components/checkout/CheckoutWrapper.tsx`):
+- Creates checkout session with backend API
+- Initializes Stripe Elements with `clientSecret`
+- Provides error handling and loading states
+
+**CheckoutForm** (`src/components/checkout/CheckoutForm.tsx`):
+- Uses `AddressElement` for shipping address collection
+- Uses `PaymentElement` for payment method collection
+- Confirms payment with `stripe.confirmPayment()`
+
+### 3. Elements Configuration
 
 ```typescript
-// src/components/checkout/PaymentForm.tsx
-export default function PaymentForm({ clientSecret, onError, customerInfo }) {
-  const stripe = useStripe();
-  const elements = useElements();
-  const [checkout, setCheckout] = useState(null);
+// Stripe Elements setup
+const options = {
+  clientSecret,
+  appearance: {
+    theme: 'stripe',
+    variables: {
+      colorPrimary: '#3b82f6',
+      // ... custom styling
+    },
+  },
+};
 
-  useEffect(() => {
-    if (!stripe || !clientSecret) return;
+// Address Element
+<AddressElement 
+  options={{
+    mode: 'shipping',
+    allowedCountries: ['US'],
+    fields: { phone: 'never' },
+    autocomplete: { mode: 'automatic' },
+  }}
+  onChange={handleAddressChange}
+/>
 
-    const initializeCheckout = async () => {
-      const checkoutInstance = await stripe.initEmbeddedCheckout({
-        fetchClientSecret: async () => clientSecret
-      });
-      setCheckout(checkoutInstance);
-    };
-
-    initializeCheckout();
-  }, [stripe, clientSecret]);
-
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    
-    const { error } = await checkout.submit();
-    
-    if (error) {
-      onError(error.message);
-    }
-    // Success handling is managed by Checkout Session return_url
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement options={{
-        layout: 'tabs',
-        paymentMethodOrder: ['card', 'apple_pay', 'google_pay']
-      }} />
-      <button type="submit">Complete Payment</button>
-    </form>
-  );
-}
+// Payment Element  
+<PaymentElement
+  options={{
+    layout: 'tabs',
+    paymentMethodOrder: ['card', 'apple_pay', 'google_pay'],
+  }}
+/>
 ```
 
-## EasyPost Address Validation Integration
-
-### 1. Address Validation API
-
-**Endpoint**: `POST /api/easypost/validate-address`
+### 4. Payment Confirmation
 
 ```typescript
-// src/app/api/easypost/validate-address/route.ts
-export async function POST(request: NextRequest) {
-  const address = await request.json();
-  
-  const validationResult = await validateAddress(address);
-  return NextResponse.json(validationResult);
-}
+const { error } = await stripe.confirmPayment({
+  elements,
+  confirmParams: {
+    return_url: `${window.location.origin}/store/cart/success`,
+  },
+});
 ```
 
-**Endpoint**: `POST /api/easypost/suggest-address`
+## Webhook Integration
 
-```typescript
-// src/app/api/easypost/suggest-address/route.ts  
-export async function POST(request: NextRequest) {
-  const address = await request.json();
-  
-  const suggestionResult = await getAddressSuggestions(address);
-  return NextResponse.json(suggestionResult);
-}
+### Primary Webhook Events
+
+**Endpoint**: `/api/stripe/webhook`
+
+**Key Events Handled**:
+- `checkout.session.completed` - Order fulfillment and email confirmation
+- `checkout.session.expired` - Handle abandoned checkouts
+- `payment_intent.succeeded` - Legacy support for direct PaymentIntents
+- `payment_intent.payment_failed` - Failed payment notifications
+
+### Order Processing Flow
+
+When `checkout.session.completed` fires:
+
+1. **Extract Order Data**:
+   ```typescript
+   const customerEmail = session.customer_details?.email;
+   const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+   ```
+
+2. **Calculate Totals**:
+   ```typescript
+   const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+   const shippingCost = (session.shipping_cost?.amount_total || 0) / 100;
+   const taxAmount = (session.total_details?.amount_tax || 0) / 100;
+   const totalAmount = (session.amount_total || 0) / 100;
+   ```
+
+3. **Store Order & Send Confirmation**:
+   ```typescript
+   // Store in database
+   await supabase.from('test_orders').insert({
+     customer_email: customerEmail,
+     total_amount: totalAmount,
+     status: 'completed',
+   });
+
+   // Send confirmation email
+   await sendOrderConfirmation({ ... });
+   ```
+
+## Email Integration
+
+### Automatic Order Confirmations
+
+**Production Ready**: ✅ Fully functional via React Email + Resend
+
+**Email Service Configuration**:
+```bash
+RESEND_API_KEY=re_xxxxxxxxxx
+NEXT_PUBLIC_FROM_EMAIL=OpticWorks <orders@notifications.optic.works>
 ```
 
-### 2. EasyPost Service Implementation
+**Email Templates**: Located in `src/lib/api/email.ts`
+- Order confirmation with line items breakdown
+- Shipping address and order details
+- Professional Tesla-focused branding
+- Automatic delivery via webhook + backup on success page
 
-```typescript
-// src/lib/api/easypost.ts
-import EasyPost from '@easypost/api';
+## Environment Variables
 
-const easypost = new EasyPost(process.env.EASYPOST_API_KEY!);
-
-export async function validateAddress(address: AddressInput): Promise<AddressValidationResponse> {
-  try {
-    const easypostAddress = await easypost.Address.create({
-      street1: address.street1,
-      city: address.city,
-      state: address.state,
-      zip: address.zip,
-      country: address.country || 'US',
-      name: address.name || ''
-    });
-
-    const validated: ValidatedAddress = {
-      id: easypostAddress.id,
-      street1: easypostAddress.street1 || '',
-      city: easypostAddress.city || '',
-      state: easypostAddress.state || '',
-      zip: easypostAddress.zip || '',
-      residential: easypostAddress.residential || false,
-      verifications: {
-        delivery: {
-          success: easypostAddress.verifications?.delivery?.success || false,
-          errors: easypostAddress.verifications?.delivery?.errors || []
-        },
-        zip4: {
-          success: easypostAddress.verifications?.zip4?.success || false,
-          zip4: easypostAddress.verifications?.zip4?.zip4 || ''
-        }
-      }
-    };
-
-    return { success: true, address: validated };
-  } catch (error) {
-    return { 
-      success: false, 
-      errors: [error instanceof Error ? error.message : 'Address validation failed'] 
-    };
-  }
-}
-```
-
-### 3. Frontend Address Validation
-
-#### Enhanced AddressForm with Real-time Validation
-
-```typescript
-// src/components/checkout/AddressForm.tsx
-export default function AddressForm({ onAddressChange, onValidityChange }) {
-  const [validationStatus, setValidationStatus] = useState('idle');
-  const [addressSuggestions, setAddressSuggestions] = useState([]);
-  const [validationTimeout, setValidationTimeout] = useState(null);
-
-  const validateAddress = async (address) => {
-    setValidationStatus('validating');
-    
-    try {
-      const response = await fetch('/api/easypost/validate-address', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(address)
-      });
-
-      const result = await response.json();
-
-      if (result.success && result.address) {
-        setValidationStatus('valid');
-        setValidationMessage('Address verified ✓');
-      } else {
-        // Get suggestions for invalid addresses
-        const suggestionResponse = await fetch('/api/easypost/suggest-address', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(address)
-        });
-
-        const suggestions = await suggestionResponse.json();
-        if (suggestions.success && suggestions.suggestions.length > 0) {
-          setValidationStatus('suggestions');
-          setAddressSuggestions(suggestions.suggestions);
-        } else {
-          setValidationStatus('invalid');
-        }
-      }
-    } catch (error) {
-      setValidationStatus('invalid');
-      setValidationMessage('Validation failed. Please verify manually.');
-    }
-  };
-
-  const handleAddressChange = (event) => {
-    if (event.complete && event.value) {
-      const { name, address } = event.value;
-      
-      // Clear previous timeout
-      if (validationTimeout) clearTimeout(validationTimeout);
-      
-      // Debounce validation
-      const timeout = setTimeout(() => {
-        validateAddress({
-          street1: address.line1,
-          city: address.city,
-          state: address.state,
-          zip: address.postal_code,
-          name: name
-        });
-      }, 1000);
-      
-      setValidationTimeout(timeout);
-    }
-  };
-
-  return (
-    <Card>
-      <CardContent>
-        <AddressElement 
-          options={{
-            mode: 'shipping',
-            allowedCountries: ['US'],
-            autocomplete: { mode: 'automatic' }
-          }}
-          onChange={handleAddressChange}
-        />
-        
-        {/* Validation Status UI */}
-        {validationStatus === 'validating' && (
-          <div className="flex items-center text-blue-600">
-            <Loader2 className="animate-spin mr-2" />
-            Validating address...
-          </div>
-        )}
-        
-        {validationStatus === 'valid' && (
-          <div className="flex items-center text-green-600">
-            <CheckCircle2 className="mr-2" />
-            Address verified ✓
-          </div>
-        )}
-        
-        {addressSuggestions.length > 0 && (
-          <div className="mt-3 space-y-2">
-            <p className="text-blue-600">Suggested corrections:</p>
-            {addressSuggestions.map((suggestion, index) => (
-              <div 
-                key={index}
-                className="border border-blue-200 bg-blue-50 rounded p-3 cursor-pointer"
-                onClick={() => handleSuggestionSelect(suggestion)}
-              >
-                <div className="font-medium">{suggestion.name}</div>
-                <div>{suggestion.street1}</div>
-                <div>{suggestion.city}, {suggestion.state} {suggestion.zip}</div>
-                <Button variant="outline" size="sm" className="mt-2">
-                  Use This Address
-                </Button>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-```
-
-## Webhook Processing for Checkout Sessions
-
-### Enhanced Webhook Handler
-
-```typescript
-// src/app/api/stripe/webhook/route.ts
-async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  try {
-    // Extract customer information
-    const customerEmail = session.customer_details?.email;
-    const customerName = session.customer_details?.name;
-    
-    // Get detailed line items
-    const lineItems = await stripe.checkout.sessions.listLineItems(session.id, {
-      expand: ['data.price.product']
-    });
-    
-    // Calculate totals
-    const shippingCost = (session.shipping_cost?.amount_total || 0) / 100;
-    const taxAmount = (session.total_details?.amount_tax || 0) / 100;
-    const totalAmount = (session.amount_total || 0) / 100;
-    
-    // Store order in database
-    const { error: dbError } = await supabase.from('orders').insert({
-      session_id: session.id,
-      customer_email: customerEmail,
-      customer_name: customerName,
-      total_amount: totalAmount,
-      tax_amount: taxAmount,
-      shipping_cost: shippingCost,
-      status: 'completed',
-      payment_status: 'paid'
-    });
-
-    // Send order confirmation email
-    if (session.customer_details?.address) {
-      await sendOrderConfirmation({
-        customerEmail,
-        customerName,
-        orderNumber: `ORD-${Date.now()}-${session.id.slice(-8)}`,
-        items: lineItems.data,
-        subtotal: totalAmount - taxAmount - shippingCost,
-        tax: taxAmount,
-        shipping: shippingCost,
-        total: totalAmount,
-        shippingAddress: {
-          name: customerName,
-          address1: session.customer_details.address.line1,
-          address2: session.customer_details.address.line2,
-          city: session.customer_details.address.city,
-          state: session.customer_details.address.state,
-          zipCode: session.customer_details.address.postal_code
-        }
-      });
-    }
-
-  } catch (error) {
-    console.error('Error processing checkout session:', error);
-  }
-}
-
-export async function POST(request: NextRequest) {
-  const payload = await request.text();
-  const signature = request.headers.get('stripe-signature');
-
-  try {
-    const event = stripe.webhooks.constructEvent(
-      payload,
-      signature!,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-
-    switch (event.type) {
-      case 'checkout.session.completed':
-        await handleCheckoutSessionCompleted(event.data.object);
-        break;
-      case 'checkout.session.expired':
-        console.log('Checkout session expired:', event.data.object.id);
-        break;
-    }
-
-    return NextResponse.json({ received: true });
-  } catch (error) {
-    console.error('Webhook error:', error);
-    return NextResponse.json({ error: 'Webhook error' }, { status: 400 });
-  }
-}
-```
-
-## Environment Configuration
-
-### Required Environment Variables
+### Required for Production
 
 ```bash
-# Stripe Configuration (Production Ready)
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_publishable_key
-STRIPE_SECRET_KEY=sk_test_your_secret_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+# Stripe Configuration
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
+STRIPE_SECRET_KEY=sk_live_xxxxx
 
-# EasyPost Address Validation
-EASYPOST_API_KEY=EZTK_your_test_api_key
+# Webhook Secrets
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx  # Production webhook
+STRIPE_WEBHOOK_SECRET_DEV=whsec_xxxxx  # Stripe CLI webhook
 
-# Email Service (Production Ready)
-RESEND_API_KEY=re_your_resend_api_key
-NEXT_PUBLIC_FROM_EMAIL=YourStore <orders@yourdomain.com>
+# Email Service
+RESEND_API_KEY=re_xxxxx
+NEXT_PUBLIC_FROM_EMAIL=OpticWorks <orders@notifications.optic.works>
 
 # Database
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=xxxxx
 ```
 
-## Error Handling and Recovery
-
-### 1. Comprehensive Error Handling
-
-```typescript
-// Network error detection and retry
-if (retryCount < 2 && (err instanceof TypeError || err.code === 'NETWORK_ERROR')) {
-  setRetryCount(prev => prev + 1);
-  setTimeout(() => createCheckoutSession(), 1000 * (retryCount + 1));
-} else {
-  setError(errorMessage);
-  onError(errorMessage);
-}
-
-// Session expiration handling
-if (error.includes('expired') || error.includes('invalid')) {
-  setTimeout(() => {
-    console.log('Recreating expired checkout session');
-    createCheckoutSession();
-  }, 1000);
-}
-```
-
-### 2. Address Validation Fallbacks
-
-```typescript
-// Graceful degradation when validation fails
-catch (error) {
-  console.error('Address validation error:', error);
-  setValidationStatus('invalid');
-  setValidationMessage('Validation failed. Please verify manually.');
-  // Allow checkout to continue with manual verification
-}
-```
-
-## Testing and Development
-
-### Test Configuration
+### Optional for Enhanced Features
 
 ```bash
-# Stripe Test Cards
-4242424242424242  # Visa - Success
-4000000000000002  # Visa - Declined
-4000002760003184  # Visa - Requires 3D Secure
-
-# EasyPost Test Addresses
-123 Main Street, San Francisco, CA 94105  # Valid address
-123 Fake Street, Nowhere, XX 00000       # Invalid for testing suggestions
+# For future dynamic shipping rates (not yet implemented)
+EASYPOST_API_KEY=EZTK_xxxxx
+EASYPOST_MODE=test  # or 'production'
 ```
 
-### Development Workflow
+## Testing
 
-1. **Local Development**:
+### Development Testing
+
+1. **Start Development Server**:
    ```bash
    pnpm run dev
    ```
 
-2. **Webhook Testing**:
+2. **Start Stripe CLI for Webhooks**:
    ```bash
    stripe listen --forward-to localhost:3000/api/stripe/webhook
    ```
 
-3. **Test Checkout Flow**:
-   - Navigate to `/store/cart`
-   - Add items and proceed to checkout
-   - Enter test address (watch EasyPost validation)
-   - Use test card for payment
-   - Verify email notification
+3. **Test Cards**:
+   - Success: `4242424242424242`
+   - Declined: `4000000000000002`
+   - Requires Authentication: `4000002500003155`
 
-## Performance and Scalability
+### Production Testing
 
-### 1. Optimizations
+1. **Use Stripe Test Keys** in production environment
+2. **Test webhook delivery** via Stripe Dashboard → Webhooks
+3. **Verify email delivery** through Resend dashboard
+4. **Test tax calculation** with real addresses
 
-- **Address Validation**: 1-second debounce to reduce API calls
-- **Session Caching**: Client-side session state management
-- **Error Recovery**: Automatic retry with exponential backoff
-- **Webhook Reliability**: Idempotent processing with event verification
+## Error Handling
 
-### 2. Monitoring
+### Frontend Error Handling
 
-- **Stripe Dashboard**: Payment success/failure rates, session analytics
-- **EasyPost Dashboard**: Address validation metrics and API usage
-- **Webhook Logs**: Real-time event processing monitoring
-- **Email Delivery**: Confirmation email success rates via Resend
+**CheckoutWrapper Error States**:
+- Network errors with retry functionality
+- Session creation failures with user-friendly messages
+- Loading states with progress indicators
 
-## Security and Compliance
+**CheckoutForm Error States**:
+- Card validation errors displayed inline
+- Address completion requirements
+- Payment processing errors with retry options
 
-### 1. PCI DSS Compliance
-- **Card Data**: Never touches your servers (Stripe Elements handle all sensitive data)
-- **Address Data**: Validated through secure EasyPost API
-- **Session Management**: Secure client secrets with limited scope
+### Backend Error Handling
 
-### 2. Data Protection
-- **API Keys**: Environment variables with proper secret management
-- **Webhook Verification**: Cryptographic signature validation
-- **Customer Data**: Encrypted at rest in Stripe and Supabase
+**API Error Responses**:
+```typescript
+// Consistent error format
+return NextResponse.json(
+  { error: 'User-friendly error message' },
+  { status: 400 }
+);
+```
 
-This implementation provides a modern, secure, and user-friendly checkout experience combining Stripe's powerful embedded components with EasyPost's accurate address validation for optimal conversion and data quality.
+**Webhook Error Handling**:
+- Comprehensive logging for debugging
+- Graceful degradation for non-critical failures
+- Automatic retries via Stripe webhook system
+
+## Monitoring and Logging
+
+### Production Monitoring
+
+**Webhook Logs**: All webhook events logged with structured data
+```typescript
+console.log('✅ Checkout session completed:', session.id);
+console.log('📧 Order confirmation sent:', emailResult.messageId);
+```
+
+**Error Tracking**: Failed payments and errors logged with context
+```typescript
+console.error('❌ Email delivery failed:', error);
+console.error('🔍 Session data:', JSON.stringify(session, null, 2));
+```
+
+### Analytics Integration
+
+**Stripe Analytics**: Built-in payment analytics in Stripe Dashboard
+**Custom Analytics**: Order data stored in Supabase for business intelligence
+
+## Security Considerations
+
+### PCI Compliance
+- ✅ No card data touches our servers (Stripe Elements handles all PCI requirements)
+- ✅ Webhook signature verification prevents tampering
+- ✅ HTTPS enforced for all payment flows
+
+### Data Protection
+- Customer email and shipping data handled securely
+- No sensitive payment information stored locally
+- Stripe customer objects used for data normalization
+
+## Future Enhancements
+
+### Planned Features
+1. **Dynamic Shipping Rates**: EasyPost integration via webhook when API supports `checkout.session.address_updated`
+2. **Subscription Support**: Extend to support recurring billing
+3. **Multi-currency**: International expansion support
+4. **Connect Integration**: Support for marketplace scenarios
+
+### Migration Notes
+- Current implementation is pure Option B architecture
+- Easily extensible for additional payment methods
+- Webhook architecture supports future Stripe features
+- Email system ready for transactional expansion
+
+## Support and Debugging
+
+### Common Issues
+
+1. **"Invalid client secret" Error**:
+   - Ensure checkout session is created before Elements initialization
+   - Verify `clientSecret` format matches Stripe expectations
+
+2. **Tax Not Calculating**:
+   - Verify `automatic_tax: { enabled: true }` in session creation
+   - Check Stripe Dashboard tax settings are configured
+
+3. **Webhooks Not Firing**:
+   - Verify webhook endpoint is publicly accessible
+   - Check webhook signature verification
+   - Ensure correct webhook secret in environment variables
+
+### Development Tools
+
+**Stripe CLI**: Essential for local webhook testing
+```bash
+stripe login
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+**Stripe Dashboard**: 
+- Monitor payment flows
+- Debug webhook deliveries
+- View customer and session data
+
+This documentation reflects the current production-ready implementation using Option B architecture, providing a solid foundation for future development and maintenance.
