@@ -99,7 +99,17 @@ export default function CheckoutWrapper({
         // Initialize checkout using the new approach for Elements with Checkout Sessions
         console.log('✅ Calling stripe.initCheckout...');
         const checkoutInstance = await stripe.initCheckout({
-          fetchClientSecret: fetchClientSecret
+          fetchClientSecret: fetchClientSecret,
+          elementsOptions: {
+            // @ts-ignore
+            fonts: [{ cssSrc: '/colfax-fonts.css' }],
+            appearance: {
+              theme: 'stripe',
+              variables: {
+                fontFamily: '"Colfax",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
+              },
+            },
+          }
         });
         
         console.log('✅ initCheckout returned:', checkoutInstance);
