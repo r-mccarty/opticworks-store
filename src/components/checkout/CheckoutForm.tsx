@@ -97,6 +97,7 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
       const result = await (checkout as any).confirm({
         // Optional parameters
         redirect: 'if_required', // Let Stripe handle redirects if needed
+        returnUrl: `${window.location.origin}/store/cart/success`,
       });
 
       console.log('📊 Confirmation result:', result);
