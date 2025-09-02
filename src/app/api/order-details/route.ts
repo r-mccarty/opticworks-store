@@ -13,7 +13,6 @@ interface OrderData {
 // The exclamation mark (!) asserts that the environment variable is non-null.
 // This is safe because the server should not start if the key is missing.
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-06-20',
   typescript: true,
 });
 
