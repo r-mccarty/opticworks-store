@@ -35,7 +35,7 @@ export function NavBar() {
       <div className="w-full md:my-auto">
         <div className="relative flex items-center justify-between">
           <Link href={siteConfig.baseLinks.home} aria-label="Home">
-            <span className="sr-only">Solar Tech Logo</span>
+            <span className="sr-only">OpticWorks Logo</span>
             <SolarLogo className="w-22" />
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">

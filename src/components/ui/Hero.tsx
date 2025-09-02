@@ -20,7 +20,7 @@ export function Hero() {
               </span>
               <span className="flex items-center gap-1 truncate">
                 <span className="w-full truncate">
-                  Introducing our Desktop E-Ink Dashboard
+                  Now shipping CyberShade IRX kits
                 </span>
 
                 <RiArrowRightUpLine className="size-4 shrink-0 text-gray-700" />
@@ -29,21 +29,21 @@ export function Hero() {
           </a>
         </FadeDiv>
         <h1 className="font-barlow mt-8 text-center text-8xl font-normal tracking-[1px] text-white drop-shadow-2xl uppercase sm:leading-[5.5rem]">
-          <FadeSpan>Data</FadeSpan> <FadeSpan>for</FadeSpan>
+          <FadeSpan>Tint</FadeSpan> <FadeSpan>Kits</FadeSpan> <FadeSpan>for</FadeSpan>
           <br />
-          <FadeSpan>every</FadeSpan> <FadeSpan>House</FadeSpan>
+          <FadeSpan>Every</FadeSpan> <FadeSpan>Tesla</FadeSpan>
         </h1>
         <p className="font-colfax mt-5 max-w-xl text-center text-2xl leading-[30px] text-balance text-white drop-shadow-lg sm:mt-8">
-          <FadeSpan>Revolutionizing home automation with</FadeSpan>{" "}
-          <FadeSpan>sensors, drones, and automation for</FadeSpan>{" "}
-          <FadeSpan>sustainable and efficient living.</FadeSpan>
+          <FadeSpan>Premium DIY window tinting</FadeSpan>{" "}
+          <FadeSpan>kits, pro tools, and step-by-step guides</FadeSpan>{" "}
+          <FadeSpan>for Tesla owners.</FadeSpan>
         </p>
         <FadeDiv>
           <a
             className="font-colfax mt-6 inline-flex cursor-pointer flex-row items-center justify-center gap-1 rounded-md border-b-[1.5px] border-orange-700 bg-linear-to-b from-orange-400 to-orange-500 px-5 py-3 leading-4 font-medium tracking-wide whitespace-nowrap text-white shadow-[0_0_0_2px_rgba(0,0,0,0.04),0_0_14px_0_rgba(255,255,255,0.19)] transition-all duration-200 ease-in-out hover:shadow-orange-300"
             href="#"
           >
-            Automate now
+            Shop Tint Kits
           </a>
         </FadeDiv>
         <div className="absolute inset-0 -z-10">

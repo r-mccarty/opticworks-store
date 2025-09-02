@@ -19,11 +19,11 @@ export function SolarAnalytics() {
           id="solar-analytics"
           className="relative scroll-my-24 text-lg font-normal tracking-tight text-orange-500"
         >
-          Solar Analytics
+          Tint Tools
           <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
         </h2>
         <p className="mt-2 max-w-lg text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
-          Turn field data into profitable harvests with real-time insights
+          Stay legal and cool with real-time tinting insights
         </p>
       </div>
       <div className="*:pointer-events-none">
@@ -33,23 +33,23 @@ export function SolarAnalytics() {
       <div className="grid grid-cols-1 grid-rows-2 gap-6 md:grid-cols-4 md:grid-rows-1">
         <StickerCard
           Icon={RiNavigationFill}
-          title="Autonomous Navigation"
-          description="Smart tractors that navigate fields independently using GPS."
+          title="Tint Law Checker"
+          description="Instantly verify legal tint levels for every state."
         />
         <StickerCard
           Icon={RiRobot3Fill}
-          title="Robotic Harvesting"
-          description="AI-powered robots that identify and harvest crops at optimal ripeness."
+          title="Cut Template Library"
+          description="Download precision patterns for every Tesla model."
         />
         <StickerCard
           Icon={RiDropFill}
-          title="Smart Irrigation"
-          description="Automated irrigation systems that optimize water usage."
+          title="Install Guides"
+          description="Step-by-step videos and tips for a flawless finish."
         />
         <StickerCard
           Icon={RiPieChartFill}
-          title="Yield Analytics"
-          description="Advanced analytics platform that predicts crop yields."
+          title="Heat Rejection Stats"
+          description="See how our ceramic film blocks heat and UV rays."
         />
       </div>
     </section>
