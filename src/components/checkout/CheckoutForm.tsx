@@ -2,12 +2,14 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import { useCart } from '@/hooks/useCart';
+import { useCheckoutState } from '@/hooks/useCheckoutState';
 
 // Using unknown for Stripe types to avoid conflicts with official types
 type StripeElement = unknown;
@@ -20,12 +22,74 @@ interface CheckoutFormProps {
 }
 
 export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutFormProps) {
+  const { items, getTotalPrice } = useCart();
+  const {
+    taxAmount,
+    isCalculatingTax,
+    shippingAddress,
+    setTaxAmount,
+    setIsCalculatingTax,
+    setShippingAddress,
+    setSubtotal,
+  } = useCheckoutState();
+  
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [elementsReady, setElementsReady] = useState(false);
   const [paymentElement, setPaymentElement] = useState<StripeElement | null>(null);
   const [addressElement, setAddressElement] = useState<StripeElement | null>(null);
   const [email, setEmail] = useState('');
+
+  // Calculate tax based on address using Stripe Checkout Session
+  const calculateTax = useCallback(async (address: any) => {
+    if (!address || !address.state) return;
+    
+    setIsCalculatingTax(true);
+    try {
+      console.log('🔄 Calculating tax with Stripe for address:', address);
+      
+      const response = await fetch('/api/stripe/get-session-tax', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          items: items.map(item => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+          })),
+          shippingAddress: {
+            line1: address.line1 || '123 Main St',
+            city: address.city,
+            state: address.state,
+            postal_code: address.postal_code,
+            country: address.country || 'US',
+          },
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('✅ Stripe tax calculation result:', data);
+        setTaxAmount(data.taxAmount || 0);
+      } else {
+        console.warn('Stripe tax calculation failed, using 0 tax');
+        setTaxAmount(0);
+      }
+    } catch (error) {
+      console.warn('Stripe tax calculation error:', error);
+      setTaxAmount(0);
+    } finally {
+      setIsCalculatingTax(false);
+    }
+  }, [items, setIsCalculatingTax, setTaxAmount]);
+
+  // Update subtotal when component mounts or items change
+  useEffect(() => {
+    setSubtotal(getTotalPrice());
+  }, [items, getTotalPrice, setSubtotal]);
 
   useEffect(() => {
     if (!checkout || elementsReady) return; // Prevent duplicate initialization
@@ -48,11 +112,21 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
         (addressEl as any).mount('#address-element');
         (paymentEl as any).mount('#payment-element');
 
+        // Add address change event listener
+        (addressEl as any).on('change', (event: any) => {
+          console.log('📍 Address changed:', event);
+          if (event.complete && event.value && event.value.address) {
+            const address = event.value.address;
+            setShippingAddress(address);
+            calculateTax(address);
+          }
+        });
+
         setAddressElement(addressEl);
         setPaymentElement(paymentEl);
         setElementsReady(true);
 
-        console.log('✅ Elements mounted successfully');
+        console.log('✅ Elements mounted successfully with event listeners');
 
       } catch (error) {
         console.error('❌ Error initializing elements:', error);
@@ -61,7 +135,7 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
     };
 
     initializeElements();
-  }, [checkout, onError, elementsReady]);
+  }, [checkout, onError, elementsReady, calculateTax, setShippingAddress]);
 
   // Separate cleanup effect
   useEffect(() => {
@@ -204,6 +278,57 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
           <Loader2 className="h-4 w-4 animate-spin mr-2" />
           Loading payment form...
         </div>
+      )}
+
+      {/* Order Summary */}
+      {elementsReady && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Subtotal</span>
+              <span>${getTotalPrice().toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Shipping</span>
+              <span>Free</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Tax</span>
+              <span>
+                {isCalculatingTax ? (
+                  <div className="flex items-center">
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                    Calculating...
+                  </div>
+                ) : taxAmount > 0 ? (
+                  `$${taxAmount.toFixed(2)}`
+                ) : shippingAddress ? (
+                  '$0.00'
+                ) : (
+                  'Enter address'
+                )}
+              </span>
+            </div>
+            <div className="border-t pt-2">
+              <div className="flex justify-between font-semibold">
+                <span>Total</span>
+                <span>
+                  {isCalculatingTax ? (
+                    <div className="flex items-center">
+                      <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                      Calculating...
+                    </div>
+                  ) : (
+                    `$${(getTotalPrice() + taxAmount).toLocaleString()}`
+                  )}
+                </span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {/* Error Message */}

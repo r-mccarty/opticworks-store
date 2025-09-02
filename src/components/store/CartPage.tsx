@@ -11,15 +11,18 @@ import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
+import { useCheckoutState } from "@/hooks/useCheckoutState"
 
 export function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
+  const { taxAmount, isCalculatingTax, reset: resetCheckout } = useCheckoutState()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
 
   const handlePaymentSuccess = (sessionId: string) => {
     console.log('Payment successful:', sessionId)
     clearCart()
+    resetCheckout()
     setShowPaymentForm(false)
     setIsCheckingOut(false)
     // Redirect to success page
@@ -320,12 +323,33 @@ export function CartPage() {
                     </div>
                     <div className="flex justify-between text-sm">
                       <span>Tax</span>
-                      <span>Calculated at checkout</span>
+                      <span>
+                        {showPaymentForm ? (
+                          isCalculatingTax ? (
+                            <div className="flex items-center text-xs">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse mr-1"></div>
+                              Calculating...
+                            </div>
+                          ) : taxAmount > 0 ? (
+                            `$${taxAmount.toFixed(2)}`
+                          ) : (
+                            'Enter address below'
+                          )
+                        ) : (
+                          'Calculated at checkout'
+                        )}
+                      </span>
                     </div>
                     <Separator />
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Total</span>
-                      <span>Calculated at checkout</span>
+                      <span>
+                        {showPaymentForm && taxAmount > 0 ? (
+                          `$${(getTotalPrice() + taxAmount).toLocaleString()}`
+                        ) : (
+                          'Calculated at checkout'
+                        )}
+                      </span>
                     </div>
                   </CardContent>
                 </Card>
