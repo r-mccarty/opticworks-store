@@ -74,6 +74,7 @@ const fastTransition = {
 import { cx } from "@/lib/utils"
 import useScroll from "@/lib/useScroll"
 import { usePathname } from "next/navigation"
+import { ThemeToggle } from "./theme-toggle"
 
 const lightRoutes = ["/products", "/store", "/install-guides", "/support"]
 
@@ -109,7 +110,7 @@ export const MenuBar = React.memo(function MenuBar() {
         className={cx(
           "p-3 rounded-2xl relative w-full will-change-transform transition-all duration-300 max-w-6xl",
           scrolled
-            ? "bg-white/90 border border-gray-200/50 shadow-lg"
+            ? "bg-card/90 border border-border/50 shadow-lg"
             : "bg-transparent border-transparent",
         )}
       >
@@ -123,7 +124,9 @@ export const MenuBar = React.memo(function MenuBar() {
             <SolarLogo
               className={cx(
                 "w-20 transition-colors duration-300",
-                scrolled || isLightPage ? "text-gray-900" : "text-white",
+                scrolled || isLightPage
+                  ? "text-foreground"
+                  : "text-white dark:text-foreground",
               )}
             />
           </Link>
@@ -155,8 +158,8 @@ export const MenuBar = React.memo(function MenuBar() {
                     className={cx(
                       "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium will-change-transform nav-link transition-colors duration-300",
                       scrolled || isLightPage
-                        ? "text-gray-700 hover:text-gray-900"
-                        : "text-white hover:text-gray-200",
+                        ? "text-foreground/70 hover:text-foreground"
+                        : "text-white hover:text-gray-200 dark:text-foreground/70 dark:hover:text-foreground",
                     )}
                     style={
                       {
@@ -174,6 +177,7 @@ export const MenuBar = React.memo(function MenuBar() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             {/* Shopping Cart */}
             <motion.div
               className="relative"
@@ -185,14 +189,16 @@ export const MenuBar = React.memo(function MenuBar() {
                 className={cx(
                   "flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300",
                   scrolled || isLightPage
-                    ? "bg-gray-100 hover:bg-gray-200"
-                    : "bg-white/10 hover:bg-white/20",
+                    ? "bg-muted hover:bg-accent"
+                    : "bg-white/10 hover:bg-white/20 dark:bg-muted dark:hover:bg-accent",
                 )}
               >
                 <ShoppingCart
                   className={cx(
                     "w-5 h-5 transition-colors duration-300",
-                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                    scrolled || isLightPage
+                      ? "text-foreground/70"
+                      : "text-white dark:text-foreground/70",
                   )}
                 />
                 {mounted && totalItemsCount > 0 && (

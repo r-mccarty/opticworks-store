@@ -123,7 +123,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+      <body className="min-h-screen overflow-x-hidden scroll-auto bg-background antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
           {children}
