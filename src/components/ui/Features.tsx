@@ -18,7 +18,7 @@ import ChipViz from "./ChipViz"
 export default function Features() {
   return (
     <section
-      aria-label="Solar Technologies Features for Farms"
+      aria-label="OpticWorks features for Tesla owners"
       id="solutions"
       className="relative mx-auto max-w-6xl scroll-my-24"
     >
@@ -130,16 +130,15 @@ export default function Features() {
         {/* Content */}
         <div className="col-span-2 my-auto px-2">
           <h2 className="relative text-lg font-medium tracking-tighter text-blue-500 uppercase">
-            Smart Farming Solutions
+            DIY Tinting Solutions
             <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-blue-500" />
           </h2>
           <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
-            A network of autonomous systems for complete farm monitoring
+            Complete kits for flawless DIY installs
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Deploy intelligent monitoring and automated response systems across
-            your fields, irrigation networks, and aerial operations with our
-            integrated platform.
+            Install precision-cut ceramic film with pro tools and step-by-step
+            videos for a perfect finish.
           </p>
         </div>
         <div className="relative col-span-2 flex items-center justify-center overflow-hidden">
@@ -195,7 +194,7 @@ export default function Features() {
                           <RiCircleLine className="size-3 shrink-0 text-white" />
                         </div>
                         <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs whitespace-nowrap ring-1 ring-gray-200">
-                          Webhook Actions
+                          Fast Shipping
                         </div>
                       </div>
                     </div>
@@ -219,7 +218,7 @@ export default function Features() {
                           <RiLoaderFill className="size-3 shrink-0 animate-spin text-white" />
                         </div>
                         <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs ring-1 ring-gray-200">
-                          Charging
+                          DIY Friendly
                         </div>
                       </div>
                     </div>
@@ -256,7 +255,7 @@ export default function Features() {
                           <RiCheckLine className="size-3 shrink-0 text-white" />
                         </div>
                         <div className="rounded-r-full bg-white/50 py-0.5 pr-1.5 pl-1 text-xs ring-1 ring-gray-200">
-                          Farming
+                          Video Guides
                         </div>
                       </div>
                     </div>
@@ -298,17 +297,15 @@ export default function Features() {
 
         <div className="col-span-2 my-auto px-2">
           <h2 className="relative text-lg tracking-tight text-orange-500">
-            Precision Agriculture
+            Precision Fit
             <div className="absolute top-1 -left-[8px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
           </h2>
           <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
-            Turn every acre into a data-driven powerhouse
+            Turn every drive into a showroom finish
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Revolutionize your farming operation with edge-computing AI that
-            transforms raw field data into actionable insights in real-time.
-            Make informed decisions faster, reduce resource waste, and maximize
-            yields.
+            Laser-cut templates match OEM glass for perfect coverage and heat
+            rejection so every install looks factory made.
           </p>
         </div>
         <div className="relative col-span-2 flex items-center justify-center overflow-hidden">
@@ -428,16 +425,15 @@ export default function Features() {
         </div>
         <div className="col-span-2 my-auto px-2">
           <h2 className="relative text-lg tracking-tight text-orange-500">
-            Easy Expansion
+            Easy Upgrades
             <div className="absolute top-1 -left-[7px] h-5 w-[3px] rounded-r-sm bg-orange-500" />
           </h2>
           <p className="mt-2 text-3xl font-medium tracking-tighter text-balance text-gray-900 md:text-4xl">
-            Scale your smart farm with plug-and-play simplicity
+            Expand your tinting toolkit with plug-and-play simplicity
           </p>
           <p className="mt-4 text-balance text-gray-700">
-            Add new sensors and capabilities to your farm network with zero
-            setup required. Our systems automatically connect and coordinate
-            with each other.
+            Add accessories and tools with zero setup—everything works
+            together seamlessly.
           </p>
         </div>
         <div className="relative col-span-2 flex items-center justify-center overflow-hidden">

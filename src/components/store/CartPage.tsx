@@ -14,13 +14,14 @@ import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 import { useCheckoutState } from "@/hooks/useCheckoutState"
 
 export function CartPage() {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
+  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, setPaymentSession } = useCart()
   const { taxAmount, isCalculatingTax, reset: resetCheckout } = useCheckoutState()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
 
   const handlePaymentSuccess = (sessionId: string) => {
-    console.log('Payment successful:', sessionId)
+    console.log('Payment successful, setting session:', sessionId)
+    setPaymentSession(sessionId)
     clearCart()
     resetCheckout()
     setShowPaymentForm(false)
