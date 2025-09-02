@@ -9,9 +9,15 @@ export interface CartItem extends Product {
   quantity: number
 }
 
+interface PaymentSession {
+  sessionId: string;
+  items: CartItem[];
+}
+
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
+  paymentSession: PaymentSession | null;
   addToCart: (product: Product) => void
   removeFromCart: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
@@ -19,6 +25,7 @@ interface CartStore {
   getTotalItems: () => number
   getTotalPrice: () => number
   setIsOpen: (open: boolean) => void
+  setPaymentSession: (sessionId: string) => void;
 }
 
 export const useCart = create<CartStore>()(
@@ -26,6 +33,7 @@ export const useCart = create<CartStore>()(
     (set, get) => ({
       items: [],
       isOpen: false,
+      paymentSession: null,
       
       addToCart: (product) => {
         const items = get().items
@@ -90,11 +98,27 @@ export const useCart = create<CartStore>()(
       
       setIsOpen: (open) => {
         set({ isOpen: open })
+      },
+
+      setPaymentSession: (sessionId) => {
+        const currentItems = get().items;
+        if (currentItems.length > 0) {
+          set({
+            paymentSession: {
+              sessionId: sessionId,
+              items: currentItems
+            },
+            items: [] // Clear the cart
+          });
+        }
       }
     }),
     {
       name: 'cart-storage',
-      partialize: (state) => ({ items: state.items })
+      partialize: (state) => ({
+        items: state.items,
+        paymentSession: state.paymentSession
+      })
     }
   )
 )

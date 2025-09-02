@@ -13,13 +13,13 @@ import { useState } from "react"
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 
 export function CartPage() {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart } = useCart()
+  const { items, updateQuantity, removeFromCart, getTotalPrice, setPaymentSession } = useCart()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
 
   const handlePaymentSuccess = (sessionId: string) => {
-    console.log('Payment successful:', sessionId)
-    clearCart()
+    console.log('Payment successful, setting session:', sessionId)
+    setPaymentSession(sessionId)
     setShowPaymentForm(false)
     setIsCheckingOut(false)
     // Redirect to success page
