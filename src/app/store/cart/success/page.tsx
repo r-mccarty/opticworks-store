@@ -7,87 +7,45 @@ import {
   ExclamationTriangleIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import Link from 'next/link';
-import { useCart } from '@/hooks/useCart';
+import { useCart, CartItem } from '@/hooks/useCart';
 import { OrderSuccessSkeleton } from '@/components/skeletons/order-success-skeleton';
-
-interface OrderData {
-  orderId: string;
-  customerName: string;
-  customerEmail: string;
-  total: number;
-}
+import Image from 'next/image';
+import { Separator } from '@/components/ui/separator';
 
 function PaymentSuccessContent() {
-  const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const { paymentSession } = useCart();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const searchParams = useSearchParams();
-  const { clearCart } = useCart();
-
-  const paymentIntentId = searchParams.get('payment_intent');
 
   useEffect(() => {
-    clearCart();
-
-    if (!paymentIntentId) {
-      setError('Payment information is missing. Please contact support.');
-      setIsLoading(false);
-      return;
-    }
-
-    const fetchOrderDetails = async () => {
-      try {
-        const response = await fetch(
-          `/api/order-details?paymentIntentId=${paymentIntentId}`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          setOrderData(data);
-          setError(null);
-        } else {
-          const errorData = await response.json();
-          setError(
-            errorData.error || 'Failed to retrieve order details. Please contact support.'
-          );
-        }
-      } catch (err) {
-        setError('An unexpected error occurred. Please contact support.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchOrderDetails();
-  }, [paymentIntentId, clearCart]);
+    // We can add a small delay to prevent flickering, as Zustand state hydration can be async
+    const timer = setTimeout(() => setIsLoading(false), 150);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (isLoading) {
     return <OrderSuccessSkeleton />;
   }
 
-  if (error) {
+  if (!paymentSession || !paymentSession.items || paymentSession.items.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center">
           <div className="flex flex-col items-center justify-center space-y-4">
             <ExclamationTriangleIcon className="h-20 w-20 text-red-500" />
             <h1 className="text-3xl font-bold text-gray-900">
-              An Error Occurred
+              Payment Information Missing
             </h1>
             <Card className="w-full text-left">
               <CardContent className="pt-6">
-                <p className="text-lg text-red-700">{error}</p>
-                {paymentIntentId && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium text-gray-500">
-                      Payment Reference ID
-                    </p>
-                    <p className="text-sm font-mono text-gray-700 bg-gray-100 p-2 rounded">
-                      {paymentIntentId}
-                    </p>
-                  </div>
-                )}
+                <p className="text-lg text-red-700">
+                  We couldn&apos;t find the details of your completed payment.
+                  This can happen if you refresh the page or navigate here directly.
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  Please check your email for a confirmation receipt. If you don&apos;t receive one shortly, please contact our support team.
+                </p>
               </CardContent>
             </Card>
             <Button asChild>
@@ -99,10 +57,7 @@ function PaymentSuccessContent() {
     );
   }
 
-  if (!orderData) {
-    // This case should ideally not be reached if loading and error states are handled correctly
-    return null;
-  }
+  const total = paymentSession.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8">
@@ -111,7 +66,7 @@ function PaymentSuccessContent() {
           <CheckCircleIcon className="h-20 w-20 text-green-500" />
           <div className="space-y-2">
             <h1 className="text-4xl font-bold text-gray-900">
-              Thank you, {orderData.customerName}!
+              Thank you for your order!
             </h1>
             <p className="text-lg text-gray-600">
               Your OpticWorks order is confirmed and will be on its way soon.
@@ -123,33 +78,48 @@ function PaymentSuccessContent() {
         <Card className="my-8">
           <CardHeader>
             <CardTitle>Order Summary</CardTitle>
+            <p className="text-sm text-gray-500 pt-1">
+              Payment ID: {paymentSession.sessionId.split('_')[1]}
+            </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Order ID</p>
-                <p className="text-lg font-mono">{orderData.orderId}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500">Total Paid</p>
-                <p className="text-2xl font-bold text-green-600">
-                  ${orderData.total.toFixed(2)}
-                </p>
-              </div>
+          <CardContent>
+            <div className="space-y-4">
+              {paymentSession.items.map((item: CartItem) => (
+                <div key={item.id} className="flex justify-between items-center">
+                  <div className="flex items-center space-x-4">
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      width={64}
+                      height={64}
+                      className="rounded-md"
+                    />
+                    <div>
+                      <p className="font-medium">{item.name}</p>
+                      <p className="text-sm text-gray-500">
+                        Quantity: {item.quantity}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="font-medium">
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <Separator className="my-4" />
+            <div className="flex justify-between font-bold text-lg">
+              <p>Total Paid</p>
+              <p>${total.toFixed(2)}</p>
             </div>
           </CardContent>
+           <CardFooter>
+            <p className="text-xs text-gray-500">
+              A detailed confirmation receipt has been sent to your email address.
+            </p>
+          </CardFooter>
         </Card>
         
-        {/* What's Next? */}
-        <div className="text-left bg-blue-50 p-6 rounded-lg mb-8">
-          <h3 className="font-semibold text-blue-900 mb-2 text-lg">What&apos;s Next?</h3>
-          <p className="text-sm text-blue-800">
-            A confirmation receipt has been sent to{' '}
-            <span className="font-medium">{orderData.customerEmail}</span>.
-            You&apos;ll receive another email with tracking information within 1-2 business days.
-          </p>
-        </div>
-
         {/* Action Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Button asChild className="h-12">
