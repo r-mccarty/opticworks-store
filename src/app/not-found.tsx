@@ -2,13 +2,13 @@ import { Button } from "@/components/Button"
 import Link from "next/link"
 import { siteConfig } from "./siteConfig"
 
-import { SolarLogo } from "../../public/SolarLogo"
+import { OpticWorksLogo } from "../../public/OpticWorksLogo"
 
 export default function NotFound() {
   return (
     <div className="flex h-screen flex-col items-center justify-center">
       <Link href={siteConfig.baseLinks.home}>
-        <SolarLogo className="mt-6 h-10" />
+        <OpticWorksLogo className="mt-6 h-10" />
       </Link>
       <p className="mt-6 text-4xl font-semibold text-amber-600 sm:text-5xl">
         Error 404

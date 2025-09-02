@@ -7,7 +7,7 @@ import { RiCloseFill, RiMenuFill } from "@remixicon/react"
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import React from "react"
-import { SolarLogo } from "../../../public/SolarLogo"
+import { OpticWorksLogo } from "../../../public/OpticWorksLogo"
 import { Button } from "../Button"
 import { useCart } from "@/hooks/useCart"
 
@@ -35,8 +35,8 @@ export function NavBar() {
       <div className="w-full md:my-auto">
         <div className="relative flex items-center justify-between">
           <Link href={siteConfig.baseLinks.home} aria-label="Home">
-            <span className="sr-only">Solar Tech Logo</span>
-            <SolarLogo className="w-22" />
+            <span className="sr-only">OpticWorks Logo</span>
+            <OpticWorksLogo className="w-22" />
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
             <div className="flex items-center gap-10 font-bold">

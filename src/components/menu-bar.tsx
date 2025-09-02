@@ -6,7 +6,7 @@ import { Home, Package, Store, Headphones, BookOpen, ShoppingCart } from "lucide
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
-import { SolarLogo } from "../../public/SolarLogo"
+import { OpticWorksLogo } from "../../public/OpticWorksLogo"
 
 interface MenuItem {
   icon: React.ReactNode
@@ -120,7 +120,7 @@ export const MenuBar = React.memo(function MenuBar() {
             aria-label="Home"
             className="flex-shrink-0"
           >
-            <SolarLogo
+            <OpticWorksLogo
               className={cx(
                 "w-20 transition-colors duration-300",
                 scrolled || isLightPage ? "text-gray-900" : "text-white",

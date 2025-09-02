@@ -5,7 +5,7 @@ import {
   RiYoutubeFill,
 } from "@remixicon/react"
 import Link from "next/link"
-import { SolarLogo } from "../../../public/SolarLogo"
+import { OpticWorksLogo } from "../../../public/OpticWorksLogo"
 import { siteConfig } from "@/app/siteConfig"
 const CURRENT_YEAR = new Date().getFullYear()
 
@@ -153,9 +153,9 @@ const Footer = () => {
             href="/"
             className="flex items-center font-medium text-gray-700 select-none sm:text-sm"
           >
-            <SolarLogo className="ml-2 w-20" />
+            <OpticWorksLogo className="ml-2 w-20" />
 
-            <span className="sr-only">Solar Logo (go home)</span>
+            <span className="sr-only">OpticWorks Logo (go home)</span>
           </Link>
 
           <div className="flex flex-col space-y-3">
