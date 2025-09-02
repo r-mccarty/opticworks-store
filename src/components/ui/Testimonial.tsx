@@ -25,12 +25,11 @@ export default function Testimonial() {
           <blockquote className="relative max-w-2xl text-xl leading-relaxed tracking-tight text-gray-900 md:text-2xl lg:text-3xl">
             <p className="before:absolute before:top-0 before:right-full before:content-['“'] after:text-gray-900/70 after:content-['”']">
               <strong className="font-medium">
-                Solar transformed our household data.
+                OpticWorks made tinting my Model Y easy.
               </strong>{" "}
               <span className="text-gray-900/70">
-                Their autonomous network provides real-time data on forest
-                health, wildlife patterns, and ecosystem changes with
-                unprecedented precision and efficiency.
+                The precision kit and step-by-step guides gave me a showroom
+                finish without ever visiting a shop.
               </span>
             </p>
           </blockquote>
@@ -38,7 +37,7 @@ export default function Testimonial() {
         <div className="mt-14 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <div className="relative shrink-0 rounded-full bg-white/15 p-0.5 ring-1 ring-white/20">
             <Image
-              alt="Dr. Sarah Miller"
+              alt="Jamie Lee"
               src="/images/smiller.jpeg"
               width={56}
               height={56}
@@ -46,9 +45,9 @@ export default function Testimonial() {
             />
           </div>
           <div>
-            <div className="text-base text-gray-900">Dr. Sarah Miller</div>
+            <div className="text-base text-gray-900">Jamie Lee</div>
             <div className="text-sm text-[#C33621]/80">
-              Director of Conservation Technologies
+              Model Y Owner
             </div>
           </div>
         </div>

@@ -10,8 +10,8 @@ import { SVGMap } from "./SVGMap"
 export const Map = () => {
   return (
     <section
-      id="farm-management"
-      aria-labelledby="management-title"
+      id="installation-network"
+      aria-labelledby="network-title"
       className="relative flex w-full max-w-6xl scroll-my-24 flex-col items-center justify-center overflow-hidden rounded-2xl bg-gray-950 px-10 shadow-2xl shadow-black/50 sm:px-16 md:px-28 lg:mx-auto"
     >
       <div className="absolute left-0 z-10 h-full backdrop-blur-[2px]">
@@ -86,18 +86,17 @@ export const Map = () => {
       </div>
 
       <div className="pt-12 text-base tracking-tight text-orange-400 sm:pt-20 sm:text-lg">
-        Farm Management
+        Nationwide Network
       </div>
       <h2
-        id="management-title"
+        id="network-title"
         className="font-regular mt-6 max-w-[700px] text-center text-2xl tracking-tight text-balance text-white md:text-5xl"
       >
-        Monitoring & Control for Precision Agriculture
+        Shipping & Support Across the Country
       </h2>
       <p className="mt-4 max-w-2xl text-center text-base text-balance text-gray-400 sm:mt-8 sm:text-xl">
-        Complete oversight of your farming operations across fields, irrigation
-        systems, and aerial monitoring, delivering insights even in remote rural
-        locations.
+        Track orders, installers, and help centers in real time—no matter where
+        you live.
       </p>
 
       <div className="relative mt-20 mb-10 ml-[17rem] scale-90 sm:mb-16 md:mt-24 md:ml-0 md:scale-100">
@@ -106,7 +105,7 @@ export const Map = () => {
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-[3.7rem] flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Scanning
+              Shipping
             </div>
             <RiPlaneLine className="relative size-5 rotate-90 text-white" />
             <div
@@ -121,7 +120,7 @@ export const Map = () => {
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-[3.7rem] flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Irrigating
+              Installing
             </div>
             <Icons.QuadCopter className="relative size-5 rotate-90 text-white" />
             <div
@@ -136,7 +135,7 @@ export const Map = () => {
           <div className="relative flex items-center justify-center">
             <div className="absolute size-10 rounded-full bg-gray-950 ring-1 ring-white/15"></div>
             <div className="absolute -top-4 -right-[3.7rem] flex w-fit items-center justify-center rounded-full bg-gray-950 px-1.5 py-0.5 text-xs whitespace-nowrap text-white ring-1 ring-white/15">
-              Scanning
+              Shipping
             </div>
             <RiPlaneLine className="relative size-5 rotate-90 text-white" />
             <div
