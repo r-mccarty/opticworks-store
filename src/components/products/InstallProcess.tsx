@@ -4,34 +4,35 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { PlayIcon } from "@heroicons/react/24/solid"
 import Image from "next/image"
+import { generateGradientDataUrl } from "@/lib/gradients"
 
 const installSteps = [
   {
     step: 1,
     title: "PREP THE GLASS",
     description: "Use the included professional-grade cleaning pads and low-tack dust removers for a perfectly clean surface. Our custom door skirt protects your interior from water.",
-    image: "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=300&h=200&fit=crop&crop=center",
+    image: generateGradientDataUrl('60a5fa', '3b82f6', 300, 200), // Glass blue
     duration: "10 min"
   },
   {
     step: 2,
     title: "CLICK & SECURE",
     description: "Snap our patent-pending Door Latch Tool into place. It raises the window for full coverage and prevents the door from accidentally closing on it. No more fighting with floppy window gaskets.",
-    image: "https://images.unsplash.com/photo-1558618666-fbd6c725f7d8?w=300&h=200&fit=crop&crop=center",
+    image: generateGradientDataUrl('f59e0b', 'd97706', 300, 200), // Orange
     duration: "5 min"
   },
   {
     step: 3,
     title: "PEEL & PLACE",
     description: "Spray the window and the film with our pre-mixed slip solution. The pre-cut film peels easily from its backing and glides right into position. No trimming, no shrinking, no stress.",
-    image: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=300&h=200&fit=crop&crop=center",
+    image: generateGradientDataUrl('1f2937', '111827', 300, 200), // Tesla dark
     duration: "15 min"
   },
   {
     step: 4,
     title: "SQUEEGEE TO PERFECTION",
     description: "Use our 3D-printed, ergonomic hard card squeegee to push the solution out. The film locks into place, leaving a crystal-clear, bubble-free finish.",
-    image: "https://images.unsplash.com/photo-1581235720704-06d3acfcb36f?w=300&h=200&fit=crop&crop=center",
+    image: generateGradientDataUrl('e5e7eb', '9ca3af', 300, 200), // Chrome/metallic
     duration: "15 min"
   }
 ]
