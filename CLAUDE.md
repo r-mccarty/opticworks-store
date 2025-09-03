@@ -1,99 +1,109 @@
 # CLAUDE.md
 
-This file provides comprehensive guidance for developers working on the OpticWorks Window Tinting E-commerce Platform.
+This file provides comprehensive guidance for developers working on the **OpticWorks Window Tinting E-commerce Platform**.
 
 ## Project Overview
 
-**OpticWorks Window Tinting E-commerce Platform** - A complete e-commerce solution specializing in DIY window tinting for Tesla and automotive applications.
+**OpticWorks Window Tinting E-commerce Platform** - A sophisticated, production-ready e-commerce solution specializing in DIY window tinting for Tesla and automotive applications.
 
-**Business Focus:**
+### Business Focus
 - **Target Market**: Tesla owners, automotive enthusiasts, DIY installers
 - **Products**: Pre-cut ceramic films, installation kits, professional tools
 - **Key Differentiator**: Tesla Model Y specialization with "Foolproof DIY" methodology
-- **Legal Compliance**: Built-in state tinting law checker and VLT compliance
+- **Legal Compliance**: Built-in state tinting law checker and VLT compliance system
+- **Brand**: OpticWorks with CyberShade IRX™ featured product line
 
-## Development Commands
+## Development Environment
 
-This is a Next.js 15 project with TypeScript using pnpm as the package manager.
+### Technology Stack
+- **Framework**: Next.js 15.5.0 with App Router
+- **React**: 19.1.1 (latest stable)
+- **TypeScript**: 5.9.2 (strict mode enabled)
+- **Styling**: Tailwind CSS 4.1.12
+- **Package Manager**: pnpm
+- **State Management**: Zustand 5.0.8 with persistence
+
+### Development Commands
 
 ```bash
 # Install dependencies
 pnpm install
 
-# Development server
+# Development server (http://localhost:3000)
 pnpm run dev
 
-# Build for production
+# Production build
 pnpm run build
 
-# Start production server  
+# Production server
 pnpm run start
 
-# Lint code
+# Lint code (REQUIRED before commits)
 pnpm run lint
 ```
 
-## Architecture & Technology Stack
+**Critical**: Always run `pnpm run lint` and `pnpm run build` before committing. The project uses strict TypeScript and ESLint rules.
 
-### Core Framework
-- **Framework**: Next.js 15.5.0 with App Router
-- **React**: 19.1.1
-- **TypeScript**: 5.9.2 (strict mode)
-- **Package Manager**: pnpm
+## Repository Organization
 
-### Styling & UI
-- **CSS Framework**: Tailwind CSS 4.1.12
-- **UI System**: Hybrid approach combining Shadcn/ui + Custom components
-- **Component Variants**: class-variance-authority (cva)
-- **Utility Functions**: clsx + tailwind-merge via `cn()` and `cx()` aliases
-- **Animation**: Framer Motion 12.23.12
+### Directory Structure
 
-### UI Component Architecture
+```
+src/
+├── app/                          # Next.js App Router pages and API routes
+│   ├── api/                     # API endpoints (14 routes)
+│   │   ├── stripe/              # Payment processing (production-ready)
+│   │   ├── email/               # Email service (production-ready)
+│   │   ├── tax/                 # Tax calculation
+│   │   └── shipping/            # Shipping rates
+│   ├── store/                   # E-commerce pages
+│   ├── products/                # Product catalog
+│   ├── support/                 # Customer service
+│   └── page.tsx                 # Landing page
+├── components/                   # React components (two-tier system)
+│   ├── ui/                      # Shadcn/ui + Custom components
+│   ├── checkout/                # Payment flow components
+│   ├── store/                   # E-commerce components
+│   ├── support/                 # Customer service components
+│   ├── products/                # Product-specific components
+│   └── 3d/                      # Three.js Tesla 3D viewer
+├── hooks/                       # Custom React hooks (3 total)
+│   ├── useCart.ts              # Shopping cart state
+│   ├── useCheckoutState.ts     # Payment flow state
+│   └── useSupportStore.ts      # Customer service state
+├── lib/                         # Utility functions and services
+│   ├── api/                     # Business logic layer
+│   ├── email/                   # React Email templates
+│   ├── utils.ts                 # Core utilities (cx, cn functions)
+│   └── products.ts              # Product catalog data
+└── docs/                        # Developer documentation
+    ├── CODEBASE_EXPLANATION.md  # Architecture overview
+    ├── STATE_MANAGEMENT.md      # Zustand patterns
+    ├── API_STUBS.md            # Complete API documentation
+    └── STRIPE_INTEGRATION.md   # Payment integration guide
+```
 
-**Two-tier Component System:**
+### Configuration Files
+- `next.config.ts` - Image optimization, Three.js support, GLSL shader loading
+- `tailwind.config.js` - Minimal Tailwind v4 configuration
+- `src/app/siteConfig.ts` - Centralized site metadata and route definitions
+- `package.json` - Dependencies and scripts
 
-1. **Shadcn/ui Components** (Form primitives & base UI)
-   - Located: `src/components/ui/` (button.tsx, form.tsx, input.tsx, etc.)
-   - Pattern: Radix UI primitives + cva variants + `cn()` utility
-   - Usage: Forms, dialogs, buttons, inputs - anything requiring accessibility
+## Website Architecture
 
-2. **Custom Business Components** (Domain-specific UI)  
-   - Located: `src/components/ui/` (Navbar.tsx, Hero.tsx, Features.tsx, etc.)
-   - Pattern: Custom styling + `cx()` utility + Framer Motion
-   - Usage: Marketing sections, business logic, Tesla-specific features
-
-### State Management
-- **Client State**: Zustand 5.0.8 with persistence middleware
-- **Cart Management**: `useCart` hook with localStorage persistence
-- **Support System**: `useSupportStore` for tickets, forms, FAQ state
-- **Form Handling**: React Hook Form 7.62.0 + Zod 4.1.0 validation
-
-### Backend Services & APIs
-- **Payments**: Stripe integration (production-ready, see `docs/STRIPE_INTEGRATION.md`)
-- **Database**: Supabase PostgreSQL with REST API
-- **File Storage**: Cloudflare R2 CDN  
-- **Email**: ✅ **React Email + Resend integration (PRODUCTION READY)**
-  - Automatic order confirmations via Stripe webhooks
-  - Professional email templates with Tesla-specific content
-  - Backup email system on success page
-  - Domain: `notifications.optic.works`
-- **API Layer**: Production-ready implementations in `src/app/api/` and `src/lib/api/`
-
-## Site Architecture
-
-### Page Structure (22 Routes)
+### Page Routes (20 Total)
 
 **E-commerce Core:**
-- `/` - Landing page with Tesla focus
-- `/products` - Product catalog with filtering  
-- `/products/[slug]` - Dynamic product details (11+ products)
+- `/` - Tesla-focused landing page with 3D viewer
+- `/products` - Product catalog with filtering (11+ products)
+- `/products/[slug]` - Dynamic product details with specifications
 - `/store` - Storefront with cart integration
-- `/store/cart` - Shopping cart + Stripe checkout
-- `/store/cart/success` - Payment confirmation with order details & email confirmation
+- `/store/cart` - Shopping cart with Stripe checkout
+- `/store/cart/success` - Payment confirmation with email system
 
 **Support System:**
 - `/support` - Customer service hub
-- `/support/faq` - FAQ with search/filtering
+- `/support/faq` - FAQ with search/filtering (15 FAQs)
 - `/support/contact` - Contact form with file upload
 - `/support/warranty` - Warranty claim processing
 - `/support/oops` - "Oops Protection" replacement program
@@ -111,246 +121,354 @@ pnpm run lint
 - `/install-guides` - Installation tutorial hub
 - `/install-guides/cybershade-irx-tesla-model-y` - Tesla Model Y guide
 
-### Data Layer & Business Logic
+### API Routes (14 Total)
 
-**Product Management:**
+**Production-Ready:**
+- `POST /api/stripe/create-checkout-session` - Payment processing
+- `POST /api/stripe/webhook` - Order confirmation automation
+- `POST /api/email/send` - Email delivery (React Email + Resend)
+
+**Development Stubs:**
+- `POST /api/tax/calculate` - State tax calculation
+- `POST /api/shipping/rates` - Multi-carrier shipping
+- `POST /api/inventory/check` - Stock availability
+- `POST /api/analytics/events` - User tracking
+- And 7 additional support/utility endpoints
+
+## Component Architecture
+
+### Two-Tier Component System
+
+**Tier 1: Shadcn/ui Components** (`src/components/ui/` - accessibility-focused)
+- **Purpose**: Forms, dialogs, buttons, inputs - anything requiring accessibility
+- **Pattern**: Radix UI primitives + class-variance-authority + `cn()` utility
+- **Examples**: `button.tsx`, `form.tsx`, `input.tsx`, `dialog.tsx`
+
 ```typescript
-// src/lib/products.ts
-interface Product {
-  id: string
-  name: string
-  category: 'film' | 'kit' | 'tool' | 'accessory'
-  price: number
-  specifications: {
-    vlt?: string          // Visible Light Transmission %
-    heatRejection?: string
-    warranty?: string
-    difficulty?: 'Beginner' | 'Intermediate' | 'Professional'
-  }
-  variants?: Array<{...}>  // Multiple VLT options
-}
-```
-
-**Tesla Specialization:**
-- Pre-cut films for Model Y (2025+ Juniper), Model 3, Model S, Model X
-- VLT compliance checking against state laws
-- Installation difficulty ratings
-- Tesla community testimonials
-
-**Legal Compliance System:**
-```typescript
-// src/lib/api/tintingLaws.ts
-interface TintingLaw {
-  state: string
-  frontSide: { vlt: number }
-  backSide: { vlt: number }  
-  rearWindow: { vlt: number }
-  penalties: string[]
-}
-```
-
-## Development Patterns & Best Practices
-
-### Component Development
-
-**For Form Components (use Shadcn pattern):**
-```typescript
+// Example Shadcn component usage
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Form, FormField } from "@/components/ui/form"
 
-// React Hook Form + Zod validation
-const form = useForm({
-  resolver: zodResolver(schema)
-})
+className={cn("base-styles", conditional && "variant")}
 ```
 
-**For Business Components (use Custom pattern):**
+**Tier 2: Custom Business Components** (`src/components/ui/` - brand-focused)
+- **Purpose**: Marketing sections, Tesla-specific features, business logic
+- **Pattern**: Custom styling + `cx()` utility + Framer Motion
+- **Examples**: `Hero.tsx`, `Features.tsx`, `Navbar.tsx`, `Tesla3DViewer.tsx`
+
 ```typescript
+// Example custom component usage
 import { cx } from "@/lib/utils"
 import { FadeContainer, FadeDiv } from "@/components/Fade"
 
-// Custom styling + animations
 className={cx("custom-styles", conditional && "variant")}
 ```
 
-### State Management Patterns
+### Specialized Component Categories
 
-**Shopping Cart:**
+**3D Components** (`src/components/3d/`)
+- `Tesla3DViewer.tsx` - Interactive Model Y visualization
+- `TeslaModel.tsx` - Three.js model rendering
+- `Scene.tsx` - Three.js scene setup
+- `ErrorBoundary.tsx` - 3D component error handling
+
+**Checkout Components** (`src/components/checkout/`)
+- `CheckoutWrapper.tsx` - Stripe initialization
+- `CheckoutForm.tsx` - Payment form with Elements
+- `AddressForm.tsx` - Shipping address collection
+- `PaymentForm.tsx` - Card payment processing
+
+## State Management Architecture
+
+### Zustand with Persistence
+
+All client-side state uses Zustand with localStorage persistence middleware for seamless user experience.
+
+**Shopping Cart State** (`src/hooks/useCart.ts`)
 ```typescript
-// src/hooks/useCart.ts
+interface CartStore {
+  items: CartItem[]
+  isOpen: boolean
+  paymentSession: PaymentSession | null
+  // Methods: addToCart, removeFromCart, updateQuantity, clearCart, etc.
+}
+
+// Usage
 const { addToCart, items, getTotalPrice } = useCart()
-// Persisted to localStorage as 'cart-storage'
 ```
 
-**Support System:**
-```typescript  
-// src/hooks/useSupportStore.ts
-const { submitTicket, tickets } = useSupportStore()
-// Persisted to localStorage as 'support-storage'
-```
+**Features:**
+- Persistent across browser sessions (`cart-storage` key)
+- Optimistic UI updates with toast notifications
+- Payment session tracking for Stripe integration
+- Selective persistence (UI state excluded)
 
-### API Integration Patterns
-
-**All APIs have development stubs with realistic delays:**
+**Checkout State** (`src/hooks/useCheckoutState.ts`)
 ```typescript
-// src/lib/api/tintingLaws.ts
-export async function fetchTintingLaws(stateCode: string): Promise<TintingLaw> {
-  // Simulated delay for development
-  await new Promise(resolve => setTimeout(resolve, 800))
-  return mockLawData[stateCode]
+interface CheckoutState {
+  taxAmount: number
+  isCalculatingTax: boolean
+  shippingAddress: ShippingAddress | null
+  subtotal: number
+  total: number
 }
 ```
 
-**Production-ready Stripe integration:**
+**Features:**
+- Non-persistent (Stripe manages session state)
+- Real-time tax calculation
+- Address validation integration
+- Reactive total calculations
+
+**Support System State** (`src/hooks/useSupportStore.ts`)
 ```typescript
-// src/app/api/stripe/create-payment-intent/route.ts
-// Complete payment processing with tax calculation
-// See docs/STRIPE_INTEGRATION.md for full details
+interface SupportStore {
+  tickets: Ticket[]
+  contactForm: ContactFormData
+  warrantyForm: WarrantyFormData
+  currentSession: SessionData
+  // 15+ methods for customer service operations
+}
 ```
 
-### Form Handling Standards
+**Features:**
+- In-memory ticket system with CRUD operations
+- Form data persistence to prevent data loss
+- Session analytics tracking (page views, searches)
+- User preference persistence
 
-**All forms use React Hook Form + Zod:**
-```typescript
-const contactSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  message: z.string().min(10)
-})
+## Checkout Flow Architecture
 
-const form = useForm<ContactFormData>({
-  resolver: zodResolver(contactSchema)
-})
-```
+### Hybrid Stripe Integration
 
-### Image & Asset Management
+The checkout system uses a sophisticated hybrid approach combining **Stripe Checkout Sessions** (for tax calculation and backend processing) with **Stripe Elements** (for custom UI control).
 
-**Current Setup:**
-- Development: Gradient placeholders via `src/lib/gradients.ts`
-- Production Ready: Cloudflare R2 CDN integration
-- Next.js Image optimization with WebP/AVIF support
+### Payment Flow Steps
 
-**Font System:**
-- Custom font loading via `src/app/layout.tsx`
-- CSS variables: `--font-barlow`, `--font-colfax`, `--font-feature`
-- Fallback fonts configured
+1. **Cart Review** → User reviews items, sees "Calculated at checkout" for tax
+2. **Checkout Initialization** → `CheckoutWrapper` creates Stripe session
+3. **Address Collection** → Stripe AddressElement with autocomplete
+4. **Tax Calculation** → Real-time calculation via `/api/stripe/get-session-tax`
+5. **Payment Processing** → Stripe PaymentElement with card details
+6. **Order Confirmation** → Success page with automatic email delivery
 
-## Configuration Files
+### Key Features
+- Custom UI with Stripe's security and compliance
+- Real-time tax calculation using Stripe Tax API
+- Automatic invoice generation
+- Dual email confirmation system (webhook + backup)
+- Professional React Email templates with Tesla branding
 
-### Next.js Configuration
-```typescript
-// next.config.ts
-- Image optimization for R2 CDN, Unsplash, placeholders
-- Three.js transpilation for 3D Tesla viewer
-- GLSL shader file loading
-- Remote image patterns configured
-```
+## API Integrations
 
-### Tailwind Configuration  
-```javascript  
-// tailwind.config.js - Tailwind v4 minimal setup
-- Content paths for TypeScript/JSX files
-- No custom theme (using v4 defaults)
-- @tailwindcss/forms plugin
-```
+### Production-Ready Services
 
-### Site Configuration
-```typescript
-// src/app/siteConfig.ts
-- Centralized site metadata and SEO
-- All route definitions (22+ routes)
-- Consistent navigation structure
-```
-
-## Key Business Features
-
-### Tesla Model Y Specialization
-- CyberShade IRX™ featured product line
-- Pre-cut ceramic films with precision templates
-- Installation guides with video support
-- Model-specific compatibility checking
-
-### Legal Compliance Automation
-- Interactive state-by-state tinting law lookup
-- VLT percentage compliance verification
-- Penalty and restriction information
-- Real-time legal risk assessment
-
-### Complete E-commerce Flow
-- Product catalog with advanced filtering
-- Persistent shopping cart across sessions
-- Stripe checkout (no external redirects)
-- ✅ **Automatic order confirmation emails** with professional React Email templates
-- ✅ **Enhanced success page** with order details and cart clearing
-- Order tracking and customer support ticket system
-
-### Support Infrastructure
-- FAQ database with search functionality
-- File upload for warranty claims
-- "Oops Protection" replacement program ($15)
-- Multi-channel customer service
-
-## Database & API Stubs
-
-**Complete Development Environment:**
-- All 22 pages fully functional with mock data
-- Realistic API delays and error handling
-- Production-ready Stripe payment integration
-- Email templates with React Email
-
-**Production Integration Points:**
+**Stripe Payment Processing** ✅
 ```bash
-# Environment Variables Ready
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-STRIPE_SECRET_KEY
-STRIPE_WEBHOOK_SECRET
-NEXT_PUBLIC_SUPABASE_URL
-SUPABASE_SERVICE_ROLE_KEY
-CLOUDFLARE_EMAIL
-CLOUDFLARE_GLOBAL_API_KEY
-R2_ACCESS_KEY_ID
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxxxx
+STRIPE_SECRET_KEY=sk_live_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
+```
 
-# ✅ Email Service (PRODUCTION READY)
-RESEND_API_KEY
+**Email Service (React Email + Resend)** ✅
+```bash
+RESEND_API_KEY=re_xxxxx
 NEXT_PUBLIC_FROM_EMAIL=OpticWorks <orders@notifications.optic.works>
 ```
 
-**Mock Data Quality:**
-- 11+ realistic products across all categories
-- Complete Tesla model compatibility
-- State-by-state tinting law database
-- Order and customer service scenarios
+**Database (Supabase)** - Integration Ready
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=xxxxx
+```
+
+**CDN Storage (Cloudflare R2)** - Integration Ready
+```bash
+CLOUDFLARE_EMAIL=xxxxx
+CLOUDFLARE_GLOBAL_API_KEY=xxxxx
+R2_ACCESS_KEY_ID=xxxxx
+```
+
+### Development Stubs
+
+All API endpoints in `src/app/api/` are **production-ready stubs** with:
+- Realistic delays (300-800ms)
+- Comprehensive error handling
+- TypeScript interface definitions
+- Mock data that matches production models
+
+## Utility Functions and Libraries
+
+### Core Utilities (`src/lib/utils.ts`)
+
+```typescript
+// For custom business components (Tremor-inspired)
+export function cx(...args: ClassValue[]) {
+  return twMerge(clsx(...args))
+}
+
+// For Shadcn accessibility components
+export const cn = cx  // Alias for consistency
+
+// Accessibility helper utilities
+export const focusInput = [
+  "focus:ring-2",
+  "focus:ring-blue-200 dark:focus:ring-blue-700/30"
+]
+```
+
+### Business Logic Libraries
+
+**Product Management** (`src/lib/products.ts`)
+- 11 Tesla-focused products across 4 categories
+- VLT percentage variants for legal compliance
+- Installation difficulty ratings
+- Dynamic pricing with sale prices
+
+**Legal Compliance** (`src/lib/api/tintingLaws.ts`)
+- Complete state-by-state tinting law database
+- VLT compliance checking
+- Risk assessment and penalty information
+- Medical exemption handling
+
+**Email Templates** (`src/lib/email/templates/`)
+- Professional React Email templates
+- Tesla-specific branding and content
+- Order confirmation with complete details
+- Payment failure notifications
+
+## Key Dependencies
+
+### Framework and Core
+```json
+{
+  "next": "15.5.0",              // App Router, React 19
+  "react": "19.1.1",
+  "typescript": "5.9.2",         // Strict mode
+  "tailwindcss": "4.1.12"        // Latest v4
+}
+```
+
+### State Management and Forms
+```json
+{
+  "zustand": "5.0.8",                    // Primary state management
+  "react-hook-form": "7.62.0",           // Form handling
+  "zod": "4.1.0",                        // Schema validation
+  "class-variance-authority": "0.7.1"    // Component variants
+}
+```
+
+### UI and Animation
+```json
+{
+  "framer-motion": "12.23.12",          // Animations
+  "@radix-ui/react-*": "^2.x",          // Accessible primitives
+  "clsx": "2.1.1",                      // Conditional classes
+  "tailwind-merge": "2.6.0",            // Class deduplication
+  "sonner": "1.5.0"                     // Toast notifications
+}
+```
+
+### Business Integrations
+```json
+{
+  "@stripe/stripe-js": "7.9.0",         // Client-side Stripe
+  "@stripe/react-stripe-js": "3.9.2",   // React Stripe components
+  "stripe": "18.4.0",                   // Server-side Stripe
+  "@supabase/supabase-js": "2.56.0",    // Database
+  "resend": "6.0.1",                    // Email service
+  "@react-email/components": "0.5.1"     // Email templates
+}
+```
+
+### 3D Visualization
+```json
+{
+  "@react-three/fiber": "9.3.0",        // Three.js React integration
+  "@react-three/drei": "10.7.4",        // Three.js utilities
+  "three": "0.179.1"                    // Tesla 3D viewer
+}
+```
+
+## Development Patterns
+
+### TypeScript Requirements
+- **Strict mode enabled** - No `any` types allowed
+- **Complete interface definitions** for all data structures
+- **Form validation** using Zod schemas with React Hook Form
+- **Error boundaries** especially for 3D components
+
+### Component Development Guidelines
+1. Use **Shadcn components** for forms, dialogs, accessibility-focused UI
+2. Use **custom components** for marketing, Tesla-specific features
+3. Follow **responsive-first design** - mobile to desktop
+4. Implement **proper loading states** and error handling
+5. Use **semantic HTML** and proper ARIA labels
+
+### API Development Patterns
+1. **Consistent error responses** using NextResponse.json
+2. **Realistic development delays** to simulate network conditions
+3. **Comprehensive input validation** for all endpoints
+4. **Production-ready function signatures** with TypeScript interfaces
+
+### State Management Patterns
+1. **Selective persistence** - Only persist necessary data
+2. **Optimistic updates** - Update UI immediately, sync later
+3. **Business logic in stores** - Keep components focused on rendering
+4. **Form state persistence** - Prevent data loss during navigation
+
+## Business Domain Knowledge
+
+### Tesla Specialization
+- **Primary Focus**: Model Y (2025+ Juniper), Model 3, Model S, Model X
+- **VLT Compliance**: Built-in state law checking for legal compliance
+- **Installation Support**: Difficulty ratings and video guide integration
+- **Community Focus**: Tesla owner testimonials and case studies
+
+### Legal Compliance System
+- **State-by-state tinting laws** with real-time compliance checking
+- **VLT percentage validation** against local regulations
+- **Risk assessment** with violation details and penalties
+- **Medical exemption** handling and documentation
+
+### Product Categories
+1. **Films**: Pre-cut ceramic films with VLT variants
+2. **Kits**: Complete installation packages with tools
+3. **Tools**: Professional installation equipment
+4. **Accessories**: Squeegees, heat guns, trim tools
+
+## Available Documentation
+
+The `docs/` folder contains comprehensive developer documentation:
+
+- **`CODEBASE_EXPLANATION.md`** - Architecture overview and patterns
+- **`STATE_MANAGEMENT.md`** - Detailed Zustand implementation patterns
+- **`API_STUBS.md`** - Complete catalog of all API endpoints
+- **`STRIPE_INTEGRATION.md`** - Production-ready payment processing guide
+- **`Payment_Architectures.md`** - Payment system design decisions
 
 ## Development Workflow
 
 ### Getting Started
-1. **Environment Setup**: Copy environment variables for Stripe/Supabase
+1. **Environment Setup**: Configure Stripe and email service keys
 2. **Development**: `pnpm run dev` for hot-reload development
 3. **Testing**: Use Stripe test cards and `stripe listen` for webhooks
-4. **Building**: `pnpm run build` for production builds
-5. **Linting**: `pnpm run lint` for code quality
+4. **Building**: `pnpm run build` to verify production compatibility
+5. **Linting**: `pnpm run lint` for code quality validation
 
-### Component Guidelines
-1. **Use Shadcn components** for forms, dialogs, buttons, inputs
-2. **Use custom components** for marketing, business logic, Tesla features  
-3. **Follow TypeScript strict mode** - all interfaces properly defined
-4. **Implement proper error boundaries** - especially for 3D components
-5. **Optimize for performance** - lazy loading, image optimization
+### Code Quality Standards
+- **ESLint + Prettier** for consistent formatting
+- **TypeScript strict mode** for type safety
+- **Accessibility compliance** using Shadcn/ui components
+- **Performance optimization** with Next.js best practices
+- **Error boundaries** for robust user experience
 
-### Code Standards
-- **TypeScript**: Strict mode, proper interface definitions
-- **ESLint**: Next.js configuration with accessibility rules  
-- **Prettier**: Tailwind class ordering via plugin
-- **Comments**: Minimal - prefer self-documenting code
-- **Git**: Descriptive commits, feature branches
+### Git Workflow
+- **Feature branches** for all development work
+- **Descriptive commits** following established patterns
+- **Pre-commit validation** with lint and build checks
+- **Pull request reviews** for code quality
 
-## Documentation Reference
-
-**Additional Technical Documentation:**
-- `docs/CODEBASE_EXPLANATION.md` - Detailed architecture overview
-- `docs/STATE_MANAGEMENT.md` - Zustand implementation patterns  
-- `docs/STRIPE_INTEGRATION.md` - Complete payment integration guide
-- `docs/API_STUBS.md` - All API endpoints and mock data
-
-This platform represents a sophisticated, production-ready e-commerce solution with deep automotive industry specialization, complete email automation, and modern development practices. ✅ **Email confirmations are now fully functional** with automatic delivery via Stripe webhooks and backup systems for 100% reliability.
+This OpticWorks platform represents a sophisticated, production-ready e-commerce solution with deep automotive industry specialization, complete payment integration, and modern development practices optimized for Tesla community needs.
