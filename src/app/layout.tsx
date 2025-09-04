@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner"
 import Footer from "@/components/ui/Footer"
 import { MenuBar } from "@/components/menu-bar"
 import { ThemeProvider } from "@/components/theme-provider"
+import { GoogleAnalytics } from "@/components/GoogleAnalytics"
 import { siteConfig } from "./siteConfig"
 
 // Define Barlow font
@@ -121,8 +122,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const gaId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+
   return (
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
+      <head>
+        {gaId && <GoogleAnalytics measurementId={gaId} />}
+      </head>
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
