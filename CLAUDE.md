@@ -51,7 +51,7 @@ pnpm run lint
 ```
 src/
 ├── app/                          # Next.js App Router pages and API routes
-│   ├── api/                     # API endpoints (14 routes)
+│   ├── api/                     # API endpoints (12 routes)
 │   │   ├── stripe/              # Payment processing (production-ready)
 │   │   ├── email/               # Email service (production-ready)
 │   │   ├── tax/                 # Tax calculation

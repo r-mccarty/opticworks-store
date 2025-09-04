@@ -39,7 +39,7 @@ pnpm run start      # Production server
 
 ```
 src/
-├── app/                          # Next.js App Router (20 pages + 14 API routes)
+├── app/                          # Next.js App Router (20 pages + 12 API routes)
 │   ├── api/                     # Backend API endpoints
 │   │   ├── stripe/              # ✅ PRODUCTION: Payment processing 
 │   │   ├── email/               # ✅ PRODUCTION: Email service

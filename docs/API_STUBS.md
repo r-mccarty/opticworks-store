@@ -5,10 +5,10 @@ This document provides comprehensive documentation for all API endpoints in the 
 ## Architecture Overview
 
 The API layer consists of two implementation tiers:
-1. **Next.js API Routes** (`src/app/api/`) - HTTP endpoints for frontend integration (14 total)
+1. **Next.js API Routes** (`src/app/api/`) - HTTP endpoints for frontend integration (12 total)
 2. **Service Layer Functions** (`src/lib/api/`) - Business logic functions (6 total)
 
-**Current Status**: 4 fully production-ready endpoints, 9 advanced development stubs with realistic business logic.
+**Current Status**: 4 fully production-ready endpoints, 8 advanced development stubs with realistic business logic.
 
 ---
 
@@ -380,27 +380,6 @@ interface ProductAnalyticsEvent {
 - Amount conversion (cents to dollars)
 - Error handling for missing/invalid orders
 - Success page integration support
-
-#### `GET /api/debug-email`
-**Implementation**: Environment debugging utility  
-**Purpose**: Validate email service configuration
-
-**Response**:
-```typescript
-{
-  environment: string
-  emailConfigured: boolean
-  apiKeyPresent: boolean
-  fromEmailConfigured: boolean
-  recommendations?: string[]
-}
-```
-
-**Features**:
-- Environment variable validation
-- API key status checking
-- Email configuration verification
-- Development debugging assistance
 
 ---
 
