@@ -105,10 +105,17 @@ export function SupportHero() {
                   <p className="mt-2 text-sm leading-6 text-gray-600">
                     Track orders, check compatibility, manage billing
                   </p>
-                  <Button asChild variant="outline" className="mt-3">
-                    <Link href={siteConfig.baseLinks.support}>
-                      Browse Tools
-                    </Link>
+                  <Button
+                    variant="outline"
+                    className="mt-3"
+                    onClick={() => {
+                      const toolsSection = document.getElementById("tools-section")
+                      if (toolsSection) {
+                        toolsSection.scrollIntoView({ behavior: "smooth" })
+                      }
+                    }}
+                  >
+                    Browse Tools
                   </Button>
                   <p className="text-xs text-gray-500 mt-2">
                     Available 24/7
