@@ -3,11 +3,12 @@ import React from 'react';
 import { Resend } from 'resend';
 import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import PaymentFailed from '@/lib/email/templates/PaymentFailed';
+import SupportRequest from '@/lib/email/templates/SupportRequest';
 
 export interface EmailTemplate {
   to: string;
   subject: string;
-  template: 'order-confirmation' | 'shipping-notification' | 'payment-failed' | 'support-response' | 'warranty-claim';
+  template: 'order-confirmation' | 'shipping-notification' | 'payment-failed' | 'support-response' | 'warranty-claim' | 'support-request';
   data: Record<string, unknown>;
 }
 
@@ -39,6 +40,7 @@ function getResendClient(): Resend {
 const templates = {
   'order-confirmation': OrderConfirmation,
   'payment-failed': PaymentFailed,
+  'support-request': SupportRequest,
   // Add more templates as they're created
   'shipping-notification': OrderConfirmation, // Placeholder
   'support-response': OrderConfirmation, // Placeholder
@@ -258,6 +260,48 @@ export async function sendWarrantyClaimConfirmation(warrantyDetails: {
     template: 'warranty-claim',
     data: warrantyDetails
   });
+}
+
+/**
+ * Send support request notification to support team
+ */
+export async function sendSupportRequest(supportDetails: {
+  supportEmail: string; // Where to send the support request
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  category: string;
+  orderNumber?: string;
+  subject: string;
+  message: string;
+  priority: 'low' | 'medium' | 'high';
+}): Promise<EmailResult> {
+  console.log('📧 Sending support request to:', supportDetails.supportEmail);
+  
+  const result = await sendEmail({
+    to: supportDetails.supportEmail,
+    subject: `Support Request: ${supportDetails.subject} [${supportDetails.category.toUpperCase()}]`,
+    template: 'support-request',
+    data: {
+      customerName: supportDetails.customerName,
+      customerEmail: supportDetails.customerEmail,
+      customerPhone: supportDetails.customerPhone,
+      category: supportDetails.category,
+      orderNumber: supportDetails.orderNumber,
+      subject: supportDetails.subject,
+      message: supportDetails.message,
+      priority: supportDetails.priority,
+      submittedAt: new Date().toLocaleString(),
+    }
+  });
+
+  if (result.success) {
+    console.log('✅ Support request sent successfully');
+  } else {
+    console.error('❌ Failed to send support request:', result.error);
+  }
+
+  return result;
 }
 
 /**

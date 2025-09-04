@@ -5,11 +5,13 @@ import { Resend } from 'resend';
 import { type EmailTemplate } from '@/lib/api/email';
 import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import PaymentFailed from '@/lib/email/templates/PaymentFailed';
+import SupportRequest from '@/lib/email/templates/SupportRequest';
 
 // Email template mapping
 const templates = {
   'order-confirmation': OrderConfirmation,
   'payment-failed': PaymentFailed,
+  'support-request': SupportRequest,
   // Add more templates as they're created
   'shipping-notification': OrderConfirmation, // Placeholder
   'support-response': OrderConfirmation, // Placeholder

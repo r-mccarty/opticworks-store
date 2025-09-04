@@ -73,16 +73,47 @@ export function ContactForm() {
     setIsSubmitting(true)
     
     try {
-      // Here you would typically send the form data to your backend
-      // For now, we'll just simulate a successful submission
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      // Send support request via email API
+      const response = await fetch('/api/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: 'ryan@mccarty.id', // TODO: Switch to support@optic.works later
+          subject: `Support Request: ${data.subject} [${data.category.toUpperCase()}]`,
+          template: 'support-request',
+          data: {
+            customerName: data.name,
+            customerEmail: data.email,
+            customerPhone: data.phone,
+            category: data.category,
+            orderNumber: data.orderNumber,
+            subject: data.subject,
+            message: data.message,
+            priority: data.priority,
+            submittedAt: new Date().toLocaleString(),
+          }
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to send support request')
+      }
+
+      const result = await response.json()
+      console.log('Support request sent:', result)
       
-      console.log("Form submitted:", data)
-      console.log("Uploaded files:", uploadedFiles)
+      // TODO: Handle file attachments in future enhancement
+      if (uploadedFiles.length > 0) {
+        console.log('Note: File attachments not yet implemented:', uploadedFiles.map(f => f.name))
+      }
       
       setSubmitted(true)
     } catch (error) {
       console.error("Error submitting form:", error)
+      // TODO: Show error message to user
     } finally {
       setIsSubmitting(false)
     }
