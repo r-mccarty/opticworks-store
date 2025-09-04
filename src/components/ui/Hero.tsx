@@ -9,7 +9,7 @@ export function Hero() {
         <FadeDiv className="mx-auto">
           <a
             aria-label="View latest update the changelog page"
-            href="#"
+            href="https://www.optic.works/products/cybershade-irx-tesla-model-y"
             target="_blank"
             rel="noopener noreferrer"
             className="mx-auto w-full"
