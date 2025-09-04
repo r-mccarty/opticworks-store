@@ -8,7 +8,7 @@ export function ContactHero() {
     <section className="relative bg-gradient-to-br from-green-50 via-white to-emerald-50 py-24 sm:py-32">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,197,94,0.1),transparent_50%)]" />
       
-      <FadeContainer className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <FadeContainer className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <FadeDiv>
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
