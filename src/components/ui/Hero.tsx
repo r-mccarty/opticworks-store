@@ -3,6 +3,18 @@ import Link from "next/link"
 import { FadeContainer, FadeDiv, FadeSpan } from "../Fade"
 import { VideoBackground } from "./VideoBackground"
 
+// Track button clicks
+function trackButtonClick(buttonName: string, href: string) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'click', {
+      event_category: 'button',
+      event_label: buttonName,
+      value: href
+    })
+    console.log(`GA4: Button click tracked - ${buttonName}`)
+  }
+}
+
 export function Hero() {
   return (
     <section aria-label="hero" className="relative min-h-screen">
@@ -42,6 +54,7 @@ export function Hero() {
           <Link
             className="font-colfax mt-6 inline-flex cursor-pointer flex-row items-center justify-center gap-1 rounded-md border-b-[1.5px] border-orange-700 bg-linear-to-b from-orange-400 to-orange-500 px-5 py-3 leading-4 font-medium tracking-wide whitespace-nowrap text-white shadow-[0_0_0_2px_rgba(0,0,0,0.04),0_0_14px_0_rgba(255,255,255,0.19)] transition-all duration-200 ease-in-out hover:shadow-orange-300"
             href="/products"
+            onClick={() => trackButtonClick('Shop Tint Kits - Hero', '/products')}
           >
             Shop Tint Kits
           </Link>
