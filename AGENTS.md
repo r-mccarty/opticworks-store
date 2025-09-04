@@ -43,7 +43,6 @@ src/
 │   ├── api/                     # Backend API endpoints
 │   │   ├── stripe/              # ✅ PRODUCTION: Payment processing 
 │   │   ├── email/               # ✅ PRODUCTION: Email service
-│   │   ├── tax/                 # 🔄 STUB: Tax calculation
 │   │   ├── shipping/            # 🔄 STUB: Shipping rates
 │   │   └── analytics/           # 🔄 STUB: User tracking
 │   ├── store/                   # E-commerce pages (cart, checkout, success)
@@ -235,7 +234,6 @@ NEXT_PUBLIC_FROM_EMAIL=OpticWorks <orders@notifications.optic.works>
 - Mock data representing real business scenarios
 
 **Key Stub Endpoints:**
-- `POST /api/tax/calculate` - State tax rate calculation
 - `POST /api/shipping/rates` - Multi-carrier shipping quotes
 - `POST /api/inventory/check` - Stock availability checking
 - `POST /api/analytics/events` - User behavior tracking

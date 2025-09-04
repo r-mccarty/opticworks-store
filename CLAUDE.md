@@ -129,7 +129,6 @@ src/
 - `POST /api/email/send` - Email delivery (React Email + Resend)
 
 **Development Stubs:**
-- `POST /api/tax/calculate` - State tax calculation
 - `POST /api/shipping/rates` - Multi-carrier shipping
 - `POST /api/inventory/check` - Stock availability
 - `POST /api/analytics/events` - User tracking

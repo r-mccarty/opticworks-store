@@ -471,49 +471,44 @@ export async function POST(request: NextRequest) {
 
 ### Advanced Development Stubs 🔧
 
-The platform includes **10 sophisticated development stubs** that provide complete business functionality while establishing clear integration patterns for production services.
+The platform includes **9 sophisticated development stubs** that provide complete business functionality while establishing clear integration patterns for production services.
 
-#### Example: Tax Calculation Stub
+#### Example: Shipping Rates Stub
 
 ```typescript
-// src/app/api/tax/calculate/route.ts
-const STATE_TAX_RATES = {
-  CA: { rate: 0.0725, exemptShipping: false },
-  TX: { rate: 0.0625, exemptShipping: true },
-  FL: { rate: 0.06, exemptShipping: true },
-  NY: { rate: 0.08, exemptShipping: false }
-  // ... complete 50-state database
+// src/app/api/shipping/rates/route.ts
+const SHIPPING_CARRIERS = {
+  'standard': { name: 'Standard Shipping', baseRate: 5.99, perItem: 1.50, days: '5-7' },
+  'expedited': { name: 'Expedited Shipping', baseRate: 12.99, perItem: 2.00, days: '2-3' },
+  'overnight': { name: 'Overnight Express', baseRate: 24.99, perItem: 3.50, days: '1' }
 }
 
 export async function POST(request: NextRequest) {
-  const { subtotal, shipping, shippingAddress, items } = await request.json()
+  const { items, shippingAddress } = await request.json()
   
   // Simulate realistic API delay
-  await new Promise(resolve => setTimeout(resolve, 600))
+  await new Promise(resolve => setTimeout(resolve, 500))
   
-  const stateRate = STATE_TAX_RATES[shippingAddress.state as keyof typeof STATE_TAX_RATES]
-  if (!stateRate) {
-    return NextResponse.json({ error: 'Unsupported state' }, { status: 400 })
-  }
+  const totalWeight = items.reduce((sum: number, item: any) => sum + (item.weight || 1) * item.quantity, 0)
   
-  // Calculate tax on taxable items only
-  const taxableAmount = items
-    .filter((item: any) => item.taxable !== false)
-    .reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0)
-  
-  const shippingTax = stateRate.exemptShipping ? 0 : shipping * stateRate.rate
-  const itemsTax = taxableAmount * stateRate.rate
-  const totalTax = itemsTax + shippingTax
+  const rates = Object.entries(SHIPPING_CARRIERS).map(([key, carrier]) => {
+    const baseRate = carrier.baseRate
+    const itemRate = carrier.perItem * items.length
+    const weightRate = totalWeight > 5 ? (totalWeight - 5) * 0.50 : 0
+    
+    return {
+      carrierId: key,
+      name: carrier.name,
+      rate: parseFloat((baseRate + itemRate + weightRate).toFixed(2)),
+      estimatedDays: carrier.days,
+      description: `Delivery in ${carrier.days} business days`
+    }
+  })
   
   return NextResponse.json({
     success: true,
-    tax: parseFloat(totalTax.toFixed(2)),
-    breakdown: {
-      itemsTax: parseFloat(itemsTax.toFixed(2)),
-      shippingTax: parseFloat(shippingTax.toFixed(2)),
-      rate: stateRate.rate,
-      state: shippingAddress.state
-    }
+    rates,
+    selectedAddress: shippingAddress
   })
 }
 ```

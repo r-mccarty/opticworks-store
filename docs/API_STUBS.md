@@ -8,7 +8,7 @@ The API layer consists of two implementation tiers:
 1. **Next.js API Routes** (`src/app/api/`) - HTTP endpoints for frontend integration (14 total)
 2. **Service Layer Functions** (`src/lib/api/`) - Business logic functions (6 total)
 
-**Current Status**: 4 fully production-ready endpoints, 10 advanced development stubs with realistic business logic.
+**Current Status**: 4 fully production-ready endpoints, 9 advanced development stubs with realistic business logic.
 
 ---
 
@@ -169,37 +169,7 @@ The API layer consists of two implementation tiers:
 
 ## Advanced Development Stubs 🔧
 
-### Tax & Shipping Services
-
-#### `POST /api/tax/calculate`
-**Implementation**: Sophisticated mock with real state tax database  
-**Purpose**: Calculate state sales tax for orders (development fallback)
-
-**Request Body**:
-```typescript
-{
-  subtotal: number
-  shipping: number
-  shippingAddress: {
-    state: string
-    zipCode: string
-    city: string
-  }
-  items: Array<{
-    id: string
-    price: number
-    quantity: number
-    taxable: boolean
-  }>
-}
-```
-
-**Features**:
-- Complete 50-state + DC tax rate database
-- Shipping tax exemptions by state
-- Taxable vs non-taxable item handling
-- Tax breakdown by jurisdiction
-- Realistic delay simulation (600ms)
+### Shipping Services
 
 #### `POST /api/shipping/rates`
 **Implementation**: Weight-based calculation with multi-carrier simulation  
