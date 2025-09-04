@@ -9,9 +9,8 @@ export function Hero() {
         <FadeDiv className="mx-auto">
           <a
             aria-label="View latest update the changelog page"
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer"
+            href="https://www.optic.works/products/cybershade-irx-tesla-model-y"
+
             className="mx-auto w-full"
           >
             <div className="inline-flex max-w-full items-center gap-3 rounded-full bg-white/5 px-2.5 py-0.5 pr-3 pl-0.5 text-gray-900 ring-1 shadow-lg shadow-orange-400/20 ring-black/10 filter backdrop-blur-[1px] transition-colors hover:bg-orange-500/[2.5%] focus:outline-hidden sm:text-sm">
