@@ -1,3 +1,5 @@
+'use client'
+
 import { RiArrowRightUpLine } from "@remixicon/react"
 import Link from "next/link"
 import { FadeContainer, FadeDiv, FadeSpan } from "../Fade"

@@ -2,7 +2,7 @@
 
 import Script from 'next/script'
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, Suspense } from 'react'
 
 declare global {
   interface Window {
@@ -15,14 +15,15 @@ interface GoogleAnalyticsProps {
   measurementId: string
 }
 
-export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
+// Component that tracks page views (uses useSearchParams)
+function PageViewTracker({ measurementId }: { measurementId: string }) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.gtag) {
       // Track page views on route changes
-      const url = pathname + searchParams.toString()
+      const url = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '')
       window.gtag('config', measurementId, {
         page_path: url,
       })
@@ -36,6 +37,10 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
     }
   }, [pathname, searchParams, measurementId])
 
+  return null
+}
+
+export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
   return (
     <>
       <Script
@@ -54,6 +59,9 @@ export function GoogleAnalytics({ measurementId }: GoogleAnalyticsProps) {
           console.log('GA4: Initialized with measurement ID ${measurementId}');
         `}
       </Script>
+      <Suspense fallback={null}>
+        <PageViewTracker measurementId={measurementId} />
+      </Suspense>
     </>
   )
 }
