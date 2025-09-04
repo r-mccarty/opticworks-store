@@ -11,7 +11,7 @@ export default function StorePage() {
   return (
     <main className="relative">
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
-        <div className="mx-auto max-w-7xl">
+        <div className="mx-auto max-w-6xl">
           {/* Header */}
           <FadeDiv className="text-center mb-16">
             <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">

@@ -24,7 +24,7 @@ export function SupportHero() {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(251,146,60,0.1),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(251,146,60,0.05),transparent_50%)]" />
       
-      <FadeContainer className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <FadeContainer className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <FadeDiv>
             <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
