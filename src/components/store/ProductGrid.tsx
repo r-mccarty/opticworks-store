@@ -20,12 +20,12 @@ export function ProductGrid() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
       {products.map((product) => (
         <FadeDiv key={product.id}>
           <Link href={`/products/${product.id}`} className="block h-full">
             <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md">
-              <div className="relative aspect-square bg-gray-100">
+              <div className="relative aspect-[4/3] bg-gray-100">
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -40,35 +40,34 @@ export function ProductGrid() {
                 )}
               </div>
 
-              <CardContent className="flex flex-1 flex-col p-6">
-                <h3 className="line-clamp-2 text-base font-semibold text-gray-900">
+              <CardContent className="flex flex-1 flex-col p-5">
+                <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">
                   {product.name}
                 </h3>
-                <p className="mt-2 line-clamp-3 text-sm text-gray-600">
+                <p className="mt-2 line-clamp-2 text-sm text-gray-600">
                   {product.description}
                 </p>
-
-                <div className="mt-4 space-y-1 text-xs text-gray-500">
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-500">
                   {product.specifications.vlt && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <span className="font-medium">VLT:</span>
                       <span>{product.specifications.vlt}</span>
                     </div>
                   )}
                   {product.specifications.heatRejection && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <span className="font-medium">Heat Rejection:</span>
                       <span>{product.specifications.heatRejection}</span>
                     </div>
                   )}
                   {product.specifications.warranty && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <span className="font-medium">Warranty:</span>
                       <span>{product.specifications.warranty}</span>
                     </div>
                   )}
                   {product.specifications.difficulty && (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                       <span className="font-medium">Difficulty:</span>
                       <span
                         className={`rounded px-2 py-0.5 text-xs ${
@@ -86,7 +85,7 @@ export function ProductGrid() {
                 </div>
               </CardContent>
 
-              <CardFooter className="flex flex-col gap-4 border-t p-6">
+              <CardFooter className="mt-auto flex flex-col items-stretch gap-4 border-t p-5">
                 <div className="flex w-full items-center justify-between">
                   <div className="flex flex-col">
                     <span className="text-xl font-bold text-gray-900">
