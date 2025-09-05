@@ -1,8 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { motion } from "framer-motion"
-import { Home, Package, Store, Headphones, BookOpen, ShoppingCart } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import { Home, Package, Store, Headphones, BookOpen, ShoppingCart, Menu, X } from "lucide-react"
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
@@ -82,6 +82,7 @@ export const MenuBar = React.memo(function MenuBar() {
     (state) => state.items.reduce((total, item) => total + item.quantity, 0)
   )
   const [mounted, setMounted] = React.useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const scrolled = useScroll(15)
   const pathname = usePathname()
 
@@ -174,6 +175,36 @@ export const MenuBar = React.memo(function MenuBar() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-3">
+            {/* Mobile menu toggle */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              className={cx(
+                "flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300 lg:hidden",
+                scrolled || isLightPage
+                  ? "bg-gray-100 hover:bg-gray-200"
+                  : "bg-white/10 hover:bg-white/20",
+              )}
+            >
+              {mobileMenuOpen ? (
+                <X
+                  className={cx(
+                    "w-5 h-5",
+                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                  )}
+                />
+              ) : (
+                <Menu
+                  className={cx(
+                    "w-5 h-5",
+                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                  )}
+                />
+              )}
+            </motion.button>
+
             {/* Shopping Cart */}
             <motion.div
               className="relative"
@@ -217,6 +248,33 @@ export const MenuBar = React.memo(function MenuBar() {
             </motion.div>
           </div>
         </div>
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={fastTransition}
+              className="mt-4 flex flex-col gap-2 lg:hidden"
+            >
+              {menuItems.map((item) => (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={cx(
+                    "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
+                    scrolled || isLightPage
+                      ? "text-gray-700 hover:bg-gray-100"
+                      : "text-white hover:bg-white/10",
+                  )}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   )
