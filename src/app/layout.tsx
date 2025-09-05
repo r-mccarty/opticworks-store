@@ -7,7 +7,7 @@ import Footer from "@/components/ui/Footer"
 import { MenuBar } from "@/components/menu-bar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "./siteConfig"
-import Script from "next/script"
+import { GoogleAnalytics } from "@/components/GoogleAnalytics"
 
 // Define Barlow font
 const barlowFont = localFont({
@@ -124,22 +124,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <head>
-        <Script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-ZVKN68R4Y7"
-        />
-        <Script id="google-analytics">
-          {`
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-ZVKN68R4Y7');
-  `}
-        </Script>
-      </head>
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+        <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
           {children}
