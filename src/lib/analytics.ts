@@ -20,6 +20,8 @@ export interface GAPurchaseEvent {
   items: GAEcommerceItem[]
 }
 
+const GA_MEASUREMENT_ID = 'G-ZVKN68R4Y7'
+
 // Helper function to track Google Analytics events
 export const trackGAEvent = ({ action, category, label, value }: GAEvent) => {
   if (typeof window !== 'undefined' && window.gtag) {
@@ -34,7 +36,7 @@ export const trackGAEvent = ({ action, category, label, value }: GAEvent) => {
 // Helper function to track page views
 export const trackPageView = (url: string) => {
   if (typeof window !== 'undefined' && window.gtag) {
-    window.gtag('config', process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID!, {
+    window.gtag('config', GA_MEASUREMENT_ID, {
       page_path: url,
     })
   }
