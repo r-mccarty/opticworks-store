@@ -106,8 +106,8 @@ export function ProductGrid() {
                     </div>
                   )}
                 </div>
-                <div className="flex gap-2">
-                  <Button asChild variant="outline" className="flex-1">
+                <div className="flex gap-4">
+                  <Button asChild variant="secondary" className="flex-1">
                     <span className="w-full text-center">View Details</span>
                   </Button>
                   <Button
