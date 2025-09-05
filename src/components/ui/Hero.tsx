@@ -3,7 +3,6 @@
 import { RiArrowRightUpLine } from "@remixicon/react"
 import Link from "next/link"
 import { FadeContainer, FadeDiv, FadeSpan } from "../Fade"
-import { VideoBackground } from "./VideoBackground"
 
 // Track button clicks
 function trackButtonClick(buttonName: string, href: string) {
@@ -61,11 +60,7 @@ export function Hero() {
             Shop Tint Kits
           </Link>
         </FadeDiv>
-        <div className="absolute inset-0 -z-10">
-          <VideoBackground 
-            videoUrl="https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/demo-video.mp4"
-          />
-        </div>
+        <div className="absolute inset-0 -z-10 bg-noisy-gradient" />
       </FadeContainer>
     </section>
   )

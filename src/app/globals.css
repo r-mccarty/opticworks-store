@@ -231,3 +231,13 @@
     opacity: 100;
   }
 }
+@layer utilities {
+  .bg-noisy-gradient {
+    background-image:
+      radial-gradient(115% 115% at 50% 0%, #3b0764 0%, #0f172a 60%, #000000 100%),
+      url("/images/noise.svg");
+    background-size: cover, 200px 200px;
+    background-repeat: no-repeat, repeat;
+    background-blend-mode: overlay;
+  }
+}
