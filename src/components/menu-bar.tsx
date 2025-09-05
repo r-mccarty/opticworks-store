@@ -255,7 +255,12 @@ export const MenuBar = React.memo(function MenuBar() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={fastTransition}
-              className="mt-4 flex flex-col gap-2 lg:hidden"
+              className={cx(
+                "mt-4 flex flex-col gap-2 lg:hidden rounded-xl p-4 border shadow-lg",
+                scrolled || isLightPage
+                  ? "bg-white/90 border-gray-200/50"
+                  : "bg-gray-900/90 border-gray-700/50",
+              )}
             >
               {menuItems.map((item) => (
                 <Link
