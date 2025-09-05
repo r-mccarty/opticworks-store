@@ -72,7 +72,7 @@ export default function InstallGuidesPage() {
 
   return (
     <main className="relative">
-      <FadeContainer className="relative px-4 sm:px-6 lg:px-8 pt-28 pb-16">
+      <FadeContainer className="relative px-7 sm:px-6 lg:px-8 pt-28 pb-16">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <FadeDiv className="mb-16 text-center">
