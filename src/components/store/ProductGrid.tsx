@@ -116,11 +116,10 @@ export function ProductGrid() {
                 </div>
                 <div className="flex gap-4">
                   <AnimatedBorderButton
-                    asChild
                     variant="ghost"
                     className="flex-1 text-gray-900 dark:text-gray-100"
                   >
-                    <span className="w-full text-center">View Details</span>
+                    View Details
                   </AnimatedBorderButton>
                   <AnimatedBorderButton
                     onClick={(e) => handleAddToCart(e, product)}
