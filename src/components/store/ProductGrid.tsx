@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { AnimatedBorderButton } from "@/components/ui/AnimatedBorderButton"
 import { FadeDiv } from "@/components/Fade"
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"
 import { products, Product } from "@/lib/products"
@@ -13,7 +13,10 @@ import Link from "next/link"
 export function ProductGrid() {
   const { addToCart } = useCart()
 
-  const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
+  const handleAddToCart = (
+    e: React.MouseEvent<HTMLButtonElement>,
+    product: Product,
+  ) => {
     e.preventDefault()
     e.stopPropagation()
     addToCart(product)
@@ -71,11 +74,12 @@ export function ProductGrid() {
                       <span className="font-medium">Difficulty:</span>
                       <span
                         className={`rounded px-2 py-0.5 text-xs ${
-                          product.specifications.difficulty === 'Beginner'
-                            ? 'bg-green-100 text-green-800'
-                            : product.specifications.difficulty === 'Intermediate'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
+                          product.specifications.difficulty === "Beginner"
+                            ? "bg-green-100 text-green-800"
+                            : product.specifications.difficulty ===
+                                "Intermediate"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-red-100 text-red-800"
                         }`}
                       >
                         {product.specifications.difficulty}
@@ -100,24 +104,33 @@ export function ProductGrid() {
                   {product.reviews && (
                     <div className="text-right">
                       <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium">★{product.reviews.rating}</span>
-                        <span className="text-xs text-gray-500">({product.reviews.count})</span>
+                        <span className="text-sm font-medium">
+                          ★{product.reviews.rating}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({product.reviews.count})
+                        </span>
                       </div>
                     </div>
                   )}
                 </div>
                 <div className="flex gap-4">
-                  <Button asChild variant="secondary" className="flex-1">
+                  <AnimatedBorderButton
+                    asChild
+                    variant="ghost"
+                    className="flex-1 text-gray-900 dark:text-gray-100"
+                  >
                     <span className="w-full text-center">View Details</span>
-                  </Button>
-                  <Button
+                  </AnimatedBorderButton>
+                  <AnimatedBorderButton
                     onClick={(e) => handleAddToCart(e, product)}
-                    className="flex flex-1 items-center gap-2"
+                    className="flex flex-1 items-center gap-2 text-gray-900 dark:text-gray-100"
                     disabled={!product.inStock}
+                    variant="ghost"
                   >
                     <ShoppingCartIcon className="h-4 w-4" />
-                    {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-                  </Button>
+                    {product.inStock ? "Add to Cart" : "Out of Stock"}
+                  </AnimatedBorderButton>
                 </div>
               </CardFooter>
             </Card>
