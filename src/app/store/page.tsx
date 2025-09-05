@@ -9,7 +9,11 @@ export const metadata: Metadata = {
 
 export default function StorePage() {
   return (
-    <main className="relative">
+    <main className="relative min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Gradient overlays for visual depth */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(59,130,246,0.1),transparent_50%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(99,102,241,0.05),transparent_50%)]" />
+      
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
