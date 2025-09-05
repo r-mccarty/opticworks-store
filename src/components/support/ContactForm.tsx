@@ -104,6 +104,13 @@ export function ContactForm() {
 
       const result = await response.json()
       console.log('Support request sent:', result)
+
+      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+        window.gtag('event', 'contact_form_submit', {
+          support_category: data.category,
+          priority: data.priority
+        })
+      }
       
       // TODO: Handle file attachments in future enhancement
       if (uploadedFiles.length > 0) {
