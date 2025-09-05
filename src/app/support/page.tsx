@@ -11,8 +11,10 @@ export const metadata: Metadata = {
 export default function SupportPage() {
   return (
     <main className="min-h-screen bg-gray-50">
-      <SupportHero />
-      <SupportCategoryGrid />
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        <SupportHero />
+        <SupportCategoryGrid />
+      </div>
     </main>
   )
 }

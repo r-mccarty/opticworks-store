@@ -79,7 +79,7 @@ const supportCategories = [
 export function SupportCategoryGrid() {
   return (
     <section id="tools-section" className="py-16">
-      <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+      <FadeContainer>
         <FadeDiv>
           <div className="text-center">
             <h2 className="font-barlow text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
