@@ -36,18 +36,29 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    // Get webhook secret based on environment
-    const webhookSecret = process.env.NODE_ENV === 'development'
-      ? process.env.STRIPE_WEBHOOK_SECRET_DEV // From Stripe CLI
-      : process.env.STRIPE_WEBHOOK_SECRET; // From Stripe Dashboard
+    // Check if request is coming from Hookdeck
+    const hookdeckSourceId = request.headers.get('hookdeck-source-id');
+    const hookdeckSignature = request.headers.get('hookdeck-signature');
+    
+    if (hookdeckSourceId || hookdeckSignature) {
+      // Request from Hookdeck - skip Stripe signature verification since Hookdeck already validated
+      console.log('📡 Request from Hookdeck detected, skipping Stripe signature verification');
+      event = JSON.parse(body) as Stripe.Event;
+      console.log(`✅ Hookdeck event processed: ${event.type} (ID: ${event.id})`);
+    } else {
+      // Direct from Stripe - verify signature normally
+      const webhookSecret = process.env.NODE_ENV === 'development'
+        ? process.env.STRIPE_WEBHOOK_SECRET_DEV // From Stripe CLI
+        : process.env.STRIPE_WEBHOOK_SECRET; // From Stripe Dashboard
 
-    if (!webhookSecret) {
-      console.error('❌ Webhook secret not configured');
-      throw new Error('Webhook secret not configured');
+      if (!webhookSecret) {
+        console.error('❌ Webhook secret not configured');
+        throw new Error('Webhook secret not configured');
+      }
+
+      event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
+      console.log(`✅ Webhook signature verified for event: ${event.type} (ID: ${event.id})`);
     }
-
-    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
-    console.log(`✅ Webhook signature verified for event: ${event.type} (ID: ${event.id})`);
   } catch (err) {
     console.error('❌ Webhook signature verification failed:', err);
     return NextResponse.json(

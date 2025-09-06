@@ -28,18 +28,29 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    // Get webhook secret for shipping rates
-    const webhookSecret = process.env.NODE_ENV === 'development'
-      ? process.env.STRIPE_SHIPPING_WEBHOOK_SECRET_DEV // From Stripe CLI
-      : process.env.STRIPE_SHIPPING_WEBHOOK_SECRET; // From Stripe Dashboard
+    // Check if request is coming from Hookdeck
+    const hookdeckSourceId = request.headers.get('hookdeck-source-id');
+    const hookdeckSignature = request.headers.get('hookdeck-signature');
+    
+    if (hookdeckSourceId || hookdeckSignature) {
+      // Request from Hookdeck - skip Stripe signature verification since Hookdeck already validated
+      console.log('📡 Shipping webhook from Hookdeck detected, skipping Stripe signature verification');
+      event = JSON.parse(body) as Stripe.Event;
+      console.log(`✅ Hookdeck shipping event processed: ${event.type} (ID: ${event.id})`);
+    } else {
+      // Direct from Stripe - verify signature normally
+      const webhookSecret = process.env.NODE_ENV === 'development'
+        ? process.env.STRIPE_SHIPPING_WEBHOOK_SECRET_DEV // From Stripe CLI
+        : process.env.STRIPE_SHIPPING_WEBHOOK_SECRET; // From Stripe Dashboard
 
-    if (!webhookSecret) {
-      console.error('❌ Shipping webhook secret not configured');
-      throw new Error('Shipping webhook secret not configured');
+      if (!webhookSecret) {
+        console.error('❌ Shipping webhook secret not configured');
+        throw new Error('Shipping webhook secret not configured');
+      }
+
+      event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
+      console.log(`✅ Shipping webhook signature verified for event: ${event.type} (ID: ${event.id})`);
     }
-
-    event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
-    console.log(`✅ Shipping webhook signature verified for event: ${event.type} (ID: ${event.id})`);
   } catch (err) {
     console.error('❌ Shipping webhook signature verification failed:', err);
     return NextResponse.json(
