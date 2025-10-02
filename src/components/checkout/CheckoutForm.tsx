@@ -11,6 +11,59 @@ import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useCheckoutState } from '@/hooks/useCheckoutState';
 
+const stripeElementAppearance = {
+  theme: 'none',
+  variables: {
+    colorPrimary: '#16a34a',
+    colorBackground: '#ffffff',
+    colorText: '#0f172a',
+    colorTextSecondary: '#475569',
+    colorDanger: '#dc2626',
+    fontFamily:
+      "'Inter', 'Barlow', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+    fontSizeBase: '15px',
+    spacingUnit: '12px',
+  },
+  rules: {
+    '.Input': {
+      borderRadius: '0.375rem',
+      border: '1px solid #e2e8f0',
+      padding: '10px 12px',
+      backgroundColor: '#ffffff',
+      boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)',
+      color: '#0f172a',
+      transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
+    },
+    '.Input:hover': {
+      borderColor: '#cbd5e1',
+    },
+    '.Input:focus': {
+      borderColor: '#16a34a',
+      boxShadow: '0 0 0 3px rgba(22, 163, 74, 0.2)',
+    },
+    '.Input--invalid': {
+      borderColor: '#dc2626',
+      boxShadow: '0 0 0 3px rgba(220, 38, 38, 0.15)',
+    },
+    '.Input--disabled': {
+      backgroundColor: '#f8fafc',
+      color: '#94a3b8',
+    },
+    '.Input::placeholder': {
+      color: '#94a3b8',
+    },
+    '.Label': {
+      fontSize: '0.875rem',
+      fontWeight: '500',
+      color: '#334155',
+    },
+  },
+} as const;
+
+const createStripeElementOptions = () => ({
+  appearance: stripeElementAppearance,
+});
+
 // Using unknown for Stripe types to avoid conflicts with official types
 type StripeElement = unknown;
 type StripeCheckout = unknown;
@@ -102,11 +155,15 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
 
         // Create Shipping Address Element using correct method
         console.log('🏠 Creating shipping address element...');
-        const addressEl = (checkout as any).createShippingAddressElement();
+        const addressEl = (checkout as any).createShippingAddressElement(
+          createStripeElementOptions(),
+        );
 
         // Create Payment Element using correct method
         console.log('💳 Creating payment element...');
-        const paymentEl = (checkout as any).createPaymentElement();
+        const paymentEl = (checkout as any).createPaymentElement(
+          createStripeElementOptions(),
+        );
 
         // Mount elements
         (addressEl as any).mount('#address-element');
@@ -251,7 +308,7 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
           <CardTitle>Shipping Address</CardTitle>
         </CardHeader>
         <CardContent>
-          <div id="address-element" className="border rounded-md p-3">
+          <div id="address-element" className="rounded-md">
             {/* AddressElement will be mounted here */}
           </div>
           <p className="text-sm text-gray-600 mt-2">
@@ -266,7 +323,7 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
           <CardTitle>Payment Method</CardTitle>
         </CardHeader>
         <CardContent>
-          <div id="payment-element">
+          <div id="payment-element" className="rounded-md">
             {/* PaymentElement will be mounted here */}
           </div>
         </CardContent>
