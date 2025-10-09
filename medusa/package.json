@@ -1,0 +1,26 @@
+{
+  "name": "@opticworks/medusa-backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "seed:stripe-region": "tsx src/seeds/ensure-stripe-us-region.ts",
+    "test:integration:stripe": "tsx scripts/verify-stripe-payment.ts"
+  },
+  "dependencies": {
+    "@medusajs/medusa": "^2.10.3",
+    "@medusajs/payment-stripe": "^2.10.3",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^22.13.14",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.5",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
+    "typescript": "^5.9.2"
+  }
+}

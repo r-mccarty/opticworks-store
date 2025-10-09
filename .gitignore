@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+medusa/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -31,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!medusa/.env.example
 
 # credentials (service account keys, etc.)
 .credentials/
