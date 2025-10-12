@@ -75,7 +75,7 @@ export function CartPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:items-start">
             {/* Cart Items - Dynamic width based on item count */}
-            <div className={`${
+            <div className={`lg:sticky lg:top-28 ${
               items.length === 1 
                 ? 'lg:col-span-4 lg:h-full' 
                 : items.length <= 3 
