@@ -25,7 +25,7 @@ export function ProductGrid() {
         <FadeDiv key={product.id}>
           <Link href={`/products/${product.id}`} className="block h-full">
             <Card
-              className="group flex h-full flex-col overflow-hidden border-white/60 bg-white/90 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900/80"
+              className="group relative flex h-full flex-col overflow-hidden border border-white/30 bg-white/20 text-slate-900 shadow-[0_22px_55px_-32px_rgba(15,23,42,0.55)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_32px_65px_-30px_rgba(15,23,42,0.65)] supports-[backdrop-filter]:bg-white/35 supports-[backdrop-filter]:backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-900/70 dark:text-slate-100"
             >
               <div className="relative aspect-[4/3] bg-gray-100">
                 <Image
@@ -42,35 +42,35 @@ export function ProductGrid() {
                 )}
               </div>
 
-              <CardContent className="flex flex-1 flex-col p-5">
-                <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">
+              <CardContent className="flex flex-1 flex-col gap-3 p-5">
+                <h3 className="line-clamp-2 text-lg font-semibold text-gray-900 dark:text-white">
                   {product.name}
                 </h3>
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                <p className="line-clamp-2 text-sm text-gray-600 dark:text-slate-300">
                   {product.description}
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-500">
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-500 dark:text-slate-300">
                   {product.specifications.vlt && (
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">VLT:</span>
+                      <span className="font-medium text-gray-700 dark:text-white">VLT:</span>
                       <span>{product.specifications.vlt}</span>
                     </div>
                   )}
                   {product.specifications.heatRejection && (
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">Heat Rejection:</span>
+                      <span className="font-medium text-gray-700 dark:text-white">Heat Rejection:</span>
                       <span>{product.specifications.heatRejection}</span>
                     </div>
                   )}
                   {product.specifications.warranty && (
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">Warranty:</span>
+                      <span className="font-medium text-gray-700 dark:text-white">Warranty:</span>
                       <span>{product.specifications.warranty}</span>
                     </div>
                   )}
                   {product.specifications.difficulty && (
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">Difficulty:</span>
+                      <span className="font-medium text-gray-700 dark:text-white">Difficulty:</span>
                       <span
                         className={`rounded px-2 py-0.5 text-xs ${
                           product.specifications.difficulty === 'Beginner'
@@ -87,14 +87,14 @@ export function ProductGrid() {
                 </div>
               </CardContent>
 
-              <CardFooter className="mt-auto flex flex-col items-stretch gap-4 border-t p-5">
+              <CardFooter className="mt-auto flex flex-col items-stretch gap-4 border-t border-white/20 p-5 text-slate-900 dark:border-slate-700/70 dark:text-slate-100">
                 <div className="flex w-full items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-xl font-bold text-gray-900 dark:text-white">
                       ${product.price}
                     </span>
                     {product.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-sm text-gray-500 line-through dark:text-slate-400">
                         ${product.originalPrice}
                       </span>
                     )}
@@ -102,8 +102,8 @@ export function ProductGrid() {
                   {product.reviews && (
                     <div className="text-right">
                       <div className="flex items-center gap-1">
-                        <span className="text-sm font-medium">★{product.reviews.rating}</span>
-                        <span className="text-xs text-gray-500">({product.reviews.count})</span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-slate-200">★{product.reviews.rating}</span>
+                        <span className="text-xs text-gray-500 dark:text-slate-400">({product.reviews.count})</span>
                       </div>
                     </div>
                   )}
