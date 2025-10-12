@@ -63,6 +63,15 @@ export function CartPage() {
     )
   }
 
+  const cartColumnBaseClass =
+    items.length === 1
+      ? "lg:col-span-4 lg:h-full"
+      : items.length <= 3
+      ? "lg:col-span-6 space-y-4"
+      : "lg:col-span-7 space-y-4"
+
+  const cartColumnClassName = `${cartColumnBaseClass} lg:sticky lg:top-32 lg:self-start`
+
   return (
     <main className="relative">
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
@@ -75,13 +84,7 @@ export function CartPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:items-start">
             {/* Cart Items - Dynamic width based on item count */}
-            <div className={`${
-              items.length === 1 
-                ? 'lg:col-span-4 lg:h-full' 
-                : items.length <= 3 
-                ? 'lg:col-span-6 space-y-4' 
-                : 'lg:col-span-7 space-y-4'
-            }`}>
+            <div className={cartColumnClassName}>
               {items.length === 1 ? (
                 // Enhanced single item layout
                 <FadeDiv key={items[0].id} className="h-full">
