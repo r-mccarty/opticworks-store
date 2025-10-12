@@ -24,7 +24,9 @@ export function ProductGrid() {
       {products.map((product) => (
         <FadeDiv key={product.id}>
           <Link href={`/products/${product.id}`} className="block h-full">
-            <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md">
+            <Card
+              className="group flex h-full flex-col overflow-hidden border-white/60 bg-white/90 shadow-sm backdrop-blur-sm transition-shadow hover:shadow-lg dark:border-slate-700/60 dark:bg-slate-900/80"
+            >
               <div className="relative aspect-[4/3] bg-gray-100">
                 <Image
                   src={product.image}
