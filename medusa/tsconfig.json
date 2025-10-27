@@ -1,0 +1,16 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "./",
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ES2020",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["node", "jest"]
+  },
+  "include": ["medusa-config.ts", "src/**/*.ts", "scripts/**/*.ts", "test/**/*.ts"],
+  "exclude": ["dist", "node_modules"]
+}
