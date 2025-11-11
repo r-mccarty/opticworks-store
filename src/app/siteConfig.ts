@@ -1,24 +1,23 @@
 export const siteConfig = {
-  name: "OpticWorks Window Tinting",
-  url: "https://opticworks.com",
-  description: "Professional-grade DIY window tinting kits and installation solutions. Transform your vehicle with precision-cut ceramic films and foolproof installation tools.",
+  name: "OpticWorks Sensing",
+  url: "https://optic.works",
+  description:
+    "OpticWorks builds privacy-first smart home sensing hardware and software. Our bed presence sensor pairs mmWave intelligence with a Cloudflare Worker BFF and Hetzner backend for transparent automations.",
   baseLinks: {
     home: "/",
-    store: "/store",
-    cart: "/store/cart",
-    installGuides: "/install-guides",
-    products: "/products",
-    support: "/support",
-    supportFaq: "/support/faq",
-    supportContact: "/support/contact",
-    supportWarranty: "/support/warranty",
-    supportOops: "/support/oops",
-    supportLegal: "/support/legal",
-    supportTintingLaws: "/support/legal/tinting-laws",
-    supportPrivacy: "/support/legal/privacy",
-    supportTerms: "/support/legal/terms",
-    supportOrders: "/support/orders",
-    supportBilling: "/support/billing",
-    supportCompatibility: "/support/compatibility",
+    howItWorks: "/how-it-works",
+    features: "/features",
+    gettingStarted: "/getting-started",
+    documentation: "/documentation",
+    comparison: "/comparison",
+    community: "/community",
+    about: "/about",
+  },
+  external: {
+    github: "https://github.com/opticworks/opticworks-sensing",
+    twitter: "https://twitter.com/opticworks",
+    youtube: "https://youtube.com/@opticworks",
   },
 }
+
+export type SiteRoute = keyof typeof siteConfig.baseLinks

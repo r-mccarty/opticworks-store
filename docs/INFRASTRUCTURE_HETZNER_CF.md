@@ -1,69 +1,65 @@
-# Hybrid Deployment Architecture: Talos k3s on Hetzner + Cloudflare Workers
+# Cloudflare + Hetzner Deployment Blueprint
 
 ## Overview
-This document captures the recommended approach for running stateful services on a Talos-managed k3s cluster in Hetzner while serving the Next.js storefront from Cloudflare Workers using the OpenNext adapter.
+
+The OpticWorks sensing platform runs as a hybrid between a globally distributed frontend and a single, self-managed backend node. Cloudflare provides global reach for the marketing site and Worker BFF, while Hetzner hosts the stateful services that power telemetry, configuration, and observability.
+
+This document captures the reference implementation with Talos and k3s intentionally deferred. The current deployment relies on a single Hetzner server with Docker Compose to keep operations lightweight.
 
 ## Platform Split
-- **Cloudflare Workers** hosts the stateless Next.js application via OpenNext, keeping the web tier close to end users.
-- **Hetzner Cloud (HIL)** runs a six-node k3s cluster dedicated to stateful workloads and internal services.
 
-## Hetzner Cluster Topology
-- **Nodes**: Six shared vCPU instances split into:
-  - Three-node, tainted control plane.
-  - Three-node worker pool for workloads.
-- **Placement**: Separate placement groups for control-plane and worker nodes to maximize failure domain separation.
-- **Operating System**: Talos OS (preferred for immutable, API-driven ops). SUSE MicroOS is an alternative if SSH access is required.
+- **Cloudflare Pages** – Hosts the static Next.js marketing site (`pnpm run build` + `pnpm run deploy:pages`).
+- **Cloudflare Workers (BFF)** – Acts as the backend-for-frontend, proxying device telemetry, configuration updates, and OTA bundles.
+- **Hetzner Cloud server** – Runs MQTT, PostgreSQL, Grafana, and supporting services on a single instance.
 
-### Bootstrap Steps
-1. Provision Hetzner VLANs and IPv6 networking (IPv4 disabled).
-2. Create three Talos control-plane nodes, bootstrap k3s with `talosctl`.
-3. Join three worker nodes with taints/tolerations to keep stateful workloads off the control plane.
-4. Install:
-   - **Cilium** for IPv6 eBPF networking and NetworkPolicies.
-   - **Hetzner Cloud Controller Manager** for load balancers.
-   - **Hetzner CSI driver** for persistent volumes.
+## Hetzner Node Specification
 
-## Stateful Workloads
-| Service | Deployment Pattern | Notes |
-| --- | --- | --- |
-| **Postgres (Patroni)** | StatefulSet, 3 replicas | Use Hetzner CSI NVMe volumes. Attach `wal-g` sidecars to stream WAL to Backblaze B2. Expose via Patroni-managed VIP + headless Service. |
-| **NATS JetStream** | StatefulSet, 3 replicas | Configure anti-affinity, persistent volumes, and JetStream clustering with replication factor 3. |
-| **Redis for Medusa** | StatefulSet, 3 replicas | Enable Redis Sentinel/Cluster. Schedule RDB snapshots to B2 or Hetzner storage boxes. |
-| **Medusa V2 backend** | Deployment | Stateless pods consuming Postgres/NATS/Redis. Autoscale with KEDA on JetStream/Redis metrics. |
+- **Instance**: CPX31 (4 vCPU, 8 GB RAM, 160 GB SSD)
+- **Operating system**: Ubuntu 22.04 LTS
+- **Networking**: Public IPv4 + IPv6; WireGuard tunnel to Cloudflare Worker for secure traffic
+- **Provisioning**: Automated via `pnpm run deploy:hetzner` which installs Docker, docker-compose, and required services
 
-## Storage & Backups
-- **Block Storage**: Hetzner CSI volumes sized at 2× working set per replica.
-- **Snapshots**: CSI VolumeSnapshot classes with scheduled snapshots replicated to B2.
-- **Continuous Archiving**: `wal-g`/`pgbackrest` for Postgres; CronJobs for Redis dumps; JetStream backup scripts.
-- **Restore Procedures**: Document Talos-based node recovery and periodic restore drills in staging.
+### Services
 
-## Networking & Security
-- **Ingress**: Ingress-NGINX or Traefik with Let’s Encrypt (DNS challenge via Cloudflare API).
-- **Network Policies**: Enforce with Cilium to isolate databases and internal services.
-- **Secrets Management**: Leverage Talos + SOPS/age, or deploy External Secrets with Vault/1Password.
-- **Service Mesh (Optional)**: Linkerd/Istio for mTLS and traffic shaping between services.
+| Service | Purpose | Notes |
+| ------- | ------- | ----- |
+| PostgreSQL | Store configuration snapshots, telemetry, and audit logs | Daily `pg_dump` snapshots pushed to Backblaze B2 |
+| MQTT (Mosquitto) | Bidirectional messaging between Worker and devices | Enforce TLS and client certificates |
+| Grafana + Prometheus | Observability dashboards and metrics collection | Ships with default dashboards for presence decision latency |
+| Loki (optional) | Structured logs from Worker webhooks and device telemetry | Enabled via `.env` flag |
 
-## IPv6-Only, No-SSH Operations
-- Provision Hetzner instances without IPv4; each receives a /64 IPv6 range.
-- Talos omits SSH entirely; manage nodes via `talosctl` over a private management network or WireGuard tunnel.
-- Expose the Talos API only internally; drop public traffic using Talos firewall rules.
-- Use Cloudflare Tunnel (`cloudflared` DaemonSet) for secure ingress/egress so no public ports are opened.
+## Deployment Workflow
 
-## Observability & Operations
-- Deploy kube-prometheus-stack for metrics and alerts.
-- Centralize logs with Loki + Promtail or Vector, stored in B2/S3-compatible object storage.
-- Configure Alertmanager routing for operational channels and define SLOs (e.g., query latency, queue lag).
-- Use Talos machine configuration changes for rolling upgrades; honor PodDisruptionBudgets when draining nodes.
+1. **Provision Hetzner server**
+   - Create the instance via console or API.
+   - Add SSH key and note the public IP.
+2. **Bootstrap backend**
+   - Run `pnpm run deploy:hetzner` from the monorepo.
+   - Script installs Docker, applies security hardening (UFW, fail2ban), and launches the docker-compose stack.
+3. **Configure Cloudflare Worker**
+   - Populate secrets (`HETZNER_API_URL`, `MQTT_USERNAME`, etc.).
+   - Deploy with `pnpm run deploy:worker`.
+4. **Link Worker to backend**
+   - Worker uses fetch/WebSocket/MQTT clients to communicate with the Hetzner node over WireGuard.
+   - Durable Objects maintain per-device state and access tokens.
+5. **Deploy marketing site**
+   - `pnpm run build` + `pnpm run deploy:pages` to push to Cloudflare Pages.
 
-## GitOps Workflow
-- Store Talos machine configs and Kubernetes manifests in Git.
-- Reconcile cluster state with FluxCD or Argo CD over IPv6-only networking.
-- Build and deploy Cloudflare Workers via `wrangler`, passing secrets sourced from the same GitOps pipeline.
+## Operational Considerations
 
-## Disaster Recovery & Testing
-- Schedule quarterly restore tests for Postgres and Redis into a staging namespace.
-- Simulate node loss to validate JetStream replication and Talos auto-recovery.
-- Maintain runbooks for Talos node replacement and data service restores.
+- **Backups** – `pg_dump` and Prometheus snapshots stored in Backblaze B2; daily cron handles rotation.
+- **Monitoring** – Prometheus scrapes MQTT broker, Worker metrics endpoint, and system stats via node exporter.
+- **Security** – WireGuard between Worker and Hetzner, UFW restricting public ports to HTTPS/SSH. Fail2ban monitors SSH.
+- **Scaling** – When demand increases, migrate services to k3s/Talos using the future plan (see `migration-plan.md`).
 
-## Integration Summary
-This hybrid design keeps the storefront globally distributed on Cloudflare Workers while anchoring critical stateful services in a resilient, API-managed Talos k3s cluster on Hetzner—without exposing IPv4 or SSH attack surfaces.
+## Future Enhancements
+
+- Automate Hetzner provisioning with Terraform once multi-node support is required.
+- Introduce read replicas for PostgreSQL and split telemetry storage from configuration data.
+- Evaluate Workers Durable Objects storage for lightweight telemetry history to reduce backend load.
+
+## Reference Scripts
+
+- `pnpm run deploy:hetzner` – Bootstraps the Hetzner node
+- `pnpm run deploy:worker` – Deploys the Cloudflare Worker BFF
+- `pnpm run deploy:pages` – Publishes the marketing site to Cloudflare Pages

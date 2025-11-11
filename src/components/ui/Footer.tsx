@@ -1,245 +1,93 @@
-import {
-  RiGithubFill,
-  RiSlackFill,
-  RiTwitterXFill,
-  RiYoutubeFill,
-} from "@remixicon/react"
 import Link from "next/link"
+
 import { SolarLogo } from "../../../public/SolarLogo"
 import { siteConfig } from "@/app/siteConfig"
+
 const CURRENT_YEAR = new Date().getFullYear()
 
-const Footer = () => {
-  const sections = {
-    products: {
-      title: "Products",
-      items: [
-        { label: "CyberShade IRX", href: "/products/cybershade-irx-35" },
-        { label: "Tesla Model Y Kits", href: "/products/cybershade-irx-tesla-model-y" },
-        { label: "DIY Tinting Kits", href: siteConfig.baseLinks.store },
-        { label: "Professional Tools", href: siteConfig.baseLinks.store },
-        { label: "Accessories", href: siteConfig.baseLinks.store },
-        { label: "Replacement Parts", href: siteConfig.baseLinks.store },
-      ],
-    },
-    store: {
-      title: "Store",
-      items: [
-        { label: "Shop All Products", href: siteConfig.baseLinks.store },
-        { label: "New Arrivals", href: siteConfig.baseLinks.store },
-        { label: "Best Sellers", href: siteConfig.baseLinks.store },
-        { label: "Bundles & Deals", href: siteConfig.baseLinks.store },
-        { label: "Shopping Cart", href: siteConfig.baseLinks.cart },
-      ],
-    },
-    support: {
-      title: "Customer Support",
-      items: [
-        { label: "Contact Us", href: siteConfig.baseLinks.supportContact },
-        { label: "Order Status", href: siteConfig.baseLinks.supportOrders },
-        { label: "Payment & Billing", href: siteConfig.baseLinks.supportBilling },
-        { label: "Product Compatibility", href: siteConfig.baseLinks.supportCompatibility },
-        { label: "Returns & Exchanges", href: siteConfig.baseLinks.supportWarranty },
-        { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
-        { label: "Oops Protection", href: siteConfig.baseLinks.supportOops },
-      ],
-    },
-    guides: {
-      title: "Install Guides",
-      items: [
-        { label: "Installation Videos", href: siteConfig.baseLinks.installGuides },
-        { label: "Tesla Model Y Guide", href: "/install-guides/cybershade-irx-tesla-model-y" },
-        { label: "Step-by-Step Guide", href: siteConfig.baseLinks.installGuides },
-        { label: "Tips & Tricks", href: siteConfig.baseLinks.installGuides },
-        { label: "Common Mistakes", href: siteConfig.baseLinks.supportFaq },
-        { label: "Get Help", href: siteConfig.baseLinks.support },
-      ],
-    },
-    legal: {
-      title: "Legal & Compliance",
-      items: [
-        { label: "Tinting Laws", href: siteConfig.baseLinks.supportTintingLaws },
-        { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
-        { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
-        { label: "Legal Support", href: siteConfig.baseLinks.supportLegal },
-      ],
-    },
-  }
+const footerSections = [
+  {
+    title: "Product",
+    links: [
+      { label: "How it works", href: siteConfig.baseLinks.howItWorks },
+      { label: "Features", href: siteConfig.baseLinks.features },
+      { label: "Comparison", href: siteConfig.baseLinks.comparison },
+    ],
+  },
+  {
+    title: "Builders",
+    links: [
+      { label: "Getting started", href: siteConfig.baseLinks.gettingStarted },
+      { label: "Documentation", href: siteConfig.baseLinks.documentation },
+      { label: "Architecture", href: "/docs/architecture.md" },
+    ],
+  },
+  {
+    title: "Company",
+    links: [
+      { label: "About", href: siteConfig.baseLinks.about },
+      { label: "Community", href: siteConfig.baseLinks.community },
+      { label: "Email team@optic.works", href: "mailto:team@optic.works" },
+    ],
+  },
+]
 
+const socialLinks = [
+  { label: "Twitter", href: siteConfig.external.twitter },
+  { label: "GitHub", href: siteConfig.external.github },
+  { label: "YouTube", href: siteConfig.external.youtube },
+]
+
+export default function Footer() {
   return (
-    <div className="px-4 xl:px-0">
-      <footer
-        id="footer"
-        className="relative mx-auto flex max-w-6xl flex-wrap pt-4"
-      >
-        {/* Vertical Lines */}
-        <div className="pointer-events-none inset-0">
-          {/* Left */}
-          <div
-            className="absolute inset-y-0 my-[-5rem] w-px"
-            style={{
-              maskImage: "linear-gradient(transparent, white 5rem)",
-            }}
-          >
-            <svg className="h-full w-full" preserveAspectRatio="none">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                className="stroke-gray-300"
-                strokeWidth="2"
-                strokeDasharray="3 3"
-              />
-            </svg>
-          </div>
-
-          {/* Right */}
-          <div
-            className="absolute inset-y-0 right-0 my-[-5rem] w-px"
-            style={{
-              maskImage: "linear-gradient(transparent, white 5rem)",
-            }}
-          >
-            <svg className="h-full w-full" preserveAspectRatio="none">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                className="stroke-gray-300"
-                strokeWidth="2"
-                strokeDasharray="3 3"
-              />
-            </svg>
-          </div>
-        </div>
-        <svg
-          className="mb-10 h-20 w-full border-y border-dashed border-gray-300 stroke-gray-300"
-          // style={{
-          //   maskImage:
-          //     "linear-gradient(transparent, white 10rem, white calc(100% - 10rem), transparent)",
-          // }}
-        >
-          <defs>
-            <pattern
-              id="diagonal-footer-pattern"
-              patternUnits="userSpaceOnUse"
-              width="64"
-              height="64"
-            >
-              {Array.from({ length: 17 }, (_, i) => {
-                const offset = i * 8
-                return (
-                  <path
-                    key={i}
-                    d={`M${-106 + offset} 110L${22 + offset} -18`}
-                    stroke=""
-                    strokeWidth="1"
-                  />
-                )
-              })}
-            </pattern>
-          </defs>
-          <rect
-            stroke="none"
-            width="100%"
-            height="100%"
-            fill="url(#diagonal-footer-pattern)"
-          />
-        </svg>
-        <div className="mr-auto flex w-full justify-between lg:w-fit lg:flex-col">
-          <Link
-            href="/"
-            className="flex items-center font-medium text-gray-700 select-none sm:text-sm"
-          >
-            <SolarLogo className="ml-2 w-20" />
-
-            <span className="sr-only">OpticWorks Logo (go home)</span>
-          </Link>
-
-          <div className="flex flex-col space-y-3">
-            {/* Social Icons */}
-            <div className="flex items-center">
-              <Link
-                href="https://twitter.com/opticworks"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiTwitterXFill className="size-5" />
-              </Link>
-              <Link
-                href="https://youtube.com/@opticworks"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiYoutubeFill className="size-5" />
-              </Link>
-              <Link
-                href="https://github.com/opticworks"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiGithubFill className="size-5" />
-              </Link>
-              <Link
-                href={siteConfig.baseLinks.supportContact}
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiSlackFill className="size-5" />
-              </Link>
-            </div>
-            
-            {/* Copyright */}
-            <div className="ml-2 text-sm text-gray-700">
-              &copy; {CURRENT_YEAR} OpticWorks LLC
-            </div>
-            
-            {/* Legal Links */}
-            <div className="ml-2 text-xs text-gray-600">
-              <Link 
-                href={siteConfig.baseLinks.supportPrivacy}
-                className="hover:text-gray-900 transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <span className="mx-2">•</span>
-              <Link 
-                href={siteConfig.baseLinks.supportTerms}
-                className="hover:text-gray-900 transition-colors"
-              >
-                Terms of Service
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer Sections */}
-        {Object.entries(sections).map(([key, section]) => (
-          <div key={key} className="mt-10 min-w-44 pl-2 lg:mt-0 lg:pl-0">
-            <h3 className="mb-4 font-medium text-gray-900 sm:text-sm">
-              {section.title}
-            </h3>
-            <ul className="space-y-4">
-              {section.items.map((item) => (
-                <li key={item.label} className="text-sm">
-                  <Link
-                    href={item.href}
-                    className="text-gray-600 transition-colors duration-200 hover:text-gray-900"
-                  >
-                    {item.label}
-                  </Link>
-                </li>
+    <footer className="px-4 pb-12 pt-16 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-6xl rounded-[2.5rem] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-slate-100 p-10 shadow-[0_40px_140px_-80px_rgba(15,23,42,0.35)]">
+        <div className="flex flex-col gap-8 lg:flex-row lg:justify-between">
+          <div className="max-w-md space-y-4">
+            <Link href={siteConfig.baseLinks.home} className="inline-flex items-center gap-3 text-slate-900">
+              <SolarLogo className="w-20" />
+              <span className="text-sm font-semibold uppercase tracking-[0.3em]">OpticWorks Sensing</span>
+            </Link>
+            <p className="text-sm leading-relaxed text-slate-600">
+              OpticWorks builds privacy-first sensing hardware and software that understands presence with mmWave intelligence and transparent analytics.
+            </p>
+            <div className="flex items-center gap-4 text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+              {socialLinks.map((item) => (
+                <Link key={item.label} href={item.href} target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">
+                  {item.label}
+                </Link>
               ))}
-            </ul>
+            </div>
           </div>
-        ))}
-      </footer>
-    </div>
+          <div className="grid flex-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {footerSections.map((section) => (
+              <div key={section.title} className="space-y-4">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">{section.title}</h3>
+                <ul className="space-y-3 text-sm text-slate-600">
+                  {section.links.map((link) => (
+                    <li key={link.label}>
+                      <Link href={link.href} className="hover:text-slate-900">
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-12 flex flex-col gap-3 border-t border-slate-200 pt-6 text-xs uppercase tracking-[0.3em] text-slate-500 sm:flex-row sm:items-center sm:justify-between">
+          <span>&copy; {CURRENT_YEAR} OpticWorks. All rights reserved.</span>
+          <div className="flex gap-4">
+            <Link href="/docs/INFRASTRUCTURE_HETZNER_CF.md" className="hover:text-slate-900">
+              Infrastructure runbook
+            </Link>
+            <Link href="/docs/STATE_MANAGEMENT.md" className="hover:text-slate-900">
+              State management
+            </Link>
+          </div>
+        </div>
+      </div>
+    </footer>
   )
 }
-
-export default Footer

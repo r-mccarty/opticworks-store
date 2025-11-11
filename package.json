@@ -1,6 +1,7 @@
 {
-  "name": "template-solar",
-  "version": "0.1.0",
+  "name": "opticworks-sensing",
+  "version": "0.2.0",
+  "description": "OpticWorks smart home sensing platform marketing site and deployment tooling",
   "private": true,
   "scripts": {
     "dev": "next dev",

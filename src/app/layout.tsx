@@ -87,17 +87,23 @@ const featureCondensedFont = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yoururl.com"),
+  metadataBase: new URL(siteConfig.url),
   title: siteConfig.name,
   description: siteConfig.description,
-  keywords: ["Marketing", "Database", "Software"],
+  keywords: [
+    "presence detection",
+    "mmwave",
+    "home assistant",
+    "smart home sensor",
+    "opticworks",
+  ],
   authors: [
     {
-      name: "yourname",
-      url: "",
+      name: "OpticWorks",
+      url: siteConfig.url,
     },
   ],
-  creator: "yourname",
+  creator: "OpticWorks",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -110,7 +116,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    creator: "@yourname",
+    creator: "@opticworks",
   },
   icons: {
     icon: "/favicon.ico",

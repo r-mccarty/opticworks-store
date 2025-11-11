@@ -1,33 +1,21 @@
-import { CallToAction } from "@/components/ui/CallToAction"
-import FeatureDivider from "@/components/ui/FeatureDivider"
-import Features from "@/components/ui/Features"
-import { Hero } from "@/components/ui/Hero"
-import { Map } from "@/components/ui/Map/Map"
-import { SolarAnalytics } from "@/components/ui/SolarAnalytics"
-import Testimonial from "@/components/ui/Testimonial"
+import { CallToActionSection } from "@/components/home/CallToActionSection"
+import { FeatureHighlights } from "@/components/home/FeatureHighlights"
+import { HomeHero } from "@/components/home/Hero"
+import { InsightSection } from "@/components/home/InsightSection"
+import { ProblemSolution } from "@/components/home/ProblemSolution"
+import { TechnologySection } from "@/components/home/TechnologySection"
+import { WorkflowSection } from "@/components/home/WorkflowSection"
 
 export default function Home() {
   return (
-    <main className="relative mx-auto flex flex-col">
-      <Hero />
-      <div className="mt-52 px-4 xl:px-0">
-        <Features />
-      </div>
-      <div className="mt-32 px-4 xl:px-0">
-        <Testimonial />
-      </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="px-4 xl:px-0">
-        <Map />
-      </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-12 mb-40 px-4 xl:px-0">
-        <SolarAnalytics />
-      </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-10 mb-40 px-4 xl:px-0">
-        <CallToAction />
-      </div>
+    <main className="relative mx-auto flex flex-col gap-12 px-4 pb-24 pt-28 sm:px-6 lg:px-8">
+      <HomeHero />
+      <ProblemSolution />
+      <TechnologySection />
+      <FeatureHighlights />
+      <InsightSection />
+      <WorkflowSection />
+      <CallToActionSection />
     </main>
   )
 }
