@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter @opticworks/storefront dev",
     "dev:all": "pnpm --parallel --filter \"./apps/*\" dev",
-    "build": "pnpm --recursive --filter \"./apps/*\" build",
+    "build": "pnpm --recursive --filter \"./apps/*\" build && node ./scripts/sync-next-dist.mjs",
     "build:storefront": "pnpm --filter @opticworks/storefront build",
     "build:docs": "cd apps/docs && hugo",
     "lint": "pnpm --recursive --filter \"./apps/*\" --filter \"./packages/*\" lint",
