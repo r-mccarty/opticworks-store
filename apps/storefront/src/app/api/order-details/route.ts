@@ -9,12 +9,21 @@ interface OrderData {
   total: number;
 }
 
-// Initialize Stripe with the secret key from environment variables.
-// The exclamation mark (!) asserts that the environment variable is non-null.
-// This is safe because the server should not start if the key is missing.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  typescript: true,
-});
+const stripeApiKey = process.env.STRIPE_SECRET_KEY;
+
+const stripe = stripeApiKey
+  ? new Stripe(stripeApiKey, {
+      apiVersion: '2025-08-27.basil',
+      typescript: true,
+    })
+  : null;
+
+const mockOrderData: OrderData = {
+  orderId: 'mock_order_123',
+  customerName: 'OpticWorks Test Customer',
+  customerEmail: 'customer@example.com',
+  total: 299.99,
+};
 
 export async function GET(request: NextRequest) {
   // Extract the 'payment_intent' ID from the request's URL search parameters.
@@ -26,6 +35,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { error: 'Bad Request: The "payment_intent" query parameter is required.' },
       { status: 400 }
+    );
+  }
+
+  if (!stripe) {
+    console.warn(
+      'STRIPE_SECRET_KEY is not configured. Returning mock order details for build/test environments.'
+    );
+
+    return NextResponse.json(
+      {
+        ...mockOrderData,
+        orderId: `mock_${paymentIntentId}`,
+      },
+      {
+        status: 200,
+        headers: {
+          'X-Stripe-Mock-Data': 'true',
+        },
+      }
     );
   }
 

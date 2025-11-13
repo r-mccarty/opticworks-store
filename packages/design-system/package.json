@@ -11,7 +11,8 @@
     "./components/ui": "./src/components/ui/index.ts",
     "./components/custom": "./src/components/custom/index.ts",
     "./utils": "./src/utils/index.ts",
-    "./tailwind": "./src/tailwind/preset.ts"
+    "./tailwind": "./src/tailwind/preset.ts",
+    "./styles/tokens.css": "./src/styles/tokens.css"
   },
   "scripts": {
     "lint": "tsc --noEmit",

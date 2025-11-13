@@ -89,7 +89,7 @@ function FAQContent() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search frequently asked questions..."
-                className="block w-full rounded-lg border-gray-300 bg-white py-3 pl-10 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-600 focus:ring-blue-600"
+                className="block w-full rounded-lg border-border bg-white py-3 pl-10 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-primary focus:ring-primary"
               />
               {searchQuery && (
                 <button
@@ -159,8 +159,8 @@ function FAQContent() {
                   open={openItems.includes(faq.id)}
                   onOpenChange={() => toggleItem(faq.id)}
                 >
-                  <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between p-6 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset">
+                  <div className="rounded-lg border border-border bg-white shadow-sm">
+                    <CollapsibleTrigger className="flex w-full items-center justify-between p-6 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset">
                       <span className="font-medium text-gray-900 pr-4">
                         {faq.question}
                       </span>
@@ -188,7 +188,7 @@ function FAQContent() {
                               <Badge
                                 key={tag}
                                 variant="secondary"
-                                className="text-xs cursor-pointer hover:bg-blue-100"
+                                className="text-xs cursor-pointer hover:bg-info-light"
                                 onClick={() => setSearchQuery(tag)}
                               >
                                 {tag}
@@ -207,7 +207,7 @@ function FAQContent() {
 
         {/* Still Need Help Section */}
         <FadeDiv>
-          <div className="mt-16 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-100 p-8 text-center">
+          <div className="mt-16 rounded-2xl bg-gradient-to-r from-primary-light to-brand-modal-100 p-8 text-center">
             <h3 className="text-xl font-semibold text-gray-900">
               Didn&apos;t find what you&apos;re looking for?
             </h3>
@@ -215,7 +215,7 @@ function FAQContent() {
               Our support team is ready to help with any specific questions
             </p>
             <div className="mt-6">
-              <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <Button asChild className="bg-primary hover:bg-primary-dark">
                 <a href="/support/contact">
                   Contact Support
                 </a>

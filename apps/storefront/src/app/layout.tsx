@@ -8,6 +8,7 @@ import { MenuBar } from "@/components/menu-bar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "./siteConfig"
 import { GoogleAnalytics } from "@/components/GoogleAnalytics"
+import { cx } from "@/lib/utils"
 
 // Define Barlow font
 const barlowFont = localFont({
@@ -123,8 +124,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+    <html
+      lang="en"
+      className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`}
+      suppressHydrationWarning
+    >
+      <body
+        className={cx(
+          "min-h-screen overflow-x-hidden scroll-auto bg-background text-foreground",
+          "antialiased",
+        )}
+      >
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />

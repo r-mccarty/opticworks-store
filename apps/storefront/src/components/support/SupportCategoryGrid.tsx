@@ -20,7 +20,7 @@ const supportCategories = [
     description: "Step-by-step instructions, troubleshooting, and installation tips",
     icon: RiToolsLine,
     href: siteConfig.baseLinks.installGuides,
-    color: "bg-blue-50 text-blue-600",
+    color: "bg-info-light text-info-dark",
     popular: true
   },
   {
@@ -28,21 +28,21 @@ const supportCategories = [
     description: "Track your order, shipping info, and delivery questions",
     icon: RiShoppingBag3Line,
     href: siteConfig.baseLinks.supportOrders,
-    color: "bg-green-50 text-green-600"
+    color: "bg-success-light text-success"
   },
   {
     title: "Returns & Warranty Claims",
     description: "Process returns, warranty claims, and product defects",
     icon: RiRefreshLine,
     href: siteConfig.baseLinks.supportWarranty,
-    color: "bg-orange-50 text-orange-600"
+    color: "bg-warning-light text-warning-dark"
   },
   {
     title: "Oops Protection",
     description: "Damaged film during install? Get a replacement for just shipping cost",
     icon: RiRefreshLine,
     href: siteConfig.baseLinks.supportOops,
-    color: "bg-emerald-50 text-emerald-600",
+    color: "bg-success-light text-success",
     popular: true
   },
   {
@@ -50,21 +50,21 @@ const supportCategories = [
     description: "Payment issues, billing questions, and refund requests",
     icon: RiBankCardLine,
     href: siteConfig.baseLinks.supportBilling,
-    color: "bg-purple-50 text-purple-600"
+    color: "bg-brand-modal-100 text-brand-modal-700"
   },
   {
     title: "Product Compatibility",
     description: "Check if our kits work with your vehicle make and model",
     icon: RiCarLine,
     href: siteConfig.baseLinks.supportCompatibility,
-    color: "bg-indigo-50 text-indigo-600"
+    color: "bg-info-light text-info-dark"
   },
   {
     title: "Frequently Asked Questions",
     description: "Quick answers to the most common questions",
     icon: RiQuestionLine,
     href: siteConfig.baseLinks.supportFaq,
-    color: "bg-yellow-50 text-yellow-600",
+    color: "bg-warning-light text-warning",
     popular: true
   },
   {
@@ -97,13 +97,13 @@ export function SupportCategoryGrid() {
               <div className="group relative">
                 {category.popular && (
                   <div className="absolute -top-3 -right-3 z-10">
-                    <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-800">
+                    <span className="inline-flex items-center rounded-full bg-warning-light px-2.5 py-1 text-xs font-medium text-warning-dark">
                       Popular
                     </span>
                   </div>
                 )}
-                
-                <div className="relative rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200 hover:shadow-lg hover:ring-gray-300 transition-all duration-200 h-full flex flex-col">
+
+                <div className="relative flex h-full flex-col rounded-2xl bg-white p-8 shadow-sm ring-1 ring-border transition-all duration-200 hover:shadow-lg hover:ring-border">
                   <div>
                     <span className={`inline-flex rounded-lg p-3 ${category.color}`}>
                       <category.icon className="h-6 w-6" />
@@ -120,10 +120,10 @@ export function SupportCategoryGrid() {
                   </div>
                   
                   <div className="mt-6">
-                    <Button 
-                      asChild 
-                      variant="outline" 
-                      className="w-full group-hover:bg-orange-50 group-hover:border-orange-300 group-hover:text-orange-700 transition-colors"
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full border-border text-foreground transition-colors group-hover:border-warning group-hover:bg-warning-light group-hover:text-warning-dark"
                     >
                       <Link href={category.href}>
                         Get Help
