@@ -157,7 +157,7 @@ export default function NotFound() {
             Page Not Found
           </h1>
           <p className="text-lg md:text-xl text-neutral-400 max-w-2xl mx-auto">
-            The page you're looking for has been moved, deleted, or doesn't exist.
+            The page you&rsquo;re looking for has been moved, deleted, or doesn&rsquo;t exist.
             It might be in a superposition of states until you observe it somewhere else.
           </p>
         </div>
@@ -200,7 +200,7 @@ export default function NotFound() {
         {/* Easter egg hint */}
         <div className="mt-8 text-center">
           <p className="font-mono text-xs text-neutral-600">
-            // Inspired by Oxide Computer bitmask aesthetics
+            {'//'} Inspired by Oxide Computer bitmask aesthetics
           </p>
         </div>
       </div>

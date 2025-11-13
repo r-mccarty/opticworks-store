@@ -161,8 +161,9 @@ export const grid = {
 
 // Grid overlay component configuration
 export const gridOverlayConfig = {
-  // Should overlay be visible?
-  enabled: process.env.NODE_ENV === 'development',
+  // Should overlay be visible? (configure in consuming app)
+  // Example: enabled: process.env.NODE_ENV === 'development'
+  enabled: false,
 
   // Toggle key (keyboard shortcut)
   toggleKey: 'g',

@@ -328,5 +328,5 @@ export function convertToStripeAddress(address: ValidatedAddress): {
   };
 }
 
-// Export EasyPost client for advanced usage
-export { easypost };
+// Note: EasyPost client not exported to avoid build-time initialization
+// Use getEasyPostClient() function instead
