@@ -695,6 +695,16 @@ cd packages/design-system
 pnpm run typecheck
 ```
 
+### Storefront API Routes
+
+**Problem**: `next build` fails because Stripe credentials are unavailable
+```bash
+# Solution: API routes now fall back to mock Stripe order data when
+# STRIPE_SECRET_KEY is not configured. The build will succeed with
+# placeholder responses so long as the environment variable is defined
+# in production deployments.
+```
+
 ### Hugo Issues
 
 **Problem**: Theme not found

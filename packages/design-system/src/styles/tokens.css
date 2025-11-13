@@ -1,0 +1,62 @@
+@layer base {
+  :root {
+    --color-brand-lime-50: #f7fee7;
+    --color-brand-lime-100: #ecfccb;
+    --color-brand-lime-200: #d9f99d;
+    --color-brand-lime-300: #bef264;
+    --color-brand-lime-400: #a3e635;
+    --color-brand-lime-500: #84cc16;
+    --color-brand-lime-600: #65a30d;
+    --color-brand-lime-700: #4d7c0f;
+    --color-brand-lime-800: #3f6212;
+    --color-brand-lime-900: #365314;
+    --color-brand-modal-50: #ecfdf5;
+    --color-brand-modal-100: #d1fae5;
+    --color-brand-modal-200: #a7f3d0;
+    --color-brand-modal-300: #6ee7b7;
+    --color-brand-modal-400: #34d399;
+    --color-brand-modal-500: #10b981;
+    --color-brand-modal-600: #059669;
+    --color-brand-modal-700: #047857;
+    --color-brand-modal-800: #065f46;
+    --color-brand-modal-900: #064e3b;
+    --color-primary: #a3e635;
+    --color-primary-foreground: #171717;
+    --color-secondary: #34d399;
+    --color-secondary-foreground: #171717;
+    --color-background: #ffffff;
+    --color-background-secondary: #fafafa;
+    --color-background-tertiary: #f5f5f5;
+    --color-foreground: #171717;
+    --color-foreground-secondary: #525252;
+    --color-foreground-muted: #a3a3a3;
+    --color-border: #e5e5e5;
+    --color-border-secondary: #d4d4d4;
+    --color-card: #ffffff;
+    --color-card-hover: #fafafa;
+    --color-info: #3b82f6;
+    --color-info-foreground: #ffffff;
+    --color-success: #10b981;
+    --color-success-foreground: #ffffff;
+    --color-warning: #f59e0b;
+    --color-warning-foreground: #ffffff;
+    --color-error: #ef4444;
+    --color-error-foreground: #ffffff;
+    --grid-line-color: rgba(163, 230, 53, 0.1);
+    --grid-intersection-color: rgba(163, 230, 53, 0.2);
+    --grid-baseline-color: rgba(163, 230, 53, 0.15);
+  }
+
+  .dark {
+    --color-background: #0a0a0a;
+    --color-background-secondary: #171717;
+    --color-background-tertiary: #262626;
+    --color-foreground: #ffffff;
+    --color-foreground-secondary: #e5e5e5;
+    --color-foreground-muted: #a3a3a3;
+    --color-border: #262626;
+    --color-border-secondary: #404040;
+    --color-card: #171717;
+    --color-card-hover: #262626;
+  }
+}
