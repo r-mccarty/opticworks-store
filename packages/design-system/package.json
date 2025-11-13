@@ -1,0 +1,38 @@
+{
+  "name": "@opticworks/design-system",
+  "version": "2.0.0",
+  "description": "Token-based design system for OpticWorks platform",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./tokens": "./src/tokens/index.ts",
+    "./tokens/*": "./src/tokens/*.ts",
+    "./components/ui": "./src/components/ui/index.ts",
+    "./components/custom": "./src/components/custom/index.ts",
+    "./utils": "./src/utils/index.ts",
+    "./tailwind": "./src/tailwind/preset.ts"
+  },
+  "scripts": {
+    "lint": "tsc --noEmit",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.3",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.6.0",
+    "tailwind-variants": "^0.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "4.1.12",
+    "@types/react": "^19.1.11",
+    "@types/react-dom": "^19.1.7",
+    "tailwindcss": "4.1.12",
+    "typescript": "^5.9.2"
+  },
+  "peerDependencies": {
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  }
+}
