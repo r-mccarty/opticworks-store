@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss'
-import { preset } from '@opticworks/design-system/tailwind'
+import { preset } from '../../packages/design-system/src/tailwind/preset'
 
 const config = {
   presets: [preset],

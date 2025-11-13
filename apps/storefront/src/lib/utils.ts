@@ -1,4 +1,12 @@
-export { cx, cn } from "@opticworks/design-system/utils"
+import clsx, { type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cx(...inputs: ClassValue[]) {
+  return twMerge(clsx(...inputs))
+}
+
+// Shadcn alias for cx function
+export const cn = cx
 
 // Tremor Raw focusInput [v0.0.1]
 

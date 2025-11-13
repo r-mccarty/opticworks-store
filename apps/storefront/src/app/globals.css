@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@opticworks/design-system/styles/tokens.css";
+@import "../../../../packages/design-system/src/styles/tokens.css";
 
 @layer base {
   :root {
