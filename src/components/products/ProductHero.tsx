@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Product } from "@/lib/products"
+import { Product, type ProductVariant } from "@/lib/products"
 import { FadeDiv } from "@/components/Fade"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -14,8 +14,8 @@ import Link from "next/link"
 
 interface ProductHeroProps {
   product: Product
-  selectedVariant?: { id: string; name: string; price: number; vlt: string; description: string } | null
-  onVariantChange?: (variant: { id: string; name: string; price: number; vlt: string; description: string }) => void
+  selectedVariant?: ProductVariant | null
+  onVariantChange?: (variant: ProductVariant) => void
 }
 
 export function ProductHero({ product, selectedVariant, onVariantChange }: ProductHeroProps) {
@@ -25,16 +25,14 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
   const handleAddToCart = async () => {
     setIsAddingToCart(true)
     // Add the main product or selected variant
-    const productToAdd = selectedVariant ? {
-      ...product,
-      id: selectedVariant.id,
-      name: `${product.name} - ${selectedVariant.name}`,
-      price: selectedVariant.price,
-      specifications: {
-        ...product.specifications,
-        vlt: selectedVariant.vlt
-      }
-    } : product
+    const productToAdd = selectedVariant
+      ? {
+          ...product,
+          id: selectedVariant.id,
+          name: `${product.name} - ${selectedVariant.name}`,
+          price: selectedVariant.price,
+        }
+      : product
     
     addToCart(productToAdd)
     
@@ -77,96 +75,61 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
 
           {/* Product Details */}
           <FadeDiv>
-            {/* Reviews */}
             {product.reviews && (
-              <div className="flex items-center gap-2 mb-4">
+              <div className="mb-4 flex items-center gap-2">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <StarIcon
                       key={i}
-                      className={`w-5 h-5 ${
+                      className={`h-5 w-5 ${
                         i < Math.floor(product.reviews!.rating)
-                          ? 'text-yellow-400'
-                          : 'text-gray-300'
+                          ? "text-yellow-400"
+                          : "text-gray-300"
                       }`}
                     />
                   ))}
                 </div>
                 <span className="text-sm font-medium">
-                  ({product.reviews.rating}/5)
+                  ({product.reviews.rating.toFixed(2)}/5)
                 </span>
-                <span className="text-sm text-gray-500">
-                  | {product.reviews.count} Reviews
-                </span>
-                <span className="text-sm text-gray-500">
-                  | &ldquo;As seen on Tesla Motors Club&rdquo;
-                </span>
+                <span className="text-sm text-gray-500">| {product.reviews.count} reviews</span>
               </div>
             )}
 
-            {/* Product Title */}
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
+            <h1 className="mb-4 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
               {product.name}
             </h1>
 
-            {/* Headlines for CyberShade IRX */}
-            {product.id === 'cybershade-irx-tesla-model-y' && (
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">
-                  Professional Tint. Foolproof DIY.
+            {product.heroIntro ? (
+              <div className="mb-6 space-y-2">
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  {product.heroIntro.headline}
                 </h2>
-                <p className="text-lg text-gray-600">
-                  Get a flawless, heat-blocking ceramic tint on your Model Y in under an hour. 
-                  Our all-in-one kit with precision pre-cut film and revolutionary installation 
-                  tools makes it effortless.
-                </p>
+                <p className="text-lg text-gray-600">{product.heroIntro.subheading}</p>
               </div>
+            ) : (
+              <p className="mb-6 text-lg text-gray-600">{product.description}</p>
             )}
 
-            {/* Regular product description */}
-            {product.id !== 'cybershade-irx-tesla-model-y' && (
-              <p className="text-lg text-gray-600 mb-6">{product.description}</p>
-            )}
-
-            {/* Key Benefits for CyberShade IRX */}
-            {product.id === 'cybershade-irx-tesla-model-y' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                <div className="flex items-start gap-3">
-                  <CheckCircleIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Perfect Fit, Guaranteed</h3>
-                    <p className="text-sm text-gray-600">Precision-cut and pre-shrunk for the 2025+ Model Y front windows.</p>
+            {product.keyBenefits && (
+              <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {product.keyBenefits.map((benefit) => (
+                  <div key={benefit.title} className="flex items-start gap-3">
+                    <CheckCircleIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-green-500" />
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{benefit.title}</h3>
+                      <p className="text-sm text-gray-600">{benefit.description}</p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircleIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Superior Heat Rejection</h3>
-                    <p className="text-sm text-gray-600">Advanced ceramic film blocks up to 99% of infrared rays, keeping your cabin cool.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircleIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">The Easiest Install Ever</h3>
-                    <p className="text-sm text-gray-600">Our complete kit with unique tools eliminates the guesswork and mess.</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-3">
-                  <CheckCircleIcon className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <h3 className="font-semibold text-gray-900">Save Hundreds vs. Pro Shops</h3>
-                    <p className="text-sm text-gray-600">Achieve a professional finish without the professional price tag.</p>
-                  </div>
-                </div>
+                ))}
               </div>
             )}
 
             {/* Variant Selector */}
             {product.variants && onVariantChange && (
               <div className="mb-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Choose Your VLT (Visual Light Transmission):
+                <h3 className="mb-3 text-lg font-semibold text-gray-900">
+                  Choose your configuration:
                 </h3>
                 <div className="grid grid-cols-1 gap-3">
                   {product.variants.map((variant) => (
@@ -174,8 +137,8 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
                       key={variant.id}
                       className={`cursor-pointer border-2 transition-colors ${
                         selectedVariant?.id === variant.id
-                          ? 'border-orange-500 bg-orange-50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? "border-orange-500 bg-orange-50"
+                          : "border-gray-200 hover:border-gray-300"
                       }`}
                       onClick={() => onVariantChange(variant)}
                     >
@@ -189,9 +152,9 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
                             <div className="text-lg font-semibold text-gray-900">
                               ${variant.price}
                             </div>
-                            {variant.id === 'cybershade-irx-tesla-35' && (
+                            {variant.badge && (
                               <Badge className="bg-green-100 text-green-800 text-xs">
-                                Recommended
+                                {variant.badge}
                               </Badge>
                             )}
                           </div>

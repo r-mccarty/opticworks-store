@@ -1,7 +1,8 @@
 export const siteConfig = {
-  name: "OpticWorks Window Tinting",
+  name: "OpticWorks Presence Lab",
   url: "https://opticworks.com",
-  description: "Professional-grade DIY window tinting kits and installation solutions. Transform your vehicle with precision-cut ceramic films and foolproof installation tools.",
+  description:
+    "Bed Presence Sensor kits for Home Assistant power users. Local mmWave hardware, statistical presence engine, and transparent tuning tools for reliable automations.",
   baseLinks: {
     home: "/",
     store: "/store",

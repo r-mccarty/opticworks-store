@@ -20,8 +20,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
     product.variants ? product.variants[0] : null
   )
 
-  // Special handling for CyberShade IRX Tesla Model Y Kit
-  const isCyberShadeKit = product.id === 'cybershade-irx-tesla-model-y'
+  const isFlagshipBedSensor = product.id === "bed-presence-sensor-kit"
 
   return (
     <main className="relative">
@@ -33,8 +32,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           onVariantChange={setSelectedVariant}
         />
 
-        {/* CyberShade IRX specific sections */}
-        {isCyberShadeKit && (
+        {isFlagshipBedSensor && (
           <>
             <ProblemSolution />
             <InstallProcess />
@@ -48,8 +46,7 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
           </>
         )}
 
-        {/* Generic product sections for other products */}
-        {!isCyberShadeKit && (
+        {!isFlagshipBedSensor && (
           <div className="px-6 pb-16 lg:px-8">
             <div className="mx-auto max-w-4xl">
               <FadeDiv className="mt-16">
@@ -58,18 +55,18 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
                   <p className="text-gray-600">{product.description}</p>
                   
                   <h3>Specifications</h3>
-                  <div className="not-prose grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                    {Object.entries(product.specifications).map(([key, value]) => {
-                      if (!value) return null
-                      return (
-                        <div key={key} className="flex justify-between border-b border-gray-200 py-2">
-                          <span className="font-medium text-gray-900 capitalize">
-                            {key.replace(/([A-Z])/g, ' $1').trim()}:
-                          </span>
-                          <span className="text-gray-600">{value}</span>
-                        </div>
-                      )
-                    })}
+                  <div className="not-prose grid grid-cols-1 gap-4 md:grid-cols-2 mb-8">
+                    {product.specifications.map((item) => (
+                      <div
+                        key={item.label}
+                        className="flex justify-between border-b border-gray-200 py-2"
+                      >
+                        <span className="font-medium text-gray-900">
+                          {item.label}
+                        </span>
+                        <span className="text-gray-600 text-right">{item.value}</span>
+                      </div>
+                    ))}
                   </div>
                   
                   {product.installGuide && (

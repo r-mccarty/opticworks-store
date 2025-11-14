@@ -4,41 +4,41 @@ import { Badge } from "@/components/ui/badge"
 
 const comparisonData = [
   {
-    feature: "Heat Rejection",
-    cheapFilm: { value: "Low (~20%)", status: "poor" },
-    cyberShade: { value: "Excellent (Up to 99% IR)", status: "excellent" },
-    proShop: { value: "Excellent", status: "excellent" }
+    feature: "Stillness detection",
+    pir: { value: "None", status: "poor" },
+    cheapMmwave: { value: "Inconsistent", status: "neutral" },
+    bedSensor: { value: "Absolute Clear Delay", status: "excellent" },
   },
   {
-    feature: "Ease of Install",
-    cheapFilm: { value: "Very Hard", status: "poor" },
-    cyberShade: { value: "Foolproof (Pre-cut)", status: "excellent" },
-    proShop: { value: "Pro Install Only", status: "neutral" }
+    feature: "False positives",
+    pir: { value: "Fans & cats", status: "poor" },
+    cheapMmwave: { value: "Pet + HVAC noise", status: "poor" },
+    bedSensor: { value: "Still-energy focus", status: "excellent" },
   },
   {
-    feature: "Clarity",
-    cheapFilm: { value: "Fair", status: "poor" },
-    cyberShade: { value: "Pristine", status: "excellent" },
-    proShop: { value: "Pristine", status: "excellent" }
+    feature: "Transparency",
+    pir: { value: "Black box", status: "poor" },
+    cheapMmwave: { value: "Serial-only debug", status: "neutral" },
+    bedSensor: { value: "HA debug text sensor", status: "excellent" },
   },
   {
-    feature: "Longevity",
-    cheapFilm: { value: "1-2 Years (fades/bubbles)", status: "poor" },
-    cyberShade: { value: "Lifetime", status: "excellent" },
-    proShop: { value: "Lifetime", status: "excellent" }
+    feature: "Tuning controls",
+    pir: { value: "None", status: "poor" },
+    cheapMmwave: { value: "Firmware hacking", status: "neutral" },
+    bedSensor: { value: "Live sliders + z-scores", status: "excellent" },
   },
   {
-    feature: "Cost",
-    cheapFilm: { value: "~$40", status: "good" },
-    cyberShade: { value: "~$150", status: "good" },
-    proShop: { value: "$500+", status: "poor" }
+    feature: "Install time",
+    pir: { value: "5 min", status: "good" },
+    cheapMmwave: { value: "Hours", status: "poor" },
+    bedSensor: { value: "15 min guided", status: "excellent" },
   },
   {
-    feature: "Tools Included",
-    cheapFilm: { value: "None / Basic", status: "poor" },
-    cyberShade: { value: "Complete Pro Kit", status: "excellent" },
-    proShop: { value: "N/A", status: "neutral" }
-  }
+    feature: "Privacy",
+    pir: { value: "OK", status: "neutral" },
+    cheapMmwave: { value: "Unknown firmware", status: "neutral" },
+    bedSensor: { value: "Local + cloud-free", status: "excellent" },
+  },
 ]
 
 const statusStyles = {
@@ -56,14 +56,12 @@ export function TechnologyComparison() {
           <FadeDiv>
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Not All Tint is Created Equal. Meet CyberShade IRX™.
+                Not all presence sensors understand a bedroom.
               </h2>
               <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                CyberShade IRX isn&apos;t just for looks. It&apos;s an advanced, multi-layer ceramic film 
-                engineered for maximum performance. While standard films only block UV light, 
-                our IRX technology targets and rejects infrared heat&mdash;the kind you can actually feel. 
-                The result? A significantly cooler cabin, reduced glare, and protection for your 
-                interior, all with pristine optical clarity.
+                PIR sensors need motion. Cheap mmWave boards flap with every fan. The Bed Presence
+                Sensor was engineered around still-energy reflections, hysteresis, and transparent
+                tuning so Home Assistant automations stay calm.
               </p>
             </div>
 
@@ -81,14 +79,13 @@ export function TechnologyComparison() {
                           Feature
                         </th>
                         <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
-                          Cheap Dyed Film
+                          PIR Motion Sensors
                         </th>
                         <th className="px-6 py-4 text-center text-sm font-semibold text-orange-600 bg-orange-50">
-                          CyberShade IRX Ceramic
+                          Bed Presence Sensor
                         </th>
                         <th className="px-6 py-4 text-center text-sm font-semibold text-gray-900">
-                          Pro-Shop Ceramic<br />
-                          <span className="font-normal text-xs">(3M/XPEL)</span>
+                          Cheap mmWave Dev Boards
                         </th>
                       </tr>
                     </thead>
@@ -99,18 +96,18 @@ export function TechnologyComparison() {
                             {row.feature}
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <Badge className={statusStyles[row.cheapFilm.status as keyof typeof statusStyles]}>
-                              {row.cheapFilm.value}
+                            <Badge className={statusStyles[row.pir.status as keyof typeof statusStyles]}>
+                              {row.pir.value}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-center bg-orange-50/50">
-                            <Badge className={statusStyles[row.cyberShade.status as keyof typeof statusStyles]}>
-                              {row.cyberShade.value}
+                            <Badge className={statusStyles[row.bedSensor.status as keyof typeof statusStyles]}>
+                              {row.bedSensor.value}
                             </Badge>
                           </td>
                           <td className="px-6 py-4 text-center">
-                            <Badge className={statusStyles[row.proShop.status as keyof typeof statusStyles]}>
-                              {row.proShop.value}
+                            <Badge className={statusStyles[row.cheapMmwave.status as keyof typeof statusStyles]}>
+                              {row.cheapMmwave.value}
                             </Badge>
                           </td>
                         </tr>
@@ -130,10 +127,10 @@ export function TechnologyComparison() {
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Ceramic Technology</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Still-energy analysis</h3>
                   <p className="text-sm text-gray-600">
-                    Multi-layer ceramic construction blocks heat without interfering 
-                    with electronics or signals.
+                    We focus on energy that barely moves—exactly what a sleeping human looks like
+                    to mmWave—so ceiling fans and hallway traffic stay invisible.
                   </p>
                 </CardContent>
               </Card>
@@ -145,10 +142,10 @@ export function TechnologyComparison() {
                       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">IR Heat Rejection</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Temporal filtering</h3>
                   <p className="text-sm text-gray-600">
-                    Specifically targets infrared radiation - the heat you actually 
-                    feel - for maximum cooling performance.
+                    Configurable debounce timers (3s ON / 5s OFF) stop flapping sensors in their
+                    tracks without adding lag to your automations.
                   </p>
                 </CardContent>
               </Card>
@@ -160,10 +157,10 @@ export function TechnologyComparison() {
                       <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
                     </svg>
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Optical Clarity</h3>
+                  <h3 className="font-semibold text-gray-900 mb-2">Transparent by design</h3>
                   <p className="text-sm text-gray-600">
-                    Crystal-clear visibility with no haze, distortion, or color 
-                    shift - just like looking through premium glass.
+                    Debug text sensors log every state transition, z-score, and Absolute Clear Delay so
+                    you always know why the binary sensor changed.
                   </p>
                 </CardContent>
               </Card>

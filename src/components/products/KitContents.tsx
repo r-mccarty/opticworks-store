@@ -2,41 +2,47 @@ import { FadeDiv } from "@/components/Fade"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircleIcon } from "@heroicons/react/24/solid"
 import Image from "next/image"
+import { generateGradientDataUrl } from "@/lib/gradients"
 
 const kitItems = [
-  "2x Pre-cut, Pre-shrunk CyberShade IRX Front Window Films",
-  "1x 3D-Printed OpticWorks Door Latch Tool",
-  "1x OpticWorks Door Skirt Water Shield",
-  "1x Pre-mixed Slip Solution Spray Bottle",
-  "1x Distilled Water Rinse Bottle",
-  "1x Professional Hard Card Squeegee",
-  "1x Scotch-Brite™ Window Cleaning Pad",
-  "2x Lint-Free Microfiber Cloths",
-  "1x Set of Low-Tack Dust Removal Stickers",
-  "1x Plastic Razor Tool for Cleaning",
-  "Quick Start Guide with QR Code to Install Video"
+  "1× mmWave still-energy sensor (pre-soldered)",
+  "1× ESP32-S3 gateway flashed with presence engine",
+  "1× USB-C power cable + power brick",
+  "1× Magnetic enclosure with tilt mount + clip adapter",
+  "1× Set of adhesive pads + cable clips",
+  "1× Calibration card with QR to dashboard import",
+  "1× Debug quick-start guide and tuning checklist",
+  "1× Spare sensor mounting plate",
 ]
 
 const highlightedTools = [
   {
-    name: "3D-Printed Door Latch Tool",
-    description: "Our patent-pending tool that secures your window in the perfect position and prevents accidental door closure.",
-    image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQxIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMzMzMzk5O3N0b3Atb3BhY2l0eToxIiAvPgogICAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzY2NjZiYjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZDEpIiAvPgo8L3N2Zz4=",
-    highlight: "Game Changer"
+    name: "Still-energy mmWave module",
+    description:
+      "Purpose-tuned 60GHz radar module that prioritizes stationary human reflections instead of motion.",
+    image:
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8bGluZWFyR3JhZGllbnQgaWQ9ImEiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9ImNvbG9yOiMzOGI5ZjgiIC8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJjb2xvcjojMDQwNDY2IiAvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNhKSIgLz4KPC9zdmc+",
+    highlight: "Still energy",
   },
   {
-    name: "Pre-cut CyberShade IRX Film",
-    description: "Precision-cut and pre-shrunk films that fit your Model Y perfectly. No measuring, no cutting, no stress.",
-    image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQyIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMTBiOTgyO3N0b3Atb3BhY2l0eToxIiAvPgogICAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA1OTY2OTtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZDIpIiAvPgo8L3N2Zz4=",
-    highlight: "Perfect Fit"
+    name: "ESP32-S3 gateway",
+    description:
+      "Runs the entire 4-state presence engine locally, exposes HA entities, and supports OTA firmware updates.",
+    image:
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8bGluZWFyR3JhZGllbnQgaWQ9ImIiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9ImNvbG9yOiMzMTg0ZmMiIC8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJjb2xvcjojMDA5M2ZiIiAvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNiKSIgLz4KPC9zdmc+",
+    highlight: "Local engine",
   },
   {
-    name: "Professional Squeegee Set",
-    description: "Ergonomic hard card squeegee designed specifically for bubble-free application and professional results.",
-    image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxkZWZzPgogICAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImdyYWQzIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdHlsZT0ic3RvcC1jb2xvcjojZjU5ZTBiO3N0b3Atb3BhY2l0eToxIiAvPgogICAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3R5bGU9InN0b3AtY29sb3I6I2RjMjYyNjtzdG9wLW9wYWNpdHk6MSIgLz4KICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDwvZGVmcz4KICAgIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JhZDMpIiAvPgo8L3N2Zz4=",
-    highlight: "Pro Quality"
-  }
+    name: "Magnetic enclosure kit",
+    description:
+      "Stealth enclosure with adjustable tilt and magnetic base so you can hide the sensor under bed frames or mount to rails.",
+    image:
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8bGluZWFyR3JhZGllbnQgaWQ9ImMiIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPgogICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9ImNvbG9yOiM3Zjg0YWYiIC8+CiAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJjb2xvcjojZDllN2ZmIiAvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNjKSIgLz4KPC9zdmc+",
+    highlight: "Stealth mount",
+  },
 ]
+
+const heroImage = generateGradientDataUrl("020617", "0f172a", 1200, 600)
 
 export function KitContents() {
   return (
@@ -59,9 +65,9 @@ export function KitContents() {
               <Card className="overflow-hidden">
                 <div className="aspect-video relative">
                   <Image
-                    src="https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/cybershade-kit-mockup.png"
-                    alt="Complete CyberShade IRX Tesla Model Y Kit Contents - Professional flat-lay showing all tools, films, and accessories"
-                    className="absolute inset-0 w-full h-full object-cover"
+                    src={heroImage}
+                    alt="Bed Presence Sensor kit contents placeholder"
+                    className="absolute inset-0 h-full w-full object-cover"
                     fill
                     priority
                   />
