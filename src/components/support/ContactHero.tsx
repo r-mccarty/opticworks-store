@@ -24,7 +24,7 @@ export function ContactHero() {
           
           <FadeDiv>
             <p className="font-colfax mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-              Get personalized help from our window tinting experts. 
+              Talk directly with our presence engineers about installs, integrations, or tuning.
               We typically respond within 2 hours during business hours.
             </p>
           </FadeDiv>

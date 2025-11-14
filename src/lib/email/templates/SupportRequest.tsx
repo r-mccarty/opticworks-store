@@ -145,7 +145,7 @@ export default function SupportRequest({
 
           <Section style={footer}>
             <Text style={footerText}>
-              OpticWorks Window Tinting Support System
+              OpticWorks Presence Support System
             </Text>
             <Text style={footerText}>
               This email was automatically generated from your contact form.

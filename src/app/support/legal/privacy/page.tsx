@@ -13,9 +13,9 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - OpticWorks Window Tinting",
-  description: "Learn how OpticWorks collects, uses, and protects your personal information. GDPR and CCPA compliant privacy practices.",
-  keywords: ["privacy policy", "data protection", "GDPR", "CCPA", "personal information", "cookies"],
+  title: "Privacy Policy - OpticWorks Presence Sensors",
+  description: "Learn how OpticWorks handles data for presence hardware, websites, and support systems. GDPR and CCPA compliant.",
+  keywords: ["privacy policy", "presence sensors", "data protection", "GDPR", "CCPA", "privacy"],
 }
 
 export default function PrivacyPolicyPage() {

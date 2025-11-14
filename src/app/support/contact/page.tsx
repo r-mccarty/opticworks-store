@@ -3,9 +3,9 @@ import { ContactHero } from "@/components/support/ContactHero"
 import { ContactForm } from "@/components/support/ContactForm"
 
 export const metadata: Metadata = {
-  title: "Contact Support - OpticWorks Window Tinting",
-  description: "Get personalized help from our window tinting experts. Submit a support request and we'll get back to you quickly.",
-  keywords: ["contact", "support", "help", "customer service"],
+  title: "Contact Support - OpticWorks Presence Sensors",
+  description: "Get personalized help from the OpticWorks presence engineering team. Submit a request and we’ll respond quickly.",
+  keywords: ["contact", "support", "presence sensors", "OpticWorks"],
 }
 
 export default function ContactPage() {
