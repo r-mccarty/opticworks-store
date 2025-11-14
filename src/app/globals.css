@@ -15,6 +15,8 @@
   --animate-dashes: dashes 0.8s linear infinite;
   --animate-dashes-reverse: dashes 0.8s linear infinite reverse;
   --animate-hover: hover 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  --animate-aurora: aurora 14s ease-in-out infinite;
+  --animate-glow: glow 12s ease-in-out infinite;
 
   @keyframes hide {
     from {
@@ -159,6 +161,40 @@
 
     50% {
       transform: translateY(-10px);
+    }
+  }
+
+  @keyframes aurora {
+    0% {
+      transform: translate(-50%, 0) scale(0.82);
+      opacity: 0.42;
+    }
+
+    50% {
+      transform: translate(-50%, 14px) scale(1.08);
+      opacity: 0.68;
+    }
+
+    100% {
+      transform: translate(-50%, 0) scale(0.82);
+      opacity: 0.42;
+    }
+  }
+
+  @keyframes glow {
+    0% {
+      transform: scale(0.85);
+      opacity: 0.35;
+    }
+
+    50% {
+      transform: scale(1.08);
+      opacity: 0.55;
+    }
+
+    100% {
+      transform: scale(0.85);
+      opacity: 0.35;
     }
   }
 }
