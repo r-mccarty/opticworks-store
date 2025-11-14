@@ -31,9 +31,9 @@ const warrantyFormSchema = z.object({
   phone: z.string().min(10, "Please enter a valid phone number"),
   orderNumber: z.string().min(1, "Order number is required"),
   purchaseDate: z.string().min(1, "Purchase date is required"),
-  vehicleYear: z.string().min(4, "Vehicle year is required"),
-  vehicleMake: z.string().min(1, "Vehicle make is required"),
-  vehicleModel: z.string().min(1, "Vehicle model is required"),
+  bedSize: z.string().min(1, "Please select a bed size"),
+  baseType: z.string().min(1, "Please select a base type"),
+  roomSetup: z.string().min(1, "Please describe the room setup"),
   issueType: z.string().min(1, "Please select an issue type"),
   issueDescription: z.string().min(20, "Please provide a detailed description"),
   installationDate: z.string().optional(),
@@ -43,13 +43,29 @@ const warrantyFormSchema = z.object({
 type WarrantyFormData = z.infer<typeof warrantyFormSchema>
 
 const issueTypes = [
-  { value: "bubbling", label: "Bubbling" },
-  { value: "peeling", label: "Peeling" },
-  { value: "fading", label: "Fading" },
-  { value: "cracking", label: "Cracking" },
-  { value: "discoloration", label: "Discoloration" },
-  { value: "adhesive_failure", label: "Adhesive Failure" },
-  { value: "manufacturing_defect", label: "Manufacturing Defect" },
+  { value: "false_clears", label: "False clears / dropouts" },
+  { value: "false_presence", label: "False presence / stuck occupied" },
+  { value: "hardware_fault", label: "Sensor or power failure" },
+  { value: "connectivity", label: "Wi-Fi / Home Assistant connectivity" },
+  { value: "mounting_damage", label: "Mount or enclosure damage" },
+  { value: "firmware", label: "Firmware / OTA issues" },
+  { value: "other", label: "Other" },
+]
+
+const bedSizes = [
+  { value: "twin", label: "Twin / Twin XL" },
+  { value: "full", label: "Full" },
+  { value: "queen", label: "Queen" },
+  { value: "king", label: "King" },
+  { value: "split_king", label: "Split King" },
+  { value: "custom", label: "Custom / Specialty" },
+]
+
+const baseTypes = [
+  { value: "platform", label: "Platform or slatted frame" },
+  { value: "box_spring", label: "Box spring" },
+  { value: "adjustable", label: "Adjustable base" },
+  { value: "wall_mount", label: "Wall or floating mount" },
   { value: "other", label: "Other" },
 ]
 
@@ -229,20 +245,31 @@ export function WarrantyClaimForm() {
             </div>
           </div>
 
-          {/* Vehicle Information */}
+          {/* Setup Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Vehicle Information</h3>
+            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Setup Information</h3>
             
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               <FormField
                 control={form.control}
-                name="vehicleYear"
+                name="bedSize"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Year *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="2023" {...field} />
-                    </FormControl>
+                    <FormLabel>Bed Size *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select bed size" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {bedSizes.map((size) => (
+                          <SelectItem key={size.value} value={size.value}>
+                            {size.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -250,13 +277,24 @@ export function WarrantyClaimForm() {
 
               <FormField
                 control={form.control}
-                name="vehicleMake"
+                name="baseType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Make *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Tesla" {...field} />
-                    </FormControl>
+                    <FormLabel>Base Type *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select base type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {baseTypes.map((base) => (
+                          <SelectItem key={base.value} value={base.value}>
+                            {base.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -264,12 +302,12 @@ export function WarrantyClaimForm() {
 
               <FormField
                 control={form.control}
-                name="vehicleModel"
+                name="roomSetup"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Model *</FormLabel>
+                    <FormLabel>Room Setup *</FormLabel>
                     <FormControl>
-                      <Input placeholder="Model Y" {...field} />
+                      <Input placeholder="Primary bedroom, guest room, clinic, etc." {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -328,7 +366,7 @@ export function WarrantyClaimForm() {
               name="installedByProfessional"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Was the tint installed by a professional? *</FormLabel>
+                  <FormLabel>Was the sensor installed by a professional integrator? *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
@@ -354,7 +392,7 @@ export function WarrantyClaimForm() {
                   <FormLabel>Detailed Issue Description *</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Please describe the issue in detail. When did you first notice it? Has it gotten worse over time? What conditions led to the problem?"
+                      placeholder="Describe the symptoms, when they started, and any calibration logs or observations (e.g., clears when still, stuck occupied, hardware damage)."
                       className="min-h-[120px]"
                       {...field}
                     />

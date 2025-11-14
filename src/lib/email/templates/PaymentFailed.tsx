@@ -92,7 +92,7 @@ export default function PaymentFailed({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              OpticWorks - Premium DIY Window Tinting Solutions<br />
+              OpticWorks - Presence Intelligence Hardware + Support<br />
               <Link href="https://www.mccarty.ventures" style={footerLink}>www.mccarty.ventures</Link>
             </Text>
           </Section>

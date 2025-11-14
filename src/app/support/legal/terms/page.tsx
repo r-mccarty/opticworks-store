@@ -16,9 +16,9 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Terms of Service - OpticWorks Window Tinting",
-  description: "Terms and conditions governing your use of OpticWorks products and services. Purchase terms, warranties, and legal agreements.",
-  keywords: ["terms of service", "terms and conditions", "purchase agreement", "warranty", "legal"],
+  title: "Terms of Service - OpticWorks Presence Sensors",
+  description: "Terms and conditions governing OpticWorks presence hardware, software, and services.",
+  keywords: ["terms of service", "presence sensors", "purchase agreement", "warranty", "legal"],
 }
 
 export default function TermsOfServicePage() {
@@ -147,9 +147,9 @@ export default function TermsOfServicePage() {
                       </p>
                       <ul className="list-disc list-inside space-y-1 ml-4">
                         <li>Installation is performed entirely at your own risk</li>
-                        <li>We are not responsible for damage to vehicles, property, or injury</li>
-                        <li>Professional installation is recommended for valuable or complex vehicles</li>
-                        <li>Vehicle modifications may void manufacturer warranties</li>
+                        <li>We are not responsible for damage to furniture, adjustable bases, or injury</li>
+                        <li>Professional installation is recommended for clinics or complex multi-bed layouts</li>
+                        <li>Modifying furniture or electrical systems may void manufacturer warranties</li>
                       </ul>
                     </div>
                   </div>
@@ -158,7 +158,7 @@ export default function TermsOfServicePage() {
                     <h4 className="font-semibold text-lg mb-3">Installation Guidelines</h4>
                     <ul className="list-disc list-inside space-y-2 text-gray-600">
                       <li>Follow all provided instructions and safety guidelines</li>
-                      <li>Ensure compliance with local tinting laws before installation</li>
+                      <li>Ensure compliance with local privacy/data regulations before installation</li>
                       <li>Installation should be performed in appropriate conditions (temperature, humidity, cleanliness)</li>
                       <li>Take your time - rushing increases risk of errors and damage</li>
                     </ul>
@@ -168,7 +168,7 @@ export default function TermsOfServicePage() {
                     <h4 className="font-semibold text-lg mb-3">Legal Compliance</h4>
                     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                       <p className="text-sm text-yellow-800">
-                        <strong>You are responsible for ensuring compliance with all local, state, and federal tinting laws.</strong> 
+                        <strong>You are responsible for ensuring compliance with all local, state, and federal privacy, radio, and safety regulations.</strong> 
                         OpticWorks provides general information only and is not responsible for legal violations or citations.
                       </p>
                     </div>

@@ -3,9 +3,9 @@ import { WarrantyHero } from "@/components/support/WarrantyHero"
 import { WarrantyClaimForm } from "@/components/support/WarrantyClaimForm"
 
 export const metadata: Metadata = {
-  title: "Warranty Claims - OpticWorks Window Tinting",
-  description: "Submit a warranty claim for your OpticWorks window tinting kit. Upload photos and get fast resolution for defective products.",
-  keywords: ["warranty", "claim", "defective", "replacement", "support"],
+  title: "Warranty Claims - OpticWorks Presence Sensors",
+  description: "Submit a warranty claim for your OpticWorks presence hardware. Upload photos and get fast resolution for defective products.",
+  keywords: ["warranty", "presence sensors", "claim", "replacement", "support"],
 }
 
 export default function WarrantyPage() {

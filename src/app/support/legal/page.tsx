@@ -14,21 +14,12 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Legal & Compliance - OpticWorks Window Tinting",
-  description: "Access our privacy policy, terms of service, and tinting law information. Stay compliant and informed about window tinting regulations.",
-  keywords: ["legal", "privacy policy", "terms of service", "tinting laws", "compliance", "regulations"],
+  title: "Legal & Compliance - OpticWorks Presence Sensors",
+  description: "Review our privacy practices, terms of service, and presence compliance resources for residential and clinical deployments.",
+  keywords: ["legal", "privacy policy", "terms of service", "presence compliance", "regulations"],
 }
 
 const legalCategories = [
-  {
-    title: "Window Tinting Laws",
-    description: "Check tinting laws for your state and ensure legal compliance",
-    icon: RiMapPinLine,
-    href: "/support/legal/tinting-laws",
-    color: "bg-blue-50 text-blue-600",
-    popular: true,
-    details: "Interactive tool to check VLT requirements by state"
-  },
   {
     title: "Privacy Policy", 
     description: "How we collect, use, and protect your personal information",
@@ -44,6 +35,15 @@ const legalCategories = [
     href: "/support/legal/terms",
     color: "bg-orange-50 text-orange-600",
     details: "Purchase terms, warranties, and legal agreements"
+  },
+  {
+    title: "Presence Compliance (Beta)",
+    description: "Understand regional privacy expectations for mmWave sensors",
+    icon: RiMapPinLine,
+    href: "/support/legal/tinting-laws",
+    color: "bg-blue-50 text-blue-600",
+    popular: true,
+    details: "Updated guidance for residential + clinical deployments"
   }
 ]
 
@@ -62,7 +62,7 @@ export default function LegalPage() {
                 Legal & Compliance
               </h1>
               <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-                Stay informed about tinting laws, privacy practices, and terms of service.
+                Stay informed about privacy, terms, and the compliance posture of our presence hardware.
               </p>
             </FadeDiv>
           </div>
@@ -137,10 +137,10 @@ export default function LegalPage() {
                   <RiQuestionLine className="h-8 w-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Have Questions About Tinting Laws?
+                  Need Presence Compliance Guidance?
                 </h3>
                 <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                  Check our comprehensive FAQ section for answers about legal requirements, installation questions, and more.
+                  Check our legal FAQ section for answers about privacy requests, local regulations, and approved deployment scenarios.
                 </p>
                 
                 <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">

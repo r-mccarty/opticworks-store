@@ -17,7 +17,7 @@ import { siteConfig } from "@/app/siteConfig"
 const supportCategories = [
   {
     title: "Installation Help & Guides",
-    description: "Step-by-step instructions, troubleshooting, and installation tips",
+    description: "Placement diagrams, calibration walkthroughs, and tuning tips",
     icon: RiToolsLine,
     href: siteConfig.baseLinks.installGuides,
     color: "bg-blue-50 text-blue-600",
@@ -32,14 +32,14 @@ const supportCategories = [
   },
   {
     title: "Returns & Warranty Claims",
-    description: "Process returns, warranty claims, and product defects",
+    description: "Process hardware swaps, warranty claims, and replacement parts",
     icon: RiRefreshLine,
     href: siteConfig.baseLinks.supportWarranty,
     color: "bg-orange-50 text-orange-600"
   },
   {
     title: "Oops Protection",
-    description: "Damaged film during install? Get a replacement for just shipping cost",
+    description: "Cracked a sensor or cable? Replace it for the cost of shipping",
     icon: RiRefreshLine,
     href: siteConfig.baseLinks.supportOops,
     color: "bg-emerald-50 text-emerald-600",
@@ -54,7 +54,7 @@ const supportCategories = [
   },
   {
     title: "Product Compatibility",
-    description: "Check if our kits work with your vehicle make and model",
+    description: "Verify bed sizes, adjustable bases, and multi-bed deployments",
     icon: RiCarLine,
     href: siteConfig.baseLinks.supportCompatibility,
     color: "bg-indigo-50 text-indigo-600"
@@ -69,7 +69,7 @@ const supportCategories = [
   },
   {
     title: "Legal & Compliance",
-    description: "Tinting laws, privacy policy, terms of service",
+    description: "Privacy policy, data handling, and regional compliance",
     icon: RiFileTextLine,
     href: "/support/legal",
     color: "bg-gray-50 text-gray-600"

@@ -34,8 +34,8 @@ export function SupportHero() {
           
           <FadeDiv>
             <p className="font-colfax mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-              Get expert support for your window tinting installation, product questions, 
-              warranty claims, and everything in between.
+              Get expert help for bed presence installs, calibration tuning, warranty claims,
+              and fleet deployments. Presence perfection is a support ticket away.
             </p>
           </FadeDiv>
 
