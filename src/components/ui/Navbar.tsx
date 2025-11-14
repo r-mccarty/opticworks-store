@@ -41,16 +41,16 @@ export function NavBar() {
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
             <div className="flex items-center gap-10 font-bold">
               <Link className={cx("px-2 py-1 hover:text-orange-600 transition-colors", scrolled || open ? "text-gray-900" : "text-white")} href="/products">
-                Products
+                <span className="hidden xl:block">Products</span>
               </Link>
               <Link className={cx("px-2 py-1 hover:text-orange-600 transition-colors", scrolled || open ? "text-gray-900" : "text-white")} href="/store">
-                Store
+                <span className="hidden xl:block">Store</span>
               </Link>
               <Link className={cx("px-2 py-1 hover:text-orange-600 transition-colors", scrolled || open ? "text-gray-900" : "text-white")} href={siteConfig.baseLinks.support}>
-                Customer Support
+                <span className="hidden xl:block">Customer Support</span>
               </Link>
               <Link className={cx("px-2 py-1 hover:text-orange-600 transition-colors", scrolled || open ? "text-gray-900" : "text-white")} href="/install-guides">
-                Install Guides
+                <span className="hidden xl:block">Install Guides</span>
               </Link>
             </div>
           </nav>
