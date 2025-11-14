@@ -1,142 +1,191 @@
 "use client"
 
-import { 
-  RiToolsLine, 
-  RiShoppingBag3Line, 
-  RiRefreshLine, 
+import {
   RiBankCardLine,
-  RiCarLine,
-  RiQuestionLine,
-  RiFileTextLine
+  RiBook3Line,
+  RiCompassDiscoverLine,
+  RiFlashlightLine,
+  RiFileTextLine,
+  RiRefreshLine,
+  RiShieldCheckLine,
+  RiShoppingBag3Line,
+  RiToolsLine
 } from "@remixicon/react"
-import { FadeContainer, FadeDiv } from "../Fade"
-import { Button } from "../ui/button"
+import { motion } from "motion/react"
 import Link from "next/link"
+
 import { siteConfig } from "@/app/siteConfig"
 
-const supportCategories = [
+import { Button } from "../ui/button"
+
+type SupportCategory = {
+  title: string
+  description: string
+  href: string
+  icon: React.ComponentType<{ className?: string }>
+  signal: string
+  accent: string
+  emphasis?: string
+}
+
+const supportCategories: SupportCategory[] = [
   {
-    title: "Installation Help & Guides",
-    description: "Step-by-step instructions, troubleshooting, and installation tips",
-    icon: RiToolsLine,
+    title: "Installation playbooks",
+    description: "Guided calibrations, millimeter-level placement, and quick fixes for every base type.",
     href: siteConfig.baseLinks.installGuides,
-    color: "bg-blue-50 text-blue-600",
-    popular: true
+    icon: RiToolsLine,
+    signal: "Updated this week",
+    accent: "from-cyan-500/80 to-blue-500/50",
+    emphasis: "Premier",
   },
   {
-    title: "Order & Shipping Questions",
-    description: "Track your order, shipping info, and delivery questions",
-    icon: RiShoppingBag3Line,
+    title: "Order visibility",
+    description: "Track shipments, reschedule deliveries, and orchestrate integrator drop-offs.",
     href: siteConfig.baseLinks.supportOrders,
-    color: "bg-green-50 text-green-600"
+    icon: RiShoppingBag3Line,
+    signal: "Logistics sync in real-time",
+    accent: "from-emerald-500/80 to-lime-400/50",
   },
   {
-    title: "Returns & Warranty Claims",
-    description: "Process returns, warranty claims, and product defects",
-    icon: RiRefreshLine,
+    title: "Warranty & assurance",
+    description: "Membrane replacements, sensor swaps, and coverage for the unexpected.",
     href: siteConfig.baseLinks.supportWarranty,
-    color: "bg-orange-50 text-orange-600"
+    icon: RiShieldCheckLine,
+    signal: "2-hour resolution average",
+    accent: "from-amber-500/80 to-orange-400/50",
   },
   {
-    title: "Oops Protection",
-    description: "Damaged film during install? Get a replacement for just shipping cost",
-    icon: RiRefreshLine,
+    title: "Oops protection",
+    description: "Redeem no-fuss replacements when installs go sideways—just cover shipping.",
     href: siteConfig.baseLinks.supportOops,
-    color: "bg-emerald-50 text-emerald-600",
-    popular: true
+    icon: RiRefreshLine,
+    signal: "Unlimited incidents",
+    accent: "from-purple-500/70 to-fuchsia-500/40",
+    emphasis: "Customer favorite",
   },
   {
-    title: "Payment & Billing Support",
-    description: "Payment issues, billing questions, and refund requests",
-    icon: RiBankCardLine,
+    title: "Billing clarity",
+    description: "Manage subscriptions, view invoices, or align procurement with finance.",
     href: siteConfig.baseLinks.supportBilling,
-    color: "bg-purple-50 text-purple-600"
+    icon: RiBankCardLine,
+    signal: "Concierge reconciliation",
+    accent: "from-sky-500/70 to-indigo-500/40",
   },
   {
-    title: "Product Compatibility",
-    description: "Check if our kits work with your vehicle make and model",
-    icon: RiCarLine,
+    title: "Compatibility intelligence",
+    description: "Validate adjustable bases, split frames, and bespoke mattresses before install.",
     href: siteConfig.baseLinks.supportCompatibility,
-    color: "bg-indigo-50 text-indigo-600"
+    icon: RiCompassDiscoverLine,
+    signal: "Powered by bed genome",
+    accent: "from-rose-500/70 to-red-500/40",
   },
   {
-    title: "Frequently Asked Questions",
-    description: "Quick answers to the most common questions",
-    icon: RiQuestionLine,
+    title: "Instant answers",
+    description: "Fast responses to the most asked questions across presence, billing, and install.",
     href: siteConfig.baseLinks.supportFaq,
-    color: "bg-yellow-50 text-yellow-600",
-    popular: true
+    icon: RiBook3Line,
+    signal: "Searchable knowledge base",
+    accent: "from-teal-500/70 to-green-500/40",
+    emphasis: "Trending",
   },
   {
-    title: "Legal & Compliance",
-    description: "Tinting laws, privacy policy, terms of service",
-    icon: RiFileTextLine,
+    title: "Legal & compliance",
+    description: "HIPAA, CE, GDPR, and occupancy policy documentation at your fingertips.",
     href: "/support/legal",
-    color: "bg-gray-50 text-gray-600"
-  }
+    icon: RiFileTextLine,
+    signal: "Reviewed quarterly",
+    accent: "from-slate-500/70 to-slate-700/40",
+  },
 ]
 
 export function SupportCategoryGrid() {
   return (
-    <section id="tools-section" className="py-16">
-      <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <FadeDiv>
-          <div className="text-center">
-            <h2 className="font-barlow text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-              How can we help you today?
-            </h2>
-            <p className="font-colfax mx-auto mt-4 max-w-2xl text-lg leading-8 text-gray-600">
-              Choose a category below to get the support you need
-            </p>
-          </div>
-        </FadeDiv>
+    <section
+      aria-labelledby="support-categories-heading"
+      className="relative overflow-hidden bg-[#090b12] py-24 text-white"
+      id="tools-section"
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[10%] top-[15%] h-64 w-64 rounded-full bg-cyan-500/20 blur-3xl" />
+        <div className="absolute right-[15%] bottom-[20%] h-72 w-72 rounded-full bg-indigo-500/20 blur-[150px]" />
+      </div>
 
-        <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-8 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-2 xl:grid-cols-3">
-          {supportCategories.map((category) => (
-            <FadeDiv key={category.title}>
-              <div className="group relative">
-                {category.popular && (
-                  <div className="absolute -top-3 -right-3 z-10">
-                    <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-800">
-                      Popular
-                    </span>
-                  </div>
-                )}
-                
-                <div className="relative rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200 hover:shadow-lg hover:ring-gray-300 transition-all duration-200 h-full flex flex-col">
-                  <div>
-                    <span className={`inline-flex rounded-lg p-3 ${category.color}`}>
-                      <category.icon className="h-6 w-6" />
-                    </span>
-                  </div>
-                  
-                  <div className="mt-6 flex-1">
-                    <h3 className="text-lg font-semibold leading-7 text-gray-900">
-                      {category.title}
-                    </h3>
-                    <p className="mt-2 text-sm leading-6 text-gray-600">
-                      {category.description}
-                    </p>
-                  </div>
-                  
-                  <div className="mt-6">
-                    <Button 
-                      asChild 
-                      variant="outline" 
-                      className="w-full group-hover:bg-orange-50 group-hover:border-orange-300 group-hover:text-orange-700 transition-colors"
-                    >
-                      <Link href={category.href}>
-                        Get Help
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </FadeDiv>
-          ))}
+      <div className="relative mx-auto max-w-6xl px-6 sm:px-10">
+        <div className="mx-auto max-w-3xl text-center">
+          <span className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-4 py-1 text-xs uppercase tracking-[0.28em] text-white/60">
+            Guided concierge tools
+          </span>
+          <h2
+            id="support-categories-heading"
+            className="mt-8 font-barlow text-4xl font-semibold tracking-tight text-white sm:text-5xl"
+          >
+            Everything you need, orchestrated in one surface
+          </h2>
+          <p className="font-colfax mt-6 text-lg leading-relaxed text-slate-300">
+            Launch the exact workflow required—installations, returns, billing, or compliance—and keep every signal synchronized across your home.
+          </p>
         </div>
 
-      </FadeContainer>
+        <div className="mt-20 grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          {supportCategories.map((category) => (
+            <motion.article
+              key={category.title}
+              className="group relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] p-6 transition-transform duration-300 hover:-translate-y-1 hover:border-white/20 hover:bg-white/[0.06]"
+              initial={{ opacity: 0, y: 32 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-60px" }}
+              transition={{ duration: 0.45 }}
+            >
+              <div className={`pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-gradient-to-br ${category.accent} opacity-70 blur-3xl transition duration-500 group-hover:opacity-100`} />
+              <div className="relative z-10 flex h-full flex-col">
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-white">
+                    <category.icon className="h-6 w-6" />
+                  </span>
+                  {category.emphasis ? (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[0.65rem] uppercase tracking-[0.24em] text-white/70">
+                      {category.emphasis}
+                    </span>
+                  ) : null}
+                </div>
+
+                <h3 className="mt-8 font-barlow text-2xl font-semibold text-white">{category.title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-slate-300">{category.description}</p>
+
+                <div className="mt-8 flex flex-1 flex-col justify-end gap-4 text-sm text-slate-200">
+                  <div className="flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-white/60">
+                    <RiFlashlightLine aria-hidden="true" className="h-4 w-4" />
+                    {category.signal}
+                  </div>
+                  <Button
+                    asChild
+                    className="group/button h-11 w-full rounded-2xl border border-white/10 bg-white/10 font-semibold text-white transition hover:border-white/30 hover:bg-white/20"
+                    variant="ghost"
+                  >
+                    <Link className="flex items-center justify-between" href={category.href}>
+                      <span>Launch workflow</span>
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/10 transition group-hover/button:bg-white group-hover/button:text-slate-900">
+                        <svg
+                          aria-hidden="true"
+                          className="h-4 w-4"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        >
+                          <path d="M7 17L17 7" strokeLinecap="round" strokeLinejoin="round" />
+                          <path d="M10 7H17V14" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </span>
+                    </Link>
+                  </Button>
+                </div>
+              </div>
+            </motion.article>
+          ))}
+        </div>
+      </div>
     </section>
   )
 }

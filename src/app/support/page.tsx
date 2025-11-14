@@ -1,18 +1,33 @@
 import { Metadata } from "next"
-import { SupportHero } from "@/components/support/SupportHero"
+
 import { SupportCategoryGrid } from "@/components/support/SupportCategoryGrid"
+import { SupportCTA } from "@/components/support/SupportCTA"
+import { SupportExperienceStack } from "@/components/support/SupportExperienceStack"
+import { SupportHero } from "@/components/support/SupportHero"
+import { SupportHighlights } from "@/components/support/SupportHighlights"
 
 export const metadata: Metadata = {
-  title: "Customer Support - OpticWorks Window Tinting",
-  description: "Get help with your window tinting installation, order questions, warranty claims, and more. Professional support for all your OpticWorks needs.",
-  keywords: ["support", "help", "installation", "warranty", "window tinting"],
+  title: "OpticWorks Concierge Support",
+  description:
+    "Access concierge help for CyberShade Presence sensors—installations, diagnostics, logistics, and billing with on-call specialists.",
+  keywords: [
+    "support",
+    "concierge",
+    "installation",
+    "warranty",
+    "presence sensors",
+    "opticworks",
+  ],
 }
 
 export default function SupportPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="flex min-h-screen flex-col bg-[#03040a] text-white">
       <SupportHero />
+      <SupportHighlights />
       <SupportCategoryGrid />
+      <SupportExperienceStack />
+      <SupportCTA />
     </main>
   )
 }
