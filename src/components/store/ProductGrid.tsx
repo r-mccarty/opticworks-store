@@ -5,10 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { FadeDiv } from "@/components/Fade"
 import { ShoppingCartIcon } from "@heroicons/react/24/outline"
-import { products, Product } from "@/lib/products"
-import { useCart } from "@/hooks/useCart"
 import Image from "next/image"
 import Link from "next/link"
+
+import { useCart } from "@/hooks/useCart"
+import { products, type Product } from "@/lib/products"
 
 export function ProductGrid() {
   const { addToCart } = useCart()
@@ -48,40 +49,12 @@ export function ProductGrid() {
                   {product.description}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-500">
-                  {product.specifications.vlt && (
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">VLT:</span>
-                      <span>{product.specifications.vlt}</span>
+                  {product.specifications.slice(0, 4).map((spec) => (
+                    <div key={spec.label} className="flex items-center gap-1">
+                      <span className="font-medium">{spec.label}:</span>
+                      <span className="line-clamp-1">{spec.value}</span>
                     </div>
-                  )}
-                  {product.specifications.heatRejection && (
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">Heat Rejection:</span>
-                      <span>{product.specifications.heatRejection}</span>
-                    </div>
-                  )}
-                  {product.specifications.warranty && (
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">Warranty:</span>
-                      <span>{product.specifications.warranty}</span>
-                    </div>
-                  )}
-                  {product.specifications.difficulty && (
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">Difficulty:</span>
-                      <span
-                        className={`rounded px-2 py-0.5 text-xs ${
-                          product.specifications.difficulty === 'Beginner'
-                            ? 'bg-green-100 text-green-800'
-                            : product.specifications.difficulty === 'Intermediate'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                        }`}
-                      >
-                        {product.specifications.difficulty}
-                      </span>
-                    </div>
-                  )}
+                  ))}
                 </div>
               </CardContent>
 
@@ -108,7 +81,9 @@ export function ProductGrid() {
                 </div>
                 <div className="flex gap-4">
                   <Button asChild variant="secondary" className="flex-1">
-                    <span className="w-full text-center">View Details</span>
+                    <Link href={`/products/${product.id}`} className="w-full text-center">
+                      View Details
+                    </Link>
                   </Button>
                   <Button
                     onClick={(e) => handleAddToCart(e, product)}
@@ -116,7 +91,7 @@ export function ProductGrid() {
                     disabled={!product.inStock}
                   >
                     <ShoppingCartIcon className="h-4 w-4" />
-                    {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                    {product.inStock ? "Add to Cart" : "Out of Stock"}
                   </Button>
                 </div>
               </CardFooter>

@@ -119,43 +119,13 @@ export function CartPage() {
                           {/* Rich Specifications */}
                           <div className="bg-gray-50 rounded-lg p-4 text-left">
                             <h4 className="font-semibold text-gray-900 mb-3">Specifications</h4>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-600">
-                              {items[0].specifications.vlt && (
-                                <div className="flex justify-between">
-                                  <span>VLT:</span>
-                                  <span className="font-medium">{items[0].specifications.vlt}</span>
+                            <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
+                              {items[0].specifications.slice(0, 6).map((spec) => (
+                                <div key={spec.label} className="flex justify-between gap-4">
+                                  <span>{spec.label}:</span>
+                                  <span className="font-medium text-right">{spec.value}</span>
                                 </div>
-                              )}
-                              {items[0].specifications.heatRejection && (
-                                <div className="flex justify-between">
-                                  <span>Heat Rejection:</span>
-                                  <span className="font-medium">{items[0].specifications.heatRejection}</span>
-                                </div>
-                              )}
-                              {items[0].specifications.uvRejection && (
-                                <div className="flex justify-between">
-                                  <span>UV Block:</span>
-                                  <span className="font-medium">{items[0].specifications.uvRejection}</span>
-                                </div>
-                              )}
-                              {items[0].specifications.warranty && (
-                                <div className="flex justify-between">
-                                  <span>Warranty:</span>
-                                  <span className="font-medium">{items[0].specifications.warranty}</span>
-                                </div>
-                              )}
-                              {items[0].specifications.coverage && (
-                                <div className="flex justify-between">
-                                  <span>Coverage:</span>
-                                  <span className="font-medium">{items[0].specifications.coverage}</span>
-                                </div>
-                              )}
-                              {items[0].specifications.difficulty && (
-                                <div className="flex justify-between">
-                                  <span>Difficulty:</span>
-                                  <span className="font-medium">{items[0].specifications.difficulty}</span>
-                                </div>
-                              )}
+                              ))}
                             </div>
                           </div>
                           
@@ -245,8 +215,10 @@ export function CartPage() {
                               </Link>
                             </h3>
                             <p className="text-sm text-gray-600 mt-1">
-                              {item.specifications.vlt && `VLT: ${item.specifications.vlt}`}
-                              {item.specifications.coverage && ` • Coverage: ${item.specifications.coverage}`}
+                              {item.specifications
+                                .slice(0, 2)
+                                .map((spec) => `${spec.label}: ${spec.value}`)
+                                .join(" • ")}
                             </p>
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-3">
                               <div className="flex items-center space-x-3">

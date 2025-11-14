@@ -21,19 +21,19 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
   
   if (!product) {
     return {
-      title: 'Product Not Found - OpticWorks',
-      description: 'The requested product could not be found.'
+      title: "Product Not Found - OpticWorks Presence Lab",
+      description: "The requested product could not be found.",
     }
   }
 
   return {
-    title: `${product.name} - OpticWorks Window Tinting`,
+    title: `${product.name} - OpticWorks Presence Lab`,
     description: product.description,
     openGraph: {
-      title: `${product.name} - OpticWorks`,
+      title: `${product.name} - OpticWorks Presence Lab`,
       description: product.description,
       images: [product.image],
-      type: 'website',
+      type: "website",
     },
   }
 }

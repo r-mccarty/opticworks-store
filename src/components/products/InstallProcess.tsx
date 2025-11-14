@@ -9,46 +9,50 @@ import { generateGradientDataUrl } from "@/lib/gradients"
 const installSteps = [
   {
     step: 1,
-    title: "PREP THE GLASS",
-    description: "Use the included professional-grade cleaning pads and low-tack dust removers for a perfectly clean surface. Our custom door skirt protects your interior from water.",
-    image: generateGradientDataUrl('60a5fa', '3b82f6', 300, 200), // Glass blue
-    duration: "10 min"
+    title: "Mount the sensor",
+    description:
+      "Use the magnetic enclosure or clip mount to place the sensor at the foot of the bed. Aim the still-energy cone toward the pillows.",
+    image: generateGradientDataUrl("0f172a", "1e293b", 300, 200),
+    duration: "5 min",
   },
   {
     step: 2,
-    title: "CLICK & SECURE",
-    description: "Snap our patent-pending Door Latch Tool into place. It raises the window for full coverage and prevents the door from accidentally closing on it. No more fighting with floppy window gaskets.",
-    image: generateGradientDataUrl('f59e0b', 'd97706', 300, 200), // Orange
-    duration: "5 min"
+    title: "Connect to Home Assistant",
+    description:
+      "Plug the ESP32 gateway into USB-C power, open the onboarding flow, and add the sensor to Home Assistant via the included integration.",
+    image: generateGradientDataUrl("38bdf8", "0ea5e9", 300, 200),
+    duration: "3 min",
   },
   {
     step: 3,
-    title: "PEEL & PLACE",
-    description: "Spray the window and the film with our pre-mixed slip solution. The pre-cut film peels easily from its backing and glides right into position. No trimming, no shrinking, no stress.",
-    image: generateGradientDataUrl('1f2937', '111827', 300, 200), // Tesla dark
-    duration: "15 min"
+    title: "Calibrate baseline",
+    description:
+      "Tap “Calibrate Empty Room” in the dashboard. The sensor records still-energy noise, calculates the baseline, and sets initial z-score targets.",
+    image: generateGradientDataUrl("facc15", "f97316", 300, 200),
+    duration: "2 min",
   },
   {
     step: 4,
-    title: "SQUEEGEE TO PERFECTION",
-    description: "Use our 3D-printed, ergonomic hard card squeegee to push the solution out. The film locks into place, leaving a crystal-clear, bubble-free finish.",
-    image: generateGradientDataUrl('e5e7eb', '9ca3af', 300, 200), // Chrome/metallic
-    duration: "15 min"
-  }
+    title: "Tune & deploy",
+    description:
+      "Use the Lovelace sliders to adjust debounce timers and Absolute Clear Delay while watching the live debug text sensor.",
+    image: generateGradientDataUrl("9333ea", "c084fc", 300, 200),
+    duration: "10 min",
+  },
 ]
 
 export function InstallProcess() {
   return (
-    <div className="py-16">
+    <div id="setup-process" className="py-16">
       <div className="px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FadeDiv>
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                So Easy, It Feels Like Cheating.
+                Setup built for Home Assistant power users
               </h2>
               <p className="text-xl text-gray-600">
-                Your flawless install in 4 simple steps.
+                From mounting to calibration, you can be reliable in under 15 minutes.
               </p>
             </div>
             
@@ -98,8 +102,8 @@ export function InstallProcess() {
                     See It in Action
                   </h3>
                   <p className="mb-6 text-orange-100">
-                    Watch our 3-minute installation video to see just how easy 
-                    the CyberShade IRX process really is.
+                    Watch our 3-minute setup demo to see the calibration dashboard,
+                    tuning sliders, and debug sensors in action.
                   </p>
                   <Button 
                     variant="secondary" 

@@ -10,69 +10,75 @@ import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline"
 const testimonials = [
   {
     id: 1,
-    name: "Mark T.",
-    source: "Tesla Motors Club",
+    name: "Rina Patel",
+    source: "Home Assistant Discord",
     rating: 5,
-    text: "I was quoted $450 for the same thing. This kit was unbelievably easy and the results are perfect. The latch tool is a game-changer.",
-    verified: true
+    text: "My lights finally stay on while I read in bed. The debug text sensor is worth the price alone—I can see every state change.",
+    verified: true,
   },
   {
     id: 2,
-    name: "Jessica P.",
-    source: "California",
+    name: "Logan F.",
+    source: "YouTube Review",
     rating: 5,
-    text: "Honestly, I was skeptical. But the pre-cut film fit like a glove. Took me 45 minutes from start to finish. 10/10.",
-    verified: true
+    text: "Cats jumping on the bed no longer trigger my morning routine. The Absolute Clear Delay concept makes so much sense.",
+    verified: true,
   },
   {
     id: 3,
-    name: "David R.",
-    source: "Tesla Owner",
+    name: "Mara V.",
+    source: "HA Podcast",
     rating: 5,
-    text: "Best investment I've made for my Model Y. The heat rejection is incredible and the install was actually fun. No bubbles, no stress.",
-    verified: true
+    text: "It&apos;s the first sensor that gave me transparent tuning. Changing debounce timers while watching z-scores updates instantly.",
+    verified: true,
   },
   {
     id: 4,
-    name: "Sarah M.",
-    source: "DIY Enthusiast",
+    name: "Alex Nguyen",
+    source: "Beta Program",
     rating: 5,
-    text: "I've tried other DIY kits before and they were disasters. This is in a completely different league. Professional results without the pro price.",
-    verified: true
-  }
+    text: "Setup was 12 minutes from unboxing to automations. Being able to export the dashboards was chef&apos;s kiss.",
+    verified: true,
+  },
 ]
 
 const faqs = [
   {
     id: 1,
-    question: "What's the difference between 35%, 15%, and 5% VLT?",
-    answer: "VLT (Visible Light Transmission) indicates how much light passes through the film. 35% allows more light and visibility (recommended for most users and legal in most states), 15% provides moderate darkness with good privacy, and 5% offers maximum privacy and heat rejection but may not be legal in all areas. We include a visual comparison guide with your kit."
+    question: "How does it differ from a normal mmWave presence sensor?",
+    answer:
+      "The Bed Presence Sensor runs a 4-state finite state machine that looks at still-energy reflections, z-score significance, and temporal filtering. Cheap mmWave sensors expose a binary signal tied directly to motion. We expose every variable so you know exactly why a state changed.",
   },
   {
     id: 2,
-    question: "Is this really foolproof? What if I mess up?",
-    answer: "We designed it to be as easy as possible. The pre-cut film and our revolutionary Door Latch Tool remove 99% of the risk. Plus, our video guide walks you through every step. We also offer our 'Oops Protection'—if you damage a film during install, we'll send a replacement for just the shipping & handling fee ($15)."
+    question: "Will it work with my existing Home Assistant setup?",
+    answer:
+      "Yes. The ESP32 gateway connects over Wi-Fi, exposes sensors/entities natively, and ships with Lovelace dashboards + helper templates. No cloud, no additional hub.",
   },
   {
     id: 3,
-    question: "Will this void my Tesla warranty?",
-    answer: "No, cosmetic modifications like window tint do not void your vehicle's warranty. Tesla's warranty covers mechanical and electrical components, not cosmetic modifications. Window tinting is a common and accepted modification."
+    question: "What is Absolute Clear Delay?",
+    answer:
+      "It&apos;s a cooldown timer that starts when the engine last saw high-confidence presence. Even if the signal dips, we wait (default 30s) before considering the bed empty so sleepers aren’t cleared while still.",
   },
   {
     id: 4,
-    question: "How long will it last?",
-    answer: "CyberShade IRX film is warrantied for life against bubbling, peeling, or fading. Our ceramic technology doesn't degrade like cheaper dyed films, so it will maintain its appearance and performance for the life of your vehicle."
+    question: "Can I tune the thresholds?",
+    answer:
+      "Every threshold and debounce is exposed as a number slider in Home Assistant. You can watch z-scores and debug text sensors live while adjusting.",
   },
   {
     id: 5,
-    question: "Do you offer kits for the rear windows or other cars?",
-    answer: "The rear window kit for the Model Y is coming soon! We're also developing kits for Model 3, Model S, and other popular EVs. Sign up for our newsletter to be notified when new products are available."
+    question: "What about privacy?",
+    answer:
+      "The sensor uses mmWave radar to detect that someone is present—not who. All processing is local on the ESP32. No camera, no cloud dependency.",
   },
   {
     id: 6,
-    question: "What if I live in an apartment and don't have a garage?",
-    answer: "You can install CyberShade IRX in any shaded area - a covered parking garage, under a carport, or even in open shade on a calm day. The key is avoiding direct sunlight and wind. Many customers successfully install in public parking garages."
-  }
+    question: "Do you offer replacements if I damage the sensor?",
+    answer:
+      "Yes. Our Oops Protection covers the first replacement sensor head for the cost of shipping. Developer kits also include spare breakout boards.",
+  },
 ]
 
 export function SocialProofFAQ() {
@@ -93,7 +99,7 @@ export function SocialProofFAQ() {
                 Join the OpticWorks Community.
               </h2>
               <p className="text-lg text-gray-600">
-                See what other Tesla owners are saying.
+                Stories from Home Assistant builders and reliability nerds.
               </p>
             </div>
 
@@ -136,7 +142,7 @@ export function SocialProofFAQ() {
             {/* User Generated Content Placeholder */}
             <div className="mb-16">
               <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                Share Your Install - #CyberShade
+                Share your dashboard - #PresenceEngine
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[1, 2, 3, 4].map((i) => (
@@ -153,7 +159,7 @@ export function SocialProofFAQ() {
             </div>
 
             {/* FAQ Section */}
-            <div>
+            <div id="faq">
               <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
                 Frequently Asked Questions
               </h3>

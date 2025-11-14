@@ -1,107 +1,73 @@
 import { FadeDiv } from "@/components/Fade"
-import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline"
+import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline"
+
+const painPoints = [
+  {
+    title: "PIR & motion sensors",
+    detail: "Trigger on fans, pets, and hallway movement. Clear the bed the moment you stop moving.",
+  },
+  {
+    title: "Bed mats & pressure pads",
+    detail: "Uncomfortable, require tucking wires under mattresses, and drift over time.",
+  },
+  {
+    title: "Camera-based presence",
+    detail: "Invades privacy and requires cloud AI. Latency plus a constant data stream from your bedroom.",
+  },
+]
+
+const solutions = [
+  "4-state engine waits for sustained change before toggling ON or OFF.",
+  "Absolute Clear Delay remembers the last confident reading so still sleepers stay counted.",
+  "Still-energy sensing ignores fans and cats but loves humans under blankets.",
+  "Every threshold, debounce, and debug string is visible in Home Assistant.",
+]
 
 export function ProblemSolution() {
   return (
-    <div className="bg-gray-50 py-16">
+    <div className="bg-slate-950 py-16 text-white">
       <div className="px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FadeDiv>
-            <h2 className="text-3xl font-bold text-gray-900 text-center mb-12">
-              Tired of the Tinting Trade-Off?
+            <h2 className="mb-12 text-center text-3xl font-bold tracking-tight">
+              Traditional sensors watch for motion. We watch for presence.
             </h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-              {/* The Problem */}
-              <div className="bg-red-50 rounded-2xl p-8 border border-red-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                    <XMarkIcon className="w-5 h-5 text-white" />
+
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2">
+              <div className="rounded-2xl border border-red-400/30 bg-red-500/10 p-8">
+                <div className="mb-6 flex items-center gap-3 text-red-200">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500">
+                    <XMarkIcon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-2xl font-bold text-red-900">The Old Way</h3>
+                  <h3 className="text-2xl font-semibold text-white">Why legacy sensors fail</h3>
                 </div>
-                
-                <p className="text-red-800 mb-6">
-                  You want to tint your new Tesla. You&apos;re faced with two bad options:
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-bold">
-                      1
-                    </span>
-                    <div>
-                      <h4 className="font-semibold text-red-900 mb-1">Cheap DIY Kits</h4>
-                      <p className="text-red-700 text-sm">
-                        You spend a weekend wrestling with a roll of cheap film, fighting bubbles, 
-                        creases, and contamination, only to end up with a result you hate.
-                      </p>
+                <div className="space-y-4 text-sm text-red-100">
+                  {painPoints.map((pain) => (
+                    <div key={pain.title} className="rounded-xl border border-red-400/20 p-4">
+                      <p className="font-semibold text-white">{pain.title}</p>
+                      <p className="mt-1 text-red-100/80">{pain.detail}</p>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <span className="flex-shrink-0 w-6 h-6 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-bold">
-                      2
-                    </span>
-                    <div>
-                      <h4 className="font-semibold text-red-900 mb-1">Expensive Pro Shops</h4>
-                      <p className="text-red-700 text-sm">
-                        You get a great result, but it costs $500+ and comes with an aggressive 
-                        upsell for paint protection film you might not want.
-                      </p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              {/* The Solution */}
-              <div className="bg-green-50 rounded-2xl p-8 border border-green-200">
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                    <CheckIcon className="w-5 h-5 text-white" />
+              <div className="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 p-8">
+                <div className="mb-6 flex items-center gap-3 text-emerald-200">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500">
+                    <CheckIcon className="h-5 w-5" />
                   </div>
-                  <h3 className="text-2xl font-bold text-green-900">The OpticWorks Way</h3>
+                  <h3 className="text-2xl font-semibold text-white">How the Bed Presence Sensor fixes it</h3>
                 </div>
-                
-                <p className="text-green-800 mb-6">
-                  We created CyberShade IRX to fill the gap. We provide professional-grade, 
-                  high-performance ceramic tint in a foolproof, all-in-one DIY kit.
-                </p>
-                
-                <div className="space-y-4">
-                  <div className="flex items-start gap-3">
-                    <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-green-700 text-sm">
-                      <strong>Pro-shop quality</strong> without the pro-shop invoice
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-green-700 text-sm">
-                      <strong>Foolproof installation</strong> with our revolutionary tools
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-green-700 text-sm">
-                      <strong>Perfect fit guaranteed</strong> with precision-cut films
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-start gap-3">
-                    <CheckIcon className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                    <p className="text-green-700 text-sm">
-                      <strong>On your terms</strong> - install when and where you want
-                    </p>
-                  </div>
+                <div className="space-y-4 text-sm text-emerald-50">
+                  {solutions.map((line) => (
+                    <div key={line} className="flex items-start gap-3">
+                      <CheckIcon className="h-5 w-5 flex-shrink-0 text-emerald-300" />
+                      <p>{line}</p>
+                    </div>
+                  ))}
                 </div>
-                
-                <div className="mt-6 p-4 bg-green-100 rounded-lg">
-                  <p className="text-green-800 text-sm font-medium">
-                    &ldquo;It&apos;s the upgrade your Tesla deserves, on your terms.&rdquo;
-                  </p>
+                <div className="mt-6 rounded-xl border border-emerald-400/30 bg-emerald-500/20 p-4 text-sm">
+                  “It&apos;s the first sensor that understands the context of a bedroom. Calm when you&apos;re still, decisive when you&apos;re gone.”
                 </div>
               </div>
             </div>
