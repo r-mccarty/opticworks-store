@@ -9,12 +9,16 @@ interface OrderData {
   total: number;
 }
 
-// Initialize Stripe with the secret key from environment variables.
-// The exclamation mark (!) asserts that the environment variable is non-null.
-// This is safe because the server should not start if the key is missing.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  typescript: true,
-});
+// Lazy initialization of Stripe to avoid build-time errors
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      typescript: true,
+    });
+  }
+  return stripe;
+};
 
 export async function GET(request: NextRequest) {
   // Extract the 'payment_intent' ID from the request's URL search parameters.
@@ -33,7 +37,7 @@ export async function GET(request: NextRequest) {
     // Query Stripe for checkout sessions associated with the given payment_intent.
     // We expand 'customer' to ensure we get full customer details if needed,
     // though `customer_details` is typically sufficient.
-    const sessions = await stripe.checkout.sessions.list({
+    const sessions = await getStripe().checkout.sessions.list({
       payment_intent: paymentIntentId,
       expand: ['customer'],
     });

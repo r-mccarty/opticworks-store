@@ -3,6 +3,7 @@ import React from 'react';
 import { render } from '@react-email/render';
 import { Resend } from 'resend';
 import { type EmailTemplate } from '@/lib/api/email';
+import { verifyTurnstileToken } from '@/lib/api/turnstile';
 import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
 import PaymentFailed from '@/lib/email/templates/PaymentFailed';
 import SupportRequest from '@/lib/email/templates/SupportRequest';
@@ -21,7 +22,7 @@ const templates = {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { to, subject, template, data } = body as EmailTemplate;
+    const { to, subject, template, data, turnstileToken } = body as EmailTemplate & { turnstileToken?: string };
 
     // Validate required fields
     if (!to || !subject || !template || !data) {
@@ -37,6 +38,29 @@ export async function POST(request: NextRequest) {
         { error: `Template '${template}' not found` },
         { status: 400 }
       );
+    }
+
+    // Verify Turnstile token for support requests
+    if (template === 'support-request') {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { error: 'CAPTCHA verification required' },
+          { status: 400 }
+        );
+      }
+
+      const clientIp = request.headers.get('x-forwarded-for') ||
+                       request.headers.get('x-real-ip') ||
+                       undefined;
+
+      const isValid = await verifyTurnstileToken(turnstileToken, clientIp);
+
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'CAPTCHA verification failed. Please try again.' },
+          { status: 403 }
+        );
+      }
     }
 
     // In development, just log and return success

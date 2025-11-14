@@ -13,11 +13,17 @@ const getStripe = () => {
   return stripe;
 }
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization of Supabase client to avoid build-time errors
+let supabase: ReturnType<typeof createClient> | null = null;
+const getSupabase = () => {
+  if (!supabase) {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+  }
+  return supabase;
+};
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -199,7 +205,8 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
 
     // Insert into test_orders table
     console.log('🔍 DEBUG: Attempting database insert...');
-    const { error: dbError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: dbError } = await (getSupabase() as any)
       .from('test_orders')
       .insert({
         customer_email: customerEmail,
@@ -399,7 +406,8 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
     });
 
     // Store order in database
-    const { error: dbError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error: dbError } = await (getSupabase() as any)
       .from('test_orders')
       .insert({
         customer_email: customerEmail,

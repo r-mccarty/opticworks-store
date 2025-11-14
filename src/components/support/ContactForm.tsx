@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { RiUploadLine, RiDeleteBinLine } from "@remixicon/react"
+import { Turnstile } from "@marsidev/react-turnstile"
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
@@ -52,6 +53,7 @@ export function ContactForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string>("")
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -71,8 +73,15 @@ export function ContactForm() {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true)
-    
+
     try {
+      // Validate Turnstile token
+      if (!turnstileToken) {
+        alert("Please complete the CAPTCHA verification")
+        setIsSubmitting(false)
+        return
+      }
+
       // Send support request via email API
       const response = await fetch('/api/email/send', {
         method: 'POST',
@@ -83,6 +92,7 @@ export function ContactForm() {
           to: 'ryan@mccarty.id', // TODO: Switch to support@optic.works later
           subject: `Support Request: ${data.subject} [${data.category.toUpperCase()}]`,
           template: 'support-request',
+          turnstileToken, // Include Turnstile token for verification
           data: {
             customerName: data.name,
             customerEmail: data.email,
@@ -140,7 +150,7 @@ export function ContactForm() {
         <p className="text-gray-600 mb-6">
           We&apos;ve received your support request and will respond within 2 hours during business hours.
         </p>
-        <Button onClick={() => {setSubmitted(false); form.reset(); setUploadedFiles([])}}>
+        <Button onClick={() => {setSubmitted(false); form.reset(); setUploadedFiles([]); setTurnstileToken("")}}>
           Send Another Message
         </Button>
       </div>
@@ -355,12 +365,22 @@ export function ContactForm() {
             )}
           </div>
 
+          {/* Turnstile CAPTCHA */}
+          <div className="flex justify-center">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onError={() => setTurnstileToken("")}
+              onExpire={() => setTurnstileToken("")}
+            />
+          </div>
+
           {/* Submit Button */}
           <div className="flex justify-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-green-600 hover:bg-green-700"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !turnstileToken}
             >
               {isSubmitting ? "Sending..." : "Send Message"}
             </Button>
