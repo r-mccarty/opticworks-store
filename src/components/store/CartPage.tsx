@@ -9,7 +9,7 @@ import { useCart } from "@/hooks/useCart"
 import { MinusIcon, PlusIcon, TrashIcon, CreditCardIcon } from "@heroicons/react/24/outline"
 import Image from "next/image"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 import { useCheckoutState } from "@/hooks/useCheckoutState"
 
@@ -18,6 +18,12 @@ export function CartPage() {
   const { taxAmount, isCalculatingTax, reset: resetCheckout } = useCheckoutState()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Prevent hydration mismatch by only rendering after client-side mount
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handlePaymentSuccess = (sessionId: string) => {
     console.log('Payment successful, setting session:', sessionId)
@@ -39,6 +45,26 @@ export function CartPage() {
   const handleProceedToPayment = () => {
     setIsCheckingOut(true)
     setShowPaymentForm(true)
+  }
+
+  // Show loading state during hydration to prevent mismatch
+  if (!isMounted) {
+    return (
+      <main className="relative">
+        <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
+          <div className="mx-auto max-w-4xl">
+            <div className="text-center">
+              <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Loading Cart...
+              </h1>
+              <div className="mt-8 flex justify-center">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            </div>
+          </div>
+        </FadeContainer>
+      </main>
+    )
   }
 
   if (items.length === 0) {
