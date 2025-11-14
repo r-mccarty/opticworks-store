@@ -3,14 +3,14 @@ import { SupportHero } from "@/components/support/SupportHero"
 import { SupportCategoryGrid } from "@/components/support/SupportCategoryGrid"
 
 export const metadata: Metadata = {
-  title: "Customer Support - OpticWorks Window Tinting",
-  description: "Get help with your window tinting installation, order questions, warranty claims, and more. Professional support for all your OpticWorks needs.",
-  keywords: ["support", "help", "installation", "warranty", "window tinting"],
+  title: "Customer Support - OpticWorks Presence Intelligence",
+  description: "Get expert support for your presence sensors—installation guidance, calibration help, warranty claims, and more. Premium support for your smart home.",
+  keywords: ["support", "help", "installation", "warranty", "presence sensors", "calibration", "smart home"],
 }
 
 export default function SupportPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-white">
       <SupportHero />
       <SupportCategoryGrid />
     </main>
