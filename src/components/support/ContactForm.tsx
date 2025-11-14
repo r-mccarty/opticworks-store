@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { TurnstileWidget } from "@/components/support/TurnstileWidget"
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -34,6 +35,7 @@ const contactFormSchema = z.object({
   subject: z.string().min(5, "Subject must be at least 5 characters"),
   message: z.string().min(20, "Message must be at least 20 characters"),
   priority: z.enum(["low", "medium", "high"]),
+  turnstileToken: z.string().min(1, "Please complete the security check"),
 })
 
 type ContactFormData = z.infer<typeof contactFormSchema>
@@ -52,13 +54,28 @@ export function ContactForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
       priority: "medium",
+      turnstileToken: "",
     },
   })
+
+  const turnstileToken = form.watch("turnstileToken")
+
+  useEffect(() => {
+    if (!turnstileSiteKey) {
+      form.setError('turnstileToken', {
+        type: 'manual',
+        message: 'Security check is unavailable. Please contact support directly.',
+      })
+    }
+  }, [form, turnstileSiteKey])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
@@ -71,34 +88,28 @@ export function ContactForm() {
 
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true)
-    
+    setErrorMessage(null)
+
     try {
-      // Send support request via email API
-      const response = await fetch('/api/email/send', {
+      // Send support request through secured API
+      const response = await fetch('/api/support/contact', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          to: 'ryan@mccarty.id', // TODO: Switch to support@optic.works later
-          subject: `Support Request: ${data.subject} [${data.category.toUpperCase()}]`,
-          template: 'support-request',
-          data: {
-            customerName: data.name,
-            customerEmail: data.email,
-            customerPhone: data.phone,
-            category: data.category,
-            orderNumber: data.orderNumber,
-            subject: data.subject,
-            message: data.message,
-            priority: data.priority,
-            submittedAt: new Date().toLocaleString(),
-          }
-        })
+        body: JSON.stringify(data),
       })
 
       if (!response.ok) {
         const errorData = await response.json()
+        if (response.status === 400 && errorData?.field === 'turnstile') {
+          form.setError('turnstileToken', {
+            type: 'manual',
+            message: errorData.error || 'Security check failed. Please try again.',
+          })
+        } else {
+          setErrorMessage(errorData.error || 'Failed to send support request')
+        }
         throw new Error(errorData.error || 'Failed to send support request')
       }
 
@@ -116,11 +127,14 @@ export function ContactForm() {
       if (uploadedFiles.length > 0) {
         console.log('Note: File attachments not yet implemented:', uploadedFiles.map(f => f.name))
       }
-      
+
+      form.reset({ priority: 'medium', turnstileToken: '' })
+      setUploadedFiles([])
+      setErrorMessage(null)
       setSubmitted(true)
     } catch (error) {
       console.error("Error submitting form:", error)
-      // TODO: Show error message to user
+      setErrorMessage(prev => prev ?? 'We could not submit your request. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -140,7 +154,14 @@ export function ContactForm() {
         <p className="text-gray-600 mb-6">
           We&apos;ve received your support request and will respond within 2 hours during business hours.
         </p>
-        <Button onClick={() => {setSubmitted(false); form.reset(); setUploadedFiles([])}}>
+        <Button
+          onClick={() => {
+            setSubmitted(false)
+            setErrorMessage(null)
+            form.reset({ priority: 'medium', turnstileToken: '' })
+            setUploadedFiles([])
+          }}
+        >
           Send Another Message
         </Button>
       </div>
@@ -355,12 +376,60 @@ export function ContactForm() {
             )}
           </div>
 
+          {/* Turnstile Verification */}
+          <FormField
+            control={form.control}
+            name="turnstileToken"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Security Check *</FormLabel>
+                <FormControl>
+                  <div className="space-y-3">
+                    {turnstileSiteKey ? (
+                      <TurnstileWidget
+                        siteKey={turnstileSiteKey}
+                        onVerify={token => {
+                          field.onChange(token)
+                          form.clearErrors('turnstileToken')
+                        }}
+                        onExpire={() => {
+                          field.onChange('')
+                        }}
+                        onFailure={message => {
+                          field.onChange('')
+                          form.setError('turnstileToken', {
+                            type: 'manual',
+                            message,
+                          })
+                        }}
+                      />
+                    ) : (
+                      <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-900">
+                        Security check is unavailable. Please email support@optic.works while we resolve this.
+                      </div>
+                    )}
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {errorMessage && (
+            <div
+              role="alert"
+              className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+            >
+              {errorMessage}
+            </div>
+          )}
+
           {/* Submit Button */}
           <div className="flex justify-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               className="bg-green-600 hover:bg-green-700"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !turnstileToken || !turnstileSiteKey}
             >
               {isSubmitting ? "Sending..." : "Send Message"}
             </Button>
