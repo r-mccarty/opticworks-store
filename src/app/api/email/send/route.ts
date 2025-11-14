@@ -40,15 +40,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify Turnstile token for support requests
-    if (template === 'support-request') {
-      if (!turnstileToken) {
-        return NextResponse.json(
-          { error: 'CAPTCHA verification required' },
-          { status: 400 }
-        );
-      }
-
+    // Verify Turnstile token for support requests (only if token provided and Turnstile is configured)
+    if (template === 'support-request' && turnstileToken) {
       const clientIp = request.headers.get('x-forwarded-for') ||
                        request.headers.get('x-real-ip') ||
                        undefined;

@@ -55,6 +55,10 @@ export function ContactForm() {
   const [submitted, setSubmitted] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string>("")
 
+  // Check if Turnstile is configured
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""
+  const isTurnstileEnabled = turnstileSiteKey.length > 0
+
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
     defaultValues: {
@@ -75,8 +79,8 @@ export function ContactForm() {
     setIsSubmitting(true)
 
     try {
-      // Validate Turnstile token
-      if (!turnstileToken) {
+      // Validate Turnstile token only if Turnstile is enabled
+      if (isTurnstileEnabled && !turnstileToken) {
         alert("Please complete the CAPTCHA verification")
         setIsSubmitting(false)
         return
@@ -92,7 +96,7 @@ export function ContactForm() {
           to: 'ryan@mccarty.id', // TODO: Switch to support@optic.works later
           subject: `Support Request: ${data.subject} [${data.category.toUpperCase()}]`,
           template: 'support-request',
-          turnstileToken, // Include Turnstile token for verification
+          turnstileToken: turnstileToken || undefined, // Include Turnstile token for verification if available
           data: {
             customerName: data.name,
             customerEmail: data.email,
@@ -365,22 +369,24 @@ export function ContactForm() {
             )}
           </div>
 
-          {/* Turnstile CAPTCHA */}
-          <div className="flex justify-center">
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ""}
-              onSuccess={(token) => setTurnstileToken(token)}
-              onError={() => setTurnstileToken("")}
-              onExpire={() => setTurnstileToken("")}
-            />
-          </div>
+          {/* Turnstile CAPTCHA - only show if configured */}
+          {isTurnstileEnabled && (
+            <div className="flex justify-center">
+              <Turnstile
+                siteKey={turnstileSiteKey}
+                onSuccess={(token) => setTurnstileToken(token)}
+                onError={() => setTurnstileToken("")}
+                onExpire={() => setTurnstileToken("")}
+              />
+            </div>
+          )}
 
           {/* Submit Button */}
           <div className="flex justify-end">
             <Button
               type="submit"
               className="bg-green-600 hover:bg-green-700"
-              disabled={isSubmitting || !turnstileToken}
+              disabled={isSubmitting || (isTurnstileEnabled && !turnstileToken)}
             >
               {isSubmitting ? "Sending..." : "Send Message"}
             </Button>
