@@ -1,68 +1,81 @@
-# OpticWorks E-commerce Website
+# OpticWorks Presence Intelligence Platform
 
-This repository contains the source code for the OpticWorks e-commerce website. Built with Next.js, Tailwind CSS, and Tremor, this project serves as the online storefront for OpticWorks' line of professional-grade, DIY window tinting solutions.
+This repo contains the production web experience for OpticWorks’ mmWave bed and presence sensors. The site narrates the CyberShade Presence hardware family, manages the Stripe checkout flow, and powers support/warranty tooling for integrators and smart-home enthusiasts. It is a pure Next.js + Tailwind + TypeScript stack with a heavy emphasis on cinematic UI polish.
+
+## Why This Exists
+- **Presence-first storytelling**: Hero, Features, and product pages highlight "Built to fix every pain point smart homes have with bed sensors" and the Apple-grade industrial design language.
+- **Hybrid commerce**: Persistent cart + Stripe Elements checkout to sell sensors, bridges, and calibration bundles.
+- **Support + Compliance**: Warranty, "Oops Protection," tint-law legacy info, and installation guides for sleep clinics, integrators, and DIY installers.
+
+## Prerequisites
+- [Node.js](https://nodejs.org/) 18+
+- [pnpm](https://pnpm.io/) (required package manager)
 
 ## Getting Started
+```bash
+# 1. Clone
+git clone https://github.com/your-username/opticworks-presence.git
+cd opticworks-presence
 
-Follow these instructions to get the project up and running on your local machine for development and testing purposes.
+# 2. Install deps (pnpm only)
+pnpm install
 
-### Prerequisites
+# 3. Create environment file (.env.local) and provide Stripe + Resend keys
+cp .env.example .env.local  # adjust values for Stripe, Resend, Supabase, etc.
 
-- [Node.js](https://nodejs.org/en/) (v18 or later recommended)
-- [pnpm](https://pnpm.io/installation) (recommended package manager)
+# 4. Run the dev server
+pnpm run dev  # http://localhost:3000
+```
 
-### Installation
+## Required Workflow Commands
+```bash
+pnpm run lint   # REQUIRED pre-commit (strict TS + ESLint)
+pnpm run build  # REQUIRED pre-commit (ensures hybrid Stripe flow compiles)
+pnpm run dev    # Local development
+pnpm run start  # Preview production build
+```
+Never use npm/yarn scripts—tooling and lockfile are pnpm-specific.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/your-repo-name.git
-    cd your-repo-name
-    ```
+## Architecture Overview
+```
+src/
+├─ app/              # App Router pages + API routes (landing, store, support, install guides)
+│  ├─ api/          # Stripe + email production routes, shipping/inventory stubs
+│  ├─ products/     # Presence catalog + dynamic detail pages
+│  ├─ store/        # Cart, checkout, success
+│  └─ support/      # Warranty, oops program, compliance tools
+├─ components/
+│  ├─ ui/           # Tier 1 Shadcn (forms/buttons) + Tier 2 bespoke marketing components
+│  ├─ checkout/     # Stripe hybrid flow (CheckoutWrapper, CheckoutForm)
+│  ├─ store/, support/, products/, 3d/
+├─ hooks/           # Zustand stores (useCart, useCheckoutState, useSupportStore)
+├─ lib/
+│  ├─ api/          # Service-layer utilities (tinting laws, orders, billing, compatibility)
+│  ├─ products.ts   # Sensor catalog metadata
+│  └─ utils.ts      # `cn`, `cx`, helpers
+└─ docs/            # CODEBASE_EXPLANATION, STATE_MANAGEMENT, API_STUBS, STRIPE_INTEGRATION
+```
+Key rules:
+- Tier 1 Shadcn components use `cn` and focus on accessibility; Tier 2 business components use `cx` + premium styling.
+- Zustand: cart + support stores persist via localStorage, checkout store stays ephemeral.
+- Heavy visual blocks leverage Framer Motion and blur/glass gradients to hit the Apple-like art direction.
 
-2.  **Install dependencies:**
-    We recommend using `pnpm` for faster and more reliable dependency management.
-    ```bash
-    pnpm install
-    ```
-    Alternatively, you can use `npm` or `yarn`:
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
+## Feature Pillars
+- **CyberShade Presence Catalog**: Sensor highlights, specs, heatmap demos, integrator kits.
+- **Cart & Checkout**: Persisted cart state, Stripe session creation, Address/Payment Elements, success-state email handoff.
+- **Support Center**: Warranty claims, "Oops Protection," compliance tools, contact flows with persistent form drafts.
+- **Install Guides**: Installation stories for under-mattress tiles, adjustable bases, calibration with Home Assistant.
 
-3.  **Run the development server:**
-    ```bash
-    pnpm run dev
-    ```
-    The application will be available at [http://localhost:3000](http://localhost:3000).
+## API & Integrations
+- **Production**: `POST /api/stripe/create-checkout-session`, `POST /api/stripe/webhook`, `POST /api/email/send` (Resend).
+- **Stubs**: Shipping quotes, inventory checks, analytics, bed compatibility guidance. All stubs must simulate latency (300–800 ms) and validate payloads.
+- **Environment**: Requires Stripe publishable/secret keys, Stripe webhook secret, Resend key, Supabase + Cloudflare storage credentials.
 
-## Project Structure
+## Development Standards
+1. No `any`—TypeScript strict mode must stay clean.
+2. Use Next.js `<Image>` and lazy loading for heavy visuals / 3D assets.
+3. Provide skeleton/loading states whenever data fetches occur.
+4. Accessibility first: keyboard nav, ARIA labels, semantic headings.
+5. Run `pnpm run lint` and `pnpm run build` locally before opening PRs or commits.
 
-Here is a high-level overview of the key directories and files in this project:
-
--   `src/app/`: Contains the core application logic, including pages and layouts, following the Next.js App Router structure.
--   `src/components/`: Home to all the reusable React components used throughout the application.
--   `src/lib/`: Includes shared utilities, data sources (like product information), and API handlers.
--   `public/`: Stores static assets like images, fonts, and icons that are served directly.
--   `tailwind.config.js`: Configuration file for Tailwind CSS.
--   `next.config.ts`: Configuration file for Next.js.
-
-## Available Scripts
-
-In the `package.json` file, you will find several scripts for running common tasks:
-
--   `pnpm run dev`: Starts the development server with hot-reloading.
--   `pnpm run build`: Creates a production-ready build of the application.
--   `pnpm run start`: Starts the production server (requires a build to be created first).
--   `pnpm run lint`: Lints the codebase for potential errors and style issues using ESLint.
-
-## Technology Stack
-
-This project is built with a modern, component-based architecture:
-
--   **Framework:** [Next.js](https://nextjs.org/)
--   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
--   **UI Components:** [Tremor](https://tremor.so/)
--   **Language:** [TypeScript](https://www.typescriptlang.org/)
-
+See `AGENTS.md` (mirrored in `CLAUDE.md`) plus the docs in `docs/` for deeper architectural guidance, state diagrams, and API contracts.
