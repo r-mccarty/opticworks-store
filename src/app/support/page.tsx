@@ -7,17 +7,9 @@ import { SupportHero } from "@/components/support/SupportHero"
 import { SupportHighlights } from "@/components/support/SupportHighlights"
 
 export const metadata: Metadata = {
-  title: "OpticWorks Concierge Support",
-  description:
-    "Access concierge help for CyberShade Presence sensors—installations, diagnostics, logistics, and billing with on-call specialists.",
-  keywords: [
-    "support",
-    "concierge",
-    "installation",
-    "warranty",
-    "presence sensors",
-    "opticworks",
-  ],
+  title: "Customer Support - OpticWorks Presence Sensors",
+  description: "Get help with bed presence sensor installs, calibration, warranty claims, subscriptions, and more.",
+  keywords: ["support", "presence sensors", "calibration", "warranty", "OpticWorks"],
 }
 
 export default function SupportPage() {

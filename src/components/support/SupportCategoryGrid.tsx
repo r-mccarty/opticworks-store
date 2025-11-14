@@ -9,7 +9,7 @@ import {
   RiRefreshLine,
   RiShieldCheckLine,
   RiShoppingBag3Line,
-  RiToolsLine
+  RiToolsLine,
 } from "@remixicon/react"
 import { motion } from "motion/react"
 import Link from "next/link"

@@ -15,9 +15,9 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Oops Protection Policy - OpticWorks Window Tinting",
-  description: "Damaged a film during installation? No problem! Our Oops Protection policy provides replacement films for just a small shipping & handling fee.",
-  keywords: ["oops protection", "replacement", "damaged film", "installation mistake", "support"],
+  title: "Oops Protection Policy - OpticWorks Presence Sensors",
+  description: "Damaged a sensor, cable, or mount during install? Our Oops Protection policy ships replacements for just a small handling fee.",
+  keywords: ["oops protection", "presence sensors", "replacement hardware", "installation mistake", "support"],
 }
 
 export default function OopsPage() {
@@ -56,10 +56,10 @@ export default function OopsPage() {
               <CardContent className="p-8">
                 <p className="text-lg leading-relaxed text-gray-700 mb-6">
                   We know that even with our foolproof installation system, sometimes things don&apos;t go as planned. 
-                  Maybe the film got damaged during installation, or perhaps you want to start over for the perfect finish.
+                  Maybe the sensor took a drop during mounting, or perhaps you kinked a cable and want to start over.
                 </p>
                 <p className="text-lg leading-relaxed text-gray-700 mb-6">
-                  Our <strong>Oops Protection</strong> program ensures you can get a replacement film quickly and affordably, 
+                  Our <strong>Oops Protection</strong> program ensures you can get replacement hardware quickly and affordably,
                   so your DIY project doesn&apos;t turn into a costly mistake.
                 </p>
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
@@ -68,7 +68,7 @@ export default function OopsPage() {
                     <div>
                       <h4 className="font-semibold text-orange-900">Key Benefit</h4>
                       <p className="text-orange-800 text-sm mt-1">
-                        Get a replacement film for just <strong>$15 shipping & handling</strong> — no questions asked.
+                        Get replacement hardware for just <strong>$15 shipping & handling</strong> — no questions asked.
                       </p>
                     </div>
                   </div>
@@ -128,9 +128,9 @@ export default function OopsPage() {
                   <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
                     <span className="text-xl font-bold text-orange-600">3</span>
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Get Your Film</h3>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Get Your Hardware</h3>
                   <p className="text-gray-600">
-                    We&apos;ll ship your replacement film the same or next business day. Try again with confidence!
+                    We&apos;ll ship your replacement sensor or accessory the same or next business day. Try again with confidence!
                   </p>
                 </CardContent>
               </Card>
@@ -155,7 +155,7 @@ export default function OopsPage() {
                   <ul className="space-y-3 text-gray-600">
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
-                      <span>Film damaged during installation</span>
+                      <span>Sensor or cable damaged during installation</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
@@ -163,7 +163,7 @@ export default function OopsPage() {
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
-                      <span>Contamination or debris under the film</span>
+                      <span>Signal issues caused by debris or mounting errors</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-2"></div>
@@ -221,7 +221,7 @@ export default function OopsPage() {
                   Ready to Request a Replacement?
                 </h2>
                 <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                  Our support team is here to help. Contact us today and we&apos;ll get your replacement film on the way.
+                  Our support team is here to help. Contact us today and we&apos;ll get your replacement hardware on the way.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button asChild size="lg" className="bg-orange-600 hover:bg-orange-700">

@@ -45,7 +45,7 @@ export default function OrderConfirmation({
   total,
   shippingAddress,
 }: OrderConfirmationProps) {
-  const previewText = `Order ${orderNumber} confirmed - Your OpticWorks tinting kit is on the way!`;
+  const previewText = `Order ${orderNumber} confirmed - Your OpticWorks presence hardware is on the way!`;
 
   return (
     <Html>
@@ -71,7 +71,7 @@ export default function OrderConfirmation({
               Hi {customerName},
             </Text>
             <Text style={text}>
-              Thank you for your order! We&apos;ve received your payment and your OpticWorks tinting kit is being prepared for shipment.
+              Thank you for your order! We&apos;ve received your payment and your OpticWorks presence hardware is being prepared for shipment.
             </Text>
             
             <Section style={orderDetails}>
@@ -124,13 +124,10 @@ export default function OrderConfirmation({
             <Section style={nextSteps}>
               <Heading style={h3}>What&apos;s Next?</Heading>
               <Text style={text}>
-                • You&apos;ll receive a shipping notification with tracking information within 1-2 business days<br />
-                • Your installation guides are available at <Link href="https://optic.works/install-guides" style={link}>optic.works/install-guides</Link><br />
-                {items.some(item => item.name.toLowerCase().includes('tesla')) && (
-                  <>• Tesla-specific installation guide: <Link href="https://optic.works/install-guides/cybershade-irx-tesla-model-y" style={link}>Model Y Guide</Link><br /></>
-                )}
+                • Tracking info arrives within 1–2 business days<br />
+                • Start calibration anytime at <Link href="https://optic.works/install-guides" style={link}>optic.works/install-guides</Link><br />
                 • Need help? Contact our support team at <Link href="mailto:support@notifications.optic.works" style={link}>support@notifications.optic.works</Link><br />
-                • &quot;Oops Protection&quot; warranty available at <Link href="https://optic.works/support/oops" style={link}>optic.works/support/oops</Link>
+                • &quot;Oops Protection&quot; replacement program: <Link href="https://optic.works/support/oops" style={link}>optic.works/support/oops</Link>
               </Text>
             </Section>
           </Section>
@@ -138,7 +135,7 @@ export default function OrderConfirmation({
           {/* Footer */}
           <Section style={footer}>
             <Text style={footerText}>
-              OpticWorks - Premium DIY Window Tinting Solutions<br />
+              OpticWorks - Presence Intelligence Hardware + Support<br />
               <Link href="https://optic.works" style={footerLink}>www.optic.works</Link>
             </Text>
           </Section>

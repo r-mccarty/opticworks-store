@@ -77,7 +77,7 @@ export function CartPage() {
                 Your Cart is Empty
               </h1>
               <p className="mt-4 text-lg text-gray-600">
-                Start shopping to add some window tinting products to your cart.
+                Start shopping to add OpticWorks presence sensors, mounts, and dashboards to your cart.
               </p>
               <Button asChild className="mt-8">
                 <Link href="/store">Continue Shopping</Link>

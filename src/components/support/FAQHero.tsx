@@ -24,8 +24,8 @@ export function FAQHero() {
           
           <FadeDiv>
             <p className="font-colfax mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-              Find quick answers to the most common questions about window tinting, 
-              installation, warranties, and more.
+              Dive into our knowledge base for mmWave bed sensor installs, calibration,
+              integrations, warranties, and everything in between.
             </p>
           </FadeDiv>
         </div>

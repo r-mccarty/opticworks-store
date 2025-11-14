@@ -14,12 +14,12 @@ const Footer = () => {
     products: {
       title: "Products",
       items: [
-        { label: "CyberShade IRX", href: "/products/cybershade-irx-35" },
-        { label: "Tesla Model Y Kits", href: "/products/cybershade-irx-tesla-model-y" },
-        { label: "DIY Tinting Kits", href: siteConfig.baseLinks.store },
-        { label: "Professional Tools", href: siteConfig.baseLinks.store },
-        { label: "Accessories", href: siteConfig.baseLinks.store },
-        { label: "Replacement Parts", href: siteConfig.baseLinks.store },
+        { label: "Bed Presence Sensor Kit", href: "/products/bed-presence-sensor-kit" },
+        { label: "Presence Sensor Duo Pack", href: "/products/presence-sensor-duo-pack" },
+        { label: "Presence Engine Dev Edition", href: "/products/presence-developer-edition" },
+        { label: "Dashboard Pack", href: "/products/presence-dashboard-pack" },
+        { label: "Mount & Enclosure Pack", href: "/products/presence-enclosure-pack" },
+        { label: "Accessories & Add-ons", href: siteConfig.baseLinks.store },
       ],
     },
     store: {
@@ -47,18 +47,18 @@ const Footer = () => {
     guides: {
       title: "Install Guides",
       items: [
-        { label: "Installation Videos", href: siteConfig.baseLinks.installGuides },
-        { label: "Tesla Model Y Guide", href: "/install-guides/cybershade-irx-tesla-model-y" },
+        { label: "Calibration Videos", href: siteConfig.baseLinks.installGuides },
+        { label: "Bed Presence Install", href: "/install-guides/bed-presence-sensor" },
         { label: "Step-by-Step Guide", href: siteConfig.baseLinks.installGuides },
-        { label: "Tips & Tricks", href: siteConfig.baseLinks.installGuides },
-        { label: "Common Mistakes", href: siteConfig.baseLinks.supportFaq },
+        { label: "Troubleshooting", href: siteConfig.baseLinks.supportFaq },
+        { label: "Integrator Playbooks", href: siteConfig.baseLinks.installGuides },
         { label: "Get Help", href: siteConfig.baseLinks.support },
       ],
     },
     legal: {
       title: "Legal & Compliance",
       items: [
-        { label: "Tinting Laws", href: siteConfig.baseLinks.supportTintingLaws },
+        { label: "Presence Compliance", href: siteConfig.baseLinks.supportLegal },
         { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
         { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
         { label: "Legal Support", href: siteConfig.baseLinks.supportLegal },

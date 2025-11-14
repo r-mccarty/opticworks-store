@@ -24,8 +24,8 @@ export function WarrantyHero() {
           
           <FadeDiv>
             <p className="font-colfax mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-              Submit a warranty claim for defective products. Upload photos and get fast resolution 
-              with our lifetime warranty coverage.
+              Submit a warranty claim for defective presence hardware. Upload photos and get fast
+              resolution with our lifetime coverage.
             </p>
           </FadeDiv>
 
@@ -45,7 +45,7 @@ export function WarrantyHero() {
                   <span className="text-xl">🔄</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Easy Replacement</h3>
-                <p className="text-sm text-gray-600">Free replacement films for valid claims</p>
+                <p className="text-sm text-gray-600">Free replacement hardware for valid claims</p>
               </div>
               
               <div className="text-center">
@@ -53,7 +53,7 @@ export function WarrantyHero() {
                   <span className="text-xl">∞</span>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">Lifetime Coverage</h3>
-                <p className="text-sm text-gray-600">Warranty lasts as long as you own your vehicle</p>
+                <p className="text-sm text-gray-600">Warranty lasts as long as you keep the hardware installed</p>
               </div>
             </div>
           </FadeDiv>
