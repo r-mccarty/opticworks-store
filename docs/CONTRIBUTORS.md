@@ -34,6 +34,9 @@ ssh -i ~/.ssh/hetzner_key -p 8032 ryan@5.78.106.67
 
 If you need to manually set up SSH access:
 
+> **Shortcut**: Run `scripts/setup-hetzner-ssh.sh` from the repo root. The helper script follows the exact steps below—reading the `HETZNER_VM_SSH_KEY` secret, writing `~/.ssh/hetzner_key` with the correct permissions, and ensuring the `hetzner-node` entry exists in `~/.ssh/config`. It exits early (with a helpful error) if the environment variable is missing so you immediately know whether the Codespace injected the secret. If you see the missing-secret warning, run `env | grep HETZNER_VM_SSH_KEY` to confirm the variable is unavailable and then export the private key manually (or ask an admin to re-share the Codespace secret) before rerunning the script.
+
+
 1. **Extract the SSH key from the environment:**
    ```bash
    env | grep HETZNER_VM_SSH_KEY
@@ -60,6 +63,23 @@ If you need to manually set up SSH access:
    ```bash
    ssh hetzner-node "echo 'Connection successful!'"
    ```
+
+### SSH Diagnostics Script
+
+When you need a one-command health check (for example in Codex devcontainers or CI jobs), run:
+
+```bash
+scripts/diagnose-hetzner-ssh.sh
+```
+
+The script:
+
+- Verifies that `HETZNER_VM_SSH_KEY` is present (and, if it is, automatically reruns `setup-hetzner-ssh.sh`).
+- Checks that `~/.ssh/hetzner_key` and the `hetzner-node` alias exist.
+- Performs direct and HTTP-proxied TCP probes to `5.78.106.67:8032` so you can immediately tell if the current network or proxy forbids SSH.
+- Attempts a non-interactive SSH handshake (`ssh -o BatchMode=yes …`) and prints the exact failure reason if the remote host cannot be reached.
+
+This produces a concise report that you can attach to issues if the key is missing or outbound access is blocked.
 
 ### SSH Key Configuration Details
 
