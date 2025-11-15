@@ -5,17 +5,23 @@ let easypost: InstanceType<typeof EasyPost> | null = null;
 
 function getEasyPostClient(): InstanceType<typeof EasyPost> {
   if (!easypost) {
-    if (!process.env.EASYPOST_API_KEY) {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('EASYPOST_API_KEY is not set in production environment');
-      }
-      // In non-production environments, we can allow this to fail gracefully
-      // or use a mock client. For now, we'll throw to indicate a setup issue.
-      throw new Error('EASYPOST_API_KEY is not set.');
-    }
-    easypost = new EasyPost(process.env.EASYPOST_API_KEY);
+    // Use a placeholder key for build time to prevent build failures
+    // The actual validation will happen at runtime when the API is called
+    const apiKey = process.env.EASYPOST_API_KEY || 'PLACEHOLDER_KEY_FOR_BUILD';
+    easypost = new EasyPost(apiKey);
   }
   return easypost;
+}
+
+function validateEasyPostKey() {
+  if (!process.env.EASYPOST_API_KEY) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('EASYPOST_API_KEY is not set in production environment');
+    }
+    // In non-production environments, we can allow this to fail gracefully
+    // or use a mock client. For now, we'll throw to indicate a setup issue.
+    throw new Error('EASYPOST_API_KEY is not set.');
+  }
 }
 
 
@@ -76,6 +82,7 @@ export async function validateAddress(address: AddressInput): Promise<AddressVal
       await new Promise(resolve => setTimeout(resolve, 800));
     }
 
+    validateEasyPostKey();
     const client = getEasyPostClient();
     const easypostAddress = await client.Address.create({
       street1: address.street1,

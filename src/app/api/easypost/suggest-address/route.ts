@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAddressSuggestions, type AddressInput } from '@/lib/api/easypost';
 
+// Force dynamic rendering to avoid build-time evaluation
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as AddressInput;
