@@ -24,51 +24,64 @@ type TurnstileVerificationResponse = {
   "error-codes"?: string[]
 }
 
-async function verifyTurnstileToken(token: string) {
+type VerificationResult = {
+  valid: boolean
+  error?: string
+  codes?: string[]
+}
+
+async function verifyTurnstileToken(token: string): Promise<VerificationResult> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY
 
   if (!secretKey) {
     console.error("TURNSTILE_SECRET_KEY environment variable is not configured")
-    return NextResponse.json(
-      {
-        error: "Security check is misconfigured. Please contact support directly.",
-      },
-      { status: 500 }
-    )
+    return {
+      valid: false,
+      error: "Security check is misconfigured. Please contact support directly.",
+    }
   }
 
-  const formData = new URLSearchParams()
-  formData.append("secret", secretKey)
-  formData.append("response", token)
+  try {
+    const formData = new URLSearchParams()
+    formData.append("secret", secretKey)
+    formData.append("response", token)
 
-  const verificationResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: formData.toString(),
-  })
+    const verificationResponse = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
+    })
 
-  const verification: TurnstileVerificationResponse = await verificationResponse.json()
+    const verification: TurnstileVerificationResponse = await verificationResponse.json()
 
-  if (!verification.success) {
-    console.warn("Turnstile verification failed", verification["error-codes"])
+    if (!verification.success) {
+      console.warn("Turnstile verification failed", verification["error-codes"])
 
-    return NextResponse.json(
-      {
+      return {
+        valid: false,
         error: "Security check failed. Please try again.",
-        field: "turnstile",
         codes: verification["error-codes"],
-      },
-      { status: 400 }
-    )
-  }
+      }
+    }
 
-  return null
+    return { valid: true }
+  } catch (error) {
+    console.error("Turnstile verification error", error)
+    return {
+      valid: false,
+      error: "Security verification service unavailable. Please try again.",
+    }
+  }
 }
 
 function buildEmailPayload(data: SupportRequestPayload) {
-  const supportMailbox = process.env.SUPPORT_REQUEST_EMAIL ?? "ryan@mccarty.id"
+  const supportMailbox = process.env.SUPPORT_REQUEST_EMAIL
+
+  if (!supportMailbox) {
+    throw new Error("SUPPORT_REQUEST_EMAIL environment variable is not configured")
+  }
 
   return {
     to: supportMailbox,
@@ -105,9 +118,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const validationErrorResponse = await verifyTurnstileToken(parsed.data.turnstileToken)
-    if (validationErrorResponse) {
-      return validationErrorResponse
+    const verification = await verifyTurnstileToken(parsed.data.turnstileToken)
+    if (!verification.valid) {
+      return NextResponse.json(
+        {
+          error: verification.error || "Security check failed. Please try again.",
+          field: "turnstile",
+          codes: verification.codes,
+        },
+        { status: 400 }
+      )
     }
 
     const emailPayload = buildEmailPayload(parsed.data)
@@ -130,6 +150,15 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Support contact endpoint error", error)
+
+    if (error instanceof Error && error.message.includes("SUPPORT_REQUEST_EMAIL")) {
+      return NextResponse.json(
+        {
+          error: "Support email is misconfigured. Please contact support directly.",
+        },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json(
       {
