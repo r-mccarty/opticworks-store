@@ -5,9 +5,9 @@ import { ProductDetailView } from "@/components/products/ProductDetailView"
 import { getProductById, listProducts } from "@/lib/api/medusa"
 
 interface ProductPageProps {
-  params: {
+  params: Promise<{
     slug: string
-  }
+  }>
 }
 
 export async function generateStaticParams() {
@@ -18,7 +18,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const product = await getProductById(params.slug)
+  const { slug } = await params
+  const product = await getProductById(slug)
 
   if (!product) {
     return {
@@ -40,7 +41,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const product = await getProductById(params.slug)
+  const { slug } = await params
+  const product = await getProductById(slug)
 
   if (!product) {
     notFound()
