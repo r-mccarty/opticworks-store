@@ -1,12 +1,5 @@
 import { create } from 'zustand';
-
-interface ShippingAddress {
-  line1: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country?: string;
-}
+import type { ShippingAddress } from '@/types/checkout';
 
 interface CheckoutState {
   taxAmount: number;

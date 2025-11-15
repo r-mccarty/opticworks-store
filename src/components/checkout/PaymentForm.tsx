@@ -1,6 +1,6 @@
 // This file is no longer used in Option B implementation.
-// Option B uses Stripe's Embedded Checkout which handles the entire payment UI.
-// The checkout is now handled by CheckoutWrapper.tsx using stripe.initEmbeddedCheckout()
+// Option B uses Stripe's Custom Checkout which handles the entire payment UI.
+// The checkout is now handled by CheckoutWrapper.tsx using stripe.initCheckout()
 
 export default function PaymentForm() {
   return (

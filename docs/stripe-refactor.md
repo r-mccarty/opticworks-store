@@ -27,7 +27,7 @@ According to Stripe's official documentation, Elements can be used with Checkout
 ### Phase 1: Research & Documentation ✅
 - [x] Identify the architectural mismatch
 - [x] Confirm Elements + Checkout Sessions is valid approach
-- [ ] Research correct confirmation method from Stripe docs
+- [x] Research correct confirmation method from Stripe docs
 
 ### Phase 2: Frontend Fixes 
 
@@ -183,6 +183,13 @@ Current implementation is correct:
 ---
 
 *This refactor maintains the chosen Option B architecture while fixing the fundamental confirmation method mismatch that's causing the initialization failure.*
+
+## Implementation Status
+
+- `src/components/checkout/CheckoutWrapper.tsx` now calls `stripe.initCheckout`, requests the Checkout Session client secret through `fetchClientSecret`, and surfaces environment errors before rendering Elements.
+- `src/components/checkout/CheckoutForm.tsx` mounts the shipping and payment Elements from the checkout instance, updates the customer email via `checkout.updateEmail`, and calls `checkout.confirm({ redirect: 'if_required' })` to finish payments.
+- TypeScript definitions for the custom checkout object live in `src/types/stripe-checkout.ts`, eliminating reliance on `any` and documenting the supported methods (`createShippingAddressElement`, `createPaymentElement`, `confirm`, `updateEmail`).
+- The Medusa `createPaymentSession` helper still proxies to `/api/stripe/create-checkout-session`; that route now sets `ui_mode: "custom"` so Stripe issues the correct session secret for the new frontend flow.
 
 
 

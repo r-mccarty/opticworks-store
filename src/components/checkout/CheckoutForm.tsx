@@ -1,8 +1,6 @@
 'use client';
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,15 +8,23 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useCheckoutState } from '@/hooks/useCheckoutState';
-
-// Using unknown for Stripe types to avoid conflicts with official types
-type StripeElement = unknown;
-type StripeCheckout = unknown;
+import type {
+  StripeCheckoutInstance,
+  StripeCheckoutPaymentElement,
+  StripeCheckoutAddressElement,
+  StripeCheckoutAddress,
+  StripeCheckoutAddressChangeEvent,
+} from '@/types/stripe-checkout';
+import type { ShippingAddress as CheckoutShippingAddress } from '@/types/checkout';
 
 interface CheckoutFormProps {
-  checkout: StripeCheckout | null;
+  checkout: StripeCheckoutInstance | null;
   onSuccess: (sessionId: string) => void;
   onError: (error: string) => void;
+}
+
+interface TaxCalculationResponse {
+  taxAmount?: number;
 }
 
 export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutFormProps) {
@@ -36,13 +42,28 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [elementsReady, setElementsReady] = useState(false);
-  const [paymentElement, setPaymentElement] = useState<StripeElement | null>(null);
-  const [addressElement, setAddressElement] = useState<StripeElement | null>(null);
+  const [paymentElement, setPaymentElement] = useState<StripeCheckoutPaymentElement | null>(null);
+  const [addressElement, setAddressElement] = useState<StripeCheckoutAddressElement | null>(null);
   const [email, setEmail] = useState('');
 
-  // Calculate tax based on address using Stripe Checkout Session
-  const calculateTax = useCallback(async (address: any) => {
-    if (!address || !address.state) return;
+  const normalizeAddress = useCallback((address: StripeCheckoutAddress): CheckoutShippingAddress | null => {
+    if (!address.line1 || !address.city || !address.state || !address.postal_code) {
+      return null;
+    }
+
+    return {
+      line1: address.line1,
+      city: address.city,
+      state: address.state,
+      postal_code: address.postal_code,
+      country: address.country ?? 'US',
+    };
+  }, []);
+
+  const calculateTax = useCallback(async (address: StripeCheckoutAddress) => {
+    if (!address || !address.state || !address.postal_code) {
+      return;
+    }
     
     setIsCalculatingTax(true);
     try {
@@ -61,17 +82,17 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
             quantity: item.quantity,
           })),
           shippingAddress: {
-            line1: address.line1 || '123 Main St',
-            city: address.city,
+            line1: address.line1 ?? '123 Main St',
+            city: address.city ?? '',
             state: address.state,
             postal_code: address.postal_code,
-            country: address.country || 'US',
+            country: address.country ?? 'US',
           },
         }),
       });
 
       if (response.ok) {
-        const data = await response.json();
+        const data = await response.json() as TaxCalculationResponse;
         console.log('✅ Stripe tax calculation result:', data);
         setTaxAmount(data.taxAmount || 0);
       } else {
@@ -86,41 +107,35 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
     }
   }, [items, setIsCalculatingTax, setTaxAmount]);
 
-  // Update subtotal when component mounts or items change
   useEffect(() => {
     setSubtotal(getTotalPrice());
   }, [items, getTotalPrice, setSubtotal]);
 
   useEffect(() => {
-    if (!checkout || elementsReady) return; // Prevent duplicate initialization
+    if (!checkout || elementsReady) return;
 
     const initializeElements = async () => {
       try {
         console.log('🔄 Initializing checkout elements...');
-        console.log('🔍 Checkout object:', checkout);
-        console.log('🔍 Checkout methods:', Object.keys(checkout || {}));
+        const addressEl = checkout.createShippingAddressElement();
+        const paymentEl = checkout.createPaymentElement();
 
-        // Create Shipping Address Element using correct method
-        console.log('🏠 Creating shipping address element...');
-        const addressEl = (checkout as any).createShippingAddressElement();
+        addressEl.mount('#address-element');
+        paymentEl.mount('#payment-element');
 
-        // Create Payment Element using correct method
-        console.log('💳 Creating payment element...');
-        const paymentEl = (checkout as any).createPaymentElement();
-
-        // Mount elements
-        (addressEl as any).mount('#address-element');
-        (paymentEl as any).mount('#payment-element');
-
-        // Add address change event listener
-        (addressEl as any).on('change', (event: any) => {
+        const handleAddressChange = (event: StripeCheckoutAddressChangeEvent) => {
           console.log('📍 Address changed:', event);
-          if (event.complete && event.value && event.value.address) {
-            const address = event.value.address;
-            setShippingAddress(address);
-            calculateTax(address);
+          const address = event.value?.address;
+          if (event.complete && address) {
+            const normalized = normalizeAddress(address);
+            if (normalized) {
+              setShippingAddress(normalized);
+              void calculateTax(address);
+            }
           }
-        });
+        };
+
+        addressEl.on('change', handleAddressChange);
 
         setAddressElement(addressEl);
         setPaymentElement(paymentEl);
@@ -134,22 +149,21 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
       }
     };
 
-    initializeElements();
-  }, [checkout, onError, elementsReady, calculateTax, setShippingAddress]);
+    void initializeElements();
+  }, [checkout, elementsReady, calculateTax, normalizeAddress, onError, setShippingAddress]);
 
-  // Separate cleanup effect
   useEffect(() => {
     return () => {
       if (addressElement) {
         try {
-          (addressElement as any).unmount();
+          addressElement.unmount();
         } catch {
           console.log('Address element already unmounted');
         }
       }
       if (paymentElement) {
         try {
-          (paymentElement as any).unmount();
+          paymentElement.unmount();
         } catch {
           console.log('Payment element already unmounted');
         }
@@ -157,7 +171,7 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
     };
   }, [addressElement, paymentElement]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!checkout || !elementsReady) {
@@ -175,32 +189,27 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
     setMessage(null);
 
     try {
-      // Update email before confirming
-      await (checkout as any).updateEmail(email);
+      await checkout.updateEmail(email);
 
-      // Confirm payment using the checkout object
-      const result = await (checkout as any).confirm({
-        // Optional parameters
-        redirect: 'if_required', // Let Stripe handle redirects if needed
+      const result = await checkout.confirm({
+        redirect: 'if_required',
         returnUrl: `${window.location.origin}/store/cart/success`,
       });
 
       console.log('📊 Confirmation result:', result);
 
       if (result.error) {
-        // Handle confirmation errors
         console.error('❌ Confirmation error:', result.error);
-        setMessage(result.error.message || 'Payment confirmation failed');
-        onError(result.error.message || 'Payment confirmation failed');
+        const errorMessage = result.error.message || 'Payment confirmation failed';
+        setMessage(errorMessage);
+        onError(errorMessage);
       } else {
-        // Payment succeeded
         console.log('✅ Payment confirmed successfully');
         
         if (result.session) {
           console.log('🎯 Session ID:', result.session.id);
           onSuccess(result.session.id);
         } else {
-          // Redirect might be happening
           console.log('🔄 Payment processing, redirect may occur...');
           setMessage('Payment is being processed...');
         }
@@ -210,9 +219,9 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       setMessage(errorMessage);
       onError(errorMessage);
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   if (!checkout) {

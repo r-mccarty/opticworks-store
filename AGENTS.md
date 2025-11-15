@@ -49,6 +49,8 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    pnpm run start        # verify production build
    ```
    Use pnpm only; keep TypeScript strict, no `any`.
+   - Next.js builds routinely exceed the default Codex CLI timeout; when running `pnpm run build` here, bump the command timeout to ~240 s (or higher) so the step can finish.
+   - Next.js builds routinely exceed the default Codex CLI timeout; when running `pnpm run build` here, bump the command timeout to ~240 s (or higher) so the step can finish.
 
 2. **Tiered UI changes**
    - Tier‑1 controls (buttons, forms, dialogs) live in `src/components/ui/*` and must use `cn` and Shadcn a11y primitives.

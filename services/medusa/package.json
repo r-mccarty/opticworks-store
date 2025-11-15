@@ -2,17 +2,22 @@
   "name": "@opticworks/medusa-service",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
   "scripts": {
     "dev": "medusa develop",
     "build": "medusa build",
     "start": "medusa start",
     "migrate": "medusa db:migrate",
     "seed": "medusa seed",
-    "lint": "medusa lint || echo \"Medusa lint not configured\""
+    "lint": "medusa lint || echo \"Medusa lint not configured\"",
+    "catalog:import": "tsx scripts/import-products.ts"
   },
   "dependencies": {
     "@medusajs/medusa": "^2.0.0",
+    "@medusajs/utils": "^2.0.0",
     "dotenv": "^17.2.1"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.2"
   }
 }

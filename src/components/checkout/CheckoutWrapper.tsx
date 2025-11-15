@@ -2,16 +2,15 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
+import type { Stripe } from '@stripe/stripe-js';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
 import { createPaymentSession } from '@/lib/api/medusa';
+import type { StripeCheckoutInstance, StripeWithCheckout } from '@/types/stripe-checkout';
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
-
-// Using unknown for Stripe types to avoid conflicts with official types
-type StripeCheckout = unknown;
+const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const stripePromise: Promise<Stripe | null> = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
 
 interface CheckoutWrapperProps {
   onSuccess: (sessionId: string) => void;
@@ -23,7 +22,7 @@ export default function CheckoutWrapper({
   onError
 }: CheckoutWrapperProps) {
   const { items } = useCart();
-  const [checkout, setCheckout] = useState<StripeCheckout | null>(null);
+  const [checkout, setCheckout] = useState<StripeCheckoutInstance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +37,7 @@ export default function CheckoutWrapper({
     }
   }, [onError]);
 
-  const fetchClientSecret = useCallback(async () => {
+  const fetchClientSecret = useCallback(async (): Promise<string> => {
     if (items.length === 0) {
       throw new Error('Your cart is empty');
     }
@@ -56,7 +55,7 @@ export default function CheckoutWrapper({
     const session = await createPaymentSession(paymentItems);
 
     if (!session.clientSecret) {
-      throw new Error('Payment session did not return a client secret');
+      throw new Error(`Payment session from ${session.provider} did not return a client secret`);
     }
 
     console.log(`Received ${session.provider} client secret:`, session.clientSecret.substring(0, 10) + '...');
@@ -75,23 +74,16 @@ export default function CheckoutWrapper({
           throw new Error('Failed to load Stripe');
         }
 
-        console.log('🔍 About to call stripe.initCheckout...');
-        console.log('🔍 Stripe object:', stripe);
-        console.log('🔍 Available methods:', Object.keys(stripe));
-        
-        // Check if initCheckout exists
-        if (typeof stripe.initCheckout !== 'function') {
-          console.error('❌ stripe.initCheckout is not a function!');
-          console.log('🔍 Available stripe methods:', Object.getOwnPropertyNames(stripe));
-          throw new Error('stripe.initCheckout is not available. This might indicate a Stripe.js version issue or incorrect API usage.');
+        const stripeWithCheckout = stripe as StripeWithCheckout;
+        if (typeof stripeWithCheckout.initCheckout !== 'function') {
+          throw new Error(
+            'stripe.initCheckout is not available. Ensure Stripe.js is updated with Custom Checkout support.'
+          );
         }
-        
-        // Initialize checkout using the new approach for Elements with Checkout Sessions
-        console.log('✅ Calling stripe.initCheckout...');
-        const checkoutInstance = await stripe.initCheckout({
-          fetchClientSecret: fetchClientSecret,
+
+        const checkoutInstance = await stripeWithCheckout.initCheckout({
+          fetchClientSecret,
           elementsOptions: {
-            // --- THIS IS THE UPDATED SECTION ---
             fonts: [
               {
                 family: 'Colfax',
@@ -108,24 +100,16 @@ export default function CheckoutWrapper({
                 display: 'swap',
               }
             ],
-            // The appearance object is correct and can stay the same
             appearance: {
               theme: 'stripe',
               variables: {
                 fontFamily: '"Colfax",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
               },
             },
-            // --- END OF UPDATED SECTION ---
           }
         });
-        
-        console.log('✅ initCheckout returned:', checkoutInstance);
-        console.log('🔍 Checkout instance methods:', Object.keys(checkoutInstance || {}));
-        
-        // Type assertion for the checkout instance
-        const typedCheckout = checkoutInstance as StripeCheckout;
 
-        setCheckout(typedCheckout);
+        setCheckout(checkoutInstance);
         setIsLoading(false);
 
       } catch (err) {
@@ -139,7 +123,7 @@ export default function CheckoutWrapper({
 
     // Only initialize if we have items, environment is configured, and checkout is not already initialized
     if (items.length > 0 && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && !checkout) {
-      initializeCheckout();
+      void initializeCheckout();
     }
   }, [items, fetchClientSecret, onError, checkout]);
 
