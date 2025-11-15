@@ -25,17 +25,22 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
   const handleAddToCart = async () => {
     setIsAddingToCart(true)
     // Add the main product or selected variant
-    const productToAdd = selectedVariant
+    const productToAdd: Product = selectedVariant
       ? {
           ...product,
           id: selectedVariant.id,
           name: `${product.name} - ${selectedVariant.name}`,
           price: selectedVariant.price,
+          description: product.description,
+          image: product.image,
+          category: product.category,
+          specifications: product.specifications,
+          inStock: product.inStock,
         }
       : product
-    
+
     addToCart(productToAdd)
-    
+
     // Brief loading state for UX
     setTimeout(() => setIsAddingToCart(false), 500)
   }

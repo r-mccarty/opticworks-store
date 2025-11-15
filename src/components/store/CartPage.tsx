@@ -143,17 +143,19 @@ export function CartPage() {
                           </h3>
                           
                           {/* Rich Specifications */}
-                          <div className="bg-gray-50 rounded-lg p-4 text-left">
-                            <h4 className="font-semibold text-gray-900 mb-3">Specifications</h4>
-                            <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
-                              {items[0].specifications.slice(0, 6).map((spec) => (
-                                <div key={spec.label} className="flex justify-between gap-4">
-                                  <span>{spec.label}:</span>
-                                  <span className="font-medium text-right">{spec.value}</span>
-                                </div>
-                              ))}
+                          {items[0].specifications && Array.isArray(items[0].specifications) && items[0].specifications.length > 0 && (
+                            <div className="bg-gray-50 rounded-lg p-4 text-left">
+                              <h4 className="font-semibold text-gray-900 mb-3">Specifications</h4>
+                              <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
+                                {items[0].specifications.slice(0, 6).map((spec) => (
+                                  <div key={spec.label} className="flex justify-between gap-4">
+                                    <span>{spec.label}:</span>
+                                    <span className="font-medium text-right">{spec.value}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
+                          )}
                           
                           {/* Product Description */}
                           <div className="text-sm text-gray-600 leading-relaxed text-left">
@@ -240,12 +242,14 @@ export function CartPage() {
                                 {item.name}
                               </Link>
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {item.specifications
-                                .slice(0, 2)
-                                .map((spec) => `${spec.label}: ${spec.value}`)
-                                .join(" • ")}
-                            </p>
+                            {item.specifications && Array.isArray(item.specifications) && item.specifications.length > 0 && (
+                              <p className="text-sm text-gray-600 mt-1">
+                                {item.specifications
+                                  .slice(0, 2)
+                                  .map((spec) => `${spec.label}: ${spec.value}`)
+                                  .join(" • ")}
+                              </p>
+                            )}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-3">
                               <div className="flex items-center space-x-3">
                                 <div className="flex items-center border border-gray-300 rounded-md">
