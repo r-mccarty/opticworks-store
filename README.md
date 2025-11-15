@@ -86,7 +86,20 @@ See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roa
 4. Accessibility first: keyboard nav, ARIA labels, semantic headings.
 5. Run `pnpm run lint` and `pnpm run build` locally before opening PRs or commits.
 
-See `AGENTS.md` (mirrored in `CLAUDE.md`) plus the docs in `docs/` for deeper architectural guidance, state diagrams, and API contracts.
+## Documentation
+
+Core guidance and architectural details are centralized in the `/docs` directory:
+
+- **`docs/CONTRIBUTORS.md`** – GitHub Codespaces SSH access to Hetzner development node, infrastructure setup, troubleshooting.
+- **`docs/MIGRATION_PLAN.md`** – MVP tracks (T1–T5), milestones, env matrix, risks, and roadmap.
+- **`docs/IMPLEMENTATION_GUIDE.md`** – Runbooks for each track + root cleanup checklist.
+- **`docs/CODEBASE_EXPLANATION.md`** – Deep dive into architecture, components, and API story.
+- **`docs/STATE_MANAGEMENT.md`** – Zustand store patterns and localStorage persistence.
+- **`docs/API_STUBS.md`** – API endpoint stubs and latency simulation guidelines.
+- **`docs/STRIPE_INTEGRATION.md`** – Stripe Elements, checkout flow, and webhook handling.
+- **`docs/API_ARCHITECTURE.md`** – Service-layer utilities, contracts, and error handling.
+
+For development workflows and collaboration notes, see `AGENTS.md` (mirrored in `CLAUDE.md`).
 
 ## Environment Variables
 Create `.env.local` (not committed) with the following:
