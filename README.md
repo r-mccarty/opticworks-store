@@ -107,4 +107,4 @@ NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
 NEXT_PUBLIC_MEDUSA_API_TOKEN=
 ```
 
-When `MEDUSA_ENABLED` / `NEXT_PUBLIC_MEDUSA_ENABLED` remain `false`, the storefront pulls from the static catalog (`src/lib/products.ts`) and keeps using the internal Stripe API routes. Flip the flags to `true` (with a reachable `MEDUSA_BASE_URL`) to exercise the new service layer defined in `src/lib/api/medusa.ts`. See `docs/api/medusa-integration.md` for the complete contract map.
+When `MEDUSA_ENABLED` / `NEXT_PUBLIC_MEDUSA_ENABLED` remain `false`, the storefront pulls from the static catalog (`src/lib/products.ts`) and keeps using the internal Stripe API routes. Flip the flags to `true` (with a reachable `MEDUSA_BASE_URL`) to exercise the new service layer defined in `src/lib/api/medusa.ts`. See `docs/api/medusa-integration.md` for the complete contract map. Canonical env templates now live under `/config/`; copy from there rather than keeping ad-hoc `.credentials/` files.
