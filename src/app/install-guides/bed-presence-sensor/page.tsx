@@ -325,9 +325,9 @@ export default function BedPresenceGuide() {
         eyebrow: "Before you begin",
         title: "Prerequisites & orientation",
         content: (
-          <div className="space-y-6 text-sm text-slate-600">
+          <div className="space-y-6 text-sm text-slate-300">
             <div>
-              <h4 className="text-base font-semibold text-slate-900">Foundational requirements</h4>
+              <h4 className="text-base font-semibold text-white">Foundational requirements</h4>
               <ul className="mt-3 space-y-2 pl-4">
                 <li>• Home Assistant installed and operating on your network</li>
                 <li>• ESPHome integration enabled (dashboard or CLI)</li>
@@ -336,7 +336,7 @@ export default function BedPresenceGuide() {
               </ul>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-slate-900">Why this kit is different</h4>
+              <h4 className="text-base font-semibold text-white">Why this kit is different</h4>
               <ul className="mt-3 space-y-2 pl-4">
                 <li>• <strong>Statistical intelligence:</strong> Adaptive z-score baselining with drift monitoring</li>
                 <li>• <strong>Four-state verification:</strong> Idle → Micro-motion → Occupied → Clear Delay</li>
@@ -352,23 +352,23 @@ export default function BedPresenceGuide() {
         eyebrow: "Software setup",
         title: "Provision firmware the OpticWorks way",
         content: (
-          <div className="space-y-6 text-sm text-slate-600">
+          <div className="space-y-6 text-sm text-slate-300">
             <div>
-              <h4 className="text-base font-semibold text-slate-900">ESPHome Dashboard — recommended</h4>
+              <h4 className="text-base font-semibold text-white">ESPHome Dashboard — recommended</h4>
               <ol className="mt-3 space-y-2 list-decimal pl-5">
                 <li>Open the ESPHome dashboard inside Home Assistant.</li>
                 <li>
                   Clone the reference profile:
-                  <code className="mx-2 rounded bg-slate-900/5 px-2 py-1 text-xs">git clone https://github.com/r-mccarty/bed-presence-sensor.git</code>
+                  <code className="mx-2 rounded bg-white/10 px-2 py-1 text-xs text-slate-200">git clone https://github.com/r-mccarty/bed-presence-sensor.git</code>
                 </li>
-                <li>Create a <code className="rounded bg-slate-900/5 px-1 py-0.5 text-xs">secrets.yaml</code> with Wi-Fi credentials.</li>
-                <li>Select “NEW DEVICE”, choose the connected USB port, and allow compilation (5–10 minutes).</li>
+                <li>Create a <code className="rounded bg-white/10 px-1 py-0.5 text-xs text-slate-200">secrets.yaml</code> with Wi-Fi credentials.</li>
+                <li>Select &ldquo;NEW DEVICE&rdquo;, choose the connected USB port, and allow compilation (5–10 minutes).</li>
                 <li>Once flashed, the device advertises to Home Assistant automatically.</li>
               </ol>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-slate-900">ESPHome CLI — for power users</h4>
-              <div className="mt-3 space-y-2 rounded-2xl bg-slate-900/5 p-4 font-mono text-xs text-slate-700">
+              <h4 className="text-base font-semibold text-white">ESPHome CLI — for power users</h4>
+              <div className="mt-3 space-y-2 rounded-2xl bg-white/10 p-4 font-mono text-xs text-slate-200">
                 <p>pip install esphome</p>
                 <p>git clone https://github.com/r-mccarty/bed-presence-sensor.git</p>
                 <p>cd bed-presence-sensor/esphome</p>
@@ -384,9 +384,9 @@ export default function BedPresenceGuide() {
         eyebrow: "Calibration",
         title: "Capture the perfect baseline",
         content: (
-          <div className="grid gap-8 text-sm text-slate-600 lg:grid-cols-2">
+          <div className="grid gap-8 text-sm text-slate-300 lg:grid-cols-2">
             <div>
-              <h4 className="text-base font-semibold text-slate-900">Procedure</h4>
+              <h4 className="text-base font-semibold text-white">Procedure</h4>
               <ol className="mt-3 space-y-2 list-decimal pl-5">
                 {calibrationFlow.procedure.map((item) => (
                   <li key={item}>{item}</li>
@@ -394,7 +394,7 @@ export default function BedPresenceGuide() {
               </ol>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-slate-900">Verification</h4>
+              <h4 className="text-base font-semibold text-white">Verification</h4>
               <ol className="mt-3 space-y-2 list-decimal pl-5">
                 {calibrationFlow.verification.map((item) => (
                   <li key={item}>{item}</li>
@@ -409,28 +409,28 @@ export default function BedPresenceGuide() {
         eyebrow: "Operational intelligence",
         title: "Understand the sensor's language",
         content: (
-          <div className="grid gap-8 text-sm text-slate-600 lg:grid-cols-2">
+          <div className="grid gap-8 text-sm text-slate-300 lg:grid-cols-2">
             <div>
-              <h4 className="text-base font-semibold text-slate-900">Primary entities</h4>
+              <h4 className="text-base font-semibold text-white">Primary entities</h4>
               <ul className="mt-3 space-y-3">
                 {telemetryEntities.map((entity) => (
-                  <li key={entity.name} className="rounded-2xl bg-slate-900/5 p-3">
-                    <p className="font-semibold text-slate-900">{entity.name}</p>
-                    <p className="mt-1 text-xs text-slate-600">{entity.description}</p>
+                  <li key={entity.name} className="rounded-2xl bg-white/10 p-3">
+                    <p className="font-semibold text-white">{entity.name}</p>
+                    <p className="mt-1 text-xs text-slate-300">{entity.description}</p>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-slate-900">Tuning controls</h4>
+              <h4 className="text-base font-semibold text-white">Tuning controls</h4>
               <ul className="mt-3 space-y-3">
                 {tuningControls.map((control) => (
-                  <li key={control.label} className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
-                    <div className="flex items-center justify-between text-sm font-semibold text-slate-900">
+                  <li key={control.label} className="rounded-2xl border border-white/20 bg-white/10 p-3 shadow-sm">
+                    <div className="flex items-center justify-between text-sm font-semibold text-white">
                       <span>{control.label}</span>
-                      <span className="text-xs uppercase tracking-[0.2em] text-slate-400">{control.value}</span>
+                      <span className="text-xs uppercase tracking-[0.2em] text-slate-300">{control.value}</span>
                     </div>
-                    <p className="mt-2 text-xs text-slate-600">{control.description}</p>
+                    <p className="mt-2 text-xs text-slate-300">{control.description}</p>
                   </li>
                 ))}
               </ul>
