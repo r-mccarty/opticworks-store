@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "docs:dev": "hugo server -s platform/docs-site -D",
+    "docs:build": "hugo -s platform/docs-site"
   },
   "dependencies": {
     "@easypost/api": "^8.2.0",

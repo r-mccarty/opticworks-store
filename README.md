@@ -60,6 +60,14 @@ Key rules:
 - Zustand: cart + support stores persist via localStorage, checkout store stays ephemeral.
 - Heavy visual blocks leverage Framer Motion and blur/glass gradients to hit the Apple-like art direction.
 
+### Workspaces (pnpm)
+- `.` – Next.js storefront (default package)
+- `services/medusa/` – MedusaJS backend scaffold (Track T2). Run `pnpm --filter @opticworks/medusa-service dev`.
+- `platform/docs-site/` – Hugo + Geekdoc site (Track T3). Use `pnpm docs:dev` / `pnpm docs:build`.
+- `platform/forum/` – Discourse configuration (Track T4, currently scaffolding).
+
+See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roadmap context.
+
 ## Feature Pillars
 - **CyberShade Presence Catalog**: Sensor highlights, specs, heatmap demos, integrator kits.
 - **Cart & Checkout**: Persisted cart state, Stripe session creation, Address/Payment Elements, success-state email handoff.

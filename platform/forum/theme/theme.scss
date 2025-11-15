@@ -1,0 +1,16 @@
+:root {
+  --opticworks-gradient: linear-gradient(135deg, #66f 0%, #5ef 50%, #9bf 100%);
+}
+
+.opticworks-hero {
+  background: var(--opticworks-gradient);
+  color: #05070f;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.badge-opticworks {
+  background: rgba(102, 102, 255, 0.15);
+  color: #c7d2fe;
+  border: 1px solid rgba(199, 210, 254, 0.3);
+}

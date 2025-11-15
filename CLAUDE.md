@@ -21,13 +21,16 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 │   ├── API_STUBS.md, CODEBASE_EXPLANATION.md, STATE_MANAGEMENT.md, etc.
 │   ├── MIGRATION_PLAN.md    # MVP tracks + milestones (v2.0)
 │   ├── IMPLEMENTATION_GUIDE.md
-│   ├── archived/            # Legacy infra plans (Cloudflare Workers, Hetzner, GA4, etc.)
+│   ├── archived/            # Legacy infra plans + old migration reports
 │   ├── marketing/, third-party/  # Current marketing+integration briefs
-│   └── (legacy lowercase `migration-plan.md` → archive when convenient)
+│   └── (legacy lowercase `migration-plan.md` lives in archived/)
+├── services/medusa/         # Medusa workspace scaffold (Track T2)
+├── platform/docs-site/      # Hugo + Geekdoc workspace (Track T3)
+├── platform/forum/          # Discourse docker + theme scaffold (Track T4)
+├── config/                  # Env templates + CI checklist (Track T5)
 ├── README.md / AGENTS.md / CLAUDE.md
-├── aws/, google-cloud-sdk/  # Legacy CLI bundles (only keep if someone still uses them for R2/S3)
-├── .credentials/, .env      # Should be replaced by per-surface `.env.example` files during Track T5
-├── pnpm-lock.yaml, package.json, tailwind.config.js, etc.
+├── archive/                 # Legacy SDK bundles (aws-cli/, google-cloud-sdk/)
+├── pnpm-workspace.yaml, pnpm-lock.yaml, package.json
 └── node_modules/, .next/, .vercel/ (local artifacts; keep untracked)
 ```
 
@@ -65,8 +68,9 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - Archive superseded plans into `docs/archived/` immediately to avoid confusion.
 
 6. **Root cleanup / ops**
-   - Follow `docs/IMPLEMENTATION_GUIDE.md` §4 for what to archive/delete (aws/, google-cloud-sdk/, .credentials/, openapi.json, cors.json, pnpm_output.log, lowercase docs).
-   - Track T5 adds `/config/` for env templates + GitHub Actions checks (lint, build, Medusa tests, docs build). Until then, keep secrets local and untracked.
+   - Follow `docs/IMPLEMENTATION_GUIDE.md` §4 for what to archive/delete (aws/, google-cloud-sdk/, .credentials/, etc.). The old SDKs now live under `/archive/`.
+   - Track T5 introduced `/config/` for env templates + CI checklist; sync secrets from here into your vault manager.
+   - CI (or pre-commit) must run `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, and `pnpm --filter @opticworks/medusa-service lint/build`.
 
 ## Reference Documents
 - `docs/MIGRATION_PLAN.md` – MVP tracks T1–T5, milestones, env matrix, risks.

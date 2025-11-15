@@ -1,0 +1,18 @@
+{
+  "name": "@opticworks/medusa-service",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "medusa develop",
+    "build": "medusa build",
+    "start": "medusa start",
+    "migrate": "medusa db:migrate",
+    "seed": "medusa seed",
+    "lint": "medusa lint || echo \"Medusa lint not configured\""
+  },
+  "dependencies": {
+    "@medusajs/medusa": "^2.0.0",
+    "dotenv": "^17.2.1"
+  }
+}

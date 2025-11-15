@@ -1,0 +1,9 @@
+common:
+  brand_primary:
+    default: "#6f9cff"
+  navigation_menu:
+    default: "presence"
+  enable_opticworks_badge:
+    type: bool
+    default: true
+    description: "Adds the OpticWorks badge style to staff posts."

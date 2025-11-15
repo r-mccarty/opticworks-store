@@ -98,6 +98,41 @@ Consumers:
 - `app/products/[slug]/page.tsx` uses `listProducts` + `getProductById` for metadata + rendering.
 - `CheckoutWrapper` calls `createPaymentSession` instead of posting directly to the Stripe route.
 
+## 6. Medusa Data Model (Target)
+
+| Medusa entity | Mapping | Notes |
+| --- | --- | --- |
+| Product | One-to-one with `Product` in `src/lib/products.ts`. Use `handle = id`. | Keep presence-specific metadata in `product.metadata` (hero copy, benefits, install guide slug). |
+| Variant | One per `ProductVariant` (or fallback variant when none). Use `metadata.badge`, `metadata.description`. | Unit price stored in USD. |
+| Price | USD amounts for each variant. | Maintain `originalPrice` in metadata for marketing strikethrough copy. |
+| Collection | Optional grouping (Flagship, Bundle, Developer). | Drives marketing filters later. |
+| Custom fields | `metadata.installGuide`, `metadata.category`, `metadata.badge`, `metadata.heroIntro`. | Needed for storefront parity. |
+
+### Catalog Import Script
+
+Create `services/medusa/scripts/import-products.ts`:
+
+1. Load `.env` for Admin API credentials.
+2. Read `src/lib/products.ts` (or the JSON-exported equivalent once available).
+3. For each product:
+   - Upsert product via Medusa Admin REST (`POST /admin/products` or `POST /admin/products/:id`).
+   - Upsert variants with the right prices.
+   - Attach metadata (hero copy, key benefits, install guide path).
+4. Log summary (created vs updated). Abort on missing required fields.
+
+Run with `pnpm --filter @opticworks/medusa-service tsx scripts/import-products.ts`.
+
+### Checkout & Testing Strategy
+
+- Use Medusa’s store API to create carts (`POST /store/carts`) with variant IDs. Validate `items[]` before calling the API.
+- After Medusa responds, ensure `payment_session.client_secret` exists. If not, fall back to the legacy Stripe route (already handled in `createPaymentSession`).
+- Testing:
+  1. Spin up Medusa via `docker-compose` + `pnpm dev`.
+  2. Run `pnpm run dev` in the storefront with `MEDUSA_ENABLED=true`.
+  3. Add items to cart, open checkout → verify Elements loads using Medusa-provided client secret.
+  4. Use Medusa Admin endpoints or CLI to confirm carts/orders reflect the same data.
+- Provide mock responses (JSON fixtures) for unit tests so we can run `pnpm test` without hitting Medusa, once test harness is added.
+
 ## 6. Next Steps
 1. Implement `src/lib/api/medusa.ts` with the abstractions above.
 2. Update the store page + checkout flow to use the new helpers.
