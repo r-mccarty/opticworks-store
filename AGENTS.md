@@ -75,6 +75,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - CI (or pre-commit) must run `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, and `pnpm --filter @opticworks/medusa-service lint/build`.
 
 ## Reference Documents
+- `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access to Hetzner node, infrastructure setup.
 - `docs/MIGRATION_PLAN.md` – MVP tracks T1–T5, milestones, env matrix, risks.
 - `docs/IMPLEMENTATION_GUIDE.md` – Runbooks for each track + root cleanup checklist.
 - `docs/CODEBASE_EXPLANATION.md` – Deep dive into architecture, components, and API story.
