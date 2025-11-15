@@ -1,24 +1,25 @@
 import { Metadata } from "next"
 import { notFound } from "next/navigation"
-import { products } from "@/lib/products"
+
 import { ProductDetailView } from "@/components/products/ProductDetailView"
+import { getProductById, listProducts } from "@/lib/api/medusa"
 
 interface ProductPageProps {
-  params: Promise<{
+  params: {
     slug: string
-  }>
+  }
 }
 
 export async function generateStaticParams() {
-  return products.map((product) => ({
+  const catalog = await listProducts()
+  return catalog.map((product) => ({
     slug: product.id,
   }))
 }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {
-  const { slug } = await params
-  const product = products.find(p => p.id === slug)
-  
+  const product = await getProductById(params.slug)
+
   if (!product) {
     return {
       title: "Product Not Found - OpticWorks Presence Lab",
@@ -39,9 +40,8 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 }
 
 export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug } = await params
-  const product = products.find(p => p.id === slug)
-  
+  const product = await getProductById(params.slug)
+
   if (!product) {
     notFound()
   }

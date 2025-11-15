@@ -9,9 +9,13 @@ import Image from "next/image"
 import Link from "next/link"
 
 import { useCart } from "@/hooks/useCart"
-import { products, type Product } from "@/lib/products"
+import type { Product } from "@/lib/products"
 
-export function ProductGrid() {
+interface ProductGridProps {
+  products: Product[]
+}
+
+export function ProductGrid({ products }: ProductGridProps) {
   const { addToCart } = useCart()
 
   const handleAddToCart = (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {

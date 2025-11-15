@@ -2,6 +2,7 @@ import { Metadata } from "next"
 
 import { FadeContainer, FadeDiv } from "@/components/Fade"
 import { ProductGrid } from "@/components/store/ProductGrid"
+import { listProducts } from "@/lib/api/medusa"
 
 export const metadata: Metadata = {
   title: "Store - OpticWorks Presence Lab",
@@ -9,7 +10,9 @@ export const metadata: Metadata = {
     "Shop Bed Presence Sensor kits, accessories, and dashboards. Everything ships tuned for Home Assistant power users.",
 }
 
-export default function StorePage() {
+export default async function StorePage() {
+  const products = await listProducts()
+
   return (
     <main className="relative min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-white">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_10%,rgba(251,191,36,0.12),transparent_60%)]" />
@@ -32,7 +35,7 @@ export default function StorePage() {
           </FadeDiv>
 
           <FadeDiv>
-            <ProductGrid />
+            <ProductGrid products={products} />
           </FadeDiv>
         </div>
       </FadeContainer>

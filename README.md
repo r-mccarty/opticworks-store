@@ -79,3 +79,24 @@ Key rules:
 5. Run `pnpm run lint` and `pnpm run build` locally before opening PRs or commits.
 
 See `AGENTS.md` (mirrored in `CLAUDE.md`) plus the docs in `docs/` for deeper architectural guidance, state diagrams, and API contracts.
+
+## Environment Variables
+Create `.env.local` (not committed) with the following:
+
+```bash
+# Stripe / email
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+RESEND_API_KEY=re_xxx
+
+# Medusa integration (optional during Track T1/T2)
+MEDUSA_ENABLED=false
+MEDUSA_BASE_URL=http://localhost:9000
+MEDUSA_API_TOKEN= # optional bearer for authenticated requests
+NEXT_PUBLIC_MEDUSA_ENABLED=false
+NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
+NEXT_PUBLIC_MEDUSA_API_TOKEN=
+```
+
+When `MEDUSA_ENABLED` / `NEXT_PUBLIC_MEDUSA_ENABLED` remain `false`, the storefront pulls from the static catalog (`src/lib/products.ts`) and keeps using the internal Stripe API routes. Flip the flags to `true` (with a reachable `MEDUSA_BASE_URL`) to exercise the new service layer defined in `src/lib/api/medusa.ts`. See `docs/api/medusa-integration.md` for the complete contract map.

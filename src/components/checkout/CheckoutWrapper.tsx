@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
+import { createPaymentSession } from '@/lib/api/medusa';
 
 // Initialize Stripe
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
@@ -52,26 +53,15 @@ export default function CheckoutWrapper({
       quantity: item.quantity,
     }));
 
-    // Create checkout session
-    const response = await fetch('/api/stripe/create-checkout-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        items: paymentItems,
-      }),
-    });
+    const session = await createPaymentSession(paymentItems);
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to create checkout session');
+    if (!session.clientSecret) {
+      throw new Error('Payment session did not return a client secret');
     }
 
-    const { clientSecret } = await response.json();
-    console.log('Received client secret format:', clientSecret?.substring(0, 10) + '...');
-    
-    return clientSecret;
+    console.log(`Received ${session.provider} client secret:`, session.clientSecret.substring(0, 10) + '...');
+
+    return session.clientSecret;
   }, [items]);
 
   useEffect(() => {

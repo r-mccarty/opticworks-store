@@ -1,108 +1,82 @@
 # AGENTS.md
 
-This canonical guidance covers the **OpticWorks Presence Intelligence Platform**—our pivot from Tesla tint kits to mmWave-powered smart-home presence sensors. `CLAUDE.md` is now a hard link to this file, so edits here automatically sync there.
+Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This repo remains a single Next.js application that narrates the CyberShade Presence family, runs checkout/support, and now hosts the refreshed migration docs. `CLAUDE.md` must mirror this file (hard link or identical copy).
 
 ## Platform Snapshot
-- **Product**: CyberShade Presence family (bed sensors, under-mattress radar tiles, occupancy bridges)
-- **Customers**: Premium smart-home owners, integrators, boutique installers, and sleep-optimization clinics
-- **Promise**: "Perfect presence"—lag-free automations, privacy-first telemetry, beautiful industrial design
-- **Business Model**: Hardware + recurrent subscription for analytics, upsell kits (Pro Core, Studio bundles, OEM trays)
-- **Key Differentiators**: Apple-grade industrial design cues, zero-cloud requirement, native Home Assistant and Matter hooks
+- **Hardware**: Bed/under-mattress mmWave sensors, bridges, integrator kits, developer firmware program.
+- **Experience**: Apple-grade art direction, cinematic landing/product flows, ASCII 404 already live.
+- **Stack**: Next.js 15.5 (App Router, React 19), Tailwind 4, Shadcn Tier‑1 controls + bespoke Tier‑2 UI (`cn`/`cx` helpers), Zustand stores, Stripe + Resend APIs, Framer Motion + Three.js scenes.
+- **Roadmap Pillars**: (1) Harden storefront APIs for external services, (2) Introduce MedusaJS backend, (3) Stand up Hugo/Geekdoc docs, (4) Launch Discourse forum, (5) Consolidate ops + cleanup legacy tooling.
 
-## Technology Stack & Workflow
-- **Framework**: Next.js 15.5.0 (App Router + React 19.1.1)
-- **Language**: TypeScript 5.9.2 in strict mode (absolutely no `any`)
-- **Styling**: Tailwind CSS 4.1.12 with the two-tier component system (`cn` for Shadcn, `cx` for bespoke UI)
-- **State**: Zustand 5.0.8 (cart + support stores persist, checkout store is ephemeral)
-- **Package Manager**: pnpm only
-- **Animation/Visualization**: Framer Motion, custom Three.js Tesla bed-simulation scenes
-
-### Critical Commands
-```bash
-pnpm install        # dependencies
-pnpm run dev        # http://localhost:3000
-pnpm run lint       # REQUIRED before commits
-pnpm run build      # REQUIRED before commits
-pnpm run start      # production preview
+## Repository Navigation
 ```
-Never skip `pnpm run lint` + `pnpm run build`—CI mirrors strict local expectations.
-
-## Repository Map (Presence-focused)
+/
+├── src/                     # Active storefront code
+│   ├── app/                 # Landing, products, support, store, API routes
+│   ├── components/          # ui/, checkout/, products/* feature folders, 3d assets
+│   ├── hooks/               # Zustand stores (useCart, useCheckoutState, useSupportStore)
+│   └── lib/                 # api utilities, product catalog metadata, helpers
+├── public/                  # Images, fonts, static assets (served via Next Image/R2 URLs)
+├── docs/                    # Canonical documentation (see below)
+│   ├── API_STUBS.md, CODEBASE_EXPLANATION.md, STATE_MANAGEMENT.md, etc.
+│   ├── MIGRATION_PLAN.md    # MVP tracks + milestones (v2.0)
+│   ├── IMPLEMENTATION_GUIDE.md
+│   ├── archived/            # Legacy infra plans (Cloudflare Workers, Hetzner, GA4, etc.)
+│   ├── marketing/, third-party/  # Current marketing+integration briefs
+│   └── (legacy lowercase `migration-plan.md` → archive when convenient)
+├── README.md / AGENTS.md / CLAUDE.md
+├── aws/, google-cloud-sdk/  # Legacy CLI bundles (only keep if someone still uses them for R2/S3)
+├── .credentials/, .env      # Should be replaced by per-surface `.env.example` files during Track T5
+├── pnpm-lock.yaml, package.json, tailwind.config.js, etc.
+└── node_modules/, .next/, .vercel/ (local artifacts; keep untracked)
 ```
-src/
-├── app/
-│   ├── page.tsx                 # Presence landing page
-│   ├── products/                # Sensor catalog (bed tiles, bridge, OEM trays)
-│   ├── store/                   # Cart + checkout + success flows
-│   ├── support/                 # Warranty, "Oops Protection", compliance center
-│   ├── install-guides/          # Sensor mounting + calibration guides
-│   └── api/                     # Stripe/email production routes + sensor ops stubs
-├── components/
-│   ├── ui/                      # Tier 1 + Tier 2 components (Hero, Features, SensorGrid)
-│   ├── checkout/                # Stripe hybrid flow
-│   ├── store/, support/, products/, 3d/
-├── hooks/                      # Zustand stores (`useCart`, `useCheckoutState`, `useSupportStore`)
-├── lib/
-│   ├── api/                     # Tint-law legacy + presence compliance utilities
-│   ├── products.ts              # Sensor catalog metadata
-│   └── utils.ts                 # `cn`, `cx`, shared helpers
-└── docs/                       # CODEBASE_EXPLANATION, STATE_MANAGEMENT, API_STUBS, STRIPE_INTEGRATION
-```
-Keep directory intent intact; presence pivot changes stories, not patterns.
 
-## Two-Tier Component System
-- **Tier 1 (Shadcn/ui)**: Buttons, forms, dialogs, inputs, any accessibility-sensitive control. Always import `cn` from `@/lib/utils`.
-- **Tier 2 (Custom Business UI)**: Hero, Features, SensorFocus, Installation Timeline. Use `cx`, gradient-heavy art direction, motion cues, glassmorphism.
-- Accessibility is non-negotiable: keyboard nav, ARIA, and semantic headings.
+### Active vs. Legacy Surfaces
+- **Active**: `src/*`, `docs/(API_ARCHITECTURE|STATE_MANAGEMENT|STRIPE_INTEGRATION)`, README, top-level config.
+- **MVP Work in Flight**: `docs/MIGRATION_PLAN.md` (tracks T1–T5), `docs/IMPLEMENTATION_GUIDE.md` (runbooks).
+- **Legacy/Archive**: `docs/archived/*`, root SDK folders (`aws/`, `google-cloud-sdk/`), stray JSON specs (`openapi.json`, `cors.json`), `pnpm_output.log`. Move/delete only after confirming no current workflow depends on them.
 
-## Core Experience Blueprint
-1. **Landing Narrative**: highlight bed-sensor hero, show occupancy heatmaps, emphasize "Built to fix every pain point smart homes have with bed sensors" section.
-2. **Product Detail Pages**: specs for CyberShade Presence Pro, Sleep Deck, Integrator Bundle. Include VLT legacy info only when relevant to tinted privacy films accessory kits.
-3. **Configurator & Cart**: persistent cart via `useCart`, shipping + taxes explained as "calculated after calibration" copy tweaks.
-4. **Checkout**: `CheckoutWrapper` bootstraps Stripe Elements + custom fonts, `CheckoutForm` handles Address + Payment Elements, success page ties back into `paymentSession`.
-5. **Support**: warranty claims for sensor membranes, troubleshooting radar noise, compatibility with adjustable bases.
+## Common Workflows
+1. **Local development**
+   ```bash
+   pnpm install
+   pnpm run dev          # localhost:3000
+   pnpm run lint         # required before PR
+   pnpm run build        # required before PR
+   pnpm run start        # verify production build
+   ```
+   Use pnpm only; keep TypeScript strict, no `any`.
 
-## API & Service Layer
-- **Production**: Stripe checkout/webhook, `/api/email/send` (Resend), environment gating via required secrets.
-- **Presence Stubs** (follow `docs/API_STUBS.md` patterns): `/api/shipping/rates`, `/api/inventory/check` (sensor batches), `/api/analytics/events` (presence diagnostics), `/api/compatibility/bed` (calibration hints).
-- Always simulate latency (300–800 ms), validate payloads, and return realistic mock data.
+2. **Tiered UI changes**
+   - Tier‑1 controls (buttons, forms, dialogs) live in `src/components/ui/*` and must use `cn` and Shadcn a11y primitives.
+   - Tier‑2 storytelling blocks (`Hero`, `Features`, product highlights) sit under feature folders (e.g., `src/components/products/duo-pack/*`) and rely on `cx`, gradients, and Framer Motion. Keep ARIA/keyboard support intact.
 
-## Domain Knowledge: Presence Sensors
-- **Sensing Modalities**: mmWave radar with temporal filtering, 4-state machine, still-energy mode, presence confidence scoring.
-- **Bed Sensor Differentiators**: stillness resilience, multi-body detection, HVAC immunity, privacy-by-design (no images, all on-device compute).
-- **Calibration Workflow**: baseline capture (Z-score), adaptive thresholds, "Absolute Clear Delay" resets, integration with Home Assistant DIY dashboards.
-- **Compliance**: Sleep clinics require HIPAA-safe copy; EU shipments require CE + GDPR-compliant messaging; highlight "no cloud" to satisfy privacy expectations.
+3. **State + APIs**
+   - Zustand stores: `useCart` and `useSupportStore` persist to localStorage; `useCheckoutState` stays ephemeral. Any new store must follow docs/STATE_MANAGEMENT.md.
+   - API stubs live in `src/app/api/*`. Follow `docs/API_STUBS.md`: simulate 300–800 ms latency, validate requests, no `any`.
 
-## State Management Rules
-- `useCart`: persistent (localStorage `cart-storage`), toast feedback via Sonner, handles `paymentSession` for success state.
-- `useCheckoutState`: ephemeral, never persisted, tracks tax, totals, shipping address.
-- `useSupportStore`: persistent forms + ticket drafts; ensures warranty + contact flows survive navigation.
-- Never introduce `any`; derive types from `lib/products` or interface definitions.
+4. **Checkout**
+   - `src/components/checkout/CheckoutWrapper.tsx` loads Stripe Elements + custom fonts from Cloudflare R2.
+   - `src/app/store/checkout/page.tsx` orchestrates Address/Payment elements; success page depends on `paymentSession` from `useCart`.
+   - When Medusa integration (Track T2) lands, add a thin service layer in `src/lib/api/medusa.ts` and keep Stripe secrets on the Medusa service, not in the storefront.
 
-## Forms & Validation Pattern
-```typescript
-const schema = z.object({
-  email: z.string().email(),
-  baseType: z.enum(["Platform", "Split", "Adjustable"]),
-  notes: z.string().min(10),
-})
-const form = useForm<SensorInquiry>({ resolver: zodResolver(schema) })
-```
-Always pair with Shadcn `<Form>`, `<FormField>`, `<FormItem>`, `<FormControl>`, `<FormMessage>` and accessible labels.
+5. **Docs + Knowledge**
+   - Markdown truth lives in `/docs`. When Hugo site (Track T3) is scaffolded, sync content from here; do not fork knowledge elsewhere.
+   - Archive superseded plans into `docs/archived/` immediately to avoid confusion.
 
-## UI & Performance Standards
-- Next.js `<Image>` for hero visuals + sensor renders.
-- Heavy 3D/animation blocks use lazy loading or suspense boundaries.
-- Provide skeletons/loading states for fetch-heavy sections (inventory, analytics, shipping).
-- Keep gradients/tints consistent with new Apple-like art direction (light glass, depth, subtle noise).
+6. **Root cleanup / ops**
+   - Follow `docs/IMPLEMENTATION_GUIDE.md` §4 for what to archive/delete (aws/, google-cloud-sdk/, .credentials/, openapi.json, cors.json, pnpm_output.log, lowercase docs).
+   - Track T5 adds `/config/` for env templates + GitHub Actions checks (lint, build, Medusa tests, docs build). Until then, keep secrets local and untracked.
 
-## Testing & QA Checklist
-1. `pnpm run lint`
-2. `pnpm run build`
-3. Manual flows: add-to-cart → checkout → success, support ticket submission, product detail interactions, sensor comparison carousel.
-4. Mobile + desktop review for Cards/Features (visual polish is part of MVP criteria).
+## Reference Documents
+- `docs/MIGRATION_PLAN.md` – MVP tracks T1–T5, milestones, env matrix, risks.
+- `docs/IMPLEMENTATION_GUIDE.md` – Runbooks for each track + root cleanup checklist.
+- `docs/CODEBASE_EXPLANATION.md` – Deep dive into architecture, components, and API story.
+- `docs/STATE_MANAGEMENT.md`, `docs/API_STUBS.md`, `docs/STRIPE_INTEGRATION.md` – Operational patterns.
+- `README.md` – Quickstart plus high-level repo overview.
 
 ## Collaboration Notes
-- This document is mirrored via filesystem hard link at `CLAUDE.md`. Update either name and both stay in sync.
-- Read `docs/CODEBASE_EXPLANATION.md` for architecture deep dives and `docs/STATE_MANAGEMENT.md` for advanced Zustand persistence patterns.
-- When unsure about presence copy or heuristics, mirror the tone of the landing hero: confident, privacy-forward, premium hardware storytelling.
+- Keep AGENTS ↔ CLAUDE mirrored (recreate hard link with `ln -f AGENTS.md CLAUDE.md` if needed).
+- Never bypass the mandated `pnpm run lint` + `pnpm run build` combo; CI mirrors this.
+- For copy/UX tone, mirror hero messaging: confident, privacy-forward, premium hardware storytelling.
+- When touching migration work, reference the MVP plan and implementation guide so new surfaces (Medusa, docs site, forum) stay aligned with the single-repo reality.
