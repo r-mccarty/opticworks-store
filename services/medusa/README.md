@@ -1,6 +1,6 @@
-# OpticWorks Medusa Service (Track T2)
+# OpticWorks Medusa Service (Bootstrap Phases 1–2)
 
-This workspace hosts the future MedusaJS v2 commerce backend. It exists now so engineers can bootstrap the service without guessing about structure or environment variables.
+This workspace hosts the MedusaJS v2 commerce backend outlined in the Phase 1–2 migration plan. It exists now so engineers can bootstrap the service without guessing about structure or environment variables.
 
 ## Quick Start
 
@@ -31,11 +31,11 @@ The scripts rely on the `medusa` CLI that ships with `@medusajs/medusa`. When yo
 | `docker-compose.yml` | Local Postgres + Redis for Medusa core. |
 | `scripts/import-products.ts` | Syncs `src/lib/products.ts` into Medusa Admin via `pnpm catalog:import`. |
 | `src/` (future) | Custom modules, loaders, plugins. |
-| `README.md` | This file. Update as Track T2 progresses. |
+| `README.md` | This file. Update as the bootstrap phases progress. |
 
 ## API Contract Expectations
 
-Track T1 introduced `src/lib/api/medusa.ts` with helper methods consumed by the storefront. Your Medusa service must expose:
+The storefront already calls into `src/lib/api/medusa.ts` (Phase 2 integration) for data and checkout helpers. Your Medusa service must expose:
 
 - `GET /store/products` (list) and `GET /store/products/:id`
 - `POST /store/carts` with line items (returns cart + payment session)
@@ -56,7 +56,7 @@ See `docs/api/medusa-integration.md` for the complete storefront view.
 ## Deployment Notes
 
 - Production Medusa lives on Hetzner (per migration plan). Mirror the compose stack with Terraform/Ansible once ready.
-- Secrets migrate into `/config/medusa.env` during Track T5.
+- Secrets migrate into `/config/medusa.env` during Phase 3 hardening.
 - Stripe secret/publishable keys should live in this service; the storefront only needs the publishable key via Medusa responses.
 
 ## Verification

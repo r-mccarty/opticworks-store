@@ -24,10 +24,10 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 │   ├── archived/            # Legacy infra plans + old migration reports
 │   ├── marketing/, third-party/  # Current marketing+integration briefs
 │   └── (legacy lowercase `migration-plan.md` lives in archived/)
-├── services/medusa/         # Medusa workspace scaffold (Track T2)
-├── platform/docs-site/      # Hugo + Geekdoc workspace (Track T3)
-├── platform/forum/          # Discourse docker + theme scaffold (Track T4)
-├── config/                  # Env templates + CI checklist (Track T5)
+├── services/medusa/         # Medusa workspace for Phase 1–2 work
+├── platform/docs-site/      # Hugo + Geekdoc workspace (Phase 3 docs launch)
+├── platform/forum/          # Discourse docker + theme scaffold (Phase 3 community)
+├── config/                  # Env templates + CI checklist (Phase 3 hardening)
 ├── README.md / AGENTS.md / CLAUDE.md
 ├── archive/                 # Legacy SDK bundles (aws-cli/, google-cloud-sdk/)
 ├── pnpm-workspace.yaml, pnpm-lock.yaml, package.json
@@ -36,7 +36,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 
 ### Active vs. Legacy Surfaces
 - **Active**: `src/*`, `docs/(API_ARCHITECTURE|STATE_MANAGEMENT|STRIPE_INTEGRATION)`, README, top-level config.
-- **MVP Work in Flight**: `docs/MIGRATION_PLAN.md` (tracks T1–T5), `docs/IMPLEMENTATION_GUIDE.md` (runbooks).
+- **MVP Work in Flight**: `docs/MIGRATION_PLAN.md` (Phases 1–3), `docs/IMPLEMENTATION_GUIDE.md` (runbooks).
 - **Legacy/Archive**: `docs/archived/*`, root SDK folders (`aws/`, `google-cloud-sdk/`), stray JSON specs (`openapi.json`, `cors.json`), `pnpm_output.log`. Move/delete only after confirming no current workflow depends on them.
 
 ## Common Workflows
@@ -63,15 +63,16 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 4. **Checkout**
    - `src/components/checkout/CheckoutWrapper.tsx` loads Stripe Elements + custom fonts from Cloudflare R2.
    - `src/app/store/checkout/page.tsx` orchestrates Address/Payment elements; success page depends on `paymentSession` from `useCart`.
-   - When Medusa integration (Track T2) lands, add a thin service layer in `src/lib/api/medusa.ts` and keep Stripe secrets on the Medusa service, not in the storefront.
+   - During Phase 2 (storefront integration), keep `src/lib/api/medusa.ts` thin and ensure Stripe secrets remain on the Medusa service, not in the storefront.
 
 5. **Docs + Knowledge**
-   - Markdown truth lives in `/docs`. When Hugo site (Track T3) is scaffolded, sync content from here; do not fork knowledge elsewhere.
+   - Markdown truth lives in `/docs`. When the Hugo site (Phase 3) is scaffolded, sync content from here; do not fork knowledge elsewhere.
+   - Phase 3 launches the Hugo docs site; sync here first, then publish via `platform/docs-site/`.
    - Archive superseded plans into `docs/archived/` immediately to avoid confusion.
 
 6. **Root cleanup / ops**
    - Follow `docs/IMPLEMENTATION_GUIDE.md` §4 for what to archive/delete (aws/, google-cloud-sdk/, .credentials/, etc.). The old SDKs now live under `/archive/`.
-   - Track T5 introduced `/config/` for env templates + CI checklist; sync secrets from here into your vault manager.
+   - `/config/` now hosts env templates + CI checklist for Phase 3 hardening; sync secrets from here into your vault manager.
    - CI (or pre-commit) must run `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, and `pnpm --filter @opticworks/medusa-service lint/build`.
 7. **Codespaces + Hetzner SSH**
    - The devcontainer installs pnpm, Hugo, Git LFS, libssl3, and AI CLIs automatically, normalizes the Hetzner key, and runs a smoke `ssh hetzner-node` after creation.
@@ -79,7 +80,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 
 ## Reference Documents
 - `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access to Hetzner node, infrastructure setup.
-- `docs/MIGRATION_PLAN.md` – MVP tracks T1–T5, milestones, env matrix, risks.
+- `docs/MIGRATION_PLAN.md` – Bootstrap plan across Phases 1–3, milestones, env matrix, risks.
 - `docs/IMPLEMENTATION_GUIDE.md` – Runbooks for each track + root cleanup checklist.
 - `docs/CODEBASE_EXPLANATION.md` – Deep dive into architecture, components, and API story.
 - `docs/STATE_MANAGEMENT.md`, `docs/API_STUBS.md`, `docs/STRIPE_INTEGRATION.md` – Operational patterns.

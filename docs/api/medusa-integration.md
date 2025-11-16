@@ -1,10 +1,10 @@
 # Medusa Integration Inventory
 
-**Status**: Track T1 (Storefront Hardening) – in progress  
+**Status**: Phase 2 – Catalog + Storefront Integration (in progress)  
 **Last updated**: 2025-03-14  
 **Owner**: Platform Engineering
 
-This note captures every storefront touchpoint that needs Medusa data so Track T1 can introduce a service layer without breaking the current experience. It complements `docs/MIGRATION_PLAN.md` and `docs/IMPLEMENTATION_GUIDE.md`.
+This note captures every storefront touchpoint that needs Medusa data so the Phase 2 rollout can replace the static catalog without breaking the current experience. It complements `docs/MIGRATION_PLAN.md` and `docs/IMPLEMENTATION_GUIDE.md`.
 
 ## 1. Where Product Data Is Consumed
 

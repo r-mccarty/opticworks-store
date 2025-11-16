@@ -1,4 +1,4 @@
-# OpticWorks Forum (Track T4)
+# OpticWorks Forum (Phase 3 – Community Launch)
 
 Discourse deployment scaffold for the Presence developer + installer community. This workspace holds the docker-compose stack, env template, and theme assets.
 
@@ -19,11 +19,11 @@ Custom SCSS/JS lives in `theme/`. The docker-compose volume maps this folder int
 
 ## SSO Placeholder
 
-- Track T4 focuses on theming + bootstrap. Authentication stays local/admin for now.
+- Phase 3 focuses on theming + bootstrap. Authentication stays local/admin for now.
 - Document how Ory Hydra would integrate:
   1. Enable `enable_discourse_connect` in `settings.yml`.
   2. Point `auth_discourse_connect_url` to the Hydra-backed SSO bridge.
-  3. Share secrets via `/config/forum.env` during Track T5.
+  3. Share secrets via `/config/forum.env` during Phase 3 hardening.
 
 ## Deployment Notes
 

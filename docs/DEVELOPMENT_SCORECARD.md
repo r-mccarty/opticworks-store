@@ -5,13 +5,11 @@
 
 ## Current Snapshot
 
-| Track | Scope | Status | Notes |
+| Phase | Scope | Status | Notes |
 | --- | --- | --- | --- |
-| T1 – Storefront Hardening | Stripe checkout refactor, env gating, service-layer prep | 🟢 Completed for MVP | Custom Checkout flow live, new Stripe types added, `lib/api/medusa.ts` wiring verified. |
-| T2 – MedusaJS Backend | Medusa service bootstrap, catalog import, checkout API | 🟡 In Progress | Workspace scaffolding done with `medusa-config.ts`, env template, docs. Awaiting Hetzner deployment + Stripe keys. |
-| T3 – Hugo/Geekdoc Docs | Docs site synced from `/docs` | ⚪ Not Started | Workspace scaffold exists under `platform/docs-site/`, but no content sync/build scripts yet. |
-| T4 – Discourse Forum | Community forum + theming | ⚪ Not Started | Docker scaffold lives at `platform/forum/`, no env wiring yet. |
-| T5 – Platform Ops | Secrets, CI, health checks | 🟡 In Progress | Env cleanup guide exists; need remote env templates + CI integration for Medusa/docs. |
+| Phase 1 – Bootstrap & Validation | Hetzner Medusa deployment + single-product checkout (Milestones B1–B3) | 🟡 In Progress | Devcontainer now handles SSH + Git LFS; awaiting Hetzner Medusa bring-up, first product import, and E2E checkout. |
+| Phase 2 – Catalog & Storefront Integration | Catalog import, storefront fetches, Medusa checkout (Milestones B4–B6) | ⚪ Not Started | Depends on Phase 1 health. Scripts + service layer exist but still rely on static catalog. |
+| Phase 3 – Knowledge Systems & Hardening | Hugo docs, Discourse forum, CI/secrets/monitoring (Milestones B7–B9) | ⚪ Not Started | Scaffolds live under `platform/docs-site/` and `platform/forum/`; awaiting kickoff once Phase 2 is underway. |
 
 ## Highlights (Since Previous Update)
 
@@ -32,27 +30,22 @@
 
 ## In Flight / Next Up
 
-### Track T2 – MedusaJS Backend
-- [ ] Provision Hetzner VM, apply Ubuntu hardening, and install Node/pm2 (per `docs/ubuntu-node-setup.md` workflow).
-- [ ] Configure Cloudflare Tunnel to expose the Medusa service (`MEDUSA_BASE_URL`) for dev/staging.
-- [ ] Seed catalog on Hetzner using `pnpm --filter @opticworks/medusa-service catalog:import`.
-- [ ] Move Stripe secret/publishable keys to the Medusa env; storefront only needs publishable key via API.
-- [ ] Build deployment scripts (pm2 profile or container) so `pnpm deploy:medusa` can target Hetzner.
+### Phase 1 – Bootstrap & Validation
+- [ ] Provision Hetzner VM (or confirm access), harden the host, and install Node/pm2 per `docs/IMPLEMENTATION_GUIDE.md`.
+- [ ] Bring up `services/medusa/docker-compose.yml` on Hetzner and run the first Bed Presence Sensor import.
+- [ ] Configure Cloudflare Tunnel or firewall rules so `MEDUSA_BASE_URL` points at Hetzner for dev/staging.
+- [ ] Land the first Playwright checkout test that targets the Hetzner Medusa instance (B3 exit criteria).
 
-### Track T3 – Hugo/Geekdoc Docs
-- [ ] Sync `/docs` content into `platform/docs-site/`.  
-- [ ] Wire `pnpm docs:dev` / `pnpm docs:build` into CI.  
-- [ ] Publish preview (Cloudflare Pages or Vercel static export).  
+### Phase 2 – Catalog & Storefront Integration
+- [ ] Validate `scripts/import-products.ts` against Hetzner and document quirks before importing the full catalog.
+- [ ] Flip `MEDUSA_ENABLED` in dev/staging once products exist, removing fallback catalog reads per `docs/MIGRATION_PLAN.md`.
+- [ ] Replace `/api/stripe/*` routes with Medusa payment sessions and archive `src/lib/products.ts` when parity is confirmed.
+- [ ] Add CI coverage for Medusa lint/build + storefront integration tests.
 
-### Track T4 – Discourse Forum
-- [ ] Finalize docker-compose + theme install.  
-- [ ] Configure SMTP + SSO placeholders.  
-- [ ] Create seed content + moderation runbook.  
-
-### Track T5 – Platform Ops
-- [ ] Add `/config/medusa.env` template once Hetzner env settled.  
-- [ ] Extend CI to run Medusa lint/build + docs build alongside storefront checks.  
-- [ ] Document monitoring/rollback for Hetzner service.  
+### Phase 3 – Knowledge Systems & Hardening
+- [ ] Wire `platform/docs-site/` into a Hugo build + deploy pipeline, mirroring `/docs`.
+- [ ] Finish the Discourse docker-compose + theme polish, then document SMTP/SSO assumptions in `/config/forum.env`.
+- [ ] Extend `/config/` templates + CI/CD scripts to cover Hetzner secrets, docs deploy, and uptime/monitoring (B9).
 
 ## Risks & Blockers
 
@@ -67,6 +60,6 @@
 1. **Owner: Platform Eng** – Finish Hetzner setup, share tunnel hostname + access instructions.  
 2. **Owner: Commerce Services** – Deploy Medusa service via pm2/docker, load catalog, implement carts/payment session endpoints.  
 3. **Owner: Storefront** – Flip `MEDUSA_ENABLED` once backend is stable; add tests covering Medusa failure fallback.  
-4. **Owner: Knowledge Systems** – Kick off docs/forum tracks per migration plan, report weekly status back into this scorecard.  
+4. **Owner: Knowledge Systems** – Kick off docs/forum work once Phase 2 is underway, report weekly status back into this scorecard.  
 
-_Update cadence: weekly until all migration tracks (T2–T5) ship._
+_Update cadence: weekly until the three migration phases ship._

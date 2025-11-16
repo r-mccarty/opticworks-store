@@ -1,4 +1,4 @@
-# OpticWorks Docs Site (Track T3)
+# OpticWorks Docs Site (Phase 3 – Knowledge Systems)
 
 Static Hugo site that renders the Markdown content in `/docs/` with the Geekdoc theme.
 
@@ -34,4 +34,4 @@ pnpm docs:build  # hugo -s platform/docs-site
 
 - Add Geekdoc theme as a submodule.
 - Configure search index + custom styling.
-- Hook docs build into CI (Track T5).
+- Hook docs build into CI as part of Phase 3 production hardening.

@@ -62,9 +62,9 @@ Key rules:
 
 ### Workspaces (pnpm)
 - `.` – Next.js storefront (default package)
-- `services/medusa/` – MedusaJS backend scaffold (Track T2). Run `pnpm --filter @opticworks/medusa-service dev`.
-- `platform/docs-site/` – Hugo + Geekdoc site (Track T3). Use `pnpm docs:dev` / `pnpm docs:build`.
-- `platform/forum/` – Discourse configuration (Track T4, currently scaffolding).
+- `services/medusa/` – MedusaJS backend workspace used throughout Phase 1 (bootstrap) and Phase 2 (catalog integration). Run `pnpm --filter @opticworks/medusa-service dev`.
+- `platform/docs-site/` – Hugo + Geekdoc site for the Phase 3 docs launch. Use `pnpm docs:dev` / `pnpm docs:build`.
+- `platform/forum/` – Discourse configuration for the Phase 3 community/forum deliverable.
 
 See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roadmap context.
 
@@ -95,7 +95,7 @@ See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roa
 Core guidance and architectural details are centralized in the `/docs` directory:
 
 - **`docs/CONTRIBUTORS.md`** – GitHub Codespaces SSH access to Hetzner development node, infrastructure setup, troubleshooting.
-- **`docs/MIGRATION_PLAN.md`** – MVP tracks (T1–T5), milestones, env matrix, risks, and roadmap.
+- **`docs/MIGRATION_PLAN.md`** – Bootstrap migration plan (Phases 1–3), milestones, env matrix, risks, and roadmap.
 - **`docs/IMPLEMENTATION_GUIDE.md`** – Runbooks for each track + root cleanup checklist.
 - **`docs/CODEBASE_EXPLANATION.md`** – Deep dive into architecture, components, and API story.
 - **`docs/STATE_MANAGEMENT.md`** – Zustand store patterns and localStorage persistence.
@@ -115,7 +115,7 @@ STRIPE_SECRET_KEY=sk_test_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
 RESEND_API_KEY=re_xxx
 
-# Medusa integration (optional during Track T1/T2)
+# Medusa integration (Phase 1–2 toggles)
 MEDUSA_ENABLED=false
 MEDUSA_BASE_URL=http://localhost:9000
 MEDUSA_API_TOKEN= # optional bearer for authenticated requests

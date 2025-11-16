@@ -258,7 +258,7 @@ jobs:
 
 ---
 
-## Simplified Track Summary
+## Phase Summary
 
 | Phase | Timeline | Deliverable | Dependency |
 |-------|----------|-------------|------------|
@@ -326,7 +326,7 @@ Once Phase 2 is complete and Medusa checkout is stable:
 
 ## Approval & Change Management
 
-**This plan is the new source of truth.** The previous v2.0 plan (waterfall tracks T1-T5) is **deprecated**.
+**This plan is the new source of truth.** The previous v2.0 track-based plan is **deprecated**.
 
 **Review cadence**:
 - Daily standups during Phase 1 (critical path)
