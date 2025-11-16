@@ -2,6 +2,17 @@
 
 This document outlines infrastructure access and development workflows for contributors to the OpticWorks Presence Intelligence Platform.
 
+## Codespaces Devcontainer
+
+We ship a fully configured devcontainer so contributors can land in a consistent VS Code / Codespaces environment:
+
+- `.devcontainer/devcontainer.json` pins the Node 20 image, forwards the storefront (`3000`) and Hugo docs (`1313`) ports, disables Next telemetry, and syncs common VS Code extensions/settings (ESLint, Prettier, Tailwind, Docker).
+- `.devcontainer/Dockerfile` layers Hugo Extended `v0.140.0`, Corepack+pnpm `9.15.3`, and the tooling the storefront expects (curl, git, OpenSSH) on top of Microsoft’s TypeScript image.
+- `.devcontainer/post-create.sh` runs on container startup to `apt-get` Hugo, enable Corepack, install the OpenAI/Gemini/Claude CLIs, configure the Hetzner SSH alias when the `HETZNER_VM_SSH_KEY` secret is present, and finish with `pnpm install` so `pnpm run dev`, `pnpm run lint`, and `pnpm run build` are ready immediately.
+- Because the post-create script injects the SSH config, you can run `ssh hetzner-node` from a Codespace or local VS Code Remote - Containers session without touching secrets by hand.
+
+Keep these files in sync with any additional tooling expectations so the Codespaces image stays reproducible.
+
 ## GitHub Codespaces SSH Access to Hetzner Node
 
 Contributors working in GitHub Codespaces have pre-configured SSH access to the Hetzner development VM for backend development, testing, and service deployment.
@@ -60,6 +71,20 @@ If you need to manually set up SSH access:
    ```bash
    ssh hetzner-node "echo 'Connection successful!'"
    ```
+
+### Verified Connectivity
+
+- **Last verified**: 2025-11-16 19:35:27 UTC
+- **Command**:
+  ```bash
+  ssh hetzner-node "echo 'connection-ok'"
+  ```
+- **Result**:
+  ```
+  connection-ok
+  ```
+
+If you see `error in libcrypto` when the key loads, remove any accidental leading spaces/indentation in `~/.ssh/hetzner_key` and retry the verification command above.
 
 ### SSH Key Configuration Details
 
