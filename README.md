@@ -20,8 +20,12 @@ cd opticworks-presence
 # 2. Install deps (pnpm only)
 pnpm install
 
-# 3. Create environment file (.env.local) and provide Stripe + Resend keys
-cp .env.example .env.local  # adjust values for Stripe, Resend, Supabase, etc.
+# 3. Pull secrets (Infisical recommended)
+# Codespaces/devcontainer: set INFISICAL_TOKEN as a secret and the post-create script writes .env.local automatically.
+# Local fallback:
+# INFISICAL_TOKEN=st.xxxxx pnpm run secrets:pull
+# or copy .env.template if Infisical is not available:
+# cp .env.template .env.local && edit the values manually.
 
 # 4. Run the dev server
 pnpm run dev  # http://localhost:3000
@@ -105,17 +109,17 @@ Core guidance and architectural details are centralized in the `/docs` directory
 
 For development workflows and collaboration notes, see `AGENTS.md` (mirrored in `CLAUDE.md`).
 
+## Secrets & Infisical
+- **Preferred flow (Codespaces/devcontainer)**: add `INFISICAL_TOKEN` (and optional overrides like `INFISICAL_ENVIRONMENT`, `INFISICAL_SECRETS_PATH`, `INFISICAL_SITE_URL`) as repository secrets. The devcontainer post-create script installs the Infisical CLI and runs `scripts/pull-infisical-secrets.sh`, which writes `.env.local` automatically.
+- **Local fallback**: export the same env vars and run `pnpm run secrets:pull` to generate `.env.local`.
+- **Manual override**: copy `.env.template` to `.env.local` only if Infisical access is unavailable. Never commit `.env.local`.
+
+The template enumerates every variable the storefront needs (Stripe, Supabase, Cloudflare, analytics, MCP keys, etc.). Update values inside Infisical to rotate secrets centrally; the CLI (and GitHub Codespaces) will always pull the latest at container startup.
+
 ## Environment Variables
-Create `.env.local` (not committed) with the following:
+Toggle Medusa integration flags directly in Infisical (or `.env.local` if you’re testing manually):
 
 ```bash
-# Stripe / email
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx
-STRIPE_SECRET_KEY=sk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
-RESEND_API_KEY=re_xxx
-
-# Medusa integration (Phase 1–2 toggles)
 MEDUSA_ENABLED=false
 MEDUSA_BASE_URL=http://localhost:9000
 MEDUSA_API_TOKEN= # optional bearer for authenticated requests

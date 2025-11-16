@@ -33,6 +33,26 @@ else
     echo "WARNING: Claude AI CLI binary not found in its expected location (/root/.local/bin/claude). Skipping move."
 fi
 
+echo "Ensuring Infisical CLI is installed..."
+if ! command -v infisical >/dev/null 2>&1; then
+    if curl -fsSL https://infisical.com/api/cli/install.sh | sudo bash; then
+        echo "Infisical CLI installed."
+    else
+        echo "WARNING: Failed to install Infisical CLI. Secrets will not be synced automatically."
+    fi
+else
+    echo "Infisical CLI already available."
+fi
+
+if command -v infisical >/dev/null 2>&1; then
+    if [ -n "${INFISICAL_TOKEN:-}" ]; then
+        echo "Pulling secrets from Infisical..."
+        bash scripts/pull-infisical-secrets.sh
+    else
+        echo "WARNING: INFISICAL_TOKEN environment variable not set. Skipping Infisical secret sync."
+    fi
+fi
+
 # --- 3. Configure SSH Access for Hetzner VM ---
 echo "Checking for Hetzner SSH key..."
 # This block only runs if the HETZNER_VM_SSH_KEY secret is set in the Codespace.

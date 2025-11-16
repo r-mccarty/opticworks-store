@@ -23,6 +23,8 @@ Before starting, gather these credentials:
 - Resend API key for transactional emails
 - PostgreSQL/Redis passwords (generate secure values)
 
+> **Infisical workflow**: The Next.js storefront no longer commits `.env` files. Provision an `INFISICAL_TOKEN` (plus optional `INFISICAL_ENVIRONMENT`, `INFISICAL_SECRETS_PATH`, `INFISICAL_SITE_URL`) and run `pnpm run secrets:pull` or rely on the devcontainer post-create step to write `.env.local` automatically. See `.env.template` for the full key list.
+
 ---
 
 ## Phase 1: Hetzner Deployment & Single Product Validation
