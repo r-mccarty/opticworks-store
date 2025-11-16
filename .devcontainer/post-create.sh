@@ -25,8 +25,8 @@ echo "Installing Claude AI CLI..."
 sudo bash -c "curl -fsSL https://claude.ai/install.sh | bash" || true
 
 # The installer may place the binary in the root user's local bin.
-# This checks for its existence and moves it to /usr/local/bin to make it accessible system-wide.
-if [ -f "/root/.local/bin/claude" ]; then
+# This checks for its existence (with sudo so we can read /root) and moves it to /usr/local/bin.
+if sudo test -e "/root/.local/bin/claude"; then
     echo "Moving claude binary to /usr/local/bin for system-wide access..."
     sudo install -m 0755 /root/.local/bin/claude /usr/local/bin/claude
 else
