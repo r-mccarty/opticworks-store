@@ -9,29 +9,39 @@ import { TechnicalDifferentiators } from "@/components/ui/TechnicalDifferentiato
 
 export default function Home() {
   return (
-    <main className="relative mx-auto flex flex-col">
+    <main className="relative mx-auto flex w-full flex-col">
       <Hero />
-      <div className="mt-52 px-4 xl:px-0">
+      <div className="mt-52 w-full px-4 xl:px-0">
         <Features />
       </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="px-4 xl:px-0">
+      <div className="w-full px-4 xl:px-0">
+        <FeatureDivider className="my-16 max-w-6xl" />
+      </div>
+      <div className="w-full px-4 xl:px-0">
         <PresenceHowItWorks />
       </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="px-4 xl:px-0">
+      <div className="w-full px-4 xl:px-0">
+        <FeatureDivider className="my-16 max-w-6xl" />
+      </div>
+      <div className="w-full px-4 xl:px-0">
         <PresenceStateEngine />
       </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="px-4 xl:px-0">
+      <div className="w-full px-4 xl:px-0">
+        <FeatureDivider className="my-16 max-w-6xl" />
+      </div>
+      <div className="w-full px-4 xl:px-0">
         <TechnicalDifferentiators />
       </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-12 px-4 xl:px-0">
+      <div className="w-full px-4 xl:px-0">
+        <FeatureDivider className="my-16 max-w-6xl" />
+      </div>
+      <div className="mt-12 w-full px-4 xl:px-0">
         <Testimonial />
       </div>
-      <FeatureDivider className="my-16 max-w-6xl" />
-      <div className="mt-10 mb-40 px-4 xl:px-0">
+      <div className="w-full px-4 xl:px-0">
+        <FeatureDivider className="my-16 max-w-6xl" />
+      </div>
+      <div className="mt-10 mb-40 w-full px-4 xl:px-0">
         <CallToAction />
       </div>
     </main>

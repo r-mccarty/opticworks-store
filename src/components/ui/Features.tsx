@@ -103,7 +103,7 @@ export default function Features() {
       className="relative mx-auto max-w-6xl scroll-my-24"
     >
       <div className="mb-12 space-y-4 text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-orange-500">
+        <p className="text-sm uppercase tracking-[0.15em] text-orange-500 sm:tracking-[0.3em]">
           Value Propositions
         </p>
         <h2
@@ -144,16 +144,16 @@ export default function Features() {
                   >
                     <Icon className="size-7" />
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.4em] text-gray-500/80">
+                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500/80 sm:tracking-[0.4em]">
                     {String(index + 1).padStart(2, "0")} /{" "}
                     {String(VALUE_PROPS.length).padStart(2, "0")}
                   </span>
                 </div>
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.35em] text-gray-500/90">
+                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500/90 sm:tracking-[0.35em]">
                     {value.title}
                   </p>
-                  <p className="text-2xl font-semibold leading-snug text-gray-900">
+                  <p className="text-xl font-semibold leading-snug text-gray-900 sm:text-2xl">
                     {value.description}
                   </p>
                 </div>
@@ -168,9 +168,9 @@ export default function Features() {
                   </p>
                   <p className="mt-1 text-sm text-gray-700/90">{value.detail}</p>
                 </div>
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.3em] text-gray-500/80">
-                  <span>Engineered Precision</span>
-                  <span>Apple-Grade Finish</span>
+                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.1em] text-gray-500/80 sm:tracking-[0.3em]">
+                  <span className="text-[0.65rem] sm:text-xs">Engineered Precision</span>
+                  <span className="text-[0.65rem] sm:text-xs">Apple-Grade Finish</span>
                 </div>
               </div>
             </article>

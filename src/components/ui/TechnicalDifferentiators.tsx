@@ -36,7 +36,7 @@ export function TechnicalDifferentiators() {
       className="relative mx-auto max-w-6xl"
     >
       <div className="mb-10 text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-emerald-500">
+        <p className="text-sm uppercase tracking-[0.15em] text-emerald-500 sm:tracking-[0.3em]">
           Technical Differentiators
         </p>
         <h2

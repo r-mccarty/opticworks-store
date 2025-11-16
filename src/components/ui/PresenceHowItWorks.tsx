@@ -49,7 +49,7 @@ export function PresenceHowItWorks() {
       className="relative mx-auto max-w-6xl"
     >
       <div className="mb-10 space-y-4 text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-blue-500">
+        <p className="text-sm uppercase tracking-[0.15em] text-blue-500 sm:tracking-[0.3em]">
           How It Works
         </p>
         <h2

@@ -51,7 +51,7 @@ export function PresenceStateEngine() {
       className="relative mx-auto max-w-6xl"
     >
       <div className="mb-10 text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-indigo-500">
+        <p className="text-sm uppercase tracking-[0.15em] text-indigo-500 sm:tracking-[0.3em]">
           Deep Dive
         </p>
         <h2
@@ -89,7 +89,7 @@ export function PresenceStateEngine() {
           ))}
         </ol>
         <div className="rounded-3xl border border-white/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.6)]">
-          <p className="text-sm uppercase tracking-[0.25em] text-white/70">
+          <p className="text-sm uppercase tracking-[0.1em] text-white/70 sm:tracking-[0.25em]">
             Thresholds & Timers
           </p>
           <div className="mt-6 space-y-4 font-mono text-sm text-white/90">

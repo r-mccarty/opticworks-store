@@ -43,10 +43,23 @@ export interface StripeCheckoutAddressElement extends StripeCheckoutMountable {
 
 export type StripeCheckoutPaymentElement = StripeCheckoutMountable
 
+export interface StripeCheckoutSession {
+  id: string
+}
+
+export interface UpdateEmailError {
+  message?: string
+  type?: string
+}
+
+export type StripeCheckoutUpdateEmailResult =
+  | { type: "success"; session: StripeCheckoutSession }
+  | { type: "error"; error: UpdateEmailError }
+
 export interface StripeCheckoutInstance {
   createPaymentElement(): StripeCheckoutPaymentElement
   createShippingAddressElement(): StripeCheckoutAddressElement
-  updateEmail(email: string): Promise<void>
+  updateEmail(email: string): Promise<StripeCheckoutUpdateEmailResult>
   confirm(options?: StripeCheckoutConfirmOptions): Promise<StripeCheckoutConfirmResult>
 }
 

@@ -114,14 +114,14 @@ export function Hero() {
               "shadow-[0_25px_100px_rgba(15,23,42,0.6)] backdrop-blur"
             )}
           >
-            <div className="flex items-center justify-between text-sm uppercase tracking-[0.3em] text-white/60">
-              <span>Home Assistant</span>
-              <span>Presence Engine</span>
+            <div className="flex items-center justify-between text-sm uppercase tracking-[0.1em] text-white/60 sm:tracking-[0.3em]">
+              <span className="text-xs sm:text-sm">Home Assistant</span>
+              <span className="text-xs sm:text-sm">Presence Engine</span>
             </div>
             <div className="mt-6 space-y-5">
               {DEBUG_STATES.map((state) => (
                 <div key={state.label} className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/50">
+                  <p className="break-all text-xs uppercase tracking-[0.1em] text-white/50 sm:break-normal sm:tracking-[0.3em]">
                     {state.label}
                   </p>
                   <p className={cx("mt-2 font-mono text-2xl", state.accent)}>
@@ -131,7 +131,7 @@ export function Hero() {
               ))}
             </div>
             <div className="mt-6 rounded-xl border border-white/15 bg-black/40 p-4">
-              <p className="text-xs uppercase tracking-[0.3em] text-white/40">
+              <p className="text-xs uppercase tracking-[0.1em] text-white/40 sm:tracking-[0.3em]">
                 State Machine Log
               </p>
               <pre className="mt-2 text-sm leading-relaxed text-emerald-200">
