@@ -6,7 +6,7 @@ export function CallToAction() {
     <section aria-labelledby="cta-title" className="mx-auto max-w-6xl">
       <div className="grid items-center gap-10 rounded-3xl border border-white/40 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-10 text-white shadow-[0_25px_120px_rgba(15,23,42,0.45)] lg:grid-cols-[1.1fr_0.9fr]">
         <div>
-          <p className="text-sm uppercase tracking-[0.4em] text-white/60">
+          <p className="text-sm uppercase tracking-[0.15em] text-white/60 sm:tracking-[0.4em]">
             Ready for dependable automations?
           </p>
           <h2
@@ -41,7 +41,7 @@ export function CallToAction() {
           </div>
         </div>
         <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/80">
-          <p className="text-xs uppercase tracking-[0.4em] text-white/60">
+          <p className="text-xs uppercase tracking-[0.15em] text-white/60 sm:tracking-[0.4em]">
             What you get
           </p>
           <ul className="mt-5 space-y-4">
