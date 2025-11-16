@@ -1,0 +1,43 @@
+{
+  "name": "OpticWorks Presence Storefront",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
+
+  "remoteUser": "node",
+  "runArgs": ["--init"],
+
+  "containerEnv": {
+    "NEXT_TELEMETRY_DISABLED": "1"
+  },
+
+  "forwardPorts": [3000, 1313],
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js storefront"
+    },
+    "1313": {
+      "label": "Hugo docs (pnpm docs:dev)"
+    }
+  },
+
+  // Run the external script for all setup steps.
+  // This is much cleaner and more maintainable.
+  "postCreateCommand": ".devcontainer/post-create.sh",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "ms-vscode.vscode-typescript-next",
+        "ms-azuretools.vscode-docker"
+      ],
+      "settings": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true,
+        "files.eol": "\n",
+        "typescript.tsdk": "node_modules/typescript/lib"
+      }
+    }
+  }
+}
