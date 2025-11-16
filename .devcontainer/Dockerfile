@@ -7,6 +7,7 @@ RUN apt-get update \
         ca-certificates \
         curl \
         git \
+        libssl3 \
         openssh-client \
         unzip \
     && rm -rf /var/lib/apt/lists/*

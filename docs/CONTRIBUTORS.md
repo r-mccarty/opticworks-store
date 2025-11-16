@@ -7,8 +7,8 @@ This document outlines infrastructure access and development workflows for contr
 We ship a fully configured devcontainer so contributors can land in a consistent VS Code / Codespaces environment:
 
 - `.devcontainer/devcontainer.json` pins the Node 20 image, forwards the storefront (`3000`) and Hugo docs (`1313`) ports, disables Next telemetry, and syncs common VS Code extensions/settings (ESLint, Prettier, Tailwind, Docker).
-- `.devcontainer/Dockerfile` layers Hugo Extended `v0.140.0`, Corepack+pnpm `9.15.3`, and the tooling the storefront expects (curl, git, OpenSSH) on top of Microsoft’s TypeScript image.
-- `.devcontainer/post-create.sh` runs on container startup to `apt-get` Hugo + Git LFS (so hooks work out of the box), enable Corepack, install the OpenAI/Gemini/Claude CLIs, configure the Hetzner SSH alias when the `HETZNER_VM_SSH_KEY` secret is present, and finish with `pnpm install` so `pnpm run dev`, `pnpm run lint`, and `pnpm run build` are ready immediately.
+- `.devcontainer/Dockerfile` layers Hugo Extended `v0.140.0`, Corepack+pnpm `9.15.3`, `libssl3`, and the tooling the storefront expects (curl, git, OpenSSH) on top of Microsoft’s TypeScript image so OpenSSH/libcrypto always have the right runtime deps.
+- `.devcontainer/post-create.sh` runs on container startup to `apt-get` Hugo + Git LFS (so hooks work out of the box), normalize + install the Hetzner SSH key, enable Corepack, install the OpenAI/Gemini/Claude CLIs, configure the Hetzner SSH alias when the `HETZNER_VM_SSH_KEY` secret is present, and finish with `pnpm install` so `pnpm run dev`, `pnpm run lint`, and `pnpm run build` are ready immediately. It also runs `git lfs install` and a smoke `ssh hetzner-node "echo 'hetzner-ssh-ready'"` to confirm connectivity; see `/tmp/hetzner-ssh.log` after container creation for the log.
 - Because the post-create script injects the SSH config, you can run `ssh hetzner-node` from a Codespace or local VS Code Remote - Containers session without touching secrets by hand.
 
 Keep these files in sync with any additional tooling expectations so the Codespaces image stays reproducible.
@@ -50,10 +50,14 @@ If you need to manually set up SSH access:
    env | grep HETZNER_VM_SSH_KEY
    ```
 
-2. **Save the key with proper permissions:**
+2. **Save the key with proper permissions (remove any leading whitespace before writing or it will fail with a libcrypto error):**
    ```bash
    mkdir -p ~/.ssh
-   echo "$HETZNER_VM_SSH_KEY" > ~/.ssh/hetzner_key
+   python3 - <<'PY'
+import os, pathlib, textwrap
+key = textwrap.dedent(os.environ["HETZNER_VM_SSH_KEY"]).strip() + "\n"
+pathlib.Path.home().joinpath(".ssh", "hetzner_key").write_text(key, encoding="utf-8")
+PY
    chmod 600 ~/.ssh/hetzner_key
    ```
 
@@ -74,7 +78,7 @@ If you need to manually set up SSH access:
 
 ### Verified Connectivity
 
-- **Last verified**: 2025-11-16 19:35:27 UTC
+- **Last verified manually**: 2025-11-16 19:35:27 UTC
 - **Command**:
   ```bash
   ssh hetzner-node "echo 'connection-ok'"
@@ -84,7 +88,13 @@ If you need to manually set up SSH access:
   connection-ok
   ```
 
-If you see `error in libcrypto` when the key loads, remove any accidental leading spaces/indentation in `~/.ssh/hetzner_key` and retry the verification command above.
+Every Codespace/devcontainer build now also runs:
+```bash
+ssh -o BatchMode=yes hetzner-node "echo 'hetzner-ssh-ready'"
+```
+and records the stdout/stderr under `/tmp/hetzner-ssh.log`. Check that file if you need to confirm whether the automated post-create verification succeeded.
+
+If you see `error in libcrypto` when the key loads, make sure the PEM file has no leading spaces (the example Python snippet above handles this automatically) and retry the verification command above.
 
 ### SSH Key Configuration Details
 

@@ -42,8 +42,17 @@ if [ -n "${HETZNER_VM_SSH_KEY:-}" ]; then
   # Create the .ssh directory if it doesn't exist
   mkdir -p ~/.ssh
   
-  # Write the private key to a file and set strict permissions
-  echo "${HETZNER_VM_SSH_KEY}" > ~/.ssh/hetzner_key
+  # Normalize the private key (trim indentation/CRLF) before writing to disk.
+  python3 <<'PY'
+import os
+import pathlib
+import textwrap
+
+key_raw = os.environ.get("HETZNER_VM_SSH_KEY", "")
+key_normalized = textwrap.dedent(key_raw).strip() + "\n"
+path = pathlib.Path.home() / ".ssh" / "hetzner_key"
+path.write_text(key_normalized, encoding="utf-8")
+PY
   chmod 600 ~/.ssh/hetzner_key
   
   # Create or update the SSH config file to add the 'hetzner-node' alias.
@@ -56,10 +65,18 @@ if [ -n "${HETZNER_VM_SSH_KEY:-}" ]; then
       '  Port 8032' \
       '  User ryan' \
       '  IdentityFile ~/.ssh/hetzner_key' \
+      '  UserKnownHostsFile ~/.ssh/known_hosts' \
       '  StrictHostKeyChecking no' \
       >> ~/.ssh/config
   else
     echo "'hetzner-node' alias already exists in ~/.ssh/config."
+  fi
+  
+  echo "Verifying SSH connectivity to hetzner-node..."
+  if ssh -o BatchMode=yes -o ConnectTimeout=5 hetzner-node "echo 'hetzner-ssh-ready'" >/tmp/hetzner-ssh.log 2>&1; then
+    echo "Hetzner SSH verification succeeded: $(cat /tmp/hetzner-ssh.log)"
+  else
+    echo "WARNING: Hetzner SSH verification failed. See /tmp/hetzner-ssh.log for details."
   fi
   
   echo "SSH configuration for 'hetzner-node' complete."
