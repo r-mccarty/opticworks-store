@@ -8,7 +8,7 @@ We ship a fully configured devcontainer so contributors can land in a consistent
 
 - `.devcontainer/devcontainer.json` pins the Node 20 image, forwards the storefront (`3000`) and Hugo docs (`1313`) ports, disables Next telemetry, and syncs common VS Code extensions/settings (ESLint, Prettier, Tailwind, Docker).
 - `.devcontainer/Dockerfile` layers Hugo Extended `v0.140.0`, Corepack+pnpm `9.15.3`, and the tooling the storefront expects (curl, git, OpenSSH) on top of Microsoft’s TypeScript image.
-- `.devcontainer/post-create.sh` runs on container startup to `apt-get` Hugo, enable Corepack, install the OpenAI/Gemini/Claude CLIs, configure the Hetzner SSH alias when the `HETZNER_VM_SSH_KEY` secret is present, and finish with `pnpm install` so `pnpm run dev`, `pnpm run lint`, and `pnpm run build` are ready immediately.
+- `.devcontainer/post-create.sh` runs on container startup to `apt-get` Hugo + Git LFS (so hooks work out of the box), enable Corepack, install the OpenAI/Gemini/Claude CLIs, configure the Hetzner SSH alias when the `HETZNER_VM_SSH_KEY` secret is present, and finish with `pnpm install` so `pnpm run dev`, `pnpm run lint`, and `pnpm run build` are ready immediately.
 - Because the post-create script injects the SSH config, you can run `ssh hetzner-node` from a Codespace or local VS Code Remote - Containers session without touching secrets by hand.
 
 Keep these files in sync with any additional tooling expectations so the Codespaces image stays reproducible.

@@ -9,9 +9,9 @@ set -e
 echo "--- Running Post-Create Script ---"
 
 # --- 1. Install System Packages ---
-echo "Updating package lists and installing Hugo..."
+echo "Updating package lists and installing Hugo + Git LFS..."
 sudo apt-get update
-sudo apt-get install -y hugo
+sudo apt-get install -y hugo git-lfs
 
 # --- 2. Configure Global Tools & CLIs ---
 echo "Configuring Corepack..."
@@ -70,5 +70,8 @@ fi
 # --- 4. Install Project Dependencies ---
 echo "Installing project dependencies with pnpm..."
 pnpm install
+
+echo "Initializing Git LFS hooks..."
+git lfs install
 
 echo "--- Post-Create Script Finished Successfully ---"
