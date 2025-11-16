@@ -85,7 +85,7 @@ See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roa
 ## API & Integrations
 - **Production**: `POST /api/stripe/create-checkout-session`, `POST /api/stripe/webhook`, `POST /api/email/send` (Resend).
 - **Stubs**: Shipping quotes, inventory checks, analytics, bed compatibility guidance. All stubs must simulate latency (300–800 ms) and validate payloads.
-- **Environment**: Requires Stripe publishable/secret keys, Stripe webhook secret, Resend key, Supabase + Cloudflare storage credentials.
+- **Environment**: Requires Stripe publishable/secret keys, Stripe webhook secret, Resend key, Cloudflare storage credentials, plus Hetzner/Medusa endpoints + admin tokens.
 
 ## Development Standards
 1. No `any`—TypeScript strict mode must stay clean.
@@ -114,7 +114,7 @@ For development workflows and collaboration notes, see `AGENTS.md` (mirrored in 
 - **Local fallback**: export the same env vars and run `pnpm run secrets:pull` to generate `.env.local`.
 - **Manual override**: copy `.env.template` to `.env.local` only if Infisical access is unavailable. Never commit `.env.local`.
 
-The template enumerates every variable the storefront needs (Stripe, Supabase, Cloudflare, analytics, MCP keys, etc.). Update values inside Infisical to rotate secrets centrally; the CLI (and GitHub Codespaces) will always pull the latest at container startup.
+The template enumerates every variable the storefront and Hetzner Medusa stack need (Stripe, Cloudflare, Hetzner Postgres/Redis, analytics, MCP keys, etc.). Update values inside Infisical to rotate secrets centrally; the CLI (and GitHub Codespaces) will always pull the latest at container startup.
 
 ## Environment Variables
 Toggle Medusa integration flags directly in Infisical (or `.env.local` if you’re testing manually):
