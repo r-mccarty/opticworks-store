@@ -1,11 +1,11 @@
 # OpticWorks Presence Intelligence Platform
 
-This repo contains the production web experience for OpticWorks’ mmWave bed and presence sensors. The site narrates the CyberShade Presence hardware family, manages the Stripe checkout flow, and powers support/warranty tooling for integrators and smart-home enthusiasts. It is a pure Next.js + Tailwind + TypeScript stack with a heavy emphasis on cinematic UI polish.
+This repo contains the production web experience for OpticWorks’ mmWave bed and ambient presence sensors. The site narrates the OpticWorks Presence Intelligence hardware family, manages the Stripe checkout flow, and powers support/warranty tooling for integrators and smart-home enthusiasts. It is a pure Next.js + Tailwind + TypeScript stack with a heavy emphasis on cinematic UI polish.
 
 ## Why This Exists
-- **Presence-first storytelling**: Hero, Features, and product pages highlight "Built to fix every pain point smart homes have with bed sensors" and the Apple-grade industrial design language.
+- **Presence-first storytelling**: Hero, Features, and product pages highlight how our intelligent sensing stack delivers room-level presence, respiration, and sleep-quality signals with Apple-grade industrial design.
 - **Hybrid commerce**: Persistent cart + Stripe Elements checkout to sell sensors, bridges, and calibration bundles.
-- **Support + Compliance**: Warranty, "Oops Protection," tint-law legacy info, and installation guides for sleep clinics, integrators, and DIY installers.
+- **Support + Ops**: Warranty, "Oops Protection," lifecycle maintenance, and installation guides for sleep clinics, integrators, and DIY installers.
 
 ## Prerequisites
 - [Node.js](https://nodejs.org/) 18+
@@ -50,7 +50,7 @@ src/
 │  ├─ store/, support/, products/, 3d/
 ├─ hooks/           # Zustand stores (useCart, useCheckoutState, useSupportStore)
 ├─ lib/
-│  ├─ api/          # Service-layer utilities (tinting laws, orders, billing, compatibility)
+│  ├─ api/          # Service-layer utilities (presence analytics, orders, billing, compatibility)
 │  ├─ products.ts   # Sensor catalog metadata
 │  └─ utils.ts      # `cn`, `cx`, helpers
 └─ docs/            # CODEBASE_EXPLANATION, STATE_MANAGEMENT, API_STUBS, STRIPE_INTEGRATION
@@ -68,8 +68,12 @@ Key rules:
 
 See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roadmap context.
 
+## Contributor Environment & SSH
+- The Codespaces/VS Code devcontainer installs pnpm, Hugo, Git LFS, libssl, and all required AI CLIs automatically, normalizes the Hetzner SSH key, and runs a smoke SSH check the first time the container spins up.
+- For SSH details, troubleshooting, and the latest verification timestamp, see `docs/CONTRIBUTORS.md`. That doc is the source of truth for the Hetzner alias (`ssh hetzner-node`), secret requirements, and `/tmp/hetzner-ssh.log` verification output.
+
 ## Feature Pillars
-- **CyberShade Presence Catalog**: Sensor highlights, specs, heatmap demos, integrator kits.
+- **Presence Intelligence Catalog**: Sensor highlights, specs, heatmap demos, integrator kits.
 - **Cart & Checkout**: Persisted cart state, Stripe session creation, Address/Payment Elements, success-state email handoff.
 - **Support Center**: Warranty claims, "Oops Protection," compliance tools, contact flows with persistent form drafts.
 - **Install Guides**: Installation stories for under-mattress tiles, adjustable bases, calibration with Home Assistant.

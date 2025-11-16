@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This repo remains a single Next.js application that narrates the CyberShade Presence family, runs checkout/support, and now hosts the refreshed migration docs. `CLAUDE.md` must mirror this file (hard link or identical copy).
+Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This repo remains a single Next.js application that narrates the OpticWorks intelligent sensing hardware line, runs checkout/support, and now hosts the refreshed migration docs. `CLAUDE.md` must mirror this file (hard link or identical copy).
 
 ## Platform Snapshot
 - **Hardware**: Bed/under-mattress mmWave sensors, bridges, integrator kits, developer firmware program.
@@ -73,6 +73,9 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - Follow `docs/IMPLEMENTATION_GUIDE.md` §4 for what to archive/delete (aws/, google-cloud-sdk/, .credentials/, etc.). The old SDKs now live under `/archive/`.
    - Track T5 introduced `/config/` for env templates + CI checklist; sync secrets from here into your vault manager.
    - CI (or pre-commit) must run `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, and `pnpm --filter @opticworks/medusa-service lint/build`.
+7. **Codespaces + Hetzner SSH**
+   - The devcontainer installs pnpm, Hugo, Git LFS, libssl3, and AI CLIs automatically, normalizes the Hetzner key, and runs a smoke `ssh hetzner-node` after creation.
+   - `docs/CONTRIBUTORS.md` is the source of truth for the workflow above plus troubleshooting (`/tmp/hetzner-ssh.log`). Reference it before tweaking devcontainer scripts or SSH config.
 
 ## Reference Documents
 - `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access to Hetzner node, infrastructure setup.
