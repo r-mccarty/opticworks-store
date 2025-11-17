@@ -84,6 +84,15 @@ export default defineConfig({
   admin: {
     backendUrl: process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000",
     path: "/app",
+    vite: (config) => {
+      return {
+        ...config,
+        server: {
+          ...config.server,
+          allowedHosts: ["api.optic.works", "localhost"],
+        },
+      }
+    },
   },
   modules: modulesConfig,
 })
