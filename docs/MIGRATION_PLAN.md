@@ -1,8 +1,8 @@
 # OpticWorks Platform Migration Plan (Bootstrap Edition)
 
-**Document version**: 3.0
-**Last updated**: 2025-11-16
-**Philosophy**: Deploy fast, test early, expand incrementally
+**Document version**: 4.0
+**Last updated**: 2025-11-17
+**Philosophy**: Deploy fast, test early, expand incrementally, secure for production
 
 This plan replaces the previous waterfall approach. Since the current storefront is **not production**, we can move directly to MedusaJS without maintaining backwards compatibility. The entire strategy focuses on getting a working Medusa backend on Hetzner with one product, then expanding from that validated foundation.
 
@@ -38,7 +38,7 @@ The previous plan (v2.0) prepared the storefront for a future Medusa backend tha
 **What doesn't work**: Actual checkout (payment routes broken per user report)
 **What exists but unproven**: Medusa service layer, scaffolds, migration scripts
 
-## Bootstrap Plan: 3 Phases Over 3 Weeks
+## Bootstrap Plan: 4 Phases Over 4 Weeks
 
 ### Phase 1: Hetzner Deployment & Single Product Validation (Days 1-5)
 
@@ -258,13 +258,162 @@ jobs:
 
 ---
 
+### Phase 4: Production Networking & Security (Days 22-28)
+
+**Goal**: Expose Medusa backend via Cloudflare Tunnel, deploy storefront to Cloudflare Pages, implement webhook buffering.
+
+#### Milestone P1: Cloudflare Tunnel Setup (Day 22-23)
+
+**Context**: Development workflow uses direct SSH to Hetzner node. Production requires secure, authenticated tunnel to expose Medusa API at `api.optic.works` without opening firewall ports.
+
+**Architecture**:
+```
+┌─────────────────────────────────────────────┐
+│ Cloudflare Pages/Workers (storefront)      │
+│ ├─ Next.js SSR/SSG                          │
+│ └─ Workers: Webhook buffer → Medusa         │
+└─────────────┬───────────────────────────────┘
+              │ HTTPS via Cloudflare Tunnel
+              │ (api.optic.works)
+┌─────────────▼───────────────────────────────┐
+│ Hetzner Node (5.78.106.67)                  │
+│ ├─ Cloudflared daemon (tunnel connector)    │
+│ ├─ Medusa v2 (localhost:9000)               │
+│ ├─ PostgreSQL (localhost:5432)              │
+│ └─ Redis (localhost:6379)                   │
+└─────────────────────────────────────────────┘
+```
+
+**Installation steps**:
+1. SSH to Hetzner node
+2. Install cloudflared: `curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb && sudo dpkg -i cloudflared.deb`
+3. Authenticate tunnel: `cloudflared tunnel login` (opens browser for auth)
+4. Create tunnel: `cloudflared tunnel create opticworks-medusa`
+5. Configure tunnel to route `api.optic.works` → `localhost:9000`
+6. Install as systemd service for auto-restart
+7. Add DNS CNAME: `api.optic.works` → `<tunnel-id>.cfargotunnel.com`
+
+**Exit criteria**:
+- [ ] `curl https://api.optic.works/health` returns 200 OK
+- [ ] `curl https://api.optic.works/store/products` returns product catalog
+- [ ] Cloudflared service starts on boot (`systemctl enable cloudflared`)
+- [ ] Tunnel metrics visible in Cloudflare dashboard
+
+#### Milestone P2: Storefront Deployment to Cloudflare Pages (Day 23-24)
+
+**Goal**: Deploy Next.js storefront to Cloudflare Pages with environment variables for production Medusa endpoint.
+
+**Steps**:
+1. Connect GitHub repo to Cloudflare Pages
+2. Configure build settings:
+   - Build command: `pnpm run build`
+   - Build output directory: `.next`
+   - Root directory: `/`
+   - Node version: 20
+3. Set environment variables in Cloudflare Pages dashboard:
+   ```bash
+   NEXT_PUBLIC_MEDUSA_ENABLED=true
+   NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+   # ... other production secrets
+   ```
+4. Configure custom domain: `optic.works` and `www.optic.works`
+5. Enable automatic deployments on `main` branch push
+6. Test preview deployments on PRs
+
+**Exit criteria**:
+- [ ] Storefront accessible at `https://optic.works`
+- [ ] Products load from `https://api.optic.works`
+- [ ] Checkout flow completes via tunnel-exposed Medusa
+- [ ] Preview deployments work for PRs
+
+#### Milestone P3: Cloudflare Workers Webhook Buffer (Day 24-25)
+
+**Goal**: Deploy Cloudflare Worker to buffer Stripe webhooks and forward to Medusa with retry logic.
+
+**Architecture**:
+```
+Stripe Webhooks
+    ↓
+Cloudflare Worker (webhook.optic.works)
+    ├─ Validate Stripe signature
+    ├─ Store in Durable Object (buffer)
+    ├─ Retry with exponential backoff
+    └─ Forward to api.optic.works/stripe/hooks
+        ↓
+    Medusa (via Cloudflare Tunnel)
+```
+
+**Implementation**:
+1. Create `workers/webhook-buffer/` workspace
+2. Implement Worker with:
+   - Stripe webhook signature verification
+   - Durable Objects for persistent queue
+   - Exponential backoff retry (3 attempts)
+   - Dead letter queue for failures
+3. Deploy Worker to `webhook.optic.works`
+4. Update Stripe webhook endpoint to `https://webhook.optic.works`
+5. Configure Worker environment variables:
+   - `STRIPE_WEBHOOK_SECRET`
+   - `MEDUSA_API_URL=https://api.optic.works`
+   - `MEDUSA_ADMIN_TOKEN`
+
+**Exit criteria**:
+- [ ] Stripe webhooks forwarded successfully
+- [ ] Worker retries failed requests (observable in logs)
+- [ ] Medusa receives `payment_intent.succeeded` events
+- [ ] Order status updates in Admin after payment
+
+#### Milestone P4: Production Environment Hardening (Day 26-28)
+
+**Scope**: SSL/TLS certificates, secrets rotation, monitoring, backup procedures.
+
+**SSL/TLS**:
+- Cloudflare automatically provisions SSL for `api.optic.works` via tunnel
+- Enable Full (Strict) SSL mode in Cloudflare dashboard
+- Force HTTPS redirects for all domains
+
+**Secrets Management**:
+- Rotate all Medusa credentials generated in Phase 1
+- Store production secrets in Infisical with `production` environment tag
+- Document rotation schedule (JWT/Cookie secrets: monthly, DB passwords: quarterly)
+- Enable audit logging in Infisical
+
+**Monitoring**:
+- Cloudflare Analytics for storefront traffic
+- Cloudflare Tunnel metrics for backend connectivity
+- Medusa health checks via UptimeRobot: `https://api.optic.works/health`
+- Sentry error tracking for storefront (optional)
+- PostgreSQL slow query log on Hetzner
+
+**Backups**:
+- PostgreSQL daily backups: `pg_dump medusa_db > /backups/medusa-$(date +%Y%m%d).sql`
+- Backup retention: 7 daily, 4 weekly, 12 monthly
+- Backup storage: Cloudflare R2 with lifecycle rules
+- Test restore procedure quarterly
+
+**Firewall**:
+- Hetzner firewall: ONLY allow SSH (port 8032) from GitHub Codespaces IPs
+- Cloudflare Tunnel handles all public traffic (no direct internet exposure for Medusa)
+- Enable Cloudflare WAF for `api.optic.works` and `optic.works`
+
+**Exit criteria**:
+- [ ] SSL certificates auto-renew (Cloudflare managed)
+- [ ] All production secrets rotated and stored in Infisical
+- [ ] Health checks passing for 24 hours
+- [ ] Backup restoration tested successfully
+- [ ] Firewall rules documented and applied
+
+---
+
 ## Phase Summary
 
 | Phase | Timeline | Deliverable | Dependency |
 |-------|----------|-------------|------------|
 | **Phase 1** | Days 1-5 | Medusa on Hetzner + 1 product checkout | None (start immediately) |
 | **Phase 2** | Days 6-12 | Full catalog + storefront integration | Phase 1 complete |
-| **Phase 3** | Days 13-21 | Docs + Forum + Production hardening | Phase 2 complete (Docs/Forum can start Day 10) |
+| **Phase 3** | Days 13-21 | Docs + Forum + CI/CD hardening | Phase 2 complete (Docs/Forum can start Day 10) |
+| **Phase 4** | Days 22-28 | Production networking + Cloudflare Tunnel | Phase 3 complete (can start Day 18) |
 
 ## Environment Configuration
 
@@ -282,11 +431,12 @@ STRIPE_SECRET_KEY=sk_test_xxx
 MEDUSA_ADMIN_TOKEN=<generate-secure-token>
 ```
 
-### Production (Hetzner)
+### Production (Cloudflare + Hetzner)
 ```bash
-# Storefront (Vercel env vars)
+# Storefront (Cloudflare Pages env vars)
 NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.opticworks.io
+NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
 RESEND_API_KEY=re_prod_xxx
 
 # Medusa (Hetzner /opt/opticworks/medusa/.env)
@@ -294,6 +444,15 @@ POSTGRES_URL=postgresql://medusa:<secure-pw>@localhost:5432/medusa_prod
 REDIS_URL=redis://localhost:6379
 STRIPE_SECRET_KEY=sk_live_xxx
 MEDUSA_ADMIN_TOKEN=<rotate-monthly>
+MEDUSA_BACKEND_URL=https://api.optic.works
+
+# Cloudflare Tunnel (Hetzner /etc/cloudflared/config.yml)
+tunnel: <tunnel-id>
+credentials-file: /root/.cloudflared/<tunnel-id>.json
+ingress:
+  - hostname: api.optic.works
+    service: http://localhost:9000
+  - service: http_status:404
 ```
 
 ## Deleted Artifacts (Post-Migration Cleanup)
@@ -312,7 +471,8 @@ Once Phase 2 is complete and Medusa checkout is stable:
 
 **Phase 1 success**: Can buy Bed Presence Sensor via Medusa on Hetzner in <5 days
 **Phase 2 success**: All products purchasable, legacy Stripe routes deleted
-**Phase 3 success**: Docs + Forum live, CI green, ready for production traffic
+**Phase 3 success**: Docs + Forum live, CI green, ready for production deployment
+**Phase 4 success**: Production traffic served via Cloudflare, all services monitored, backups automated
 
 ## Risk Mitigation
 
@@ -345,6 +505,8 @@ Once Phase 2 is complete and Medusa checkout is stable:
 4. **Delete legacy code**: No dual-maintenance burden once Medusa works
 5. **Independent tracks**: Docs/Forum don't block commerce migration
 6. **Measurable milestones**: Each milestone has concrete exit criteria
+7. **Production-ready security**: Cloudflare Tunnel eliminates direct internet exposure
+8. **Incremental deployment**: Each phase delivers independently valuable capabilities
 
 **Previous plan failed because**: It optimized for abstraction before validation.
-**This plan succeeds because**: It optimizes for working software at every step.
+**This plan succeeds because**: It optimizes for working software at every step, with production security baked in from the start.

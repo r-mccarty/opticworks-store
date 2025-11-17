@@ -1,7 +1,7 @@
 # OpticWorks Migration Implementation Guide (Bootstrap Edition)
 
 **Last updated**: 2025-11-17
-**Companion to**: `docs/MIGRATION_PLAN.md` v3.0
+**Companion to**: `docs/MIGRATION_PLAN.md` v4.0
 **RFD-004 Status**: ✅ Resolved (all automation implemented)
 
 This guide provides **executable commands, scripts, and verification steps** for each milestone in the bootstrap migration plan. Copy-paste these commands directly into your terminal or use them as templates for automation scripts.
@@ -1146,6 +1146,602 @@ git add -A
 git commit -m "chore: remove legacy Stripe routes, archive static catalog"
 git push
 ```
+
+---
+
+## Phase 4: Production Networking & Security
+
+### Milestone P1: Cloudflare Tunnel Setup
+
+#### Step 1: Install Cloudflared on Hetzner Node
+```bash
+# SSH to Hetzner
+ssh hetzner-node
+
+# Download and install cloudflared
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+
+# Verify installation
+cloudflared --version
+```
+
+#### Step 2: Authenticate Tunnel
+```bash
+# This opens browser for Cloudflare login
+cloudflared tunnel login
+
+# Credentials stored at: ~/.cloudflared/cert.pem
+ls -la ~/.cloudflared/
+```
+
+#### Step 3: Create Tunnel
+```bash
+# Create tunnel named "opticworks-medusa"
+cloudflared tunnel create opticworks-medusa
+
+# Output example:
+# Tunnel credentials written to: /root/.cloudflared/<tunnel-id>.json
+# Created tunnel opticworks-medusa with id <tunnel-id>
+
+# Save the tunnel ID for next steps
+TUNNEL_ID=$(cloudflared tunnel list | grep opticworks-medusa | awk '{print $1}')
+echo "Tunnel ID: $TUNNEL_ID"
+```
+
+#### Step 4: Configure Tunnel
+```bash
+# Create tunnel configuration
+sudo mkdir -p /etc/cloudflared
+sudo tee /etc/cloudflared/config.yml > /dev/null <<EOF
+tunnel: $TUNNEL_ID
+credentials-file: /root/.cloudflared/${TUNNEL_ID}.json
+
+ingress:
+  - hostname: api.optic.works
+    service: http://localhost:9000
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 30s
+  - service: http_status:404
+EOF
+
+# Verify config syntax
+cloudflared tunnel ingress validate
+```
+
+#### Step 5: Add DNS Record
+```bash
+# Create CNAME record pointing to tunnel
+cloudflared tunnel route dns opticworks-medusa api.optic.works
+
+# Expected output:
+# Added CNAME api.optic.works which will route to this tunnel
+```
+
+**Or configure DNS manually in Cloudflare dashboard**:
+1. Navigate to DNS settings for `optic.works`
+2. Add CNAME record:
+   - Name: `api`
+   - Target: `<tunnel-id>.cfargotunnel.com`
+   - Proxy status: Proxied (orange cloud)
+
+#### Step 6: Test Tunnel (Manual)
+```bash
+# Start tunnel in foreground for testing
+cloudflared tunnel run opticworks-medusa
+
+# In another terminal, test the endpoint
+curl https://api.optic.works/health
+
+# Expected response:
+# {"status":"ok"}
+```
+
+#### Step 7: Install as Systemd Service
+```bash
+# Install service
+sudo cloudflared service install
+
+# Enable auto-start on boot
+sudo systemctl enable cloudflared
+
+# Start service
+sudo systemctl start cloudflared
+
+# Check status
+sudo systemctl status cloudflared
+
+# View logs
+sudo journalctl -u cloudflared -f
+```
+
+#### Step 8: Verify Production Connectivity
+```bash
+# From local machine (not Hetzner)
+curl https://api.optic.works/health
+curl https://api.optic.works/store/products
+
+# Check tunnel metrics in Cloudflare dashboard:
+# Zero Trust → Access → Tunnels → opticworks-medusa
+```
+
+#### Troubleshooting P1
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| Tunnel authentication fails | Browser doesn't open | Run `cloudflared tunnel login` and manually open URL shown |
+| DNS propagation delay | `api.optic.works` doesn't resolve | Wait 5-10 minutes, check Cloudflare DNS dashboard |
+| Connection refused | Tunnel connects but `/health` fails | Verify Medusa running on `localhost:9000` |
+| Certificate errors | SSL/TLS warnings | Enable Full (Strict) SSL in Cloudflare dashboard |
+| Service won't start | systemd errors | Check logs: `sudo journalctl -u cloudflared -n 50` |
+
+**Milestone P1 Exit Criteria**:
+- [x] Cloudflared service running and enabled
+- [x] `https://api.optic.works/health` returns 200 OK
+- [x] `https://api.optic.works/store/products` returns catalog
+- [x] Tunnel metrics visible in Cloudflare dashboard
+- [x] Service restarts automatically after reboot
+
+---
+
+### Milestone P2: Storefront Deployment to Cloudflare Pages
+
+#### Step 1: Connect GitHub Repository
+```bash
+# In Cloudflare dashboard:
+# 1. Navigate to Workers & Pages → Pages
+# 2. Click "Create application"
+# 3. Select "Connect to Git"
+# 4. Authorize Cloudflare to access GitHub
+# 5. Select repository: r-mccarty/opticworks-store
+# 6. Click "Begin setup"
+```
+
+#### Step 2: Configure Build Settings
+**Build configuration**:
+- Framework preset: **Next.js**
+- Build command: `pnpm run build`
+- Build output directory: `.next`
+- Root directory: `/`
+- Node version: `20`
+
+**Advanced settings**:
+```bash
+# Install command (optional override)
+pnpm install
+
+# Build caching
+Enable build cache: ✓
+```
+
+#### Step 3: Set Environment Variables
+Navigate to Settings → Environment Variables and add:
+
+```bash
+# Production environment
+NODE_ENV=production
+NEXT_PUBLIC_APP_URL=https://optic.works
+
+# Medusa integration
+NEXT_PUBLIC_MEDUSA_ENABLED=true
+NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx  # From Medusa setup:keys script
+
+# Stripe
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_live_xxx
+STRIPE_SECRET_KEY=sk_live_xxx  # Server-side only
+
+# Resend
+RESEND_API_KEY=re_prod_xxx
+NEXT_PUBLIC_FROM_EMAIL=noreply@optic.works
+
+# Cloudflare R2
+R2_ACCESS_KEY_ID=xxx
+R2_SECRET_ACCESS_KEY=xxx
+R2_BUCKET_NAME=opticworks-assets
+R2_ENDPOINT_URL=https://xxx.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://assets.optic.works
+
+# Copy all other vars from .env.template
+```
+
+**💡 Tip**: Use Infisical to manage production secrets, then copy values to Cloudflare Pages.
+
+#### Step 4: Configure Custom Domain
+```bash
+# In Cloudflare Pages → Custom domains
+# Add domains:
+1. optic.works
+2. www.optic.works
+
+# DNS records (auto-created by Cloudflare):
+# A record: optic.works → Cloudflare Pages IP
+# CNAME: www → optic.works
+```
+
+#### Step 5: Enable Preview Deployments
+```bash
+# Settings → Builds & deployments
+# Enable:
+- ✓ Enable automatic deployments for production branch (main)
+- ✓ Enable preview deployments for pull requests
+- ✓ Enable comments on pull requests
+```
+
+#### Step 6: Trigger First Deployment
+```bash
+# Option 1: Push to main branch
+git push origin main
+
+# Option 2: Manual deploy in dashboard
+# Deployments → Create deployment → Select branch
+
+# Monitor deployment
+# Cloudflare Pages shows build logs in real-time
+```
+
+#### Step 7: Verify Production Build
+```bash
+# Test production site
+curl -I https://optic.works
+curl https://optic.works/api/health  # If health endpoint exists
+
+# Test Medusa integration
+# Navigate to https://optic.works in browser
+# Verify products load from api.optic.works
+# Complete test checkout with Stripe test card
+```
+
+**Milestone P2 Exit Criteria**:
+- [x] Site accessible at `https://optic.works` and `https://www.optic.works`
+- [x] Products load from `https://api.optic.works`
+- [x] Checkout flow completes successfully
+- [x] Preview deployments work for PRs
+- [x] Build time under 5 minutes
+
+---
+
+### Milestone P3: Cloudflare Workers Webhook Buffer
+
+#### Step 1: Create Worker Workspace
+```bash
+# From repo root
+mkdir -p workers/webhook-buffer
+cd workers/webhook-buffer
+
+# Initialize Wrangler project
+pnpm create cloudflare@latest . --type=worker --ts
+
+# Install dependencies
+pnpm add stripe
+pnpm add -D @cloudflare/workers-types
+```
+
+#### Step 2: Implement Worker Logic
+Create `workers/webhook-buffer/src/index.ts`:
+```typescript
+import Stripe from 'stripe';
+
+export interface Env {
+  STRIPE_WEBHOOK_SECRET: string;
+  MEDUSA_API_URL: string;
+  MEDUSA_ADMIN_TOKEN: string;
+  WEBHOOK_BUFFER: DurableObjectNamespace;
+}
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    if (request.method !== 'POST') {
+      return new Response('Method not allowed', { status: 405 });
+    }
+
+    const signature = request.headers.get('stripe-signature');
+    if (!signature) {
+      return new Response('Missing signature', { status: 400 });
+    }
+
+    const body = await request.text();
+
+    // Verify Stripe signature
+    const stripe = new Stripe(env.STRIPE_WEBHOOK_SECRET, {
+      apiVersion: '2023-10-16',
+    });
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        body,
+        signature,
+        env.STRIPE_WEBHOOK_SECRET
+      );
+    } catch (err) {
+      console.error('Webhook signature verification failed:', err);
+      return new Response('Invalid signature', { status: 400 });
+    }
+
+    // Buffer webhook in Durable Object
+    const id = env.WEBHOOK_BUFFER.idFromName('default');
+    const stub = env.WEBHOOK_BUFFER.get(id);
+
+    await stub.fetch(request.clone(), {
+      body: JSON.stringify(event),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${env.MEDUSA_ADMIN_TOKEN}`,
+      },
+    });
+
+    // Acknowledge receipt to Stripe
+    return new Response('Received', { status: 200 });
+  },
+};
+
+// Durable Object for webhook buffering with retry logic
+export class WebhookBuffer {
+  async fetch(request: Request): Promise<Response> {
+    const event = await request.json();
+    const medusaUrl = request.headers.get('Medusa-URL') || '';
+    const adminToken = request.headers.get('Authorization') || '';
+
+    // Retry with exponential backoff
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      try {
+        const response = await fetch(`${medusaUrl}/stripe/hooks`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': adminToken,
+          },
+          body: JSON.stringify(event),
+        });
+
+        if (response.ok) {
+          console.log(`Webhook forwarded successfully: ${event.id}`);
+          return new Response('Forwarded', { status: 200 });
+        }
+
+        console.warn(`Attempt ${attempt} failed: ${response.status}`);
+      } catch (err) {
+        console.error(`Attempt ${attempt} error:`, err);
+      }
+
+      if (attempt < 3) {
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+      }
+    }
+
+    console.error(`Failed to forward webhook after 3 attempts: ${event.id}`);
+    return new Response('Failed after retries', { status: 500 });
+  }
+}
+```
+
+#### Step 3: Configure Wrangler
+Edit `workers/webhook-buffer/wrangler.toml`:
+```toml
+name = "webhook-buffer"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[env.production]
+routes = [{ pattern = "webhook.optic.works/*", zone_name = "optic.works" }]
+
+[[durable_objects.bindings]]
+name = "WEBHOOK_BUFFER"
+class_name = "WebhookBuffer"
+script_name = "webhook-buffer"
+
+[env.production.vars]
+MEDUSA_API_URL = "https://api.optic.works"
+
+[[env.production.secrets]]
+STRIPE_WEBHOOK_SECRET = "whsec_xxx"
+MEDUSA_ADMIN_TOKEN = "xxx"
+```
+
+#### Step 4: Deploy Worker
+```bash
+cd workers/webhook-buffer
+
+# Login to Cloudflare
+pnpm wrangler login
+
+# Deploy to production
+pnpm wrangler deploy
+
+# Expected output:
+# Uploaded webhook-buffer
+# Published webhook-buffer
+#   https://webhook.optic.works
+```
+
+#### Step 5: Update Stripe Webhook Endpoint
+```bash
+# In Stripe dashboard:
+# 1. Navigate to Developers → Webhooks
+# 2. Add endpoint: https://webhook.optic.works
+# 3. Select events:
+#    - payment_intent.succeeded
+#    - payment_intent.payment_failed
+#    - checkout.session.completed
+# 4. Copy webhook signing secret to wrangler.toml
+```
+
+#### Step 6: Test Webhook Flow
+```bash
+# Use Stripe CLI to test
+stripe listen --forward-to https://webhook.optic.works
+stripe trigger payment_intent.succeeded
+
+# Check Worker logs
+pnpm wrangler tail
+
+# Verify Medusa received event
+# Check Medusa logs: ssh hetzner-node "sudo journalctl -u medusa -f"
+```
+
+**Milestone P3 Exit Criteria**:
+- [x] Worker deployed to `webhook.optic.works`
+- [x] Stripe signature verification working
+- [x] Webhooks forwarded to Medusa successfully
+- [x] Retry logic observable in Worker logs
+- [x] Order status updates in Medusa after payment
+
+---
+
+### Milestone P4: Production Environment Hardening
+
+#### Step 1: Enable SSL/TLS Strict Mode
+```bash
+# In Cloudflare dashboard for optic.works domain:
+# 1. Navigate to SSL/TLS → Overview
+# 2. Select "Full (strict)" mode
+# 3. Navigate to Edge Certificates
+# 4. Enable:
+#    - ✓ Always Use HTTPS
+#    - ✓ HTTP Strict Transport Security (HSTS)
+#    - ✓ Automatic HTTPS Rewrites
+#    - ✓ Minimum TLS Version: 1.2
+```
+
+#### Step 2: Rotate Production Secrets
+```bash
+# On Hetzner node
+ssh hetzner-node
+
+cd /opt/opticworks/medusa-backend/services/medusa
+
+# Generate new credentials
+pnpm run generate:secrets > /tmp/medusa-prod-secrets.env
+
+# Review and update .env
+nano .env
+
+# Restart Medusa with new credentials
+sudo systemctl restart medusa
+
+# Store new secrets in Infisical
+# Tag with: environment=production, rotated=$(date +%Y-%m-%d)
+```
+
+**Secret rotation schedule**:
+- JWT_SECRET, COOKIE_SECRET: Monthly
+- MEDUSA_ADMIN_TOKEN: Monthly
+- PostgreSQL passwords: Quarterly
+- API keys (Stripe, Resend): On vendor recommendation
+
+#### Step 3: Setup Automated Backups
+Create `/opt/opticworks/scripts/backup-medusa.sh`:
+```bash
+#!/bin/bash
+set -euo pipefail
+
+BACKUP_DIR="/backups/medusa"
+DATE=$(date +%Y%m%d_%H%M%S)
+BACKUP_FILE="medusa_${DATE}.sql.gz"
+R2_BUCKET="opticworks-backups"
+
+# Create backup
+pg_dump -U medusa_user medusa_db | gzip > "${BACKUP_DIR}/${BACKUP_FILE}"
+
+# Upload to Cloudflare R2
+aws s3 cp "${BACKUP_DIR}/${BACKUP_FILE}" "s3://${R2_BUCKET}/database/" \
+  --endpoint-url https://xxx.r2.cloudflarestorage.com
+
+# Cleanup local backups older than 7 days
+find "${BACKUP_DIR}" -name "medusa_*.sql.gz" -mtime +7 -delete
+
+echo "Backup completed: ${BACKUP_FILE}"
+```
+
+Make executable and schedule:
+```bash
+chmod +x /opt/opticworks/scripts/backup-medusa.sh
+
+# Add to crontab (daily at 2 AM UTC)
+crontab -e
+# Add line:
+0 2 * * * /opt/opticworks/scripts/backup-medusa.sh >> /var/log/medusa-backup.log 2>&1
+```
+
+#### Step 4: Configure Monitoring
+**UptimeRobot health checks**:
+1. Add monitor: `https://api.optic.works/health`
+   - Check interval: 5 minutes
+   - Alert on: Down, SSL expiry
+2. Add monitor: `https://optic.works`
+   - Check interval: 5 minutes
+
+**Cloudflare Analytics**:
+- Enable Web Analytics for `optic.works`
+- Monitor Zero Trust → Tunnels for `opticworks-medusa` metrics
+
+**Medusa logs**:
+```bash
+# On Hetzner, setup log rotation
+sudo tee /etc/logrotate.d/medusa > /dev/null <<EOF
+/var/log/medusa.log {
+  daily
+  rotate 14
+  compress
+  delaycompress
+  notifempty
+  create 0644 root root
+}
+EOF
+```
+
+#### Step 5: Harden Firewall
+```bash
+# On Hetzner node
+ssh hetzner-node
+
+# UFW rules (if using UFW)
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 8032/tcp comment 'SSH from Codespaces'
+sudo ufw enable
+
+# Verify Cloudflare Tunnel handles all public traffic
+# Medusa port 9000 should NOT be exposed to internet
+sudo netstat -tulpn | grep :9000
+# Should show: 127.0.0.1:9000 (localhost only)
+```
+
+**Cloudflare WAF**:
+1. Navigate to Security → WAF
+2. Enable OWASP ModSecurity Core Rule Set
+3. Create custom rules:
+   - Rate limit: 100 requests/min per IP for `/store/*`
+   - Block requests missing User-Agent header
+   - Challenge suspicious IP addresses
+
+#### Step 6: Test Backup Restoration
+```bash
+# Download recent backup from R2
+aws s3 cp "s3://opticworks-backups/database/medusa_latest.sql.gz" /tmp/ \
+  --endpoint-url https://xxx.r2.cloudflarestorage.com
+
+# Extract
+gunzip /tmp/medusa_latest.sql.gz
+
+# Restore to test database
+psql -U medusa_user -d medusa_test < /tmp/medusa_latest.sql
+
+# Verify data integrity
+psql -U medusa_user -d medusa_test -c "SELECT COUNT(*) FROM product;"
+
+# Document restoration procedure in CONTRIBUTORS.md
+```
+
+**Milestone P4 Exit Criteria**:
+- [x] SSL Full (Strict) mode enabled
+- [x] All production secrets rotated and stored in Infisical
+- [x] Daily PostgreSQL backups to R2
+- [x] Backup restoration tested successfully
+- [x] Health checks configured and passing
+- [x] Firewall rules applied (SSH only)
+- [x] Cloudflare WAF enabled
 
 ---
 

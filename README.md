@@ -99,9 +99,11 @@ See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roa
 
 Core guidance and architectural details are centralized in the `/docs` directory:
 
-- **`docs/CONTRIBUTORS.md`** – GitHub Codespaces SSH access to Hetzner development node, infrastructure setup, troubleshooting.
-- **`docs/MIGRATION_PLAN.md`** – Bootstrap migration plan (Phases 1–3), milestones, env matrix, risks, and roadmap.
-- **`docs/IMPLEMENTATION_GUIDE.md`** – Runbooks for each track + root cleanup checklist.
+- **`docs/CONTRIBUTORS.md`** – GitHub Codespaces SSH access, dev vs prod workflow, Hetzner deployment.
+- **`docs/MIGRATION_PLAN.md`** – Bootstrap migration plan v4.0 (Phases 1-4: Medusa + Docs + Production Networking).
+- **`docs/IMPLEMENTATION_GUIDE.md`** – Executable runbooks for all milestones including Cloudflare Tunnel setup.
+- **`docs/RFD-004.md`** – Infrastructure automation requirements (resolved with 17 automation scripts).
+- **`docs/CI.md`** – CI/CD checklist (build, lint, test commands).
 - **`docs/CODEBASE_EXPLANATION.md`** – Deep dive into architecture, components, and API story.
 - **`docs/STATE_MANAGEMENT.md`** – Zustand store patterns and localStorage persistence.
 - **`docs/API_STUBS.md`** – API endpoint stubs and latency simulation guidelines.
@@ -110,23 +112,91 @@ Core guidance and architectural details are centralized in the `/docs` directory
 
 For development workflows and collaboration notes, see `AGENTS.md` (mirrored in `CLAUDE.md`).
 
-## Secrets & Infisical
-- **Preferred flow (Codespaces/devcontainer)**: add `INFISICAL_TOKEN` (and optional overrides like `INFISICAL_ENVIRONMENT`, `INFISICAL_SECRETS_PATH`, `INFISICAL_SITE_URL`) as repository secrets. The devcontainer post-create script installs the Infisical CLI and runs `scripts/pull-infisical-secrets.sh`, which writes `.env.local` automatically.
-- **Local fallback**: export the same env vars and run `pnpm run secrets:pull` to generate `.env.local`.
-- **Manual override**: copy `.env.template` to `.env.local` only if Infisical access is unavailable. Never commit `.env.local`.
+## Environment Configuration Strategy
 
-The template enumerates every variable the storefront and Hetzner Medusa stack need (Stripe, Cloudflare, Hetzner Postgres/Redis, analytics, MCP keys, etc.). Update values inside Infisical to rotate secrets centrally; the CLI (and GitHub Codespaces) will always pull the latest at container startup.
+This repo uses a **two-file environment strategy** to separate storefront and backend concerns:
 
-## Environment Variables
-Toggle Medusa integration flags directly in Infisical (or `.env.local` if you’re testing manually):
+### 1. Storefront Configuration (`.env.template` → `.env.local`)
 
+**Scope**: Next.js storefront + integrations (Stripe, Resend, Cloudflare, analytics, Medusa client settings)
+
+**Management**: Populated via Infisical
+
+**Workflow**:
+- **Codespaces/devcontainer**: Add `INFISICAL_TOKEN` as a repository secret. The post-create script runs `scripts/pull-infisical-secrets.sh` and writes `.env.local` automatically.
+- **Local development**: Export `INFISICAL_TOKEN` and run `pnpm run secrets:pull`.
+- **Manual fallback**: Copy `.env.template` to `.env.local` if Infisical is unavailable (never commit `.env.local`).
+
+The `.env.template` file includes header comments explaining its scope and Infisical workflow.
+
+### 2. Backend Configuration (`services/medusa/.env.example` → `services/medusa/.env`)
+
+**Scope**: Medusa v2 backend ONLY (PostgreSQL, Redis, JWT secrets, admin tokens, Stripe backend key)
+
+**Management**: Manual configuration after generating credentials
+
+**Workflow**:
 ```bash
-MEDUSA_ENABLED=false
-MEDUSA_BASE_URL=http://localhost:9000
-MEDUSA_API_TOKEN= # optional bearer for authenticated requests
-NEXT_PUBLIC_MEDUSA_ENABLED=false
-NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
-NEXT_PUBLIC_MEDUSA_API_TOKEN=
+# Generate secure credentials
+cd services/medusa
+pnpm run generate:secrets > /tmp/medusa-secrets.env
+
+# Copy template and fill with generated values
+cp .env.example .env
+nano .env  # Paste credentials from /tmp/medusa-secrets.env
+
+# Store in Infisical for team access
+# Tag with: environment=development, service=medusa
 ```
 
-When `MEDUSA_ENABLED` / `NEXT_PUBLIC_MEDUSA_ENABLED` remain `false`, the storefront pulls from the static catalog (`src/lib/products.ts`) and keeps using the internal Stripe API routes. Flip the flags to `true` (with a reachable `MEDUSA_BASE_URL`) to exercise the new service layer defined in `src/lib/api/medusa.ts`. See `docs/api/medusa-integration.md` for the complete contract map. Canonical env templates now live under `/config/`; copy from there rather than keeping ad-hoc `.credentials/` files.
+The `services/medusa/.env.example` file includes header comments explaining the generation workflow.
+
+### Why Two Files?
+
+- **Separation of concerns**: Storefront secrets (public Stripe key, CDN URLs) vs backend secrets (database passwords, JWT tokens)
+- **Deployment isolation**: Storefront deploys to Cloudflare Pages, backend runs on Hetzner node
+- **Security**: Backend secrets never exposed to client-side code
+- **Team access**: Different secret rotation schedules (backend secrets monthly, storefront keys on-demand)
+
+## Key Environment Variables
+
+### Medusa Integration Flags (Storefront)
+
+Toggle Medusa integration in `.env.local` (or Infisical):
+
+```bash
+# Development (local Medusa)
+NEXT_PUBLIC_MEDUSA_ENABLED=true
+NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx  # From `pnpm run setup:keys` in Medusa workspace
+
+# Production (via Cloudflare Tunnel)
+NEXT_PUBLIC_MEDUSA_ENABLED=true
+NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_live_xxx
+```
+
+When `NEXT_PUBLIC_MEDUSA_ENABLED=false`, the storefront uses:
+- Static catalog from `src/lib/products.ts`
+- Legacy Stripe routes in `src/app/api/stripe/*`
+
+When `NEXT_PUBLIC_MEDUSA_ENABLED=true`, the storefront uses:
+- Product data from Medusa API (`/store/products`)
+- Medusa cart API and payment sessions
+- Stripe integration via Medusa backend
+
+See `docs/api/medusa-integration.md` for the complete API contract and `services/medusa/README.md` for backend setup.
+
+### Backend Credentials (Medusa)
+
+Generate all required backend secrets:
+```bash
+cd services/medusa
+pnpm run generate:secrets
+```
+
+This outputs PostgreSQL password, Redis password, JWT secret, cookie secret, and admin token. Store these in `services/medusa/.env` and Infisical.
+
+**Important**: Never use the legacy `.credentials/` folder. All secrets now managed via:
+1. Root `.env.template` for storefront (Infisical-synced)
+2. `services/medusa/.env.example` for backend (generated credentials)

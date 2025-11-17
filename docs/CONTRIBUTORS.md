@@ -148,19 +148,57 @@ ssh hetzner-node
 - Disable UFW or configure appropriate firewall rules on the Hetzner VM before attempting connections
 - The key is intended for development workflows only
 
-### Deployment to Hetzner
+### Development vs. Production Access
 
-Once connected, you can deploy services, run tests, and manage the development infrastructure:
-
+**Development Access** (SSH - current workflow):
 ```bash
+# Direct SSH for development, testing, and deployment
+ssh hetzner-node
+
+# Deploy Medusa backend
+ssh hetzner-node "cd /opt/opticworks/medusa-backend && git pull && pnpm install"
+
+# View Medusa logs
+ssh hetzner-node "sudo journalctl -u medusa -f"
+
 # Check server status
 ssh hetzner-node "uptime && df -h"
-
-# Deploy services (example)
-ssh hetzner-node "cd ~/solar-saas && git pull && pnpm install && pnpm run build"
-
-# View logs
-ssh hetzner-node "tail -f /var/log/service.log"
 ```
 
-See `docs/IMPLEMENTATION_GUIDE.md` for service-specific deployment procedures.
+**Production Access** (Cloudflare Tunnel - Phase 4):
+
+Once Phase 4 is complete, production traffic will flow through Cloudflare Tunnel:
+- **Medusa API**: `https://api.optic.works` (via tunnel, no direct IP exposure)
+- **Storefront**: `https://optic.works` (Cloudflare Pages)
+- **Webhook Buffer**: `https://webhook.optic.works` (Cloudflare Workers)
+
+SSH access will remain for:
+- Service management (systemd restart, log inspection)
+- Database administration (backups, migrations)
+- Infrastructure provisioning (PostgreSQL, Redis, Cloudflared)
+- Emergency troubleshooting
+
+**Architecture Diagram**:
+```
+GitHub Codespaces
+    │ SSH (port 8032)
+    ↓
+Hetzner Node (5.78.106.67)
+    ├─ Medusa (localhost:9000) ←─┐
+    ├─ PostgreSQL (localhost:5432) │ (development)
+    ├─ Redis (localhost:6379)      │
+    └─ Cloudflared (tunnel daemon) ┘
+              │
+              │ HTTPS (production)
+              ↓
+    Cloudflare Edge
+        ├─ api.optic.works → Medusa
+        ├─ optic.works → Pages (storefront)
+        └─ webhook.optic.works → Workers
+```
+
+### Deployment to Hetzner
+
+See `docs/IMPLEMENTATION_GUIDE.md` for complete deployment procedures including:
+- Phase 1-3: Direct Medusa deployment via SSH
+- Phase 4: Cloudflare Tunnel + Pages production setup

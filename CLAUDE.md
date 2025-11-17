@@ -2,11 +2,25 @@
 
 Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This repo remains a single Next.js application that narrates the OpticWorks intelligent sensing hardware line, runs checkout/support, and now hosts the refreshed migration docs. `CLAUDE.md` must mirror this file (hard link or identical copy).
 
-## Platform Snapshot
+## Platform Snapshot (Updated 2025-11-17)
 - **Hardware**: Bed/under-mattress mmWave sensors, bridges, integrator kits, developer firmware program.
 - **Experience**: Apple-grade art direction, cinematic landing/product flows, ASCII 404 already live.
 - **Stack**: Next.js 15.5 (App Router, React 19), Tailwind 4, Shadcn Tier‑1 controls + bespoke Tier‑2 UI (`cn`/`cx` helpers), Zustand stores, Stripe + Resend APIs, Framer Motion + Three.js scenes.
-- **Roadmap Pillars**: (1) Harden storefront APIs for external services, (2) Introduce MedusaJS backend, (3) Stand up Hugo/Geekdoc docs, (4) Launch Discourse forum, (5) Consolidate ops + cleanup legacy tooling.
+- **Domain**: `optic.works` (production), `api.optic.works` (Medusa backend via Cloudflare Tunnel)
+- **Deployment Model**:
+  - Storefront: Cloudflare Pages (`optic.works`)
+  - Backend: Hetzner node (Medusa v2 + PostgreSQL + Redis) exposed via Cloudflare Tunnel
+  - Webhooks: Cloudflare Workers with Durable Objects buffer
+- **Migration Status**:
+  - ✅ Phase 1-2: Medusa backend deployed on Hetzner with full catalog (RFD-004 automation resolved)
+  - 🚧 Phase 3: Hugo docs + Discourse forum + CI/CD in progress
+  - 📋 Phase 4: Production networking (Cloudflare Tunnel) documented, pending deployment
+- **Roadmap Evolution**:
+  - ~~Phase 1-2~~: MedusaJS backend bootstrap **[COMPLETE]**
+  - ~~RFD-004~~: Infrastructure automation suite **[RESOLVED]**
+  - **Phase 3** (In Progress): Hugo docs site + Discourse forum + CI hardening
+  - **Phase 4** (Documented): Cloudflare Tunnel + Pages production deployment + webhook buffering
+  - **Phase 5** (Future): Developer portal, API documentation, community integrations
 
 ## Repository Navigation
 ```
@@ -19,15 +33,20 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 ├── public/                  # Images, fonts, static assets (served via Next Image/R2 URLs)
 ├── docs/                    # Canonical documentation (see below)
 │   ├── API_STUBS.md, CODEBASE_EXPLANATION.md, STATE_MANAGEMENT.md, etc.
-│   ├── MIGRATION_PLAN.md    # MVP tracks + milestones (v2.0)
-│   ├── IMPLEMENTATION_GUIDE.md
+│   ├── MIGRATION_PLAN.md    # Bootstrap plan v4.0 (Phases 1-4 complete architecture)
+│   ├── IMPLEMENTATION_GUIDE.md  # Runbooks for all milestones including Cloudflare Tunnel
+│   ├── CONTRIBUTORS.md      # SSH access, dev/prod workflow, Hetzner deployment
+│   ├── RFD-004.md           # Infrastructure automation requirements (resolved)
+│   ├── CI.md                # CI checklist (moved from legacy /config/)
 │   ├── archived/            # Legacy infra plans + old migration reports
 │   ├── marketing/, third-party/  # Current marketing+integration briefs
-│   └── (legacy lowercase `migration-plan.md` lives in archived/)
-├── services/medusa/         # Medusa workspace for Phase 1–2 work
+│   └── api/                 # Medusa integration specs
+├── services/medusa/         # Medusa v2 workspace (17 automation scripts, PM2 supervisor)
 ├── platform/docs-site/      # Hugo + Geekdoc workspace (Phase 3 docs launch)
 ├── platform/forum/          # Discourse docker + theme scaffold (Phase 3 community)
-├── config/                  # Env templates + CI checklist (Phase 3 hardening)
+├── workers/                 # Cloudflare Workers (Phase 4: webhook buffer)
+├── .env.template            # Storefront environment config (Infisical-managed)
+├── services/medusa/.env.example  # Backend-specific config (credentials generation)
 ├── README.md / AGENTS.md / CLAUDE.md
 ├── archive/                 # Legacy SDK bundles (aws-cli/, google-cloud-sdk/)
 ├── pnpm-workspace.yaml, pnpm-lock.yaml, package.json
@@ -35,9 +54,24 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 ```
 
 ### Active vs. Legacy Surfaces
-- **Active**: `src/*`, `docs/(API_ARCHITECTURE|STATE_MANAGEMENT|STRIPE_INTEGRATION)`, README, top-level config.
-- **MVP Work in Flight**: `docs/MIGRATION_PLAN.md` (Phases 1–3), `docs/IMPLEMENTATION_GUIDE.md` (runbooks).
-- **Legacy/Archive**: `docs/archived/*`, root SDK folders (`aws/`, `google-cloud-sdk/`), stray JSON specs (`openapi.json`, `cors.json`), `pnpm_output.log`. Move/delete only after confirming no current workflow depends on them.
+- **Active**:
+  - `src/*` — Storefront application (Next.js 15.5)
+  - `services/medusa/` — Backend workspace with 17 automation scripts
+  - `docs/` — Canonical documentation (MIGRATION_PLAN v4.0, IMPLEMENTATION_GUIDE, CONTRIBUTORS)
+  - `.env.template` + `services/medusa/.env.example` — Environment configuration
+  - `platform/` — Hugo docs + Discourse forum scaffolds
+  - `workers/` — Cloudflare Workers (Phase 4)
+- **In Progress**:
+  - `docs/MIGRATION_PLAN.md` Phase 3-4 (docs site, forum, Cloudflare Tunnel deployment)
+  - Phase 4 implementation (webhook buffer, production networking)
+- **Completed**:
+  - Phase 1-2: Medusa backend on Hetzner with full automation
+  - RFD-004: All infrastructure gaps resolved
+  - Cart normalization + test coverage
+- **Deprecated/Deleted**:
+  - `/config/` folder (deleted — CI checklist moved to `docs/CI.md`)
+  - `docs/archived/*` — Legacy migration plans (pre-v3.0)
+  - `/archive/` — SDK bundles (aws-cli, google-cloud-sdk)
 
 ## Common Workflows
 1. **Local development**
@@ -71,21 +105,35 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - Phase 3 launches the Hugo docs site; sync here first, then publish via `platform/docs-site/`.
    - Archive superseded plans into `docs/archived/` immediately to avoid confusion.
 
-6. **Root cleanup / ops**
-   - Follow `docs/IMPLEMENTATION_GUIDE.md` §4 for what to archive/delete (aws/, google-cloud-sdk/, .credentials/, etc.). The old SDKs now live under `/archive/`.
-   - `/config/` now hosts env templates + CI checklist for Phase 3 hardening; sync secrets from here into your vault manager.
-   - CI (or pre-commit) must run `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, and `pnpm --filter @opticworks/medusa-service lint/build`.
-7. **Codespaces + Hetzner SSH**
+6. **Environment configuration**
+   - **Storefront**: `.env.template` (root) — Managed via Infisical, includes Stripe/Resend/Cloudflare/Medusa integration
+   - **Backend**: `services/medusa/.env.example` — Backend-only secrets (PostgreSQL, Redis, JWT, admin tokens)
+   - Generate Medusa credentials: `cd services/medusa && pnpm run generate:secrets`
+   - Sync secrets: `pnpm run secrets:pull` (storefront) or store in Infisical for team access
+   - See `.env.template` and `services/medusa/.env.example` header comments for detailed scope explanation
+
+7. **Root cleanup / ops**
+   - Follow `docs/IMPLEMENTATION_GUIDE.md` for deployment procedures (Phases 1-4)
+   - Legacy `/config/` folder **deleted** — CI checklist now at `docs/CI.md`
+   - Old SDKs archived under `/archive/` (do not delete without confirming no dependencies)
+   - CI must run: `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, `pnpm --filter @opticworks/medusa-service build`
+8. **Codespaces + Hetzner SSH**
    - The devcontainer installs pnpm, Hugo, Git LFS, libssl3, and AI CLIs automatically, normalizes the Hetzner key, and runs a smoke `ssh hetzner-node` after creation.
-   - `docs/CONTRIBUTORS.md` is the source of truth for the workflow above plus troubleshooting (`/tmp/hetzner-ssh.log`). Reference it before tweaking devcontainer scripts or SSH config.
+   - `docs/CONTRIBUTORS.md` is the source of truth for SSH access, dev/prod workflow distinction, and troubleshooting (`/tmp/hetzner-ssh.log`).
+   - **Development**: Direct SSH to Hetzner node for Medusa deployment/logs
+   - **Production**: Traffic flows via Cloudflare Tunnel (`api.optic.works`), SSH for infrastructure management only
 
 ## Reference Documents
-- `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access to Hetzner node, infrastructure setup.
-- `docs/MIGRATION_PLAN.md` – Bootstrap plan across Phases 1–3, milestones, env matrix, risks.
-- `docs/IMPLEMENTATION_GUIDE.md` – Runbooks for each track + root cleanup checklist.
-- `docs/CODEBASE_EXPLANATION.md` – Deep dive into architecture, components, and API story.
-- `docs/STATE_MANAGEMENT.md`, `docs/API_STUBS.md`, `docs/STRIPE_INTEGRATION.md` – Operational patterns.
-- `README.md` – Quickstart plus high-level repo overview.
+- `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access, dev vs prod workflow, Hetzner deployment
+- `docs/MIGRATION_PLAN.md` – Bootstrap plan v4.0 (Phases 1-4: Medusa + Docs + Production Networking)
+- `docs/IMPLEMENTATION_GUIDE.md` – Executable runbooks for all milestones including Cloudflare Tunnel setup
+- `docs/CODEBASE_EXPLANATION.md` – Deep dive into storefront architecture, components, and API layer
+- `docs/STATE_MANAGEMENT.md`, `docs/API_STUBS.md`, `docs/STRIPE_INTEGRATION.md` – Operational patterns
+- `docs/RFD-004.md` – Infrastructure automation requirements (now resolved with 17 scripts)
+- `docs/CI.md` – CI/CD checklist (build, lint, test commands)
+- `services/medusa/README.md` – Medusa workspace setup, automation scripts, RFD-004 resolution status
+- `README.md` – Quickstart plus high-level repo overview
+- `.env.template` + `services/medusa/.env.example` – Environment configuration guides (see header comments)
 
 ## Collaboration Notes
 - Keep AGENTS ↔ CLAUDE mirrored (recreate hard link with `ln -f AGENTS.md CLAUDE.md` if needed).
