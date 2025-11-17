@@ -8,17 +8,30 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 - **Stack**: Next.js 15.5 (App Router, React 19), Tailwind 4, Shadcn Tier‑1 controls + bespoke Tier‑2 UI (`cn`/`cx` helpers), Zustand stores, Stripe + Resend APIs, Framer Motion + Three.js scenes.
 - **Domain**: `optic.works` (production), `api.optic.works` (Medusa backend via Cloudflare Tunnel)
 - **Deployment Model**:
-  - Storefront: Cloudflare Pages (`optic.works`)
-  - Backend: Hetzner node (Medusa v2 + PostgreSQL + Redis) exposed via Cloudflare Tunnel
-  - Webhooks: Cloudflare Workers with Durable Objects buffer
+  - Storefront: Cloudflare Pages (`optic.works`) - Phase 4
+  - Backend: Hetzner node (Medusa v2 + PostgreSQL + Redis) exposed via Cloudflare Tunnel - **LIVE**
+  - Admin Auth: Cloudflare Access Zero Trust (email-based, upgradeable to SSO) - **IN PROGRESS**
+  - Secrets: Infisical centralized secret management - **DOCUMENTED, READY TO IMPLEMENT**
+  - Webhooks: Cloudflare Workers with Durable Objects buffer - Phase 4
+- **Production Infrastructure (Live)**:
+  - Backend URL: `https://api.optic.works` ✅
+  - Admin Dashboard: `https://api.optic.works/app` ✅
+  - Health Endpoint: `https://api.optic.works/health` ✅
+  - Store API: `https://api.optic.works/store/*` ✅
+  - Server: Hetzner Cloud (3 vCPUs, 4GB RAM)
+  - Services: PostgreSQL 17, Redis, Medusa v2, PM2, Cloudflare Tunnel
+  - Admin Access: Invitation-based (admin@optic.works)
+  - Publishable Key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
 - **Migration Status**:
   - ✅ Phase 1: Medusa backend deployed on Hetzner with Cloudflare Tunnel **[COMPLETE 2025-11-17]**
+  - 🔧 Security Hardening: Cloudflare Access + Infisical setup **[IN PROGRESS]**
   - 🟡 Phase 2: Ready for catalog import & storefront integration
   - 📋 Phase 3: Hugo docs + Discourse forum + CI/CD (ready to start)
   - 📋 Phase 4: Production storefront deployment + webhook buffering (ready to start)
 - **Roadmap Evolution**:
   - ~~Phase 1~~: MedusaJS backend bootstrap + Cloudflare Tunnel **[COMPLETE 2025-11-17]**
   - ~~RFD-004~~: Infrastructure automation suite **[RESOLVED]**
+  - **Security Hardening** (In Progress): Cloudflare Access auth + Infisical secret management
   - **Phase 2** (Ready to Start): Full catalog import + storefront integration
   - **Phase 3** (Pending): Hugo docs site + Discourse forum + CI hardening
   - **Phase 4** (Pending): Cloudflare Pages production deployment + webhook buffering
@@ -64,15 +77,21 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
   - `platform/` — Hugo docs + Discourse forum scaffolds
   - `workers/` — Cloudflare Workers (Phase 4)
 - **In Progress**:
-  - Phase 2 preparation: Catalog import automation ready, storefront integration pending
+  - 🔧 Cloudflare Access: Admin dashboard authentication (guide complete, implementation pending)
+  - 🔧 Infisical: Secret management setup (guide complete, 30-45 min implementation)
+  - 🟡 Phase 2: Catalog import automation ready, storefront integration pending Infisical
 - **Completed**:
   - ✅ Phase 1: Medusa backend on Hetzner with full automation **[2025-11-17]**
-  - ✅ Cloudflare Tunnel production deployment at `api.optic.works` **[2025-11-17]**
+  - ✅ Cloudflare Tunnel: Production deployment at `api.optic.works` **[2025-11-17]**
+  - ✅ Admin Dashboard: Live at `api.optic.works/app` with Vite host fix **[2025-11-17]**
   - ✅ RFD-004: All infrastructure gaps resolved (17 automation scripts)
   - ✅ Cart normalization + test coverage
   - ✅ PostgreSQL 17 + Redis provisioned and operational
   - ✅ PM2 process management for Medusa service
-  - ✅ Admin dashboard + publishable API key setup
+  - ✅ Admin user setup via invitation workflow
+  - ✅ Publishable API key generated and linked to default sales channel
+  - ✅ Documentation: Cloudflare Access setup guide (docs/CLOUDFLARE_ACCESS_SETUP.md)
+  - ✅ Documentation: Infisical secret management guide (docs/INFISICAL_SETUP.md)
 - **Deprecated/Deleted**:
   - `/config/` folder (deleted — CI checklist moved to `docs/CI.md`)
   - `docs/archived/*` — Legacy migration plans (pre-v3.0)
@@ -128,20 +147,198 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - **Development**: Direct SSH to Hetzner node for Medusa deployment/logs
    - **Production**: Traffic flows via Cloudflare Tunnel (`api.optic.works`), SSH for infrastructure management only
 
+9. **Cloudflare Access (Admin Dashboard Auth) - IN PROGRESS**
+   - **Purpose**: Protect Medusa admin dashboard (`/app*`) with Zero Trust authentication
+   - **Status**: Guide complete (`docs/CLOUDFLARE_ACCESS_SETUP.md`), implementation pending
+   - **Setup Time**: 10-15 minutes
+   - **Quick Start**:
+     1. Navigate to Cloudflare Zero Trust dashboard
+     2. Create application for `api.optic.works/app*`
+     3. Configure email-based authentication policy
+     4. Test access in incognito window
+   - **Keeps Public**: `/health`, `/store/*` (for monitoring and storefront API)
+   - **Upgrade Path**: Email PIN → Google Workspace/Azure AD SSO when team grows
+   - **Next**: Follow `docs/CLOUDFLARE_ACCESS_SETUP.md` step-by-step
+
+10. **Infisical (Secret Management) - DOCUMENTED**
+    - **Purpose**: Centralized secret management for 30+ environment variables (Stripe, Medusa, Cloudflare, etc.)
+    - **Status**: Guide complete (`docs/INFISICAL_SETUP.md`), ready to implement
+    - **Setup Time**: 30-45 minutes
+    - **Quick Start**:
+      1. Create Infisical account and project
+      2. Add all secrets for dev/staging/prod environments
+      3. Create service token for Codespaces
+      4. Add `INFISICAL_TOKEN` to GitHub Codespaces secrets
+      5. Codespaces auto-sync `.env.local` on creation
+    - **Blockers Without Infisical**:
+      - Phase 2 storefront testing (need ~7 critical env vars minimum)
+      - Cloudflare Pages deployment (need all 30+ env vars)
+      - Team collaboration (manual secret sharing is insecure)
+    - **Manual Workaround** (temporary):
+      ```bash
+      cp .env.template .env.local
+      # Manually add these critical variables:
+      NEXT_PUBLIC_MEDUSA_ENABLED=true
+      NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+      NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d
+      NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY
+      STRIPE_SECRET_KEY=sk_test_YOUR_KEY
+      ```
+    - **Recommended**: Set up before Phase 2 storefront integration (within 24-48 hours)
+    - **Next**: Follow `docs/INFISICAL_SETUP.md` step-by-step
+
 ## Reference Documents
-- `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access, dev vs prod workflow, Hetzner deployment
+
+### Core Documentation
+- `README.md` – Quickstart plus high-level repo overview (includes Phase 1 completion status)
+- `docs/DEVELOPMENT_SCORECARD.md` – Phase-by-phase progress tracker, production credentials, action items
 - `docs/MIGRATION_PLAN.md` – Bootstrap plan v4.0 (Phases 1-4: Medusa + Docs + Production Networking)
 - `docs/IMPLEMENTATION_GUIDE.md` – Executable runbooks for all milestones including Cloudflare Tunnel setup
+- `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access, dev vs prod workflow, Hetzner deployment
+
+### Security & Infrastructure (NEW - 2025-11-17)
+- `docs/CLOUDFLARE_ACCESS_SETUP.md` – **Zero Trust authentication for admin dashboard** (10-15 min setup)
+- `docs/INFISICAL_SETUP.md` – **Centralized secret management** (30-45 min setup, required for Phase 2+)
+- `.env.template` – Storefront environment config (30+ variables, managed via Infisical)
+- `services/medusa/.env.example` – Backend-only secrets (PostgreSQL, Redis, JWT, admin tokens)
+
+### Application Architecture
 - `docs/CODEBASE_EXPLANATION.md` – Deep dive into storefront architecture, components, and API layer
-- `docs/STATE_MANAGEMENT.md`, `docs/API_STUBS.md`, `docs/STRIPE_INTEGRATION.md` – Operational patterns
-- `docs/RFD-004.md` – Infrastructure automation requirements (now resolved with 17 scripts)
+- `docs/STATE_MANAGEMENT.md` – Zustand store patterns and localStorage persistence
+- `docs/API_STUBS.md` – API endpoint stubs and latency simulation guidelines
+- `docs/STRIPE_INTEGRATION.md` – Stripe Elements, checkout flow, and webhook handling
+- `docs/API_ARCHITECTURE.md` – Service-layer utilities, contracts, and error handling
+
+### Operations & Deployment
+- `docs/RFD-004.md` – Infrastructure automation requirements (resolved with 17 scripts)
 - `docs/CI.md` – CI/CD checklist (build, lint, test commands)
 - `services/medusa/README.md` – Medusa workspace setup, automation scripts, RFD-004 resolution status
-- `README.md` – Quickstart plus high-level repo overview
-- `.env.template` + `services/medusa/.env.example` – Environment configuration guides (see header comments)
+
+## Phase 2+ Continuation Context
+
+### Prerequisites Complete (Phase 1)
+- ✅ Medusa backend live at `https://api.optic.works`
+- ✅ Admin dashboard accessible at `https://api.optic.works/app`
+- ✅ Store API endpoint: `https://api.optic.works/store/*`
+- ✅ Publishable API key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
+- ✅ PostgreSQL 17 + Redis operational
+- ✅ Cloudflare Tunnel + PM2 process management
+
+### Ongoing Security Hardening
+**Status**: Guides complete, implementation pending
+
+1. **Cloudflare Access (10-15 min)**
+   - Protects admin dashboard with email authentication
+   - Follow: `docs/CLOUDFLARE_ACCESS_SETUP.md`
+   - Non-blocking for Phase 2 catalog work
+   - Recommended before team expansion
+
+2. **Infisical Secret Management (30-45 min)**
+   - **Blocking for**: Storefront integration testing, Cloudflare Pages deployment, team collaboration
+   - **Workaround available**: Manual `.env.local` with 7 critical variables (see workflow #10)
+   - Follow: `docs/INFISICAL_SETUP.md`
+   - Recommended: Set up within 24-48 hours
+
+### Phase 2: Catalog Import & Storefront Integration
+
+**Ready to start** - All automation scripts operational
+
+**Step 1: Import Product Catalog**
+1. Login to admin dashboard: `https://api.optic.works/app`
+2. Use invitation link or create new admin user
+3. **Option A** - Manual import (first product validation):
+   - Products → Add Product → Fill in Bed Presence Sensor details
+   - Verify Store API: `curl -H "x-publishable-api-key: pk_opticworks..." https://api.optic.works/store/products`
+4. **Option B** - Automated import (all products):
+   ```bash
+   ssh hetzner-node
+   cd /opt/opticworks/medusa-backend/services/medusa
+   pnpm run catalog:import  # Imports all products from src/lib/products.ts
+   pnpm run catalog:verify  # Validates import
+   ```
+
+**Step 2: Storefront Integration Testing**
+1. **Set up Infisical** (recommended) OR create manual `.env.local`:
+   ```bash
+   # Minimum required variables:
+   NEXT_PUBLIC_MEDUSA_ENABLED=true
+   NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d
+   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_KEY
+   STRIPE_SECRET_KEY=sk_test_YOUR_KEY
+   NODE_ENV=development
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+   ```
+
+2. **Test storefront**:
+   ```bash
+   pnpm install
+   pnpm run dev  # localhost:3000
+   ```
+
+3. **Verify integration**:
+   - Product listing pages load from Medusa API
+   - Product detail pages show Medusa data
+   - Cart operations work with Medusa sessions
+   - Checkout flow creates Medusa payment sessions
+
+**Step 3: E2E Testing**
+- Complete checkout with test Stripe card
+- Verify order appears in Medusa admin
+- Test all product variants and specifications
+
+### Phase 3: Hugo Docs + Discourse Forum
+
+**Prerequisites**: Phase 2 catalog complete
+
+**Workspaces ready**:
+- Hugo docs: `platform/docs-site/` (sync from `/docs` markdown)
+- Discourse forum: `platform/forum/` (Docker Compose scaffold)
+
+**Next steps**: See `docs/MIGRATION_PLAN.md` Phase 3 section
+
+### Phase 4: Production Storefront Deployment
+
+**Prerequisites**: Infisical setup required
+
+**Deliverables**:
+- Cloudflare Pages deployment
+- Webhook buffer Workers (Durable Objects)
+- Production environment variables via Infisical
+
+**Next steps**: See `docs/MIGRATION_PLAN.md` Phase 4 section
+
+### Quick Commands Reference
+
+```bash
+# Medusa backend operations (via SSH)
+ssh hetzner-node
+pm2 status                # Check service status
+pm2 logs medusa-dev       # View logs
+pm2 restart medusa-dev    # Restart service
+
+# Admin dashboard
+open https://api.optic.works/app
+
+# Store API health check
+curl https://api.optic.works/health
+curl -H "x-publishable-api-key: pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d" \
+  https://api.optic.works/store/products
+
+# Local storefront development
+pnpm run dev              # Start dev server (needs .env.local)
+pnpm run lint             # Required before commits
+pnpm run test             # Run tests
+pnpm run build            # Production build (240s timeout)
+
+# Infisical secret management
+pnpm run secrets:pull     # Pull secrets from Infisical (after setup)
+infisical export --env=development > .env.local
+```
 
 ## Collaboration Notes
 - Keep AGENTS ↔ CLAUDE mirrored (recreate hard link with `ln -f AGENTS.md CLAUDE.md` if needed).
 - Never bypass the mandated `pnpm run lint` + `pnpm run build` combo; CI mirrors this.
 - For copy/UX tone, mirror hero messaging: confident, privacy-forward, premium hardware storytelling.
 - When touching migration work, reference the MVP plan and implementation guide so new surfaces (Medusa, docs site, forum) stay aligned with the single-repo reality.
+- **Security-first**: Cloudflare Access + Infisical guides are production-ready and should be implemented before team expansion or production storefront deployment.
