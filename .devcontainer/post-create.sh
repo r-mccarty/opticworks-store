@@ -20,17 +20,41 @@ sudo corepack enable
 echo "Installing global npm packages (AI CLIs)..."
 sudo npm i -g @openai/codex @google/gemini-cli
 
-echo "Installing Claude AI CLI..."
-# The installer script is run as root. The '|| true' ensures that if the download fails, the entire build doesn't stop.
-sudo bash -c "curl -fsSL https://claude.ai/install.sh | bash" || true
+CLAUDE_INSTALLER_URL="https://claude.ai/install.sh"
+CLAUDE_ROOT_BIN="/root/.local/bin/claude"
+CLAUDE_GLOBAL_BIN="/usr/local/bin/claude"
 
-# The installer may place the binary in the root user's local bin.
-# This checks for its existence (with sudo so we can read /root) and moves it to /usr/local/bin.
-if sudo test -e "/root/.local/bin/claude"; then
-    echo "Moving claude binary to /usr/local/bin for system-wide access..."
-    sudo install -m 0755 /root/.local/bin/claude /usr/local/bin/claude
+if command -v claude >/dev/null 2>&1; then
+    echo "Claude AI CLI already available."
 else
-    echo "WARNING: Claude AI CLI binary not found in its expected location (/root/.local/bin/claude). Skipping move."
+    echo "Installing Claude AI CLI..."
+    if sudo bash -c "curl -fsSL ${CLAUDE_INSTALLER_URL} | bash"; then
+        echo "Claude AI CLI installer completed."
+    else
+        echo "WARNING: Failed to run the Claude AI CLI installer. Continuing without blocking the build."
+    fi
+fi
+
+echo "Ensuring Claude AI CLI is accessible system-wide..."
+if sudo test -e "$CLAUDE_ROOT_BIN"; then
+    CLAUDE_RESOLVED_PATH=$(sudo readlink -f "$CLAUDE_ROOT_BIN" 2>/dev/null || true)
+    if [ -n "$CLAUDE_RESOLVED_PATH" ]; then
+        if sudo install -m 0755 "$CLAUDE_RESOLVED_PATH" "$CLAUDE_GLOBAL_BIN"; then
+            echo "Claude AI CLI copied to $CLAUDE_GLOBAL_BIN."
+        else
+            echo "WARNING: Failed to place Claude AI CLI in $CLAUDE_GLOBAL_BIN."
+        fi
+    else
+        echo "WARNING: Unable to resolve the Claude AI CLI target path from $CLAUDE_ROOT_BIN."
+    fi
+else
+    echo "WARNING: Claude AI CLI binary not found in $CLAUDE_ROOT_BIN."
+fi
+
+if command -v claude >/dev/null 2>&1; then
+    claude --version 2>/dev/null || true
+else
+    echo "WARNING: Claude AI CLI remains unavailable after the installation attempt."
 fi
 
 echo "Ensuring Infisical CLI is installed..."
