@@ -109,7 +109,7 @@ export function ProductComparisonGrid() {
         {/* Scroll container for mobile */}
         <div className="overflow-x-auto scrollbar-thin scrollbar-track-transparent scrollbar-thumb-white/10">
           {/* Table Header */}
-          <div className="grid min-w-[640px] grid-cols-4 gap-4 border-b border-white/10 bg-white/5 p-4 sm:min-w-0 sm:p-6">
+          <div className="grid min-w-full grid-cols-4 gap-4 border-b border-white/10 bg-white/5 p-4 sm:min-w-[640px] sm:p-6">
             <div className="text-xs font-semibold uppercase tracking-[0.2em] text-white/50 sm:text-sm">
               Feature
             </div>
@@ -136,7 +136,7 @@ export function ProductComparisonGrid() {
               animate={isInView ? { opacity: 1, x: 0 } : { opacity: 0, x: -20 }}
               transition={{ duration: 0.4, delay: 0.3 + index * 0.05 }}
               className={cx(
-                "grid min-w-[640px] grid-cols-4 gap-4 border-b border-white/5 p-4 transition duration-300 hover:bg-white/5 sm:min-w-0 sm:p-6",
+                "grid min-w-full grid-cols-4 gap-4 border-b border-white/5 p-4 transition duration-300 hover:bg-white/5 sm:min-w-[640px] sm:p-6",
                 row.highlight && "bg-gradient-to-r from-orange-500/5 to-transparent"
               )}
             >

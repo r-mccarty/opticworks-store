@@ -9,7 +9,7 @@ import { TechnicalDifferentiators } from "@/components/ui/TechnicalDifferentiato
 
 export default function Home() {
   return (
-    <main className="relative mx-auto flex w-full flex-col">
+    <main className="relative mx-auto flex w-full flex-col overflow-x-hidden">
       <Hero />
       <div className="mt-52 w-full px-4 xl:px-0">
         <Features />
