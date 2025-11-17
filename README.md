@@ -6,6 +6,7 @@ This repo contains the production web experience for OpticWorks’ mmWave bed an
 - **Presence-first storytelling**: Hero, Features, and product pages highlight how our intelligent sensing stack delivers room-level presence, respiration, and sleep-quality signals with Apple-grade industrial design.
 - **Hybrid commerce**: Persistent cart + Stripe Elements checkout to sell sensors, bridges, and calibration bundles.
 - **Support + Ops**: Warranty, "Oops Protection," lifecycle maintenance, and installation guides for sleep clinics, integrators, and DIY installers.
+- **Production Backend**: MedusaJS v2 backend deployed at `api.optic.works` (Hetzner + Cloudflare Tunnel) **[Live since 2025-11-17]**
 
 ## Prerequisites
 - [Node.js](https://nodejs.org/) 18+
@@ -170,10 +171,10 @@ NEXT_PUBLIC_MEDUSA_ENABLED=true
 NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx  # From `pnpm run setup:keys` in Medusa workspace
 
-# Production (via Cloudflare Tunnel)
+# Production (via Cloudflare Tunnel) ✅ LIVE
 NEXT_PUBLIC_MEDUSA_ENABLED=true
 NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_live_xxx
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d
 ```
 
 When `NEXT_PUBLIC_MEDUSA_ENABLED=false`, the storefront uses:
@@ -200,3 +201,39 @@ This outputs PostgreSQL password, Redis password, JWT secret, cookie secret, and
 **Important**: Never use the legacy `.credentials/` folder. All secrets now managed via:
 1. Root `.env.template` for storefront (Infisical-synced)
 2. `services/medusa/.env.example` for backend (generated credentials)
+
+## Production Deployment Status
+
+### Phase 1: Backend Infrastructure ✅ COMPLETE (2025-11-17)
+
+The MedusaJS v2 backend is **live in production** at `https://api.optic.works`:
+
+**Infrastructure:**
+- **Backend URL:** `https://api.optic.works`
+- **Admin Dashboard:** `https://api.optic.works/app`
+- **Health Endpoint:** `https://api.optic.works/health` (returns "OK")
+- **Store API:** `https://api.optic.works/store/*` (requires publishable key)
+- **Server:** Hetzner Cloud (3 vCPUs, 4GB RAM)
+- **Services:** PostgreSQL 17, Redis, Medusa v2, PM2, Cloudflare Tunnel
+
+**Credentials:**
+- Admin: `admin@optic.works` / `OpticWorks2025!`
+- Publishable Key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
+
+**Quick Verification:**
+```bash
+# Health check
+curl https://api.optic.works/health
+
+# Store API test
+curl -H "x-publishable-api-key: pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d" \
+  https://api.optic.works/store/products
+```
+
+**See `docs/DEVELOPMENT_SCORECARD.md` for detailed deployment status and Phase 2+ roadmap.**
+
+### What's Next?
+
+- **Phase 2:** Catalog import automation + storefront integration
+- **Phase 3:** Hugo docs site + Discourse forum + CI/CD
+- **Phase 4:** Cloudflare Pages production deployment + webhook buffering

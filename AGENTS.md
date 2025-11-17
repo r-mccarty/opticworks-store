@@ -12,14 +12,16 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
   - Backend: Hetzner node (Medusa v2 + PostgreSQL + Redis) exposed via Cloudflare Tunnel
   - Webhooks: Cloudflare Workers with Durable Objects buffer
 - **Migration Status**:
-  - ✅ Phase 1-2: Medusa backend deployed on Hetzner with full catalog (RFD-004 automation resolved)
-  - 🚧 Phase 3: Hugo docs + Discourse forum + CI/CD in progress
-  - 📋 Phase 4: Production networking (Cloudflare Tunnel) documented, pending deployment
+  - ✅ Phase 1: Medusa backend deployed on Hetzner with Cloudflare Tunnel **[COMPLETE 2025-11-17]**
+  - 🟡 Phase 2: Ready for catalog import & storefront integration
+  - 📋 Phase 3: Hugo docs + Discourse forum + CI/CD (ready to start)
+  - 📋 Phase 4: Production storefront deployment + webhook buffering (ready to start)
 - **Roadmap Evolution**:
-  - ~~Phase 1-2~~: MedusaJS backend bootstrap **[COMPLETE]**
+  - ~~Phase 1~~: MedusaJS backend bootstrap + Cloudflare Tunnel **[COMPLETE 2025-11-17]**
   - ~~RFD-004~~: Infrastructure automation suite **[RESOLVED]**
-  - **Phase 3** (In Progress): Hugo docs site + Discourse forum + CI hardening
-  - **Phase 4** (Documented): Cloudflare Tunnel + Pages production deployment + webhook buffering
+  - **Phase 2** (Ready to Start): Full catalog import + storefront integration
+  - **Phase 3** (Pending): Hugo docs site + Discourse forum + CI hardening
+  - **Phase 4** (Pending): Cloudflare Pages production deployment + webhook buffering
   - **Phase 5** (Future): Developer portal, API documentation, community integrations
 
 ## Repository Navigation
@@ -62,12 +64,15 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
   - `platform/` — Hugo docs + Discourse forum scaffolds
   - `workers/` — Cloudflare Workers (Phase 4)
 - **In Progress**:
-  - `docs/MIGRATION_PLAN.md` Phase 3-4 (docs site, forum, Cloudflare Tunnel deployment)
-  - Phase 4 implementation (webhook buffer, production networking)
+  - Phase 2 preparation: Catalog import automation ready, storefront integration pending
 - **Completed**:
-  - Phase 1-2: Medusa backend on Hetzner with full automation
-  - RFD-004: All infrastructure gaps resolved
-  - Cart normalization + test coverage
+  - ✅ Phase 1: Medusa backend on Hetzner with full automation **[2025-11-17]**
+  - ✅ Cloudflare Tunnel production deployment at `api.optic.works` **[2025-11-17]**
+  - ✅ RFD-004: All infrastructure gaps resolved (17 automation scripts)
+  - ✅ Cart normalization + test coverage
+  - ✅ PostgreSQL 17 + Redis provisioned and operational
+  - ✅ PM2 process management for Medusa service
+  - ✅ Admin dashboard + publishable API key setup
 - **Deprecated/Deleted**:
   - `/config/` folder (deleted — CI checklist moved to `docs/CI.md`)
   - `docs/archived/*` — Legacy migration plans (pre-v3.0)
