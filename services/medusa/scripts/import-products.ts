@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url"
 import "dotenv/config"
 import type { Product } from "../../../src/lib/products"
 import { products } from "../../../src/lib/products"
+import { retryFetch } from "./utils/retry.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -14,15 +15,28 @@ if (!ADMIN_TOKEN) {
   console.warn("[medusa] MEDUSA_ADMIN_TOKEN is not set. Requests will fail unless server allows anonymous access.")
 }
 
+/**
+ * Enhanced API fetch with retry logic for transient failures
+ */
 async function apiFetch<T>(input: URL | string, init?: RequestInit): Promise<T> {
-  const response = await fetch(input, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(ADMIN_TOKEN ? { Authorization: `Bearer ${ADMIN_TOKEN}` } : {}),
-      ...(init?.headers ?? {}),
+  const response = await retryFetch(
+    input.toString(),
+    {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(ADMIN_TOKEN ? { Authorization: `Bearer ${ADMIN_TOKEN}` } : {}),
+        ...(init?.headers ?? {}),
+      },
     },
-  })
+    {
+      maxAttempts: 3,
+      initialDelay: 1000,
+      onRetry: (attempt, error, delay) => {
+        console.log(`    Retry ${attempt}: ${error.message} (waiting ${Math.round(delay / 1000)}s)`)
+      },
+    }
+  )
 
   if (!response.ok) {
     const body = await response.text()
@@ -146,31 +160,99 @@ async function createProduct(payload: AdminProductPayload) {
   })
 }
 
-async function main() {
-  console.log(`[medusa] Importing ${products.length} products into ${ADMIN_URL}`)
-  const salesChannelId = await fetchDefaultSalesChannelId()
+interface ImportResult {
+  product: string
+  status: 'synced' | 'skipped' | 'failed'
+  error?: string
+}
 
+async function main() {
+  console.log(`\n📦 Medusa Catalog Import`)
+  console.log('='.repeat(70))
+  console.log(`Source:  ${products.length} products from src/lib/products`)
+  console.log(`Target:  ${ADMIN_URL}`)
+  console.log('='.repeat(70) + '\n')
+
+  const salesChannelId = await fetchDefaultSalesChannelId()
+  console.log(`✓ Using sales channel: ${salesChannelId}\n`)
+
+  const results: ImportResult[] = []
   let synced = 0
-  for (const product of products) {
-    const payload = productToPayload(product, salesChannelId)
+  let skipped = 0
+  let failed = 0
+
+  for (let i = 0; i < products.length; i++) {
+    const product = products[i]
+    const progress = `[${i + 1}/${products.length}]`
+
     try {
       const existing = await fetchProductByHandle(product.id)
       if (existing?.id) {
-        console.log(`  • Skipping ${product.name} (already exists)`)
+        console.log(`${progress} ⊘ Skipping ${product.name} (already exists)`)
+        skipped += 1
+        results.push({
+          product: product.name,
+          status: 'skipped',
+        })
       } else {
+        const payload = productToPayload(product, salesChannelId)
         await createProduct(payload)
         synced += 1
-        console.log(`  • Synced ${product.name}`)
+        console.log(`${progress} ✓ Synced ${product.name}`)
+        results.push({
+          product: product.name,
+          status: 'synced',
+        })
       }
     } catch (error) {
-      console.error(`  ✖ Failed to sync ${product.name}`, error)
+      failed += 1
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.error(`${progress} ✗ Failed ${product.name}`)
+      console.error(`    Error: ${errorMsg}`)
+      results.push({
+        product: product.name,
+        status: 'failed',
+        error: errorMsg,
+      })
     }
   }
 
-  console.log(`[medusa] Synced ${synced}/${products.length} products`)
+  // Display summary
+  console.log('\n' + '='.repeat(70))
+  console.log('📊 Import Summary')
+  console.log('='.repeat(70))
+  console.log(`✓ Synced:  ${synced} products`)
+  console.log(`⊘ Skipped: ${skipped} products (already exist)`)
+  console.log(`✗ Failed:  ${failed} products`)
+  console.log('='.repeat(70))
+
+  // Show failed products if any
+  if (failed > 0) {
+    console.log('\n❌ Failed Products:')
+    results
+      .filter(r => r.status === 'failed')
+      .forEach(r => {
+        console.log(`  • ${r.product}`)
+        console.log(`    ${r.error}`)
+      })
+    console.log('')
+  }
+
+  if (failed > 0) {
+    console.log('⚠️  Import completed with errors. Review failed products above.\n')
+    process.exit(1)
+  } else {
+    console.log('✅ Import completed successfully!\n')
+    process.exit(0)
+  }
 }
 
 main().catch((error) => {
-  console.error("[medusa] Import failed", error)
+  console.error("\n❌ Import failed:", error instanceof Error ? error.message : error)
+  console.error("\nTroubleshooting:")
+  console.error("- Ensure Medusa service is running: pnpm run dev")
+  console.error("- Check MEDUSA_ADMIN_TOKEN is set in .env")
+  console.error("- Verify MEDUSA_ADMIN_URL is correct")
+  console.error("- Run health check: pnpm run health:check\n")
   process.exit(1)
 })

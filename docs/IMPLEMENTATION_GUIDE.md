@@ -1,9 +1,44 @@
 # OpticWorks Migration Implementation Guide (Bootstrap Edition)
 
-**Last updated**: 2025-11-16
+**Last updated**: 2025-11-17
 **Companion to**: `docs/MIGRATION_PLAN.md` v3.0
+**RFD-004 Status**: ✅ Resolved (all automation implemented)
 
 This guide provides **executable commands, scripts, and verification steps** for each milestone in the bootstrap migration plan. Copy-paste these commands directly into your terminal or use them as templates for automation scripts.
+
+---
+
+## 🚀 Quick Start with Automation (RFD-004 Resolution)
+
+All RFD-004 issues have been resolved with comprehensive automation. For the fastest setup:
+
+```bash
+# 1. Generate credentials
+cd services/medusa
+pnpm run generate:secrets > /tmp/medusa-secrets.env
+
+# 2. Provision Hetzner infrastructure (if using remote node)
+source /tmp/medusa-secrets.env
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD REDIS_PASSWORD=$REDIS_PASSWORD \
+  ssh hetzner-node 'bash -s' < scripts/hetzner-provision.sh
+
+# 3. Configure environment
+cp .env.example .env
+# Edit .env with generated credentials
+
+# 4. Local setup
+docker compose up -d
+pnpm run migrate
+pnpm run build
+pnpm run setup:keys
+pnpm run dev:pm2
+
+# 5. Import catalog and verify
+pnpm run catalog:import
+pnpm run test:smoke
+```
+
+**See `services/medusa/README.md` for complete automation documentation.**
 
 ---
 
@@ -17,13 +52,23 @@ This guide provides **executable commands, scripts, and verification steps** for
 - **Playwright** for E2E tests (installed via pnpm)
 
 ### Secrets Inventory
-Before starting, gather these credentials:
-- Hetzner SSH key and IP address
-- Stripe test/live API keys (`sk_test_*`, `sk_live_*`)
-- Resend API key for transactional emails
-- PostgreSQL/Redis passwords (generate secure values)
 
-> **Infisical workflow**: The Next.js storefront no longer commits `.env` files. Provision an `INFISICAL_TOKEN` (plus optional `INFISICAL_ENVIRONMENT`, `INFISICAL_SECRETS_PATH`, `INFISICAL_SITE_URL`) and run `pnpm run secrets:pull` or rely on the devcontainer post-create step to write `.env.local` automatically. See `.env.template` for the full key list.
+**✨ NEW: Automated credential generation** - Use `pnpm run generate:secrets` to generate all required credentials.
+
+**Manually obtained credentials:**
+- Hetzner SSH key and IP address (see `docs/CONTRIBUTORS.md`)
+- Stripe test/live API keys (`sk_test_*`, `sk_live_*`) - from Stripe dashboard
+- Resend API key for transactional emails - from Resend dashboard
+- Cloudflare R2 credentials (optional) - from Cloudflare dashboard
+
+**Auto-generated credentials** (via `pnpm run generate:secrets`):
+- PostgreSQL password (32-character secure random)
+- Redis password (32-character secure random)
+- JWT_SECRET (64-character hex)
+- COOKIE_SECRET (64-character hex)
+- MEDUSA_ADMIN_TOKEN (128-character hex)
+
+> **Infisical workflow**: The Next.js storefront no longer commits `.env` files. Provision an `INFISICAL_TOKEN` (plus optional `INFISICAL_ENVIRONMENT`, `INFISICAL_SECRETS_PATH`, `INFISICAL_SITE_URL`) and run `pnpm run secrets:pull` or rely on the devcontainer post-create step to write `.env.local` automatically. All Medusa credentials should be added to Infisical after generation. See `.env.template` for the full key list.
 
 ---
 
@@ -60,58 +105,83 @@ git checkout claude/review-medusajs-migration-01Af3q2SdKB84Pwysm9GJez2
 ls -la services/medusa
 ```
 
-#### Step 3: Configure Environment
+#### Step 3: Generate Credentials (NEW - Automated)
 ```bash
-# Create environment file
+# Generate secure credentials locally first
+cd services/medusa
+pnpm run generate:secrets > /tmp/medusa-secrets.env
+
+# Review generated credentials
+cat /tmp/medusa-secrets.env
+
+# Output example:
+# POSTGRES_PASSWORD=xyz123abc...
+# REDIS_PASSWORD=abc789xyz...
+# JWT_SECRET=64-char-hex...
+# COOKIE_SECRET=64-char-hex...
+# MEDUSA_ADMIN_TOKEN=128-char-hex...
+```
+
+#### Step 4: Provision Hetzner Infrastructure (NEW - Automated)
+```bash
+# Load generated credentials
+source /tmp/medusa-secrets.env
+
+# Run provisioning script on Hetzner node
+# This will:
+# - Install/configure PostgreSQL 15 with medusa_db and medusa_user
+# - Install/configure Redis with password authentication
+# - Verify all connections work
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+REDIS_PASSWORD=$REDIS_PASSWORD \
+ssh hetzner-node 'bash -s' < scripts/hetzner-provision.sh
+
+# Expected output:
+# ✓ PostgreSQL user 'medusa_user' and database 'medusa_db' configured
+# ✓ Redis password configured
+# ✓ PostgreSQL connection successful
+# ✓ Redis connection successful
+# DATABASE_URL=postgres://medusa_user:***@localhost:5432/medusa_db
+# REDIS_URL=redis://:***@localhost:6379
+```
+
+#### Step 4b: Configure Environment
+```bash
+# Create environment file on Hetzner
 cd /opt/opticworks/medusa-backend/services/medusa
 cp .env.example .env
 
-# Edit .env with production values
+# Edit .env with generated credentials
 nano .env
 ```
 
-**Required environment variables**:
+**Required environment variables** (use generated values from Step 3):
 ```bash
 # services/medusa/.env
 NODE_ENV=development  # Use 'production' when ready
 PORT=9000
+MEDUSA_BACKEND_URL=http://localhost:9000
 
-# Database
-POSTGRES_USER=medusa
-POSTGRES_PASSWORD=<generate-secure-password>
-POSTGRES_DB=medusa
-DATABASE_URL=postgres://medusa:<password>@postgres:5432/medusa
+# Database (use credentials from generate:secrets)
+DATABASE_URL=postgres://medusa_user:<POSTGRES_PASSWORD>@localhost:5432/medusa_db
 
-# Redis
-REDIS_URL=redis://redis:6379
+# Redis (use credentials from generate:secrets)
+REDIS_URL=redis://:<REDIS_PASSWORD>@localhost:6379
 
-# Stripe
-STRIPE_API_KEY=sk_test_51xxxxx  # Start with test key
-STRIPE_WEBHOOK_SECRET=whsec_xxx # Set up later
+# Stripe (get from Stripe dashboard)
+STRIPE_API_KEY=sk_test_51xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
 
-# JWT Secret (generate with: openssl rand -base64 32)
-JWT_SECRET=<generate-secure-secret>
+# Secrets (use credentials from generate:secrets)
+JWT_SECRET=<JWT_SECRET>
+COOKIE_SECRET=<COOKIE_SECRET>
+MEDUSA_ADMIN_TOKEN=<MEDUSA_ADMIN_TOKEN>
 
 # Admin
-MEDUSA_ADMIN_ONBOARDING_TYPE=default
-MEDUSA_ADMIN_ONBOARDING_NEXTJS=true
+MEDUSA_ADMIN_URL=http://localhost:9000
 ```
 
-#### Step 4: Start Infrastructure
-```bash
-# From /opt/opticworks/medusa-backend/services/medusa
-docker compose up -d postgres redis
-
-# Verify containers are running
-docker ps
-# Should show:
-# - medusa-postgres (port 5432)
-# - medusa-redis (port 6379)
-
-# Check logs
-docker compose logs postgres
-docker compose logs redis
-```
+**💡 Tip**: Store all credentials in Infisical immediately after generation.
 
 #### Step 5: Install Dependencies
 ```bash
@@ -135,44 +205,103 @@ pnpm migrate
 # Database schema is up to date
 ```
 
-#### Step 7: Start Medusa Service
+#### Step 7: Build and Validate (NEW - Automated)
 ```bash
-# Development mode (with auto-reload)
-pnpm dev
+cd /opt/opticworks/medusa-backend/services/medusa
 
-# Or production mode
-pnpm build
-pnpm start
+# Build admin dashboard (required before start)
+pnpm run build
+
+# Validate build and prerequisites
+pnpm run validate:build
 
 # Expected output:
-# ✔ Medusa is running on http://localhost:9000
+# ✓ Admin Dashboard Build
+# ✓ Environment Variables
+# ✓ Database Connection
+# ✓ Redis Connection
 ```
 
-#### Step 8: Verify Health Check
+#### Step 8: Start Medusa with PM2 (NEW - Recommended)
 ```bash
-# From local machine, test Hetzner Medusa
+# Start with PM2 supervisor (auto-restarts on crash)
+pnpm run dev:pm2
+
+# Or for production mode
+pnpm run start:pm2
+
+# Monitor logs
+pnpm run logs:pm2
+
+# Expected output:
+# [PM2] Process launched
+# [medusa-dev] Medusa is running on http://localhost:9000
+```
+
+**Why PM2?** Addresses RFD-004 Issue #1 - dev server instability. PM2 automatically restarts Medusa when esbuild crashes, keeping the service available.
+
+#### Step 9: Setup Publishable API Key (NEW - Automated)
+```bash
+# Create publishable key for Store API
+pnpm run setup:keys
+
+# Expected output:
+# ✓ Found sales channel: "Default Sales Channel"
+# ✓ Created publishable API key: pk_xxx
+# ✓ Successfully associated key with sales channel
+#
+# Add this to your storefront .env:
+# NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx
+```
+
+#### Step 10: Comprehensive Health Check (NEW - Automated)
+```bash
+# Run health checks
+pnpm run health:check
+
+# Expected output:
+# ✓ PostgreSQL: Connected (v15.x)
+# ✓ Redis: Connected (v7.x)
+# ✓ Admin API: Accessible at http://localhost:9000
+# ✓ Store API: Accessible (0 products)
+
+# Or test manually
+curl http://localhost:9000/health
+curl http://localhost:9000/store/products
+
+# From local machine (if firewall allows)
 curl http://<hetzner-ip>:9000/health
-
-# Expected response:
-# {"status":"ok"}
-
-# Test Admin UI (in browser)
-# Navigate to: http://<hetzner-ip>:9000/app
-# Should see Medusa Admin login screen
 ```
 
 #### Troubleshooting B1
+
 | Issue | Symptom | Solution |
 |-------|---------|----------|
+| **Dev server crashes** (RFD-004 #1) | esbuild errors, service restarts | Use PM2: `pnpm run dev:pm2` |
+| **Connection refused** (RFD-004 #3) | Scripts fail with ECONNREFUSED | Use `pnpm run health:wait` before running scripts |
+| **Missing publishable key** (RFD-004 #4) | Store API returns 401 | Run `pnpm run setup:keys` |
+| **Build validation fails** (RFD-004 #2) | `pnpm start` errors | Run `pnpm run build` then `pnpm run validate:build` |
 | Port 9000 not accessible | `curl` times out | Check firewall: `ufw allow 9000/tcp` |
-| Database connection error | Medusa won't start | Verify `DATABASE_URL` matches docker-compose settings |
-| Redis connection error | Medusa hangs on startup | Check Redis container: `docker compose logs redis` |
+| Database connection error | Medusa won't start | Run `pnpm run health:check` to diagnose |
+| Redis connection error | Medusa hangs on startup | Verify REDIS_URL password matches provisioned value |
 | Permission denied | Can't write to `/opt` | Run as root or fix permissions: `chown -R $USER:$USER /opt/opticworks` |
+
+**Comprehensive Diagnostics**:
+```bash
+# Run full smoke test suite
+pnpm run test:smoke
+
+# Check individual components
+pnpm run health:check
+pnpm run validate:build
+```
 
 **Milestone B1 Exit Criteria**:
 - [x] Medusa health endpoint returns 200 OK
 - [x] Admin UI accessible at `http://<hetzner-ip>:9000/app`
 - [x] Postgres + Redis containers healthy
+- [x] Publishable API key created and associated with sales channel
+- [x] All smoke tests passing
 
 ---
 
