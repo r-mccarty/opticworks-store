@@ -1,8 +1,9 @@
 # OpticWorks Migration Implementation Guide (Bootstrap Edition)
 
 **Last updated**: 2025-11-17
-**Companion to**: `docs/MIGRATION_PLAN.md` v4.0
+**Companion to**: `docs/MIGRATION_PLAN.md` v4.1
 **RFD-004 Status**: ✅ Resolved (all automation implemented)
+**Deployment Philosophy**: Cloudflare Tunnel from day one, SSH for infrastructure only
 
 This guide provides **executable commands, scripts, and verification steps** for each milestone in the bootstrap migration plan. Copy-paste these commands directly into your terminal or use them as templates for automation scripts.
 
@@ -72,9 +73,15 @@ pnpm run test:smoke
 
 ---
 
-## Phase 1: Hetzner Deployment & Single Product Validation
+## Phase 1: Hetzner Deployment with Cloudflare Tunnel & Single Product Validation
 
-### Milestone B1: Medusa Running on Hetzner
+**Architecture Decision**: We set up Cloudflare Tunnel in Phase 1 (not Phase 4) because:
+- SSH is for infrastructure management only (deployment, logs, database admin)
+- Application access (Medusa Admin, Store API) uses proper SSL/TLS from day one
+- No direct IP exposure or firewall port management needed
+- Production-like environment from the start
+
+### Milestone B1: Medusa Running on Hetzner with Cloudflare Tunnel
 
 #### Step 1: SSH to Hetzner Node
 ```bash
@@ -256,7 +263,7 @@ pnpm run setup:keys
 
 #### Step 10: Comprehensive Health Check (NEW - Automated)
 ```bash
-# Run health checks
+# Run health checks (tests localhost)
 pnpm run health:check
 
 # Expected output:
@@ -265,12 +272,109 @@ pnpm run health:check
 # ✓ Admin API: Accessible at http://localhost:9000
 # ✓ Store API: Accessible (0 products)
 
-# Or test manually
+# Or test manually via localhost
 curl http://localhost:9000/health
 curl http://localhost:9000/store/products
+```
 
-# From local machine (if firewall allows)
-curl http://<hetzner-ip>:9000/health
+#### Step 11: Install Cloudflare Tunnel (NEW - Phase 1)
+```bash
+# Download and install cloudflared
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+
+# Verify installation
+cloudflared --version
+```
+
+#### Step 12: Authenticate Tunnel
+```bash
+# This command will output a URL - open it in your browser to authenticate
+cloudflared tunnel login
+
+# Credentials stored at: ~/.cloudflared/cert.pem
+ls -la ~/.cloudflared/
+```
+
+#### Step 13: Create and Configure Tunnel
+```bash
+# Create tunnel named "opticworks-medusa"
+cloudflared tunnel create opticworks-medusa
+
+# Output example:
+# Tunnel credentials written to: /root/.cloudflared/<tunnel-id>.json
+# Created tunnel opticworks-medusa with id <tunnel-id>
+
+# Save the tunnel ID
+TUNNEL_ID=$(cloudflared tunnel list | grep opticworks-medusa | awk '{print $1}')
+echo "Tunnel ID: $TUNNEL_ID"
+
+# Create tunnel configuration
+sudo mkdir -p /etc/cloudflared
+sudo tee /etc/cloudflared/config.yml > /dev/null <<EOF
+tunnel: $TUNNEL_ID
+credentials-file: /root/.cloudflared/${TUNNEL_ID}.json
+
+ingress:
+  - hostname: api.optic.works
+    service: http://localhost:9000
+    originRequest:
+      noTLSVerify: false
+      connectTimeout: 30s
+  - service: http_status:404
+EOF
+
+# Verify config syntax
+cloudflared tunnel ingress validate
+```
+
+#### Step 14: Configure DNS
+```bash
+# Option 1: Use cloudflared CLI to create DNS record
+cloudflared tunnel route dns opticworks-medusa api.optic.works
+
+# Expected output:
+# Added CNAME api.optic.works which will route to this tunnel
+```
+
+**Or Option 2**: Configure DNS manually in Cloudflare dashboard:
+1. Navigate to DNS settings for `optic.works` domain
+2. Add CNAME record:
+   - Name: `api`
+   - Target: `<tunnel-id>.cfargotunnel.com`
+   - Proxy status: Proxied (orange cloud)
+
+#### Step 15: Install Tunnel as Systemd Service
+```bash
+# Install service
+sudo cloudflared service install
+
+# Enable auto-start on boot
+sudo systemctl enable cloudflared
+
+# Start service
+sudo systemctl start cloudflared
+
+# Check status
+sudo systemctl status cloudflared
+
+# View logs
+sudo journalctl -u cloudflared -f
+```
+
+#### Step 16: Verify Tunnel Connectivity
+```bash
+# From your local machine (not Hetzner), test the tunnel
+curl https://api.optic.works/health
+
+# Expected response:
+# {"status":"ok"}
+
+# Test admin accessibility
+curl -I https://api.optic.works/app
+
+# Check tunnel metrics in Cloudflare dashboard:
+# Zero Trust → Access → Tunnels → opticworks-medusa
 ```
 
 #### Troubleshooting B1
@@ -297,9 +401,11 @@ pnpm run validate:build
 ```
 
 **Milestone B1 Exit Criteria**:
-- [x] Medusa health endpoint returns 200 OK
-- [x] Admin UI accessible at `http://<hetzner-ip>:9000/app`
-- [x] Postgres + Redis containers healthy
+- [x] Medusa health endpoint returns 200 OK via `https://api.optic.works/health`
+- [x] Admin UI accessible at `https://api.optic.works/app`
+- [x] PostgreSQL + Redis healthy on Hetzner node
+- [x] Cloudflared service running (`systemctl status cloudflared`)
+- [x] SSL/TLS certificate valid (Cloudflare managed)
 - [x] Publishable API key created and associated with sales channel
 - [x] All smoke tests passing
 
@@ -356,8 +462,8 @@ grep -A 50 "bed-presence-sensor" src/lib/products.ts
 
 #### Step 3: Test Product API
 ```bash
-# List all products
-curl http://<hetzner-ip>:9000/store/products
+# List all products (via tunnel)
+curl https://api.optic.works/store/products
 
 # Expected response:
 # {
@@ -370,7 +476,7 @@ curl http://<hetzner-ip>:9000/store/products
 # }
 
 # Get specific product
-curl http://<hetzner-ip>:9000/store/products/<product-id>
+curl https://api.optic.works/store/products/<product-id>
 ```
 
 #### Step 4: Configure Stripe Payment Provider
@@ -403,8 +509,8 @@ pnpm dev  # Restart to apply config changes
 
 #### Step 5: Test Cart Creation
 ```bash
-# Create a cart with Bed Presence Sensor
-curl -X POST http://<hetzner-ip>:9000/store/carts \
+# Create a cart with Bed Presence Sensor (via tunnel)
+curl -X POST https://api.optic.works/store/carts \
   -H "Content-Type: application/json" \
   -d '{
     "items": [{
@@ -424,9 +530,9 @@ curl -X POST http://<hetzner-ip>:9000/store/carts \
 ```
 
 **Milestone B2 Exit Criteria**:
-- [x] Bed Presence Sensor visible in Medusa Admin
-- [x] `GET /store/products` returns 1 product with correct data
-- [x] Can create cart via API with Bed Sensor variant
+- [x] Bed Presence Sensor visible in Medusa Admin at `https://api.optic.works/app`
+- [x] `GET https://api.optic.works/store/products` returns 1 product with correct data
+- [x] Can create cart via API with Bed Sensor variant (through tunnel)
 - [x] Stripe provider configured
 
 ---
@@ -470,9 +576,10 @@ export default defineConfig({
 Create `.env.test`:
 ```bash
 TEST_BASE_URL=http://localhost:3000
-HETZNER_MEDUSA_URL=http://<hetzner-ip>:9000
+HETZNER_MEDUSA_URL=https://api.optic.works
 NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=http://<hetzner-ip>:9000
+NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx
 ```
 
 #### Step 3: Write First E2E Test
@@ -554,10 +661,11 @@ test.describe('Bed Presence Sensor Checkout', () => {
 # From local repo
 cd /home/user/opticworks-store
 
-# Create .env.local pointing to Hetzner
+# Create .env.local pointing to Hetzner via tunnel
 cat > .env.local <<EOF
 NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=http://<hetzner-ip>:9000
+NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=<publishable-key-from-setup-keys>
 MEDUSA_API_TOKEN=<admin-token>
 RESEND_API_KEY=<your-resend-key>
 EOF
@@ -1149,142 +1257,13 @@ git push
 
 ---
 
-## Phase 4: Production Networking & Security
+## Phase 4: Storefront Deployment & Webhook Buffering
 
-### Milestone P1: Cloudflare Tunnel Setup
+**Note**: Cloudflare Tunnel was set up in Phase 1, so Phase 4 focuses on storefront deployment and production hardening.
 
-#### Step 1: Install Cloudflared on Hetzner Node
-```bash
-# SSH to Hetzner
-ssh hetzner-node
+### Milestone P1: Storefront Deployment to Cloudflare Pages
 
-# Download and install cloudflared
-curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
-sudo dpkg -i cloudflared.deb
-
-# Verify installation
-cloudflared --version
-```
-
-#### Step 2: Authenticate Tunnel
-```bash
-# This opens browser for Cloudflare login
-cloudflared tunnel login
-
-# Credentials stored at: ~/.cloudflared/cert.pem
-ls -la ~/.cloudflared/
-```
-
-#### Step 3: Create Tunnel
-```bash
-# Create tunnel named "opticworks-medusa"
-cloudflared tunnel create opticworks-medusa
-
-# Output example:
-# Tunnel credentials written to: /root/.cloudflared/<tunnel-id>.json
-# Created tunnel opticworks-medusa with id <tunnel-id>
-
-# Save the tunnel ID for next steps
-TUNNEL_ID=$(cloudflared tunnel list | grep opticworks-medusa | awk '{print $1}')
-echo "Tunnel ID: $TUNNEL_ID"
-```
-
-#### Step 4: Configure Tunnel
-```bash
-# Create tunnel configuration
-sudo mkdir -p /etc/cloudflared
-sudo tee /etc/cloudflared/config.yml > /dev/null <<EOF
-tunnel: $TUNNEL_ID
-credentials-file: /root/.cloudflared/${TUNNEL_ID}.json
-
-ingress:
-  - hostname: api.optic.works
-    service: http://localhost:9000
-    originRequest:
-      noTLSVerify: false
-      connectTimeout: 30s
-  - service: http_status:404
-EOF
-
-# Verify config syntax
-cloudflared tunnel ingress validate
-```
-
-#### Step 5: Add DNS Record
-```bash
-# Create CNAME record pointing to tunnel
-cloudflared tunnel route dns opticworks-medusa api.optic.works
-
-# Expected output:
-# Added CNAME api.optic.works which will route to this tunnel
-```
-
-**Or configure DNS manually in Cloudflare dashboard**:
-1. Navigate to DNS settings for `optic.works`
-2. Add CNAME record:
-   - Name: `api`
-   - Target: `<tunnel-id>.cfargotunnel.com`
-   - Proxy status: Proxied (orange cloud)
-
-#### Step 6: Test Tunnel (Manual)
-```bash
-# Start tunnel in foreground for testing
-cloudflared tunnel run opticworks-medusa
-
-# In another terminal, test the endpoint
-curl https://api.optic.works/health
-
-# Expected response:
-# {"status":"ok"}
-```
-
-#### Step 7: Install as Systemd Service
-```bash
-# Install service
-sudo cloudflared service install
-
-# Enable auto-start on boot
-sudo systemctl enable cloudflared
-
-# Start service
-sudo systemctl start cloudflared
-
-# Check status
-sudo systemctl status cloudflared
-
-# View logs
-sudo journalctl -u cloudflared -f
-```
-
-#### Step 8: Verify Production Connectivity
-```bash
-# From local machine (not Hetzner)
-curl https://api.optic.works/health
-curl https://api.optic.works/store/products
-
-# Check tunnel metrics in Cloudflare dashboard:
-# Zero Trust → Access → Tunnels → opticworks-medusa
-```
-
-#### Troubleshooting P1
-| Issue | Symptom | Solution |
-|-------|---------|----------|
-| Tunnel authentication fails | Browser doesn't open | Run `cloudflared tunnel login` and manually open URL shown |
-| DNS propagation delay | `api.optic.works` doesn't resolve | Wait 5-10 minutes, check Cloudflare DNS dashboard |
-| Connection refused | Tunnel connects but `/health` fails | Verify Medusa running on `localhost:9000` |
-| Certificate errors | SSL/TLS warnings | Enable Full (Strict) SSL in Cloudflare dashboard |
-| Service won't start | systemd errors | Check logs: `sudo journalctl -u cloudflared -n 50` |
-
-**Milestone P1 Exit Criteria**:
-- [x] Cloudflared service running and enabled
-- [x] `https://api.optic.works/health` returns 200 OK
-- [x] `https://api.optic.works/store/products` returns catalog
-- [x] Tunnel metrics visible in Cloudflare dashboard
-- [x] Service restarts automatically after reboot
-
----
-
-### Milestone P2: Storefront Deployment to Cloudflare Pages
+**Note**: Cloudflare Tunnel was configured in Phase 1, Milestone B1. See steps 11-16 above.
 
 #### Step 1: Connect GitHub Repository
 ```bash
@@ -1392,7 +1371,7 @@ curl https://optic.works/api/health  # If health endpoint exists
 # Complete test checkout with Stripe test card
 ```
 
-**Milestone P2 Exit Criteria**:
+**Milestone P1 Exit Criteria**:
 - [x] Site accessible at `https://optic.works` and `https://www.optic.works`
 - [x] Products load from `https://api.optic.works`
 - [x] Checkout flow completes successfully
@@ -1401,7 +1380,7 @@ curl https://optic.works/api/health  # If health endpoint exists
 
 ---
 
-### Milestone P3: Cloudflare Workers Webhook Buffer
+### Milestone P2: Cloudflare Workers Webhook Buffer
 
 #### Step 1: Create Worker Workspace
 ```bash
@@ -1580,7 +1559,7 @@ pnpm wrangler tail
 # Check Medusa logs: ssh hetzner-node "sudo journalctl -u medusa -f"
 ```
 
-**Milestone P3 Exit Criteria**:
+**Milestone P2 Exit Criteria**:
 - [x] Worker deployed to `webhook.optic.works`
 - [x] Stripe signature verification working
 - [x] Webhooks forwarded to Medusa successfully
@@ -1589,7 +1568,7 @@ pnpm wrangler tail
 
 ---
 
-### Milestone P4: Production Environment Hardening
+### Milestone P3: Production Environment Hardening
 
 #### Step 1: Enable SSL/TLS Strict Mode
 ```bash
@@ -1734,7 +1713,7 @@ psql -U medusa_user -d medusa_test -c "SELECT COUNT(*) FROM product;"
 # Document restoration procedure in CONTRIBUTORS.md
 ```
 
-**Milestone P4 Exit Criteria**:
+**Milestone P3 Exit Criteria**:
 - [x] SSL Full (Strict) mode enabled
 - [x] All production secrets rotated and stored in Infisical
 - [x] Daily PostgreSQL backups to R2

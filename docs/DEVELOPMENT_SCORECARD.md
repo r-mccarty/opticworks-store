@@ -1,15 +1,16 @@
 # Development Scorecard
 
-**Last updated:** 2025-11-15  
+**Last updated:** 2025-11-17
 **Maintainers:** Platform Engineering
 
 ## Current Snapshot
 
 | Phase | Scope | Status | Notes |
 | --- | --- | --- | --- |
-| Phase 1 – Bootstrap & Validation | Hetzner Medusa deployment + single-product checkout (Milestones B1–B3) | 🟡 In Progress | Devcontainer now handles SSH + Git LFS; awaiting Hetzner Medusa bring-up, first product import, and E2E checkout. |
-| Phase 2 – Catalog & Storefront Integration | Catalog import, storefront fetches, Medusa checkout (Milestones B4–B6) | ⚪ Not Started | Depends on Phase 1 health. Scripts + service layer exist but still rely on static catalog. |
-| Phase 3 – Knowledge Systems & Hardening | Hugo docs, Discourse forum, CI/secrets/monitoring (Milestones B7–B9) | ⚪ Not Started | Scaffolds live under `platform/docs-site/` and `platform/forum/`; awaiting kickoff once Phase 2 is underway. |
+| Phase 1 – Bootstrap & Validation | Hetzner Medusa + Cloudflare Tunnel + single-product checkout (Milestones B1–B3) | 🟡 In Progress | **Docs complete (v4.1)**, Hetzner repo cloned, dependencies installing. Cloudflare Tunnel now in Phase 1 for secure-by-default deployment. |
+| Phase 2 – Catalog & Storefront Integration | Full catalog import, storefront integration via tunnel (Milestones B4–B6) | ⚪ Not Started | All 17 automation scripts ready (RFD-004 resolved). Awaiting Phase 1 deployment completion. |
+| Phase 3 – Knowledge Systems & Hardening | Hugo docs, Discourse forum, CI/CD (Milestones B7–B9) | ⚪ Not Started | Scaffolds ready in `platform/docs-site/` and `platform/forum/`. |
+| Phase 4 – Storefront Deployment & Webhooks | Cloudflare Pages, webhook buffer Workers (Milestones P1–P3) | ⚪ Not Started | Documented and ready. Tunnel already complete in Phase 1. |
 
 ## Highlights (Since Previous Update)
 
@@ -30,22 +31,40 @@
 
 ## In Flight / Next Up
 
-### Phase 1 – Bootstrap & Validation
-- [ ] Provision Hetzner VM (or confirm access), harden the host, and install Node/pm2 per `docs/IMPLEMENTATION_GUIDE.md`.
-- [ ] Bring up `services/medusa/docker-compose.yml` on Hetzner and run the first Bed Presence Sensor import.
-- [ ] Configure Cloudflare Tunnel or firewall rules so `MEDUSA_BASE_URL` points at Hetzner for dev/staging.
-- [ ] Land the first Playwright checkout test that targets the Hetzner Medusa instance (B3 exit criteria).
+### Phase 1 – Bootstrap & Validation (In Progress)
+- [x] Documentation v4.1 complete (tunnel-first approach)
+- [x] Repository cloned to `/opt/opticworks/medusa-backend` on Hetzner
+- [ ] Complete dependency installation (`pnpm install` in progress)
+- [ ] Generate secure credentials via `pnpm run generate:secrets`
+- [ ] Provision PostgreSQL + Redis via `scripts/hetzner-provision.sh`
+- [ ] Run database migrations: `pnpm run migrate`
+- [ ] Build admin dashboard: `pnpm run build`
+- [ ] Setup publishable API key: `pnpm run setup:keys`
+- [ ] **Install Cloudflare Tunnel** (cloudflared daemon, authenticate, configure for `api.optic.works`)
+- [ ] **Configure DNS CNAME**: `api.optic.works` → tunnel
+- [ ] Start Medusa with PM2: `pnpm run dev:pm2`
+- [ ] Verify tunnel connectivity: `curl https://api.optic.works/health`
+- [ ] Import first product (Bed Presence Sensor) via Admin UI at `https://api.optic.works/app`
+- [ ] Complete E2E checkout test against tunnel endpoint
 
 ### Phase 2 – Catalog & Storefront Integration
-- [ ] Validate `scripts/import-products.ts` against Hetzner and document quirks before importing the full catalog.
-- [ ] Flip `MEDUSA_ENABLED` in dev/staging once products exist, removing fallback catalog reads per `docs/MIGRATION_PLAN.md`.
-- [ ] Replace `/api/stripe/*` routes with Medusa payment sessions and archive `src/lib/products.ts` when parity is confirmed.
-- [ ] Add CI coverage for Medusa lint/build + storefront integration tests.
+- [ ] Run automated catalog import: `pnpm run catalog:import` (all products from `src/lib/products.ts`)
+- [ ] Verify imported catalog: `pnpm run catalog:verify`
+- [ ] Update storefront `.env.local`: `NEXT_PUBLIC_MEDUSA_ENABLED=true`, `NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works`
+- [ ] Test product listing, detail pages, cart operations via tunnel
+- [ ] Implement full checkout integration (Medusa payment sessions, not legacy `/api/stripe/*`)
+- [ ] Run E2E tests for all products (not just Bed Sensor)
+- [ ] Archive `src/lib/products.ts` to `docs/archived/static-catalog.ts`
+- [ ] Delete legacy Stripe routes (`/api/stripe/create-payment-intent`, `/create-checkout-session`, `/webhook`)
 
 ### Phase 3 – Knowledge Systems & Hardening
-- [ ] Wire `platform/docs-site/` into a Hugo build + deploy pipeline, mirroring `/docs`.
-- [ ] Finish the Discourse docker-compose + theme polish, then document SMTP/SSO assumptions in `/config/forum.env`.
-- [ ] Extend `/config/` templates + CI/CD scripts to cover Hetzner secrets, docs deploy, and uptime/monitoring (B9).
+- [ ] Configure Hugo in `platform/docs-site/`, sync content from `/docs` markdown
+- [ ] Deploy Hugo site to Cloudflare Pages (build command: `hugo --minify`)
+- [ ] Set up Discourse forum via `platform/forum/docker-compose.yml`
+- [ ] Apply OpticWorks theme, configure SMTP for notifications
+- [ ] Create GitHub Actions CI workflow (`docs/CI.md` checklist)
+- [ ] Add Medusa deployment script for Hetzner (systemd service)
+- [ ] Document rollback procedures, monitoring setup (UptimeRobot, Sentry)
 
 ## Risks & Blockers
 
@@ -57,9 +76,83 @@
 
 ## Action Items
 
-1. **Owner: Platform Eng** – Finish Hetzner setup, share tunnel hostname + access instructions.  
-2. **Owner: Commerce Services** – Deploy Medusa service via pm2/docker, load catalog, implement carts/payment session endpoints.  
-3. **Owner: Storefront** – Flip `MEDUSA_ENABLED` once backend is stable; add tests covering Medusa failure fallback.  
-4. **Owner: Knowledge Systems** – Kick off docs/forum work once Phase 2 is underway, report weekly status back into this scorecard.  
+1. **Owner: Platform Eng** – Complete Hetzner deployment using deployment guide below, configure Cloudflare Tunnel DNS.
+2. **Owner: Commerce Services** – Test Medusa Admin at `https://api.optic.works/app`, import first product, validate API.
+3. **Owner: Storefront** – Update `.env.local` to point to `https://api.optic.works`, test integration.
+4. **Owner: Knowledge Systems** – Begin Hugo docs site setup once Phase 2 nears completion.
 
-_Update cadence: weekly until the three migration phases ship._
+_Update cadence: weekly until all four migration phases ship._
+
+---
+
+## Quick Deployment Guide (Resume Phase 1)
+
+The Hetzner node has:
+- ✅ Repository cloned to `/opt/opticworks/medusa-backend`
+- 🟡 Dependencies partially installed (node_modules exists, ~80% complete)
+
+**Next steps** (run via `ssh hetzner-node`):
+
+```bash
+# 1. Complete dependency installation (if needed)
+cd /opt/opticworks/medusa-backend
+pnpm install
+
+# 2. Generate secure credentials
+cd services/medusa
+pnpm run generate:secrets > /tmp/medusa-secrets.env
+cat /tmp/medusa-secrets.env  # Review credentials
+
+# 3. Provision PostgreSQL + Redis (requires sudo)
+source /tmp/medusa-secrets.env
+POSTGRES_PASSWORD=$POSTGRES_PASSWORD REDIS_PASSWORD=$REDIS_PASSWORD \
+  bash scripts/hetzner-provision.sh
+
+# 4. Configure environment
+cp .env.example .env
+nano .env  # Paste credentials from /tmp/medusa-secrets.env
+
+# 5. Run migrations and build
+pnpm run migrate
+pnpm run build
+
+# 6. Setup API keys
+pnpm run setup:keys  # Outputs publishable key for storefront
+
+# 7. Install Cloudflare Tunnel
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+cloudflared tunnel login  # Opens browser for authentication
+cloudflared tunnel create opticworks-medusa
+TUNNEL_ID=$(cloudflared tunnel list | grep opticworks-medusa | awk '{print $1}')
+
+# 8. Configure tunnel
+sudo mkdir -p /etc/cloudflared
+sudo tee /etc/cloudflared/config.yml > /dev/null <<EOF
+tunnel: $TUNNEL_ID
+credentials-file: /root/.cloudflared/${TUNNEL_ID}.json
+ingress:
+  - hostname: api.optic.works
+    service: http://localhost:9000
+  - service: http_status:404
+EOF
+cloudflared tunnel ingress validate
+
+# 9. Configure DNS (user action required)
+# In Cloudflare dashboard for optic.works:
+# Add CNAME: api -> <tunnel-id>.cfargotunnel.com (Proxied)
+
+# 10. Start tunnel service
+sudo cloudflared service install
+sudo systemctl enable cloudflared
+sudo systemctl start cloudflared
+
+# 11. Start Medusa with PM2
+pnpm run dev:pm2
+
+# 12. Verify
+curl https://api.optic.works/health
+# Open browser: https://api.optic.works/app
+```
+
+**See `docs/IMPLEMENTATION_GUIDE.md` for complete step-by-step instructions.**

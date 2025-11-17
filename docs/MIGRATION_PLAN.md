@@ -1,8 +1,8 @@
 # OpticWorks Platform Migration Plan (Bootstrap Edition)
 
-**Document version**: 4.0
+**Document version**: 4.1
 **Last updated**: 2025-11-17
-**Philosophy**: Deploy fast, test early, expand incrementally, secure for production
+**Philosophy**: Deploy fast, test early, expand incrementally, secure from day one
 
 This plan replaces the previous waterfall approach. Since the current storefront is **not production**, we can move directly to MedusaJS without maintaining backwards compatibility. The entire strategy focuses on getting a working Medusa backend on Hetzner with one product, then expanding from that validated foundation.
 
@@ -40,41 +40,59 @@ The previous plan (v2.0) prepared the storefront for a future Medusa backend tha
 
 ## Bootstrap Plan: 4 Phases Over 4 Weeks
 
-### Phase 1: Hetzner Deployment & Single Product Validation (Days 1-5)
+### Phase 1: Hetzner Deployment with Cloudflare Tunnel & Single Product Validation (Days 1-5)
 
-**Goal**: Medusa running on Hetzner with the Bed Presence Sensor product, completing one successful checkout.
+**Goal**: Medusa running on Hetzner, exposed via Cloudflare Tunnel at `api.optic.works`, with the Bed Presence Sensor product completing one successful checkout.
 
-#### Milestone B1: Medusa Running on Hetzner (Day 1-2)
+**Why Tunnel in Phase 1**:
+- SSH is for infrastructure management only (deployment, logs, database admin)
+- Application access (Medusa Admin, Store API) should use proper SSL/TLS from day one
+- No direct IP exposure or firewall port management
+- Production-like environment from the start
+- Easier integration testing with storefront
+
+#### Milestone B1: Medusa Running on Hetzner with Cloudflare Tunnel (Day 1-2)
 
 **Deploy steps**:
 1. SSH to Hetzner node (credentials in `docs/CONTRIBUTORS.md`)
 2. Clone repo to `/opt/opticworks/medusa-backend`
-3. Run `services/medusa/docker-compose.yml` (Postgres + Redis)
-4. Install dependencies: `pnpm install --filter @opticworks/medusa-service`
-5. Run migrations: `pnpm --filter @opticworks/medusa-service migrate`
-6. Start Medusa: `pnpm --filter @opticworks/medusa-service dev`
+3. Generate secure credentials: `pnpm run generate:secrets`
+4. Provision PostgreSQL + Redis: `scripts/hetzner-provision.sh`
+5. Install dependencies: `pnpm install`
+6. Run migrations: `pnpm run migrate`
+7. Build admin dashboard: `pnpm run build`
+8. Setup API keys: `pnpm run setup:keys`
+9. **Install Cloudflare Tunnel**: `apt install cloudflared`
+10. **Authenticate and create tunnel**: `cloudflared tunnel login && cloudflared tunnel create opticworks-medusa`
+11. **Configure tunnel** for `api.optic.works` → `localhost:9000`
+12. **Install tunnel as systemd service**: `cloudflared service install`
+13. **Configure DNS**: Add CNAME `api.optic.works` → tunnel (in Cloudflare dashboard)
+14. Start Medusa with PM2: `pnpm run dev:pm2`
 
 **Exit criteria**:
-- [ ] `http://<hetzner-ip>:9000/health` returns 200 OK
-- [ ] Medusa Admin accessible at `http://<hetzner-ip>:9000/app`
-- [ ] Postgres + Redis containers healthy (`docker ps`)
+- [ ] `https://api.optic.works/health` returns 200 OK (via tunnel, not direct IP)
+- [ ] Medusa Admin accessible at `https://api.optic.works/app`
+- [ ] PostgreSQL + Redis running and healthy
+- [ ] Cloudflared service running (`systemctl status cloudflared`)
+- [ ] SSL/TLS certificate valid (Cloudflare managed)
 
 #### Milestone B2: Single Product Import (Day 2-3)
 
 **Product selection**: Bed Presence Sensor (`bed-presence-sensor`) - flagship product, simplest SKU.
 
 **Import steps**:
-1. Extract Bed Presence Sensor data from `src/lib/products.ts`
-2. Manually create product via Medusa Admin UI (verify UI workflow)
-3. Test `GET /store/products` returns the product
-4. Configure Stripe payment provider in Medusa
-5. Create a test cart: `POST /store/carts` with Bed Sensor variant
+1. Access Medusa Admin at `https://api.optic.works/app`
+2. Create admin user on first login
+3. Manually create Bed Presence Sensor product via Admin UI (verify workflow)
+4. Test `GET https://api.optic.works/store/products` returns the product
+5. Configure Stripe payment provider in Medusa
+6. Create a test cart: `POST https://api.optic.works/store/carts` with Bed Sensor variant
 
 **Exit criteria**:
-- [ ] Bed Presence Sensor visible in Medusa Admin
-- [ ] `GET http://<hetzner-ip>:9000/store/products` returns 1 product
+- [ ] Bed Presence Sensor visible in Medusa Admin at `https://api.optic.works/app`
+- [ ] `GET https://api.optic.works/store/products` returns 1 product
 - [ ] Product has correct price ($199 USD), image, description
-- [ ] Can add product to cart via API
+- [ ] Can add product to cart via API (through tunnel)
 
 #### Milestone B3: First Checkout E2E Test (Day 3-5)
 
@@ -258,48 +276,13 @@ jobs:
 
 ---
 
-### Phase 4: Production Networking & Security (Days 22-28)
+### Phase 4: Storefront Deployment & Webhook Buffering (Days 22-28)
 
-**Goal**: Expose Medusa backend via Cloudflare Tunnel, deploy storefront to Cloudflare Pages, implement webhook buffering.
+**Goal**: Deploy storefront to Cloudflare Pages, implement webhook buffering, finalize production hardening.
 
-#### Milestone P1: Cloudflare Tunnel Setup (Day 22-23)
+**Context**: Cloudflare Tunnel already configured in Phase 1, so Phase 4 focuses on storefront deployment and production hardening.
 
-**Context**: Development workflow uses direct SSH to Hetzner node. Production requires secure, authenticated tunnel to expose Medusa API at `api.optic.works` without opening firewall ports.
-
-**Architecture**:
-```
-┌─────────────────────────────────────────────┐
-│ Cloudflare Pages/Workers (storefront)      │
-│ ├─ Next.js SSR/SSG                          │
-│ └─ Workers: Webhook buffer → Medusa         │
-└─────────────┬───────────────────────────────┘
-              │ HTTPS via Cloudflare Tunnel
-              │ (api.optic.works)
-┌─────────────▼───────────────────────────────┐
-│ Hetzner Node (5.78.106.67)                  │
-│ ├─ Cloudflared daemon (tunnel connector)    │
-│ ├─ Medusa v2 (localhost:9000)               │
-│ ├─ PostgreSQL (localhost:5432)              │
-│ └─ Redis (localhost:6379)                   │
-└─────────────────────────────────────────────┘
-```
-
-**Installation steps**:
-1. SSH to Hetzner node
-2. Install cloudflared: `curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb && sudo dpkg -i cloudflared.deb`
-3. Authenticate tunnel: `cloudflared tunnel login` (opens browser for auth)
-4. Create tunnel: `cloudflared tunnel create opticworks-medusa`
-5. Configure tunnel to route `api.optic.works` → `localhost:9000`
-6. Install as systemd service for auto-restart
-7. Add DNS CNAME: `api.optic.works` → `<tunnel-id>.cfargotunnel.com`
-
-**Exit criteria**:
-- [ ] `curl https://api.optic.works/health` returns 200 OK
-- [ ] `curl https://api.optic.works/store/products` returns product catalog
-- [ ] Cloudflared service starts on boot (`systemctl enable cloudflared`)
-- [ ] Tunnel metrics visible in Cloudflare dashboard
-
-#### Milestone P2: Storefront Deployment to Cloudflare Pages (Day 23-24)
+#### Milestone P1: Storefront Deployment to Cloudflare Pages (Day 22-24)
 
 **Goal**: Deploy Next.js storefront to Cloudflare Pages with environment variables for production Medusa endpoint.
 
@@ -327,7 +310,7 @@ jobs:
 - [ ] Checkout flow completes via tunnel-exposed Medusa
 - [ ] Preview deployments work for PRs
 
-#### Milestone P3: Cloudflare Workers Webhook Buffer (Day 24-25)
+#### Milestone P2: Cloudflare Workers Webhook Buffer (Day 24-25)
 
 **Goal**: Deploy Cloudflare Worker to buffer Stripe webhooks and forward to Medusa with retry logic.
 
@@ -364,7 +347,7 @@ Cloudflare Worker (webhook.optic.works)
 - [ ] Medusa receives `payment_intent.succeeded` events
 - [ ] Order status updates in Admin after payment
 
-#### Milestone P4: Production Environment Hardening (Day 26-28)
+#### Milestone P3: Production Environment Hardening (Day 26-28)
 
 **Scope**: SSL/TLS certificates, secrets rotation, monitoring, backup procedures.
 
@@ -410,25 +393,30 @@ Cloudflare Worker (webhook.optic.works)
 
 | Phase | Timeline | Deliverable | Dependency |
 |-------|----------|-------------|------------|
-| **Phase 1** | Days 1-5 | Medusa on Hetzner + 1 product checkout | None (start immediately) |
+| **Phase 1** | Days 1-5 | Medusa on Hetzner + Cloudflare Tunnel + 1 product checkout | None (start immediately) |
 | **Phase 2** | Days 6-12 | Full catalog + storefront integration | Phase 1 complete |
 | **Phase 3** | Days 13-21 | Docs + Forum + CI/CD hardening | Phase 2 complete (Docs/Forum can start Day 10) |
-| **Phase 4** | Days 22-28 | Production networking + Cloudflare Tunnel | Phase 3 complete (can start Day 18) |
+| **Phase 4** | Days 22-28 | Storefront deployment + Webhook buffering | Phase 3 complete (can start Day 18) |
 
 ## Environment Configuration
 
 ### Development (Local)
 ```bash
-# Storefront (.env.local)
+# Storefront (.env.local) - Testing against Hetzner Medusa via tunnel
 NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
-RESEND_API_KEY=re_xxx
+NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx
+RESEND_API_KEY=re_test_xxx
 
-# Medusa (services/medusa/.env)
-POSTGRES_URL=postgresql://medusa:medusa@localhost:5432/medusa
-REDIS_URL=redis://localhost:6379
+# Or test against local Medusa (if running services/medusa locally)
+NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
+
+# Medusa (services/medusa/.env on Hetzner)
+POSTGRES_URL=postgresql://medusa_user:<POSTGRES_PASSWORD>@localhost:5432/medusa_db
+REDIS_URL=redis://:<REDIS_PASSWORD>@localhost:6379
 STRIPE_SECRET_KEY=sk_test_xxx
 MEDUSA_ADMIN_TOKEN=<generate-secure-token>
+MEDUSA_BACKEND_URL=https://api.optic.works
 ```
 
 ### Production (Cloudflare + Hetzner)
@@ -499,14 +487,14 @@ Once Phase 2 is complete and Medusa checkout is stable:
 
 ## Why This Plan Works
 
-1. **Hetzner-first**: Proves infrastructure before touching storefront
-2. **Single product validation**: Reduces surface area for first integration
-3. **Test-driven**: E2E tests written alongside implementation, not retrofitted
-4. **Delete legacy code**: No dual-maintenance burden once Medusa works
-5. **Independent tracks**: Docs/Forum don't block commerce migration
-6. **Measurable milestones**: Each milestone has concrete exit criteria
-7. **Production-ready security**: Cloudflare Tunnel eliminates direct internet exposure
-8. **Incremental deployment**: Each phase delivers independently valuable capabilities
+1. **Tunnel from day one**: No dual-mode configuration (dev vs prod), secure from the start
+2. **SSH for infrastructure only**: Clear separation between deployment (SSH) and application access (tunnel)
+3. **Single product validation**: Reduces surface area for first integration
+4. **Test-driven**: E2E tests written alongside implementation, not retrofitted
+5. **Delete legacy code**: No dual-maintenance burden once Medusa works
+6. **Independent tracks**: Docs/Forum don't block commerce migration
+7. **Measurable milestones**: Each milestone has concrete exit criteria
+8. **Production-grade from Phase 1**: SSL/TLS, no direct IP exposure, proper DNS
 
-**Previous plan failed because**: It optimized for abstraction before validation.
-**This plan succeeds because**: It optimizes for working software at every step, with production security baked in from the start.
+**Previous plan failed because**: It optimized for abstraction before validation, and deferred security to "Phase 4."
+**This plan succeeds because**: It deploys production-grade infrastructure immediately, validates with working software at every step.
