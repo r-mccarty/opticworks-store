@@ -24,11 +24,14 @@ node_modules/
 # misc
 .DS_Store
 *.pem
+.claude/
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+medusa-dev.log
+medusa.pid
 
 # env files (can opt-in for committing if needed)
 .env*

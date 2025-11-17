@@ -38,8 +38,8 @@ const modulesConfig: Array<Record<string, unknown>> = [
           id: "stripe",
           resolve: "@medusajs/medusa/payment-stripe",
           options: {
-            api_key: stripeApiKey ?? "sk_test_missing",
-            webhook_secret: stripeWebhookSecret ?? "whsec_missing",
+            apiKey: stripeApiKey ?? "sk_test_missing",
+            webhookSecret: stripeWebhookSecret ?? "whsec_missing",
             capture: true,
           },
         },
