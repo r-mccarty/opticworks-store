@@ -34,6 +34,7 @@ pnpm run dev  # http://localhost:3000
 ## Required Workflow Commands
 ```bash
 pnpm run lint   # REQUIRED pre-commit (strict TS + ESLint)
+pnpm run test   # REQUIRED for cart regressions + unit coverage
 pnpm run build  # REQUIRED pre-commit (ensures hybrid Stripe flow compiles)
 pnpm run dev    # Local development
 pnpm run start  # Preview production build

@@ -12,6 +12,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 import { useCheckoutState } from "@/hooks/useCheckoutState"
+import { summarizeSpecifications } from "@/lib/cart/utils"
 
 export function CartPage() {
   const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, setPaymentSession } = useCart()
@@ -97,6 +98,7 @@ export function CartPage() {
       : "lg:col-span-7 space-y-4"
 
   const cartColumnClassName = `${cartColumnBaseClass} lg:sticky lg:top-32 lg:self-start`
+  const featuredSpecs = items[0]?.specifications?.slice(0, 6) ?? []
 
   return (
     <main className="relative">
@@ -145,14 +147,20 @@ export function CartPage() {
                           {/* Rich Specifications */}
                           <div className="bg-gray-50 rounded-lg p-4 text-left">
                             <h4 className="font-semibold text-gray-900 mb-3">Specifications</h4>
-                            <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
-                              {items[0].specifications.slice(0, 6).map((spec) => (
-                                <div key={spec.label} className="flex justify-between gap-4">
-                                  <span>{spec.label}:</span>
-                                  <span className="font-medium text-right">{spec.value}</span>
-                                </div>
-                              ))}
-                            </div>
+                            {featuredSpecs.length > 0 ? (
+                              <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
+                                {featuredSpecs.map((spec) => (
+                                  <div key={spec.label} className="flex justify-between gap-4">
+                                    <span>{spec.label}:</span>
+                                    <span className="font-medium text-right">{spec.value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-600">
+                                Detailed specifications are available on the product page.
+                              </p>
+                            )}
                           </div>
                           
                           {/* Product Description */}
@@ -216,9 +224,11 @@ export function CartPage() {
                 </FadeDiv>
               ) : (
                 // Multiple items - compact layout
-                items.map((item) => (
-                  <FadeDiv key={item.id}>
-                    <Card>
+                items.map((item) => {
+                  const specSummary = summarizeSpecifications(item.specifications, 2)
+                  return (
+                    <FadeDiv key={item.id}>
+                      <Card>
                       <CardContent className="p-6">
                         <div className="flex items-start space-x-4 sm:space-x-6">
                           <Link
@@ -240,12 +250,15 @@ export function CartPage() {
                                 {item.name}
                               </Link>
                             </h3>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {item.specifications
-                                .slice(0, 2)
-                                .map((spec) => `${spec.label}: ${spec.value}`)
-                                .join(" • ")}
-                            </p>
+                            {specSummary ? (
+                              <p className="text-sm text-gray-600 mt-1">
+                                {specSummary}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-gray-600 mt-1">
+                                Full specifications available on the product page.
+                              </p>
+                            )}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-3">
                               <div className="flex items-center space-x-3">
                                 <div className="flex items-center border border-gray-300 rounded-md">
@@ -296,8 +309,9 @@ export function CartPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  </FadeDiv>
-                ))
+                    </FadeDiv>
+                  )
+                })
               )}
             </div>
 

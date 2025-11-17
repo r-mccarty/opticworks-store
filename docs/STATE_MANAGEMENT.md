@@ -35,14 +35,28 @@ export const useCart = create<CartStore>()(
       // ... other methods
     }),
     {
-      name: 'cart-storage',           // localStorage key
+      name: 'cart-storage',              // localStorage key
+      version: 1,                        // hydrate through migrations
       partialize: (state) => ({ 
-        items: state.items           // Only persist cart items
+        items: state.items,
+        paymentSession: state.paymentSession
+      }),
+      migrate: (persistedState) => ({
+        // normalize old cart payloads from legacy storage
+        items: normalizeCartItems(persistedState?.items),
+        paymentSession: persistedState?.paymentSession
+          ? {
+              ...persistedState.paymentSession,
+              items: normalizeCartItems(persistedState.paymentSession.items),
+            }
+          : null,
       })
     }
   )
 )
 ```
+
+`normalizeCartItems` and other helpers live in `src/lib/cart/utils.ts`. They prune invalid spec entries and clamp quantities so hydration never crashes if older browsers stored incomplete data.
 
 **Persistence Behavior**:
 - Cart items saved to `localStorage` under key `'cart-storage'`
@@ -96,7 +110,7 @@ export const useSupportStore = create<SupportStore>()(
 ## Persistence Strategy
 
 ### What Gets Persisted
-- **Cart items**: Products and quantities
+- **Cart items**: Products and quantities (normalized via `src/lib/cart/utils.ts`)
 - **Support tickets**: Customer service history
 - **Form data**: In-progress contact/warranty forms
 - **User preferences**: Contact method preferences
@@ -114,6 +128,7 @@ The `partialize` function controls exactly what gets saved:
 partialize: (state) => ({
   // Only these fields are saved to localStorage
   items: state.items,
+  paymentSession: state.paymentSession,
   preferredContactMethod: state.preferredContactMethod
   // isOpen, searchQuery, etc. are NOT saved
 })

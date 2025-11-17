@@ -53,7 +53,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                   {product.description}
                 </p>
                 <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-500">
-                  {product.specifications.slice(0, 4).map((spec) => (
+                  {(product.specifications?.slice(0, 4) ?? []).map((spec) => (
                     <div key={spec.label} className="flex items-center gap-1">
                       <span className="font-medium">{spec.label}:</span>
                       <span className="line-clamp-1">{spec.value}</span>

@@ -204,46 +204,64 @@ export const useCart = create<CartStore>()(
       items: [],
       isOpen: false,
       paymentSession: null,
-      
+
       addToCart: (product: Product) => {
         const items = get().items
         const existingItem = items.find(item => item.id === product.id)
-        
+
         if (existingItem) {
           set({
             items: items.map(item =>
-              item.id === product.id 
-                ? { ...item, quantity: item.quantity + 1 }
-                : item
-            )
+              item.id === product.id
+                ? normalizeCartItem(item, item.quantity + 1)
+                : normalizeCartItem(item)
+            ),
           })
         } else {
-          set({ items: [...items, { ...product, quantity: 1 }] })
+          set({
+            items: [
+              ...items.map(normalizeCartItem),
+              normalizeCartItem(product),
+            ],
+          })
         }
-        
-        // Optimistic UI feedback
+
         toast.success(`${product.name} added to cart`)
       },
-      
+
       // ... other methods
     }),
     {
       name: 'cart-storage',
+      version: 1,
       partialize: (state) => ({
         items: state.items,
-        paymentSession: state.paymentSession
-        // UI state like `isOpen` is NOT persisted
-      })
-    }
+        paymentSession: state.paymentSession,
+      }),
+      migrate: (persistedState) => ({
+        items: normalizeCartItems(persistedState?.items),
+        paymentSession: persistedState?.paymentSession
+          ? {
+              ...persistedState.paymentSession,
+              items: normalizeCartItems(persistedState.paymentSession.items),
+            }
+          : null,
+      }),
+    },
   )
 )
 ```
 
 **Key Features**:
-- **Selective persistence** - Only essential data saved to localStorage
+- **Selective persistence** - Only essential data saved to localStorage (cart + payment session)
+- **Data normalization** - `src/lib/cart/utils.ts` ensures persisted specs/quantities stay valid
 - **Optimistic updates** - Immediate UI feedback with toast notifications
 - **Payment session tracking** - Stripe integration for checkout flow
-- **Type safety** - Complete TypeScript coverage for all operations
+- **Type safety** - Complete TypeScript coverage for all operations and migrations
+
+> 📦 **New Cart Utilities**
+>
+> Legacy carts stored in browsers before the 2025.02 release lacked specification data, causing client-side crashes during hydration. The new `src/lib/cart` namespace provides `normalizeCartItem`, `normalizeCartItems`, and `summarizeSpecifications` helpers so UI components can tolerate partial data. These helpers are unit-tested with Vitest (`src/lib/cart/utils.test.ts`).
 
 ### Support System Store (`src/hooks/useSupportStore.ts`)
 

@@ -1,23 +1,16 @@
 "use client"
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, type PersistOptions } from 'zustand/middleware'
 import { toast } from "sonner"
-import { Product } from '@/lib/products'
-
-export interface CartItem extends Product {
-  quantity: number
-}
-
-interface PaymentSession {
-  sessionId: string;
-  items: CartItem[];
-}
+import type { Product } from '@/lib/products'
+import type { CartItem, PaymentSession } from '@/lib/cart/types'
+import { normalizeCartItem, normalizeCartItems } from '@/lib/cart/utils'
 
 interface CartStore {
   items: CartItem[]
   isOpen: boolean
-  paymentSession: PaymentSession | null;
+  paymentSession: PaymentSession | null
   addToCart: (product: Product) => void
   removeFromCart: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
@@ -25,7 +18,38 @@ interface CartStore {
   getTotalItems: () => number
   getTotalPrice: () => number
   setIsOpen: (open: boolean) => void
-  setPaymentSession: (sessionId: string) => void;
+  setPaymentSession: (sessionId: string) => void
+}
+
+const CART_STORAGE_VERSION = 1
+
+const persistOptions: PersistOptions<CartStore, Pick<CartStore, "items" | "paymentSession">> = {
+  name: 'cart-storage',
+  version: CART_STORAGE_VERSION,
+  partialize: (state) => ({
+    items: state.items,
+    paymentSession: state.paymentSession,
+  }),
+  migrate: (persistedState: unknown) => {
+    const state = persistedState as Pick<CartStore, "items" | "paymentSession"> | undefined
+    if (!state) {
+      return {
+        items: [],
+        paymentSession: null,
+      }
+    }
+
+    return {
+      ...state,
+      items: normalizeCartItems(state.items),
+      paymentSession: state.paymentSession
+        ? {
+            ...state.paymentSession,
+            items: normalizeCartItems(state.paymentSession.items),
+          }
+        : null,
+    }
+  },
 }
 
 export const useCart = create<CartStore>()(
@@ -43,13 +67,16 @@ export const useCart = create<CartStore>()(
           set({
             items: items.map(item =>
               item.id === product.id
-                ? { ...item, quantity: item.quantity + 1 }
-                : item
+                ? normalizeCartItem(item, item.quantity + 1)
+                : normalizeCartItem(item)
             )
           })
         } else {
           set({
-            items: [...items, { ...product, quantity: 1 }]
+            items: [
+              ...items.map(normalizeCartItem),
+              normalizeCartItem(product)
+            ]
           })
         }
         toast.success("Added to cart", {
@@ -78,8 +105,8 @@ export const useCart = create<CartStore>()(
         set({
           items: get().items.map(item =>
             item.id === productId
-              ? { ...item, quantity }
-              : item
+              ? normalizeCartItem(item, quantity)
+              : normalizeCartItem(item)
           )
         })
       },
@@ -101,24 +128,21 @@ export const useCart = create<CartStore>()(
       },
 
       setPaymentSession: (sessionId) => {
-        const currentItems = get().items;
+        const currentItems = get().items
         if (currentItems.length > 0) {
+          const sessionItems = normalizeCartItems(currentItems)
           set({
             paymentSession: {
-              sessionId: sessionId,
-              items: currentItems
+              sessionId,
+              items: sessionItems
             },
             items: [] // Clear the cart
-          });
+          })
         }
       }
     }),
-    {
-      name: 'cart-storage',
-      partialize: (state) => ({
-        items: state.items,
-        paymentSession: state.paymentSession
-      })
-    }
+    persistOptions
   )
 )
+
+export type { CartItem, PaymentSession }

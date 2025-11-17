@@ -42,12 +42,13 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 ## Common Workflows
 1. **Local development**
    ```bash
-   pnpm install
-   pnpm run dev          # localhost:3000
-   pnpm run lint         # required before PR
-   pnpm run build        # required before PR
-   pnpm run start        # verify production build
-   ```
+  pnpm install
+  pnpm run dev          # localhost:3000
+  pnpm run lint         # required before PR
+  pnpm run test         # Vitest cart coverage
+  pnpm run build        # required before PR
+  pnpm run start        # verify production build
+  ```
    Use pnpm only; keep TypeScript strict, no `any`.
    - Next.js builds routinely exceed the default Codex CLI timeout; when running `pnpm run build` here, bump the command timeout to ~240 s (or higher) so the step can finish.
    - Next.js builds routinely exceed the default Codex CLI timeout; when running `pnpm run build` here, bump the command timeout to ~240 s (or higher) so the step can finish.
@@ -57,12 +58,12 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - Tier‑2 storytelling blocks (`Hero`, `Features`, product highlights) sit under feature folders (e.g., `src/components/products/duo-pack/*`) and rely on `cx`, gradients, and Framer Motion. Keep ARIA/keyboard support intact.
 
 3. **State + APIs**
-   - Zustand stores: `useCart` and `useSupportStore` persist to localStorage; `useCheckoutState` stays ephemeral. Any new store must follow docs/STATE_MANAGEMENT.md.
+  - Zustand stores: `useCart` and `useSupportStore` persist to localStorage; `useCheckoutState` stays ephemeral. `useCart` now normalizes legacy state via `src/lib/cart/utils.ts` so only valid specifications hydrate. Any new store must follow docs/STATE_MANAGEMENT.md.
    - API stubs live in `src/app/api/*`. Follow `docs/API_STUBS.md`: simulate 300–800 ms latency, validate requests, no `any`.
 
 4. **Checkout**
    - `src/components/checkout/CheckoutWrapper.tsx` loads Stripe Elements + custom fonts from Cloudflare R2.
-   - `src/app/store/checkout/page.tsx` orchestrates Address/Payment elements; success page depends on `paymentSession` from `useCart`.
+  - `src/app/store/checkout/page.tsx` orchestrates Address/Payment elements; success page depends on `paymentSession` from `useCart`. The success view will now gracefully handle carts that were normalized during migration.
    - During Phase 2 (storefront integration), keep `src/lib/api/medusa.ts` thin and ensure Stripe secrets remain on the Medusa service, not in the storefront.
 
 5. **Docs + Knowledge**
