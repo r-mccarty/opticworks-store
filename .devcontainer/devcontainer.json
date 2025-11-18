@@ -6,7 +6,8 @@
   "runArgs": ["--init"],
 
   "containerEnv": {
-    "NEXT_TELEMETRY_DISABLED": "1"
+    "NEXT_TELEMETRY_DISABLED": "1",
+    "INFISICAL_SERVICE_TOKEN": "${localEnv:INFISICAL_SERVICE_TOKEN}"
   },
 
   "forwardPorts": [3000, 1313],

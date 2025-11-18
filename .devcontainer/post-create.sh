@@ -59,21 +59,23 @@ fi
 
 echo "Ensuring Infisical CLI is installed..."
 if ! command -v infisical >/dev/null 2>&1; then
-    if curl -fsSL https://infisical.com/api/cli/install.sh | sudo bash; then
-        echo "Infisical CLI installed."
+    echo "Installing Infisical CLI from Cloudsmith repository..."
+    if curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash && \
+       sudo apt-get update && sudo apt-get install -y infisical; then
+        echo "Infisical CLI installed successfully."
     else
         echo "WARNING: Failed to install Infisical CLI. Secrets will not be synced automatically."
     fi
 else
-    echo "Infisical CLI already available."
+    echo "Infisical CLI already available ($(infisical --version))."
 fi
 
 if command -v infisical >/dev/null 2>&1; then
-    if [ -n "${INFISICAL_TOKEN:-}" ]; then
+    if [ -n "${INFISICAL_SERVICE_TOKEN:-}" ] || [ -n "${INFISICAL_TOKEN:-}" ]; then
         echo "Pulling secrets from Infisical..."
         bash scripts/pull-infisical-secrets.sh
     else
-        echo "WARNING: INFISICAL_TOKEN environment variable not set. Skipping Infisical secret sync."
+        echo "WARNING: INFISICAL_SERVICE_TOKEN (or INFISICAL_TOKEN) environment variable not set. Skipping Infisical secret sync."
     fi
 fi
 
