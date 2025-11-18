@@ -67,7 +67,10 @@ pnpm run test:smoke
 - Redis password (32-character secure random)
 - JWT_SECRET (64-character hex)
 - COOKIE_SECRET (64-character hex)
-- MEDUSA_ADMIN_TOKEN (128-character hex)
+
+**Medusa admin credentials**:
+- Secret API key (create via Medusa Admin → Settings → API Keys, store as `MEDUSA_SECRET_KEY` in Infisical)
+- Admin email/password pair (used only as fallback when secret key unavailable)
 
 > **Infisical workflow**: The Next.js storefront no longer commits `.env` files. Provision an `INFISICAL_TOKEN` (plus optional `INFISICAL_ENVIRONMENT`, `INFISICAL_SECRETS_PATH`, `INFISICAL_SITE_URL`) and run `pnpm run secrets:pull` or rely on the devcontainer post-create step to write `.env.local` automatically. All Medusa credentials should be added to Infisical after generation. See `.env.template` for the full key list.
 
@@ -126,7 +129,7 @@ cat /tmp/medusa-secrets.env
 # REDIS_PASSWORD=abc789xyz...
 # JWT_SECRET=64-char-hex...
 # COOKIE_SECRET=64-char-hex...
-# MEDUSA_ADMIN_TOKEN=128-char-hex...
+# (Secret API key is created later via Medusa Admin UI)
 ```
 
 #### Step 4: Provision Hetzner Infrastructure (NEW - Automated)
@@ -182,7 +185,9 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 # Secrets (use credentials from generate:secrets)
 JWT_SECRET=<JWT_SECRET>
 COOKIE_SECRET=<COOKIE_SECRET>
-MEDUSA_ADMIN_TOKEN=<MEDUSA_ADMIN_TOKEN>
+MEDUSA_SECRET_KEY=<secret-api-key-from-admin-ui>
+MEDUSA_ADMIN_EMAIL=admin@optic.works
+MEDUSA_ADMIN_PASSWORD=<secure-password>  # fallback when secret key unavailable
 
 # Admin
 MEDUSA_ADMIN_URL=http://localhost:9000
@@ -674,11 +679,11 @@ test.describe('Bed Presence Sensor Checkout', () => {
   test('should verify order exists in Medusa Admin', async ({ request }) => {
     // This test requires Medusa Admin API access
     const medusaUrl = process.env.HETZNER_MEDUSA_URL;
-    const adminToken = process.env.MEDUSA_ADMIN_TOKEN;
+    const adminSecret = process.env.MEDUSA_SECRET_KEY;
 
     const response = await request.get(`${medusaUrl}/admin/orders`, {
       headers: {
-        'Authorization': `Bearer ${adminToken}`,
+        'Authorization': `Basic ${adminSecret}`,
         'Content-Type': 'application/json',
       },
     });
@@ -701,7 +706,7 @@ cat > .env.local <<EOF
 NEXT_PUBLIC_MEDUSA_ENABLED=true
 NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=<publishable-key-from-setup-keys>
-MEDUSA_API_TOKEN=<admin-token>
+MEDUSA_SECRET_KEY=<medusa-secret-api-key>
 RESEND_API_KEY=<your-resend-key>
 EOF
 
@@ -758,7 +763,7 @@ import { products } from '../../../src/lib/products';
 dotenv.config({ path: '.env' });
 
 const MEDUSA_URL = process.env.MEDUSA_BASE_URL || 'http://localhost:9000';
-const ADMIN_TOKEN = process.env.MEDUSA_ADMIN_TOKEN;
+const ADMIN_SECRET = process.env.MEDUSA_SECRET_KEY;
 
 async function importProducts() {
   for (const product of products) {
@@ -767,7 +772,7 @@ async function importProducts() {
     const response = await fetch(`${MEDUSA_URL}/admin/products`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${ADMIN_TOKEN}`,
+        'Authorization': `Basic ${ADMIN_SECRET}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -819,7 +824,7 @@ cd /opt/opticworks/medusa-backend/services/medusa
 
 # Set environment variables
 export MEDUSA_BASE_URL=http://localhost:9000
-export MEDUSA_ADMIN_TOKEN=<your-admin-token>
+export MEDUSA_SECRET_KEY=<your-secret-api-key>
 
 # Run import
 pnpm catalog:import
@@ -835,11 +840,11 @@ pnpm catalog:import
 #### Step 4: Verify Products in Admin
 ```bash
 # List all products via API
-curl -H "Authorization: Bearer <admin-token>" \
+curl -H "Authorization: Basic $MEDUSA_SECRET_KEY" \
   http://<hetzner-ip>:9000/admin/products
 
 # Count products
-curl -s -H "Authorization: Bearer <admin-token>" \
+curl -s -H "Authorization: Basic $MEDUSA_SECRET_KEY" \
   http://<hetzner-ip>:9000/admin/products | jq '.products | length'
 
 # Expected: 6-8 products
@@ -1231,7 +1236,7 @@ jobs:
         run: pnpm test:e2e
         env:
           HETZNER_MEDUSA_URL: ${{ secrets.HETZNER_MEDUSA_URL }}
-          MEDUSA_ADMIN_TOKEN: ${{ secrets.MEDUSA_ADMIN_TOKEN }}
+          MEDUSA_SECRET_KEY: ${{ secrets.MEDUSA_SECRET_KEY }}
 ```
 
 #### Deployment Script for Hetzner
@@ -1439,7 +1444,7 @@ import Stripe from 'stripe';
 export interface Env {
   STRIPE_WEBHOOK_SECRET: string;
   MEDUSA_API_URL: string;
-  MEDUSA_ADMIN_TOKEN: string;
+  MEDUSA_SECRET_KEY: string;
   WEBHOOK_BUFFER: DurableObjectNamespace;
 }
 
@@ -1481,7 +1486,7 @@ export default {
       body: JSON.stringify(event),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${env.MEDUSA_ADMIN_TOKEN}`,
+        'Authorization': `Basic ${env.MEDUSA_SECRET_KEY}`,
       },
     });
 
@@ -1550,7 +1555,7 @@ MEDUSA_API_URL = "https://api.optic.works"
 
 [[env.production.secrets]]
 STRIPE_WEBHOOK_SECRET = "whsec_xxx"
-MEDUSA_ADMIN_TOKEN = "xxx"
+MEDUSA_SECRET_KEY = "sk_live_xxx"
 ```
 
 #### Step 4: Deploy Worker
@@ -1640,7 +1645,7 @@ sudo systemctl restart medusa
 
 **Secret rotation schedule**:
 - JWT_SECRET, COOKIE_SECRET: Monthly
-- MEDUSA_ADMIN_TOKEN: Monthly
+- MEDUSA_SECRET_KEY: Monthly (regenerate via Medusa Admin → Settings → API Keys)
 - PostgreSQL passwords: Quarterly
 - API keys (Stripe, Resend): On vendor recommendation
 

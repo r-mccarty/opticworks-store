@@ -4,7 +4,7 @@
  *
  * Verifies that products imported into Medusa match the source catalog.
  * Checks product counts, handles, prices, and metadata integrity.
- * Updated for RFD-005: JWT authentication via emailpass provider.
+ * Updated for RFD-005: Prefers Medusa secret API key auth with JWT fallback.
  *
  * Usage:
  *   pnpm run verify:catalog
@@ -14,7 +14,7 @@
 import "dotenv/config"
 import { products } from "../../../src/lib/products"
 import { retryFetch } from "./utils/retry.js"
-import { getAdminToken as getJwtToken, getAdminCredentials } from "./utils/auth.js"
+import { getAdminAuthHeader, type AdminAuthHeader } from "./utils/auth.js"
 
 const ADMIN_URL = process.env.MEDUSA_ADMIN_URL ?? "http://127.0.0.1:9000"
 const STORE_URL = process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000"
@@ -46,9 +46,9 @@ const issues: VerificationIssue[] = []
 
 /**
  * Fetch all products from Medusa Admin API
- * Updated for RFD-005: Uses JWT token for authentication
+ * Updated for RFD-005: Prefers Basic auth via secret API key (JWT fallback)
  */
-async function fetchMedusaProducts(token: string): Promise<MedusaProduct[]> {
+async function fetchMedusaProducts(auth: AdminAuthHeader): Promise<MedusaProduct[]> {
   console.log('📡 Fetching products from Medusa...')
 
   const allProducts: MedusaProduct[] = []
@@ -65,7 +65,7 @@ async function fetchMedusaProducts(token: string): Promise<MedusaProduct[]> {
       {
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': auth.header,
         },
       },
       { maxAttempts: 3 }
@@ -250,14 +250,17 @@ async function main() {
   const detailed = args.includes('--detailed')
 
   try {
-    // Authenticate to admin API (RFD-005)
-    console.log('🔐 Authenticating as admin user...')
-    const credentials = getAdminCredentials()
-    const token = await getJwtToken(ADMIN_URL, credentials)
-    console.log('✓ Authentication successful\n')
+    // Authenticate to admin API
+    console.log('🔐 Resolving admin authentication...')
+    const auth = await getAdminAuthHeader(ADMIN_URL)
+    console.log(
+      auth.type === 'secret'
+        ? '✓ Using Medusa secret API key\n'
+        : '✓ Authentication successful (JWT)\n',
+    )
 
     // Fetch products from Medusa
-    const medusaProducts = await fetchMedusaProducts(token)
+    const medusaProducts = await fetchMedusaProducts(auth)
 
     // Run verifications
     verifyProductCount(medusaProducts)
@@ -269,7 +272,7 @@ async function main() {
     console.error('\n❌ Verification error:', error instanceof Error ? error.message : error)
     console.error('\nTroubleshooting:')
     console.error('- Ensure Medusa service is running: pnpm run dev')
-    console.error('- Check MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env')
+    console.error('- Provide MEDUSA_SECRET_KEY via Infisical or ensure MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env')
     console.error('- Run health check: pnpm run health:check')
     console.error('- See RFD-005 for authentication details: docs/RFD-005.md\n')
     process.exit(1)

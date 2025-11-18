@@ -1,8 +1,8 @@
 /**
  * Admin Authentication Utility
  *
- * Handles JWT token acquisition for automation scripts.
- * Addresses RFD-005: Correct Medusa v2 authentication flow
+ * Handles Medusa admin authentication for automation scripts.
+ * Prefers secret API keys (Basic auth) with JWT fallback per RFD-005.
  *
  * @see /docs/RFD-005.md for technical background and decisions
  */
@@ -15,6 +15,12 @@ export interface AuthCredentials {
 export interface AuthToken {
   token: string;
   expiresAt?: string;
+}
+
+export interface AdminAuthHeader {
+  type: 'secret' | 'jwt';
+  header: string;
+  token?: string;
 }
 
 /**
@@ -103,4 +109,35 @@ export function getAdminCredentials(): AuthCredentials {
   }
 
   return { email, password };
+}
+
+/**
+ * Get Medusa secret API key from environment (if configured)
+ */
+export function getSecretApiKey(): string | undefined {
+  return process.env.MEDUSA_SECRET_KEY || process.env.MEDUSA_SECRET_API_KEY;
+}
+
+/**
+ * Resolve the appropriate Authorization header for admin API calls.
+ * Prefers Secret API Keys (Basic auth) and falls back to JWT if unavailable.
+ */
+export async function getAdminAuthHeader(adminUrl: string): Promise<AdminAuthHeader> {
+  const secretKey = getSecretApiKey();
+
+  if (secretKey) {
+    return {
+      type: 'secret',
+      header: `Basic ${secretKey}`,
+    };
+  }
+
+  const credentials = getAdminCredentials();
+  const token = await getAdminToken(adminUrl, credentials);
+
+  return {
+    type: 'jwt',
+    header: `Bearer ${token}`,
+    token,
+  };
 }

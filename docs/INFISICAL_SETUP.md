@@ -909,8 +909,9 @@ For reference, here are all secrets needed for the OpticWorks storefront:
 NEXT_PUBLIC_MEDUSA_ENABLED
 NEXT_PUBLIC_MEDUSA_BASE_URL
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-MEDUSA_API_TOKEN (optional, for admin scripts)
-MEDUSA_ADMIN_TOKEN (optional, for admin scripts)
+MEDUSA_SECRET_KEY (preferred for admin automation)
+MEDUSA_ADMIN_EMAIL (fallback auth)
+MEDUSA_ADMIN_PASSWORD (fallback auth)
 ```
 
 ### Stripe

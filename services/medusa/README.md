@@ -179,7 +179,7 @@ pnpm run catalog:verify
 2. Start infrastructure: `docker compose up -d`
 3. Start Medusa with PM2: `pnpm run dev:pm2`
 4. Import catalog: `pnpm run catalog:import`
-5. Test Admin API: `curl http://localhost:9000/admin/sales-channels -H "Authorization: Bearer $MEDUSA_ADMIN_TOKEN"`
+5. Test Admin API: `curl http://localhost:9000/admin/sales-channels -H "Authorization: Basic $MEDUSA_SECRET_KEY"`
 6. Test Store API: `curl http://localhost:9000/store/products`
 7. Integrate with storefront:
    - Set `MEDUSA_ENABLED=true` and `NEXT_PUBLIC_MEDUSA_ENABLED=true` in storefront `.env`

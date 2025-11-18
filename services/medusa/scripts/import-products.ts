@@ -4,7 +4,7 @@ import "dotenv/config"
 import type { Product } from "../../../src/lib/products"
 import { products } from "../../../src/lib/products"
 import { retryFetch } from "./utils/retry.js"
-import { getAdminToken as getJwtToken, getAdminCredentials } from "./utils/auth.js"
+import { getAdminAuthHeader, type AdminAuthHeader } from "./utils/auth.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -13,16 +13,16 @@ const ADMIN_URL = process.env.MEDUSA_ADMIN_URL ?? "http://127.0.0.1:9000"
 
 /**
  * Enhanced API fetch with retry logic for transient failures
- * Updated for RFD-005: Uses JWT token for authentication
+ * Updated for RFD-005: Prefers secret API key Basic auth with JWT fallback
  */
-async function apiFetch<T>(input: URL | string, token: string, init?: RequestInit): Promise<T> {
+async function apiFetch<T>(input: URL | string, auth: AdminAuthHeader, init?: RequestInit): Promise<T> {
   const response = await retryFetch(
     input.toString(),
     {
       ...init,
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
+        "Authorization": auth.header,
         ...(init?.headers ?? {}),
       },
     },
@@ -43,10 +43,10 @@ async function apiFetch<T>(input: URL | string, token: string, init?: RequestIni
   return response.json() as Promise<T>
 }
 
-async function fetchDefaultSalesChannelId(token: string): Promise<string> {
+async function fetchDefaultSalesChannelId(auth: AdminAuthHeader): Promise<string> {
   const url = new URL("/admin/sales-channels", ADMIN_URL)
   url.searchParams.set("limit", "1")
-  const data = await apiFetch<{ sales_channels: Array<{ id: string }> }>(url, token)
+  const data = await apiFetch<{ sales_channels: Array<{ id: string }> }>(url, auth)
   const channel = data.sales_channels?.[0]
   if (!channel) {
     throw new Error("No sales channels found in Medusa instance")
@@ -54,10 +54,10 @@ async function fetchDefaultSalesChannelId(token: string): Promise<string> {
   return channel.id
 }
 
-async function fetchProductByHandle(handle: string, token: string) {
+async function fetchProductByHandle(handle: string, auth: AdminAuthHeader) {
   const url = new URL("/admin/products", ADMIN_URL)
   url.searchParams.set("handle[]", handle)
-  const data = await apiFetch<{ products: Array<{ id: string }> }>(url, token)
+  const data = await apiFetch<{ products: Array<{ id: string }> }>(url, auth)
   return data.products?.[0]
 }
 
@@ -149,9 +149,9 @@ const productToPayload = (
   }
 }
 
-async function createProduct(payload: AdminProductPayload, token: string) {
+async function createProduct(payload: AdminProductPayload, auth: AdminAuthHeader) {
   const url = new URL("/admin/products", ADMIN_URL)
-  return apiFetch(url, token, {
+  return apiFetch(url, auth, {
     method: "POST",
     body: JSON.stringify(payload),
   })
@@ -170,13 +170,16 @@ async function main() {
   console.log(`Target:  ${ADMIN_URL}`)
   console.log('='.repeat(70) + '\n')
 
-  // Authenticate to admin API (RFD-005)
-  console.log('🔐 Authenticating as admin user...')
-  const credentials = getAdminCredentials()
-  const token = await getJwtToken(ADMIN_URL, credentials)
-  console.log('✓ Authentication successful\n')
+  // Authenticate to admin API (prefers secret API key, falls back to JWT)
+  console.log('🔐 Resolving admin authentication...')
+  const auth = await getAdminAuthHeader(ADMIN_URL)
+  console.log(
+    auth.type === 'secret'
+      ? '✓ Using Medusa secret API key\n'
+      : '✓ Authentication successful (JWT)\n',
+  )
 
-  const salesChannelId = await fetchDefaultSalesChannelId(token)
+  const salesChannelId = await fetchDefaultSalesChannelId(auth)
   console.log(`✓ Using sales channel: ${salesChannelId}\n`)
 
   const results: ImportResult[] = []
@@ -189,7 +192,7 @@ async function main() {
     const progress = `[${i + 1}/${products.length}]`
 
     try {
-      const existing = await fetchProductByHandle(product.id, token)
+      const existing = await fetchProductByHandle(product.id, auth)
       if (existing?.id) {
         console.log(`${progress} ⊘ Skipping ${product.name} (already exists)`)
         skipped += 1
@@ -199,7 +202,7 @@ async function main() {
         })
       } else {
         const payload = productToPayload(product, salesChannelId)
-        await createProduct(payload, token)
+        await createProduct(payload, auth)
         synced += 1
         console.log(`${progress} ✓ Synced ${product.name}`)
         results.push({
@@ -254,7 +257,7 @@ main().catch((error) => {
   console.error("\n❌ Import failed:", error instanceof Error ? error.message : error)
   console.error("\nTroubleshooting:")
   console.error("- Ensure Medusa service is running: pnpm run dev")
-  console.error("- Check MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env")
+  console.error("- Provide MEDUSA_SECRET_KEY via Infisical or ensure MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env")
   console.error("- Verify MEDUSA_ADMIN_URL is correct")
   console.error("- Run health check: pnpm run health:check")
   console.error("- See RFD-005 for authentication details: docs/RFD-005.md\n")

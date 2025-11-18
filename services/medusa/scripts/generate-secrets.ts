@@ -7,7 +7,6 @@
  * - Redis password
  * - JWT_SECRET (32-byte hex)
  * - COOKIE_SECRET (32-byte hex)
- * - MEDUSA_ADMIN_TOKEN (64-byte hex)
  *
  * Usage:
  *   pnpm run generate:secrets
@@ -21,7 +20,6 @@ interface Secrets {
   REDIS_PASSWORD: string;
   JWT_SECRET: string;
   COOKIE_SECRET: string;
-  MEDUSA_ADMIN_TOKEN: string;
 }
 
 /**
@@ -50,7 +48,6 @@ function generateSecrets(): Secrets {
     REDIS_PASSWORD: generatePassword(32),
     JWT_SECRET: generateHexSecret(32),
     COOKIE_SECRET: generateHexSecret(32),
-    MEDUSA_ADMIN_TOKEN: generateHexSecret(64),
   };
 }
 

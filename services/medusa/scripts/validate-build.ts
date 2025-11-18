@@ -57,7 +57,9 @@ function checkEnvironmentVariables(): ValidationResult {
 
   const recommended = [
     'REDIS_URL',
-    'MEDUSA_ADMIN_TOKEN',
+    'MEDUSA_SECRET_KEY',
+    'MEDUSA_ADMIN_EMAIL',
+    'MEDUSA_ADMIN_PASSWORD',
     'STRIPE_API_KEY',
   ];
 

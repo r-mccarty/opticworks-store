@@ -339,7 +339,7 @@ Cloudflare Worker (webhook.optic.works)
 5. Configure Worker environment variables:
    - `STRIPE_WEBHOOK_SECRET`
    - `MEDUSA_API_URL=https://api.optic.works`
-   - `MEDUSA_ADMIN_TOKEN`
+   - `MEDUSA_SECRET_KEY` (secret API key for Medusa admin requests)
 
 **Exit criteria**:
 - [ ] Stripe webhooks forwarded successfully
@@ -415,7 +415,9 @@ NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
 POSTGRES_URL=postgresql://medusa_user:<POSTGRES_PASSWORD>@localhost:5432/medusa_db
 REDIS_URL=redis://:<REDIS_PASSWORD>@localhost:6379
 STRIPE_SECRET_KEY=sk_test_xxx
-MEDUSA_ADMIN_TOKEN=<generate-secure-token>
+MEDUSA_SECRET_KEY=<secret-api-key-from-admin-ui>
+MEDUSA_ADMIN_EMAIL=admin@optic.works
+MEDUSA_ADMIN_PASSWORD=<secure-password>  # fallback auth if secret key unavailable
 MEDUSA_BACKEND_URL=https://api.optic.works
 ```
 
@@ -431,7 +433,9 @@ RESEND_API_KEY=re_prod_xxx
 POSTGRES_URL=postgresql://medusa:<secure-pw>@localhost:5432/medusa_prod
 REDIS_URL=redis://localhost:6379
 STRIPE_SECRET_KEY=sk_live_xxx
-MEDUSA_ADMIN_TOKEN=<rotate-monthly>
+MEDUSA_SECRET_KEY=<rotate-monthly-via-admin-ui>
+MEDUSA_ADMIN_EMAIL=admin@optic.works
+MEDUSA_ADMIN_PASSWORD=<secure-password>
 MEDUSA_BACKEND_URL=https://api.optic.works
 
 # Cloudflare Tunnel (Hetzner /etc/cloudflared/config.yml)

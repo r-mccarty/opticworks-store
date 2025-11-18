@@ -4,10 +4,10 @@
  *
  * Creates and configures a publishable API key for the Medusa Store API.
  * Addresses RFD-004 Issue #4: Missing publishable key + sales channel wiring.
- * Updated for RFD-005: JWT authentication via emailpass provider.
+ * Updated for RFD-005: Prefers Medusa secret API key auth with JWT fallback.
  *
  * This script:
- * 1. Authenticates to the Admin API using JWT (email/password)
+ * 1. Authenticates to the Admin API using the secret API key (JWT fallback)
  * 2. Retrieves or creates the default sales channel
  * 3. Creates a new publishable API key
  * 4. Associates the key with the sales channel
@@ -15,7 +15,7 @@
  *
  * Prerequisites:
  * - Medusa service must be running
- * - MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD must be set in .env
+ * - MEDUSA_SECRET_KEY (preferred) or MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD set in .env
  * - MEDUSA_ADMIN_URL (or MEDUSA_BACKEND_URL) must be set
  *
  * Usage:
@@ -24,7 +24,7 @@
  */
 
 import { retryFetch } from './utils/retry.js';
-import { getAdminToken as getJwtToken, getAdminCredentials } from './utils/auth.js';
+import { getAdminAuthHeader, type AdminAuthHeader } from './utils/auth.js';
 
 interface SalesChannel {
   id: string;
@@ -47,31 +47,34 @@ function getAdminUrl(): string {
   return url.replace(/\/$/, ''); // Remove trailing slash
 }
 
+let authContext: AdminAuthHeader | null = null;
+
 /**
- * Get admin authentication JWT token
- *
- * Authenticates via /auth/admin/emailpass and returns a JWT token.
- * See RFD-005 for details on Medusa v2 authentication flow.
+ * Resolve admin authentication method (secret API key preferred, JWT fallback)
  */
-async function getAdminToken(): Promise<string> {
-  const adminUrl = getAdminUrl();
-  const credentials = getAdminCredentials();
+async function resolveAuth(): Promise<AdminAuthHeader> {
+  if (authContext) {
+    return authContext;
+  }
 
-  console.log('🔐 Authenticating as admin user...');
+  console.log('🔐 Resolving admin authentication...');
+  const context = await getAdminAuthHeader(getAdminUrl());
 
-  const token = await getJwtToken(adminUrl, credentials);
+  if (context.type === 'secret') {
+    console.log('✓ Using Medusa secret API key\n');
+  } else {
+    console.log('✓ Authentication successful (JWT)\n');
+  }
 
-  console.log('✓ Authentication successful\n');
-
-  return token;
+  authContext = context;
+  return context;
 }
 
 /**
  * Get the default sales channel
  */
-async function getDefaultSalesChannel(): Promise<SalesChannel> {
+async function getDefaultSalesChannel(auth: AdminAuthHeader): Promise<SalesChannel> {
   const adminUrl = getAdminUrl();
-  const token = await getAdminToken();
 
   console.log('📡 Fetching default sales channel...');
 
@@ -80,7 +83,7 @@ async function getDefaultSalesChannel(): Promise<SalesChannel> {
       `${adminUrl}/admin/sales-channels`,
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': auth.header,
           'Content-Type': 'application/json',
         },
       },
@@ -121,9 +124,8 @@ async function getDefaultSalesChannel(): Promise<SalesChannel> {
 /**
  * Create a new publishable API key
  */
-async function createPublishableKey(title: string): Promise<PublishableApiKey> {
+async function createPublishableKey(title: string, auth: AdminAuthHeader): Promise<PublishableApiKey> {
   const adminUrl = getAdminUrl();
-  const token = await getAdminToken();
 
   console.log(`🔑 Creating publishable API key: "${title}"...`);
 
@@ -133,7 +135,7 @@ async function createPublishableKey(title: string): Promise<PublishableApiKey> {
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': auth.header,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ title }),
@@ -166,9 +168,8 @@ async function createPublishableKey(title: string): Promise<PublishableApiKey> {
 /**
  * Associate publishable key with sales channel
  */
-async function associateKeyWithChannel(keyId: string, channelId: string): Promise<void> {
+async function associateKeyWithChannel(keyId: string, channelId: string, auth: AdminAuthHeader): Promise<void> {
   const adminUrl = getAdminUrl();
-  const token = await getAdminToken();
 
   console.log('🔗 Associating key with sales channel...');
 
@@ -178,7 +179,7 @@ async function associateKeyWithChannel(keyId: string, channelId: string): Promis
       {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': auth.header,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -261,14 +262,17 @@ async function main() {
   const title = titleArg ? titleArg.split('=')[1] : 'Storefront';
 
   try {
+    // Step 0: Resolve authentication strategy
+    const auth = await resolveAuth();
+
     // Step 1: Get default sales channel
-    const salesChannel = await getDefaultSalesChannel();
+    const salesChannel = await getDefaultSalesChannel(auth);
 
     // Step 2: Create publishable API key
-    const apiKey = await createPublishableKey(title);
+    const apiKey = await createPublishableKey(title, auth);
 
     // Step 3: Associate key with sales channel
-    await associateKeyWithChannel(apiKey.id, salesChannel.id);
+    await associateKeyWithChannel(apiKey.id, salesChannel.id, auth);
 
     // Step 4: Display results
     displayResults(apiKey, salesChannel);
@@ -278,7 +282,7 @@ async function main() {
     console.error('\n❌ Setup failed:', error instanceof Error ? error.message : error);
     console.error('\nTroubleshooting:');
     console.error('- Ensure Medusa service is running: pnpm run dev');
-    console.error('- Check MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env');
+    console.error('- Provide MEDUSA_SECRET_KEY via Infisical or ensure MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env');
     console.error('- Verify MEDUSA_ADMIN_URL is correct');
     console.error('- Run health check: pnpm run health:check');
     console.error('- See RFD-005 for authentication details: docs/RFD-005.md\n');

@@ -19,7 +19,8 @@
  */
 
 import "dotenv/config"
-import { retryFetch, waitForService } from "./utils/retry.js"
+import { retryFetch } from "./utils/retry.js"
+import { getAdminAuthHeader, type AdminAuthHeader } from "./utils/auth.js"
 
 interface TestResult {
   name: string
@@ -30,6 +31,15 @@ interface TestResult {
 
 const results: TestResult[] = []
 let verbose = false
+let adminAuthCache: AdminAuthHeader | null = null
+
+async function resolveAdminAuth(baseUrl: string): Promise<AdminAuthHeader> {
+  if (adminAuthCache) {
+    return adminAuthCache
+  }
+  adminAuthCache = await getAdminAuthHeader(baseUrl)
+  return adminAuthCache
+}
 
 /**
  * Run a test and track results
@@ -148,17 +158,13 @@ async function testAdminAPIHealth(): Promise<void> {
  */
 async function testAdminAPIAuth(): Promise<void> {
   const baseUrl = process.env.MEDUSA_ADMIN_URL || process.env.MEDUSA_BACKEND_URL || 'http://localhost:9000'
-  const token = process.env.MEDUSA_ADMIN_TOKEN
-
-  if (!token) {
-    throw new Error('MEDUSA_ADMIN_TOKEN not configured')
-  }
+  const auth = await resolveAdminAuth(baseUrl)
 
   const response = await retryFetch(
     `${baseUrl}/admin/sales-channels`,
     {
       headers: {
-        'Authorization': `Bearer ${token}`,
+        'Authorization': auth.header,
         'Content-Type': 'application/json',
       },
     },
@@ -212,14 +218,10 @@ async function testStoreAPIAccess(): Promise<void> {
  */
 async function testProductCRUD(): Promise<void> {
   const baseUrl = process.env.MEDUSA_ADMIN_URL || process.env.MEDUSA_BACKEND_URL || 'http://localhost:9000'
-  const token = process.env.MEDUSA_ADMIN_TOKEN
-
-  if (!token) {
-    throw new Error('MEDUSA_ADMIN_TOKEN not configured')
-  }
+  const auth = await resolveAdminAuth(baseUrl)
 
   const headers = {
-    'Authorization': `Bearer ${token}`,
+    'Authorization': auth.header,
     'Content-Type': 'application/json',
   }
 
