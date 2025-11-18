@@ -1,0 +1,1 @@
+function o(e,n){const a={};return n.forEach(t=>{t in e&&(a[t]=e[t])}),a}function r(e){return/^([a-zA-Z]+)(([A-Z]([a-z]+))+)$/.test(e)?e:e.toLowerCase().replace(/[^a-zA-Z0-9]+(.)/g,(n,a)=>a.toUpperCase())}export{o as p,r as t};
