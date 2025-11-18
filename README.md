@@ -316,9 +316,6 @@ pnpm run lint
 - **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** - Zustand store design
 - **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** - Checkout implementation
 - **[API_STUBS.md](docs/API_STUBS.md)** - API design patterns
-- **[RFD-004.md](docs/RFD-004.md)** - Infrastructure automation (resolved)
-- **[RFD-005.md](docs/RFD-005.md)** - JWT authentication (implemented)
-- **[RFD-006.md](docs/RFD-006.md)** - Deployment drift (resolved via Ansible)
 
 ### Archived Guides
 
@@ -326,6 +323,9 @@ pnpm run lint
 - **[archived/IMPLEMENTATION_GUIDE.md](docs/archived/)** - Deprecated manual runbooks
 - **[archived/DEVELOPMENT_SCORECARD.md](docs/archived/)** - Deprecated progress tracker
 - **[archived/INFISICAL_SETUP.md](docs/archived/)** - Deprecated (Infisical now active)
+- **[archived/RFD-004.md](docs/archived/)** - Infrastructure automation (resolved, archived)
+- **[archived/RFD-005.md](docs/archived/)** - JWT authentication (implemented, archived)
+- **[archived/RFD-006.md](docs/archived/)** - Deployment drift (resolved via Ansible, archived)
 
 ## Roadmap
 
