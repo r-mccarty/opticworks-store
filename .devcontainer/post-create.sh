@@ -71,11 +71,11 @@ else
 fi
 
 if command -v infisical >/dev/null 2>&1; then
-    if [ -n "${INFISICAL_SERVICE_TOKEN:-}" ] || [ -n "${INFISICAL_TOKEN:-}" ]; then
+    if [ -n "${INFISICAL_SERVICE_TOKEN:-}" ]; then
         echo "Pulling secrets from Infisical..."
         bash scripts/pull-infisical-secrets.sh
     else
-        echo "WARNING: INFISICAL_SERVICE_TOKEN (or INFISICAL_TOKEN) environment variable not set. Skipping Infisical secret sync."
+        echo "WARNING: INFISICAL_SERVICE_TOKEN environment variable not set. Skipping Infisical secret sync."
     fi
 fi
 

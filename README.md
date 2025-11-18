@@ -35,8 +35,8 @@ cd opticworks-store
 pnpm install
 
 # 3. Pull secrets from Infisical
-# Codespaces: INFISICAL_TOKEN is auto-configured
-# Local: export INFISICAL_TOKEN=<your-token>
+# Codespaces: INFISICAL_SERVICE_TOKEN is auto-configured
+# Local: export INFISICAL_SERVICE_TOKEN=<your-token>
 pnpm run secrets:pull
 
 # 4. Start development server
@@ -140,7 +140,7 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 ### Codespaces Setup (Automatic)
 
-1. Add `INFISICAL_TOKEN` to GitHub Codespaces repository secrets
+1. Add `INFISICAL_SERVICE_TOKEN` to GitHub Codespaces repository secrets
 2. Devcontainer post-create script auto-syncs `.env.local` on startup
 3. Ready to develop immediately
 
@@ -148,7 +148,7 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 ```bash
 # 1. Get Infisical service token from team
-export INFISICAL_TOKEN=st.xxxxx
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
 
 # 2. Pull secrets (writes .env.local)
 pnpm run secrets:pull
@@ -303,7 +303,7 @@ pnpm run lint
 
 **Local:**
 - Install Node.js 18+, pnpm, Infisical CLI
-- Export `INFISICAL_TOKEN` before `pnpm run secrets:pull`
+- Export `INFISICAL_SERVICE_TOKEN` before `pnpm run secrets:pull`
 - See `docs/CONTRIBUTORS.md` for SSH setup
 
 ## Documentation

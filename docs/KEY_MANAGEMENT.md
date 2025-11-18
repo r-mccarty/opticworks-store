@@ -147,14 +147,14 @@ rm /tmp/medusa-secrets.env
 3. Access via Infisical web UI or CLI
 
 **GitHub Codespaces (Automatic):**
-1. `INFISICAL_TOKEN` set as repository secret
+1. `INFISICAL_SERVICE_TOKEN` set as repository secret
 2. Devcontainer post-create script runs
 3. `.env.local` automatically synced
 
 **Local Development:**
 ```bash
 # 1. Get service token from team
-export INFISICAL_TOKEN=st.xxxxx
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
 
 # 2. Pull secrets
 pnpm run secrets:pull
@@ -313,7 +313,7 @@ When adding a new environment variable:
 
 2. **Recovery:**
    - Request new Infisical invitation
-   - Regenerate `INFISICAL_TOKEN` for Codespaces
+   - Regenerate `INFISICAL_SERVICE_TOKEN` for Codespaces
    - Update GitHub secrets
 
 3. **Prevention:**

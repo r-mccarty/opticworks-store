@@ -40,7 +40,7 @@ ssh hetzner-node "pm2 status"
 ```
 
 **Infisical Access:**
-- [ ] You have `INFISICAL_TOKEN` access
+- [ ] You have `INFISICAL_SERVICE_TOKEN` access
 - [ ] Can run `pnpm run secrets:pull` successfully
 - [ ] `.env.local` contains `NEXT_PUBLIC_MEDUSA_BASE_URL`
 

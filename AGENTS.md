@@ -174,7 +174,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
       1. Create Infisical account and project
       2. Add all secrets for dev/staging/prod environments
       3. Create service token for Codespaces
-      4. Add `INFISICAL_TOKEN` to GitHub Codespaces secrets
+      4. Add `INFISICAL_SERVICE_TOKEN` to GitHub Codespaces secrets
       5. Codespaces auto-sync `.env.local` on creation
     - **Blockers Without Infisical**:
       - Phase 2 storefront testing (need ~7 critical env vars minimum)
