@@ -1,0 +1,72 @@
+---
+# OpticWorks Medusa Backend - Code Deployment Only
+# Use this for deploying code updates without reprovisioning infrastructure
+
+- name: Deploy Medusa Application Updates
+  hosts: medusa_backend
+  gather_facts: yes
+  vars_files:
+    - ../group_vars/all.yml
+
+  tasks:
+    - name: Pull latest code from Git
+      ansible.builtin.git:
+        repo: "{{ repo_url }}"
+        dest: "{{ app_root }}"
+        version: "{{ repo_branch }}"
+        force: yes
+      become: yes
+      become_user: "{{ app_user }}"
+
+    - name: Install/update pnpm dependencies
+      ansible.builtin.command:
+        cmd: pnpm install
+        chdir: "{{ app_root }}"
+      become: yes
+      become_user: "{{ app_user }}"
+      changed_when: false
+
+    - name: Rebuild Medusa admin dashboard
+      ansible.builtin.command:
+        cmd: pnpm run build
+        chdir: "{{ medusa_service_dir }}"
+      become: yes
+      become_user: "{{ app_user }}"
+      register: build_output
+
+    - name: Restart Medusa with PM2
+      ansible.builtin.command:
+        cmd: pm2 restart medusa-prod
+      become: yes
+      become_user: "{{ app_user }}"
+      changed_when: false
+
+    - name: Wait for Medusa to restart
+      ansible.builtin.wait_for:
+        host: localhost
+        port: "{{ medusa_port }}"
+        delay: 3
+        timeout: 30
+        state: started
+
+    - name: Verify Medusa health
+      ansible.builtin.uri:
+        url: "http://localhost:{{ medusa_port }}/health"
+        method: GET
+        status_code: 200
+      retries: 3
+      delay: 2
+      until: health_check.status == 200
+      register: health_check
+
+    - name: Display deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "✅ Medusa application deployed successfully!"
+          - ""
+          - "Git commit: {{ ansible_local.git.commit | default('latest') }}"
+          - "Service status: {{ health_check.status }}"
+          - ""
+          - "Access URLs:"
+          - "  - Health: http://localhost:{{ medusa_port }}/health"
+          - "  - Admin:  {{ medusa_backend_url }}{{ medusa_admin_path }}"

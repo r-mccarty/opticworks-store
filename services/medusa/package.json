@@ -7,7 +7,7 @@
     "dev:pm2": "pm2 start ecosystem.config.js --only medusa-dev",
     "build": "medusa build",
     "start": "medusa start",
-    "start:pm2": "pm2 start ecosystem.config.js --only medusa-prod",
+    "start:pm2": "PM2_TARGET=production pm2 start ecosystem.config.js --only medusa-prod",
     "stop:pm2": "pm2 stop ecosystem.config.js",
     "logs:pm2": "pm2 logs medusa-dev",
     "migrate": "medusa db:migrate",

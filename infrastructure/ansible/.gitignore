@@ -1,0 +1,13 @@
+# Ansible
+*.retry
+.vault_pass
+.vault_password
+
+# Secrets (use Ansible Vault or Infisical)
+group_vars/secrets.yml
+
+# Ansible facts cache
+/tmp/ansible_facts/
+
+# Logs
+*.log

@@ -32,7 +32,9 @@ pnpm run build
 pnpm run setup:keys
 
 # 8. Launch Medusa dev server (with PM2 for stability)
-pnpm run dev:pm2
+pnpm run dev:pm2  # Local/watch mode only – never use on Hetzner
+# Production nodes must run:
+# pnpm run start:pm2
 
 # 9. Import product catalog
 pnpm run catalog:import
@@ -47,12 +49,12 @@ The scripts rely on the `medusa` CLI that ships with `@medusajs/medusa`. When yo
 
 ### Core Development
 - **`pnpm dev`** — Start Medusa in development mode (may crash with esbuild errors)
-- **`pnpm dev:pm2`** — Start Medusa with PM2 supervisor (auto-restarts on crash) ⭐ Recommended
+- **`pnpm dev:pm2`** — Start Medusa with PM2 supervisor (auto-restarts on crash) ⭐ Recommended for local development only
 - **`pnpm stop:pm2`** — Stop PM2-managed Medusa instance
 - **`pnpm logs:pm2`** — View PM2 logs in real-time
 - **`pnpm build`** — Build admin dashboard (required before production start)
 - **`pnpm start`** — Start Medusa in production mode (runs validation checks first)
-- **`pnpm start:pm2`** — Start production Medusa with PM2 supervisor
+- **`pnpm start:pm2`** — Start production Medusa with PM2 supervisor (`PM2_TARGET=production` so the dev watcher never registers)
 - **`pnpm migrate`** — Run database migrations
 
 ### Infrastructure Setup
@@ -159,6 +161,12 @@ ssh hetzner-node 'bash -s' < scripts/hetzner-provision.sh
 - Credentials stored in Infisical and synced to `/config/medusa.env` during Phase 3 hardening
 - Stripe secret/publishable keys live in this service; storefront only needs publishable key via Medusa responses
 - PM2 recommended for production deployment (use `pnpm run start:pm2`)
+
+### PM2 Guardrails (CPU Spike Prevention)
+
+- `pnpm run start:pm2` now exports `PM2_TARGET=production`, so PM2 only registers the `medusa-prod` process on Hetzner.
+- Never run `pnpm run dev:pm2` on the production node — the esbuild watcher will pin CPU cores at 200% and PM2 will keep restarting it.
+- If `medusa-dev` was ever started on Hetzner, clean it up with `pm2 delete medusa-dev && pm2 save` after switching back to `medusa-prod`.
 
 ## Verification
 

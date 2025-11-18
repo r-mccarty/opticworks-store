@@ -1,0 +1,117 @@
+---
+# Medusa Application Deployment
+
+- name: Install Git
+  become: yes
+  ansible.builtin.apt:
+    name: git
+    state: present
+
+- name: Ensure app root directory exists
+  become: yes
+  ansible.builtin.file:
+    path: "{{ app_root }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Clone or update repository
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_root }}"
+    version: "{{ repo_branch }}"
+    force: yes
+  become: yes
+  become_user: "{{ app_user }}"
+
+- name: Install pnpm dependencies (root)
+  ansible.builtin.command:
+    cmd: pnpm install
+    chdir: "{{ app_root }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  changed_when: false
+
+- name: Generate Medusa secrets
+  ansible.builtin.command:
+    cmd: pnpm run generate:secrets
+    chdir: "{{ medusa_service_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  register: secrets_output
+  changed_when: false
+
+- name: Create Medusa .env file
+  ansible.builtin.template:
+    src: medusa.env.j2
+    dest: "{{ medusa_service_dir }}/.env"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+  become: yes
+
+- name: Build Medusa admin dashboard
+  ansible.builtin.command:
+    cmd: pnpm run build
+    chdir: "{{ medusa_service_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  register: build_output
+  changed_when: "'Build completed successfully' in build_output.stdout"
+
+- name: Install PM2 globally
+  become: yes
+  ansible.builtin.npm:
+    name: pm2
+    global: yes
+    state: present
+
+- name: Stop any existing Medusa PM2 processes
+  ansible.builtin.command:
+    cmd: pm2 delete all
+  become: yes
+  become_user: "{{ app_user }}"
+  failed_when: false
+  changed_when: false
+
+- name: Start Medusa with PM2
+  ansible.builtin.command:
+    cmd: pnpm run start:pm2
+    chdir: "{{ medusa_service_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  register: pm2_start
+  changed_when: "'launched' in pm2_start.stdout"
+
+- name: Save PM2 process list
+  ansible.builtin.command:
+    cmd: pm2 save
+  become: yes
+  become_user: "{{ app_user }}"
+  changed_when: false
+
+- name: Setup PM2 startup script
+  ansible.builtin.command:
+    cmd: pm2 startup systemd -u {{ app_user }} --hp /home/{{ app_user }}
+  become: yes
+  register: pm2_startup
+  changed_when: "'successfully' in pm2_startup.stdout"
+
+- name: Wait for Medusa to start
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ medusa_port }}"
+    delay: 5
+    timeout: 60
+    state: started
+
+- name: Verify Medusa health endpoint
+  ansible.builtin.uri:
+    url: "http://localhost:{{ medusa_port }}/health"
+    method: GET
+    status_code: 200
+  register: health_check
+  retries: 5
+  delay: 3
+  until: health_check.status == 200

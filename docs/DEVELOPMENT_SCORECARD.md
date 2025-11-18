@@ -1,42 +1,61 @@
 # Development Scorecard
 
-**Last updated:** 2025-11-17
+**Last updated:** 2025-11-18
 **Maintainers:** Platform Engineering
 
 ## Current Snapshot
 
 | Phase | Scope | Status | Notes |
 | --- | --- | --- | --- |
-| Phase 1 – Bootstrap & Validation | Hetzner Medusa + Cloudflare Tunnel + single-product checkout (Milestones B1–B3) | ✅ Complete | **Deployed 2025-11-17**: Medusa v2 running on Hetzner (4GB RAM), Cloudflare Tunnel active at `api.optic.works`, PostgreSQL 17 + Redis provisioned, admin user created, publishable API key generated. |
-| Phase 2 – Catalog & Storefront Integration | Full catalog import, storefront integration via tunnel (Milestones B4–B6) | 🟡 Ready to Start | All 17 automation scripts ready (RFD-004 resolved). Backend operational, ready for catalog import and storefront integration. |
+| Phase 1 – Bootstrap & Validation | Hetzner Medusa + Cloudflare Tunnel + single-product checkout (Milestones B1–B3) | ⚠️ Partial | **Deployed 2025-11-17**: Medusa v2 running on Hetzner (4GB RAM), Cloudflare Tunnel active at `api.optic.works`, PostgreSQL 17 + Redis provisioned, admin user created. **BLOCKER**: Admin API authentication broken (RFD-005, RFD-006), no publishable key exists. |
+| Phase 2 – Catalog & Storefront Integration | Full catalog import, storefront integration via tunnel (Milestones B4–B6) | 🔴 Blocked | **BLOCKED BY**: Admin authentication failure (RFD-006). Cannot create publishable keys or import catalog until auth is resolved. |
 | Phase 3 – Knowledge Systems & Hardening | Hugo docs, Discourse forum, CI/CD (Milestones B7–B9) | ⚪ Not Started | Scaffolds ready in `platform/docs-site/` and `platform/forum/`. |
 | Phase 4 – Storefront Deployment & Webhooks | Cloudflare Pages, webhook buffer Workers (Milestones P1–P3) | ⚪ Not Started | Documented and ready. Tunnel already complete in Phase 1. |
 
 ## Highlights (Since Previous Update)
 
-1. **Phase 1 Deployment Complete (2025-11-17)** 🎉
+1. **Phase 1 Deployment Partial (2025-11-17)** ⚠️
    - Medusa v2 backend fully deployed on Hetzner (3 vCPUs, 4GB RAM)
    - PostgreSQL 17 + Redis provisioned and operational
    - Cloudflare Tunnel active: `https://api.optic.works` (health endpoint verified)
    - Admin dashboard accessible: `https://api.optic.works/app`
-   - Admin user: `admin@optic.works` (password: `OpticWorks2025!`)
-   - Publishable API key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
+   - Admin user: `admin@optic.works` (credentials in Infisical)
+   - ~~Publishable API key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`~~ **CORRECTION (2025-11-18)**: This claim is FALSE. Database query confirms ZERO publishable keys exist. See RFD-006 addendum.
+   - Secret API key: `sk_825***e36` (created 2025-11-18, type='secret', NOT publishable)
    - PM2 process manager supervising Medusa service
    - Build completed successfully in 25 seconds (server resize resolved previous overwhelm issues)
+   - **BLOCKER DISCOVERED**: Admin API authentication completely broken (RFD-005, RFD-006)
 
-2. **Infrastructure Automation (RFD-004 Resolution)**
-   - All 17 automation scripts operational and validated
-   - Credential generation, provisioning, key setup scripts working
+2. **Ground Truth Investigation (2025-11-18)** 🔍
+   - **RFD-006 Investigation Complete**: Verified actual state vs. documentation claims
+   - **Database Inspection**: PostgreSQL queries confirm ZERO publishable API keys exist
+   - **Store API Testing**: Claimed key `pk_opticworks_2025_live_...` is INVALID (does not exist in database)
+   - **Admin API Testing**: All admin endpoints return 401 Unauthorized
+   - **Root Cause Confirmed**: JWT tokens have empty `actor_id` field (RFD-005)
+   - **Secret API Key Status**: Exists in database but authentication failing
+   - **Deployment Drift**: Hetzner is 2 commits behind latest code (commit `11593f1` vs `7762c35`)
+   - **Impact**: Phase 2 completely blocked - cannot create publishable keys or import catalog
+
+3. **Hetzner CPU Incident + Guardrails (2025-11-20)** 🚨
+   - `medusa-dev` (watch mode) was accidentally restarted on the production node while debugging RFD-006.
+   - Dev server pegged the 3 vCPU host at ~200% usage and PM2's fast restart loop made the box unresponsive until a hard reboot.
+   - Added a guard: `pnpm run start:pm2` now exports `PM2_TARGET=production` so PM2 never registers the dev watcher on Hetzner.
+   - Runbook updated (`docs/IMPLEMENTATION_GUIDE.md`, `services/medusa/README.md`, RFD-006) with cleanup steps: `pm2 delete medusa-dev && pm2 save`.
+   - Logs confirmed only `medusa-prod` should be running in PM2 on the server going forward.
+
+4. **Infrastructure Automation (RFD-004 Resolution)**
+   - All 17 automation scripts created and ready
+   - ~~Credential generation, provisioning, key setup scripts working~~ **CORRECTION**: Scripts exist but blocked by auth failure
    - Server resize from 2GB → 4GB RAM resolved build timeout issues
    - Cloudflare Tunnel DNS configured and validated at production domain
 
-3. **Stripe Checkout Refactor**
+5. **Stripe Checkout Refactor**
    - Added typed Custom Checkout surface (`src/types/stripe-checkout.ts`).
    - `CheckoutWrapper` now calls `stripe.initCheckout` with Medusa-provided client secrets.
    - `CheckoutForm` mounts address/payment elements from the checkout instance and uses `checkout.confirm`.
    - Zustand checkout store now consumes shared shipping types.
 
-4. **Medusa Workspace Enablement**
+6. **Medusa Workspace Enablement**
    - Created `services/medusa/medusa-config.ts` with DB/Redis defaults, Stripe provider config, and optional R2 upload support.
    - Updated `.env.example`, package dependencies (`ts-node`, `tsx`), and README to document local workflow.
    - Verified `pnpm --filter @opticworks/medusa-service dev` loads the config.
@@ -54,7 +73,7 @@
 - [x] Setup publishable API key (manual DB insertion for v2 compatibility)
 - [x] **Install Cloudflare Tunnel** (cloudflared daemon, authenticate, configure for `api.optic.works`)
 - [x] **Configure DNS CNAME**: `api.optic.works` → tunnel
-- [x] Start Medusa with PM2: `pnpm run dev:pm2`
+- [x] Start Medusa with PM2: `pnpm run start:pm2` (production mode; medusa-dev disabled)
 - [x] Verify tunnel connectivity: `curl https://api.optic.works/health`
 - [ ] Import first product (Bed Presence Sensor) via Admin UI at `https://api.optic.works/app`
 - [ ] Complete E2E checkout test against tunnel endpoint

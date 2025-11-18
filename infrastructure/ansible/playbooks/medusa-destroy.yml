@@ -1,0 +1,93 @@
+---
+# OpticWorks Medusa Backend - Complete Teardown
+# WARNING: This playbook will destroy all Medusa data and services!
+
+- name: Destroy Medusa Backend Stack
+  hosts: medusa_backend
+  gather_facts: yes
+  vars_files:
+    - ../group_vars/all.yml
+
+  tasks:
+    - name: Confirm destruction
+      ansible.builtin.pause:
+        prompt: |
+          ⚠️  WARNING: This will DESTROY the entire Medusa backend!
+
+          This will:
+          - Stop and delete all PM2 processes
+          - Drop the PostgreSQL database
+          - Flush Redis
+          - Stop Cloudflare Tunnel
+          - Delete application files
+
+          Type 'yes' to confirm destruction
+      register: confirm_destroy
+
+    - name: Abort if not confirmed
+      ansible.builtin.fail:
+        msg: "Destruction aborted by user"
+      when: confirm_destroy.user_input != 'yes'
+
+    - name: Stop PM2 processes
+      ansible.builtin.command:
+        cmd: pm2 delete all
+      become: yes
+      become_user: "{{ app_user }}"
+      failed_when: false
+      changed_when: false
+
+    - name: Stop Cloudflare Tunnel
+      become: yes
+      ansible.builtin.systemd:
+        name: cloudflared
+        state: stopped
+        enabled: no
+      failed_when: false
+
+    - name: Drop PostgreSQL database
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_db:
+        name: "{{ postgres_db_name }}"
+        state: absent
+
+    - name: Drop PostgreSQL user
+      become: yes
+      become_user: postgres
+      community.postgresql.postgresql_user:
+        name: "{{ postgres_db_user }}"
+        state: absent
+
+    - name: Flush Redis
+      become: yes
+      ansible.builtin.command:
+        cmd: redis-cli FLUSHALL
+      changed_when: false
+
+    - name: Delete application directory
+      become: yes
+      ansible.builtin.file:
+        path: "{{ app_root }}"
+        state: absent
+
+    - name: Display destruction summary
+      ansible.builtin.debug:
+        msg:
+          - "🗑️  Medusa backend destroyed successfully"
+          - ""
+          - "Destroyed components:"
+          - "  - PM2 processes"
+          - "  - PostgreSQL database: {{ postgres_db_name }}"
+          - "  - PostgreSQL user: {{ postgres_db_user }}"
+          - "  - Redis data"
+          - "  - Application files: {{ app_root }}"
+          - "  - Cloudflare Tunnel service"
+          - ""
+          - "Preserved components:"
+          - "  - PostgreSQL server"
+          - "  - Redis server"
+          - "  - Node.js/pnpm"
+          - "  - System packages"
+          - ""
+          - "To provision again: ansible-playbook playbooks/medusa-provision.yml"

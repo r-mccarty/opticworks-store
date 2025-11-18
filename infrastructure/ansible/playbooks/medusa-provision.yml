@@ -1,0 +1,93 @@
+---
+# OpticWorks Medusa Backend - Full Stack Provisioning
+# This playbook provisions a complete Medusa backend environment from scratch
+
+- name: Provision Medusa Backend Stack
+  hosts: medusa_backend
+  gather_facts: yes
+  vars_files:
+    - ../group_vars/all.yml
+    - ../group_vars/secrets.yml  # Encrypted with Ansible Vault
+
+  pre_tasks:
+    - name: Update apt cache
+      become: yes
+      ansible.builtin.apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install system utilities
+      become: yes
+      ansible.builtin.apt:
+        name:
+          - build-essential
+          - curl
+          - git
+          - vim
+          - htop
+          - net-tools
+        state: present
+
+    - name: Display provisioning information
+      ansible.builtin.debug:
+        msg:
+          - "Provisioning Medusa backend for {{ app_name }}"
+          - "Node.js version: {{ nodejs_version }}"
+          - "PostgreSQL version: {{ postgresql_version }}"
+          - "Target: {{ ansible_host }}"
+
+  roles:
+    - role: postgresql
+      tags: ['postgresql', 'database']
+
+    - role: redis
+      tags: ['redis', 'cache']
+
+    - role: nodejs
+      tags: ['nodejs', 'runtime']
+
+    - role: medusa
+      tags: ['medusa', 'application']
+
+    - role: cloudflared
+      tags: ['cloudflared', 'tunnel']
+      when: cloudflare_tunnel_id is defined
+
+  post_tasks:
+    - name: Display deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "✅ Medusa backend provisioned successfully!"
+          - ""
+          - "Service URLs:"
+          - "  - Local:  http://localhost:{{ medusa_port }}"
+          - "  - Public: {{ medusa_backend_url }}"
+          - "  - Admin:  {{ medusa_backend_url }}{{ medusa_admin_path }}"
+          - ""
+          - "Next steps:"
+          - "  1. Create admin user (if not exists)"
+          - "  2. Create publishable API key"
+          - "  3. Import product catalog"
+          - "  4. Update Infisical with credentials"
+
+    - name: Create deployment log
+      ansible.builtin.copy:
+        dest: "{{ app_root }}/DEPLOYMENT.log"
+        content: |
+          Deployment Date: {{ ansible_date_time.iso8601 }}
+          Deployed By: Ansible
+          Playbook: medusa-provision.yml
+
+          Configuration:
+          - Node.js: {{ nodejs_version }}
+          - PostgreSQL: {{ postgresql_version }}
+          - Medusa Port: {{ medusa_port }}
+          - Backend URL: {{ medusa_backend_url }}
+
+          Services:
+          - PostgreSQL: {{ postgres_db_name }}
+          - Redis: localhost:{{ redis_port }}
+          - Medusa: PM2 ({{ pm2_app_name }})
+          - Cloudflare Tunnel: {{ tunnel_hostname }}
+        mode: '0644'
+      become: yes

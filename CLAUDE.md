@@ -8,20 +8,23 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 - **Stack**: Next.js 15.5 (App Router, React 19), Tailwind 4, Shadcn Tier‑1 controls + bespoke Tier‑2 UI (`cn`/`cx` helpers), Zustand stores, Stripe + Resend APIs, Framer Motion + Three.js scenes.
 - **Domain**: `optic.works` (production), `api.optic.works` (Medusa backend via Cloudflare Tunnel)
 - **Deployment Model**:
+  - **Infrastructure**: Ansible playbooks (full IaC for reproducible deployments) - **IMPLEMENTED 2025-11-18**
   - Storefront: Cloudflare Pages (`optic.works`) - Phase 4
-  - Backend: Hetzner node (Medusa v2 + PostgreSQL + Redis) exposed via Cloudflare Tunnel - **LIVE**
-  - Admin Auth: Cloudflare Access Zero Trust (email-based, upgradeable to SSO) - **IN PROGRESS**
-  - Secrets: Infisical centralized secret management - **DOCUMENTED, READY TO IMPLEMENT**
+  - Backend: Hetzner node (Medusa v2 + PostgreSQL + Redis) provisioned via Ansible
+  - Tunnel: Cloudflare Tunnel (`api.optic.works`) managed by Ansible
+  - Admin Auth: Cloudflare Access Zero Trust (email-based, upgradeable to SSO) - **GUIDE READY**
+  - Secrets: Local secrets.yml (Ansible Vault), migrating to Infisical - **IN PROGRESS**
   - Webhooks: Cloudflare Workers with Durable Objects buffer - Phase 4
-- **Production Infrastructure (Live)**:
-  - Backend URL: `https://api.optic.works` ✅
-  - Admin Dashboard: `https://api.optic.works/app` ✅
-  - Health Endpoint: `https://api.optic.works/health` ✅
-  - Store API: `https://api.optic.works/store/*` ✅
+- **Production Infrastructure** (Provisioned via Ansible):
+  - Backend URL: `https://api.optic.works` (configured, pending re-provisioning)
+  - Admin Dashboard: `https://api.optic.works/app` (pending re-provisioning)
+  - Health Endpoint: `https://api.optic.works/health` (pending re-provisioning)
+  - Store API: `https://api.optic.works/store/*` (pending re-provisioning)
   - Server: Hetzner Cloud (3 vCPUs, 4GB RAM)
-  - Services: PostgreSQL 17, Redis, Medusa v2, PM2, Cloudflare Tunnel
-  - Admin Access: Invitation-based (admin@optic.works)
-  - Publishable Key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
+  - Services: PostgreSQL 17, Redis, Medusa v2, PM2, Cloudflare Tunnel (all Ansible-managed)
+  - Deployment Method: `ansible-playbook playbooks/medusa-provision.yml`
+  - Admin Access: Configured via Ansible secrets.yml
+  - Publishable Key: Created post-provisioning via admin UI
 - **Migration Status**:
   - ✅ Phase 1: Medusa backend deployed on Hetzner with Cloudflare Tunnel **[COMPLETE 2025-11-17]**
   - 🔧 Security Hardening: Cloudflare Access + Infisical setup **[IN PROGRESS]**
@@ -57,6 +60,11 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 │   ├── marketing/, third-party/  # Current marketing+integration briefs
 │   └── api/                 # Medusa integration specs
 ├── services/medusa/         # Medusa v2 workspace (17 automation scripts, PM2 supervisor)
+├── infrastructure/ansible/  # Ansible IaC for Medusa backend provisioning **[NEW 2025-11-18]**
+│   ├── playbooks/           # provision, deploy, destroy playbooks
+│   ├── roles/               # postgresql, redis, nodejs, medusa, cloudflared
+│   ├── inventory/           # production.ini (Hetzner node)
+│   └── group_vars/          # configuration + secrets
 ├── platform/docs-site/      # Hugo + Geekdoc workspace (Phase 3 docs launch)
 ├── platform/forum/          # Discourse docker + theme scaffold (Phase 3 community)
 ├── workers/                 # Cloudflare Workers (Phase 4: webhook buffer)
@@ -72,6 +80,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 - **Active**:
   - `src/*` — Storefront application (Next.js 15.5)
   - `services/medusa/` — Backend workspace with 17 automation scripts
+  - `infrastructure/ansible/` — Infrastructure-as-Code for backend provisioning **[NEW]**
   - `docs/` — Canonical documentation (MIGRATION_PLAN v4.0, IMPLEMENTATION_GUIDE, CONTRIBUTORS)
   - `.env.template` + `services/medusa/.env.example` — Environment configuration
   - `platform/` — Hugo docs + Discourse forum scaffolds
@@ -81,17 +90,14 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
   - 🔧 Infisical: Secret management setup (guide complete, 30-45 min implementation)
   - 🟡 Phase 2: Catalog import automation ready, storefront integration pending Infisical
 - **Completed**:
-  - ✅ Phase 1: Medusa backend on Hetzner with full automation **[2025-11-17]**
-  - ✅ Cloudflare Tunnel: Production deployment at `api.optic.works` **[2025-11-17]**
-  - ✅ Admin Dashboard: Live at `api.optic.works/app` with Vite host fix **[2025-11-17]**
+  - ✅ **Ansible Infrastructure-as-Code** - Full stack automation **[2025-11-18]**
+  - ✅ RFD-006: Diagnosed deployment drift issues, built Ansible solution **[2025-11-18]**
   - ✅ RFD-004: All infrastructure gaps resolved (17 automation scripts)
   - ✅ Cart normalization + test coverage
-  - ✅ PostgreSQL 17 + Redis provisioned and operational
-  - ✅ PM2 process management for Medusa service
-  - ✅ Admin user setup via invitation workflow
-  - ✅ Publishable API key generated and linked to default sales channel
   - ✅ Documentation: Cloudflare Access setup guide (docs/CLOUDFLARE_ACCESS_SETUP.md)
   - ✅ Documentation: Infisical secret management guide (docs/INFISICAL_SETUP.md)
+  - ✅ Ansible roles: PostgreSQL 17, Redis, Node.js 22, Medusa v2, Cloudflare Tunnel
+  - ✅ Deployment playbooks: provision, deploy (updates only), destroy (clean rebuild)
 - **Deprecated/Deleted**:
   - `/config/` folder (deleted — CI checklist moved to `docs/CI.md`)
   - `docs/archived/*` — Legacy migration plans (pre-v3.0)
@@ -210,34 +216,49 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 - `docs/API_ARCHITECTURE.md` – Service-layer utilities, contracts, and error handling
 
 ### Operations & Deployment
+- **`infrastructure/ansible/README.md`** – **Ansible Infrastructure-as-Code guide** (complete deployment automation) **[NEW 2025-11-18]**
+- `docs/RFD-006.md` – Deployment drift diagnosis + Ansible migration rationale
 - `docs/RFD-004.md` – Infrastructure automation requirements (resolved with 17 scripts)
 - `docs/CI.md` – CI/CD checklist (build, lint, test commands)
-- `services/medusa/README.md` – Medusa workspace setup, automation scripts, RFD-004 resolution status
+- `services/medusa/README.md` – Medusa workspace setup, automation scripts
 
-## Phase 2+ Continuation Context
+## Backend Deployment (Ansible IaC)
 
-### Prerequisites Complete (Phase 1)
-- ✅ Medusa backend live at `https://api.optic.works`
-- ✅ Admin dashboard accessible at `https://api.optic.works/app`
-- ✅ Store API endpoint: `https://api.optic.works/store/*`
-- ✅ Publishable API key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
-- ✅ PostgreSQL 17 + Redis operational
-- ✅ Cloudflare Tunnel + PM2 process management
+### Infrastructure Status (2025-11-18)
+- ✅ **Ansible playbooks created** - Full stack automation ready
+- ⏳ **Provisioning pending** - Clean rebuild scheduled to resolve RFD-006 drift issues
+- ✅ Roles: PostgreSQL 17, Redis, Node.js 22, Medusa v2, Cloudflare Tunnel, PM2
+- ✅ Secrets: Generated in `infrastructure/ansible/group_vars/secrets.yml`
+- ✅ Inventory: Hetzner node configured
+- 📋 After provisioning: Backend live at `https://api.optic.works`
 
-### Ongoing Security Hardening
-**Status**: Guides complete, implementation pending
+### Deployment Workflow (Ansible)
 
-1. **Cloudflare Access (10-15 min)**
-   - Protects admin dashboard with email authentication
-   - Follow: `docs/CLOUDFLARE_ACCESS_SETUP.md`
-   - Non-blocking for Phase 2 catalog work
-   - Recommended before team expansion
+**Prerequisites**:
+- Ansible installed (`pip install ansible` or `apt install ansible`)
+- SSH access to Hetzner node (`ssh hetzner-node`)
+- Secrets configured in `infrastructure/ansible/group_vars/secrets.yml`
 
-2. **Infisical Secret Management (30-45 min)**
-   - **Blocking for**: Storefront integration testing, Cloudflare Pages deployment, team collaboration
-   - **Workaround available**: Manual `.env.local` with 7 critical variables (see workflow #10)
-   - Follow: `docs/INFISICAL_SETUP.md`
-   - Recommended: Set up within 24-48 hours
+**Quick Start**:
+```bash
+cd infrastructure/ansible
+
+# Test connectivity
+ansible all -m ping
+
+# Full provisioning (clean install)
+ansible-playbook playbooks/medusa-provision.yml
+
+# Code updates only (no infrastructure changes)
+ansible-playbook playbooks/medusa-deploy.yml
+
+# Complete teardown (for rebuilds)
+ansible-playbook playbooks/medusa-destroy.yml
+```
+
+**Time Estimate**: 8-12 minutes for full provisioning
+
+**See**: `infrastructure/ansible/README.md` for complete guide
 
 ### Phase 2: Catalog Import & Storefront Integration
 

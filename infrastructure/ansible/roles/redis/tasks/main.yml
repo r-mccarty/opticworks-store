@@ -1,0 +1,42 @@
+---
+# Redis Installation and Configuration
+
+- name: Install Redis
+  become: yes
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+    update_cache: yes
+
+- name: Configure Redis to bind to localhost only
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^bind '
+    line: 'bind {{ redis_bind_address }}'
+    state: present
+  notify: restart redis
+
+- name: Configure Redis port
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^port '
+    line: 'port {{ redis_port }}'
+    state: present
+  notify: restart redis
+
+- name: Disable Redis password (local-only access)
+  become: yes
+  ansible.builtin.lineinfile:
+    path: /etc/redis/redis.conf
+    regexp: '^requirepass '
+    state: absent
+  notify: restart redis
+
+- name: Ensure Redis is running
+  become: yes
+  ansible.builtin.service:
+    name: redis-server
+    state: started
+    enabled: yes

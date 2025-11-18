@@ -1,0 +1,63 @@
+---
+# PostgreSQL 17 Installation and Configuration
+
+- name: Add PostgreSQL APT repository key
+  become: yes
+  ansible.builtin.apt_key:
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Add PostgreSQL APT repository
+  become: yes
+  ansible.builtin.apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    state: present
+    filename: pgdg
+
+- name: Update apt cache
+  become: yes
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install PostgreSQL {{ postgresql_version }}
+  become: yes
+  ansible.builtin.apt:
+    name:
+      - "postgresql-{{ postgresql_version }}"
+      - "postgresql-contrib-{{ postgresql_version }}"
+      - python3-psycopg2
+    state: present
+
+- name: Ensure PostgreSQL is running
+  become: yes
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: yes
+
+- name: Create PostgreSQL database
+  become: yes
+  become_user: postgres
+  community.postgresql.postgresql_db:
+    name: "{{ postgres_db_name }}"
+    state: present
+
+- name: Create PostgreSQL user
+  become: yes
+  become_user: postgres
+  community.postgresql.postgresql_user:
+    name: "{{ postgres_db_user }}"
+    password: "{{ postgres_db_password }}"
+    db: "{{ postgres_db_name }}"
+    priv: ALL
+    state: present
+
+- name: Grant all privileges to user
+  become: yes
+  become_user: postgres
+  community.postgresql.postgresql_privs:
+    database: "{{ postgres_db_name }}"
+    state: present
+    privs: ALL
+    type: database
+    role: "{{ postgres_db_user }}"

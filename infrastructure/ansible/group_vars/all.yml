@@ -1,0 +1,46 @@
+---
+# OpticWorks Medusa Backend Configuration
+# This file contains non-sensitive configuration variables
+# Sensitive values should be stored in Infisical or Ansible Vault
+
+# Application
+app_name: opticworks
+app_user: ryan
+app_group: ryan
+app_root: /opt/opticworks/medusa-backend
+medusa_service_dir: "{{ app_root }}/services/medusa"
+
+# Repository
+repo_url: https://github.com/r-mccarty/opticworks-store.git
+repo_branch: main
+
+# Node.js
+nodejs_version: "22"
+pnpm_version: "10.22.0"
+
+# PostgreSQL
+postgresql_version: "17"
+postgres_db_name: medusa_db
+postgres_db_user: medusa_user
+# postgres_db_password: Set via Infisical or Ansible Vault
+
+# Redis
+redis_port: 6379
+redis_bind_address: "127.0.0.1"
+redis_password: ""  # No password for local-only Redis
+
+# Medusa
+medusa_port: 9000
+medusa_admin_path: "/app"
+medusa_backend_url: "https://api.optic.works"
+
+# Cloudflare Tunnel
+cloudflare_tunnel_name: "opticworks-api"
+tunnel_hostname: "api.optic.works"
+tunnel_service: "http://localhost:{{ medusa_port }}"
+# cloudflare_tunnel_token: Set via Infisical or Ansible Vault
+
+# PM2
+pm2_app_name: medusa-prod
+pm2_instances: 1
+pm2_max_memory: 512M

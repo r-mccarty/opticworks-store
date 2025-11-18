@@ -1,0 +1,62 @@
+---
+# Cloudflare Tunnel Installation and Configuration
+
+- name: Download cloudflared
+  become: yes
+  ansible.builtin.get_url:
+    url: "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"
+    dest: /usr/local/bin/cloudflared
+    mode: '0755'
+
+- name: Create cloudflared config directory
+  become: yes
+  ansible.builtin.file:
+    path: /etc/cloudflared
+    state: directory
+    mode: '0755'
+
+- name: Create cloudflared configuration
+  become: yes
+  ansible.builtin.template:
+    src: config.yml.j2
+    dest: /etc/cloudflared/config.yml
+    mode: '0644'
+  notify: restart cloudflared
+
+- name: Create cloudflared credentials file
+  become: yes
+  ansible.builtin.copy:
+    content: "{{ cloudflare_tunnel_credentials }}"
+    dest: "/root/.cloudflared/{{ cloudflare_tunnel_id }}.json"
+    mode: '0600'
+  when: cloudflare_tunnel_credentials is defined
+  notify: restart cloudflared
+
+- name: Create cloudflared systemd service
+  become: yes
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/cloudflared.service
+    content: |
+      [Unit]
+      Description=cloudflared
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=root
+      ExecStart=/usr/local/bin/cloudflared --no-autoupdate --config /etc/cloudflared/config.yml tunnel run
+      Restart=on-failure
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+  notify: restart cloudflared
+
+- name: Enable and start cloudflared service
+  become: yes
+  ansible.builtin.systemd:
+    name: cloudflared
+    enabled: yes
+    state: started
+    daemon_reload: yes

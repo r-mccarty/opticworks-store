@@ -237,9 +237,10 @@ pnpm run validate:build
 #### Step 8: Start Medusa with PM2 (NEW - Recommended)
 ```bash
 # Start with PM2 supervisor (auto-restarts on crash)
+# Local dev only — runs esbuild watch mode
 pnpm run dev:pm2
 
-# Or for production mode
+# Hetzner / production — disables medusa-dev automatically
 pnpm run start:pm2
 
 # Monitor logs
@@ -251,6 +252,8 @@ pnpm run logs:pm2
 ```
 
 **Why PM2?** Addresses RFD-004 Issue #1 - dev server instability. PM2 automatically restarts Medusa when esbuild crashes, keeping the service available.
+
+> ⚠️ **Important:** `pnpm run dev:pm2` starts the hot-reload server and will peg the Hetzner CPU if left running. Always use `pnpm run start:pm2` on the production node; it exports `PM2_TARGET=production` so the dev process is not even registered with PM2.
 
 #### Step 9: Setup Publishable API Key (NEW - Automated)
 ```bash
