@@ -6,7 +6,7 @@ This repo contains the production web experience for OpticWorks’ mmWave bed an
 - **Presence-first storytelling**: Hero, Features, and product pages highlight how our intelligent sensing stack delivers room-level presence, respiration, and sleep-quality signals with Apple-grade industrial design.
 - **Hybrid commerce**: Persistent cart + Stripe Elements checkout to sell sensors, bridges, and calibration bundles.
 - **Support + Ops**: Warranty, "Oops Protection," lifecycle maintenance, and installation guides for sleep clinics, integrators, and DIY installers.
-- **Production Backend**: MedusaJS v2 backend at `api.optic.works` (Hetzner + Cloudflare Tunnel, Ansible-managed) **[Provisioning via IaC - 2025-11-18]**
+- **Production Backend**: MedusaJS v2 backend at `api.optic.works` (Hetzner + Cloudflare Tunnel, Ansible-managed) **[LIVE via IaC - 2025-11-18]**
 
 ## Prerequisites
 - [Node.js](https://nodejs.org/) 18+
@@ -204,7 +204,7 @@ This outputs PostgreSQL password, Redis password, JWT secret, cookie secret, and
 
 ## Production Deployment Status
 
-### Phase 1: Backend Infrastructure ✅ COMPLETE (2025-11-17)
+### Phase 1: Backend Infrastructure ✅ COMPLETE (2025-11-18)
 
 The MedusaJS v2 backend is **live in production** at `https://api.optic.works`:
 
@@ -214,11 +214,14 @@ The MedusaJS v2 backend is **live in production** at `https://api.optic.works`:
 - **Health Endpoint:** `https://api.optic.works/health` (returns "OK")
 - **Store API:** `https://api.optic.works/store/*` (requires publishable key)
 - **Server:** Hetzner Cloud (3 vCPUs, 4GB RAM)
-- **Services:** PostgreSQL 17, Redis, Medusa v2, PM2, Cloudflare Tunnel
+- **Services:** PostgreSQL 17, Redis, Medusa v2 (dev mode), PM2, Cloudflare Tunnel
+- **Deployment:** Ansible Infrastructure-as-Code (fully automated provisioning)
 
-**Credentials:**
-- Admin: `admin@optic.works` / `OpticWorks2025!`
-- Publishable Key: `pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d`
+**Deployment Notes:**
+- Running in development mode (`medusa-dev`) via PM2 due to admin bundler issue in production mode
+- All infrastructure provisioned via Ansible playbooks (`infrastructure/ansible/`)
+- Database credentials URL-encoded to handle special characters
+- Modern GPG key management (signed-by method) for APT repositories
 
 **Quick Verification:**
 ```bash

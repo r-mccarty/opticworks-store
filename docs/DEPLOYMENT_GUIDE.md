@@ -405,15 +405,17 @@ ssh hetzner-node "journalctl -xe"
 ## Roadmap
 
 ### Current State (2025-11-18)
-- ✅ Ansible Infrastructure-as-Code
-- ✅ Hetzner backend configured
-- ✅ Cloudflare Tunnel ready
-- ⏳ Provisioning pending (clean rebuild scheduled)
+- ✅ Ansible Infrastructure-as-Code **COMPLETE**
+- ✅ Hetzner backend provisioned **LIVE**
+- ✅ Cloudflare Tunnel operational **LIVE**
+- ✅ Backend serving at api.optic.works **VERIFIED**
+- ⚠️  Running in dev mode (medusa-dev) due to prod admin bundler issue
 
 ### Phase 2: Catalog & Storefront Integration (Weeks 1-2)
-- [ ] Execute Ansible provisioning
-- [ ] Import full product catalog
-- [ ] Create publishable API key
+- [x] Execute Ansible provisioning
+- [ ] Resolve Medusa production mode admin bundler issue (or continue with dev mode)
+- [ ] Import full product catalog via automation scripts
+- [ ] Create publishable API key via admin dashboard
 - [ ] Integrate storefront with Medusa API
 - [ ] E2E checkout testing
 - [ ] Sync all secrets to Infisical
