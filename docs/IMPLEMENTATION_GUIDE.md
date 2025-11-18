@@ -430,16 +430,51 @@ grep -A 50 "bed-presence-sensor" src/lib/products.ts
 - **Image**: (existing CDN URL or upload to Medusa)
 - **Metadata**: category, specifications, keyBenefits
 
-#### Step 2: Create Product via Admin UI (Manual Verification)
+#### Step 2: Admin Authentication Setup
+
+**Note**: Medusa v2 uses JWT-based authentication via the `/auth/admin/emailpass` endpoint. See `docs/RFD-005.md` for complete technical details.
+
+**Create Admin User** (first time only):
+```bash
+ssh hetzner-node
+cd /opt/opticworks/medusa-backend/services/medusa
+pnpm medusa user -e admin@optic.works -p '<secure-password>'
+```
+
+**Add credentials to Infisical**:
+1. Navigate to Infisical project → Development environment
+2. Add secrets:
+   - `MEDUSA_ADMIN_EMAIL=admin@optic.works`
+   - `MEDUSA_ADMIN_PASSWORD=<secure-password>`
+3. Pull to local: `pnpm run secrets:pull`
+
+**Verify Authentication**:
+```bash
+# Test JWT authentication endpoint
+curl -X POST https://api.optic.works/auth/admin/emailpass \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@optic.works","password":"<password>"}' \
+  | jq
+
+# Expected response: {"token":"eyJhbGci..."}
+```
+
+**Automation Scripts**:
+The following scripts now use JWT authentication automatically:
+- `pnpm run setup:keys` - Creates publishable API keys
+- `pnpm run catalog:import` - Imports products
+- `pnpm run catalog:verify` - Verifies catalog integrity
+
+All scripts read `MEDUSA_ADMIN_EMAIL` and `MEDUSA_ADMIN_PASSWORD` from environment.
+
+#### Step 3: Create Product via Admin UI (Manual Verification)
 ```bash
 # Navigate to Medusa Admin in browser
-# http://<hetzner-ip>:9000/app
+# https://api.optic.works/app
 
-# 1. Create admin user (first time only)
-#    - Email: admin@opticworks.io
-#    - Password: <secure-password>
+# 1. Login with admin@optic.works credentials
 
-# 2. Login and navigate to Products > Add Product
+# 2. Navigate to Products > Add Product
 
 # 3. Fill in product details:
 #    - Title: Bed Presence Sensor
@@ -460,7 +495,7 @@ grep -A 50 "bed-presence-sensor" src/lib/products.ts
 #    - compatibility: bed
 ```
 
-#### Step 3: Test Product API
+#### Step 4: Test Product API
 ```bash
 # List all products (via tunnel)
 curl https://api.optic.works/store/products
@@ -479,7 +514,7 @@ curl https://api.optic.works/store/products
 curl https://api.optic.works/store/products/<product-id>
 ```
 
-#### Step 4: Configure Stripe Payment Provider
+#### Step 5: Configure Stripe Payment Provider
 Edit `services/medusa/medusa-config.ts`:
 ```typescript
 // Ensure Stripe module is configured

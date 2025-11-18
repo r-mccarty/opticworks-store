@@ -4,9 +4,10 @@
  *
  * Creates and configures a publishable API key for the Medusa Store API.
  * Addresses RFD-004 Issue #4: Missing publishable key + sales channel wiring.
+ * Updated for RFD-005: JWT authentication via emailpass provider.
  *
  * This script:
- * 1. Authenticates to the Admin API using MEDUSA_ADMIN_TOKEN
+ * 1. Authenticates to the Admin API using JWT (email/password)
  * 2. Retrieves or creates the default sales channel
  * 3. Creates a new publishable API key
  * 4. Associates the key with the sales channel
@@ -14,7 +15,7 @@
  *
  * Prerequisites:
  * - Medusa service must be running
- * - MEDUSA_ADMIN_TOKEN must be set in .env
+ * - MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD must be set in .env
  * - MEDUSA_ADMIN_URL (or MEDUSA_BACKEND_URL) must be set
  *
  * Usage:
@@ -23,6 +24,7 @@
  */
 
 import { retryFetch } from './utils/retry.js';
+import { getAdminToken as getJwtToken, getAdminCredentials } from './utils/auth.js';
 
 interface SalesChannel {
   id: string;
@@ -46,16 +48,21 @@ function getAdminUrl(): string {
 }
 
 /**
- * Get admin authentication token
+ * Get admin authentication JWT token
+ *
+ * Authenticates via /auth/admin/emailpass and returns a JWT token.
+ * See RFD-005 for details on Medusa v2 authentication flow.
  */
-function getAdminToken(): string {
-  const token = process.env.MEDUSA_ADMIN_TOKEN;
-  if (!token) {
-    throw new Error(
-      'MEDUSA_ADMIN_TOKEN not found in environment. ' +
-      'Generate one with: pnpm run generate:secrets'
-    );
-  }
+async function getAdminToken(): Promise<string> {
+  const adminUrl = getAdminUrl();
+  const credentials = getAdminCredentials();
+
+  console.log('🔐 Authenticating as admin user...');
+
+  const token = await getJwtToken(adminUrl, credentials);
+
+  console.log('✓ Authentication successful\n');
+
   return token;
 }
 
@@ -64,7 +71,7 @@ function getAdminToken(): string {
  */
 async function getDefaultSalesChannel(): Promise<SalesChannel> {
   const adminUrl = getAdminUrl();
-  const token = getAdminToken();
+  const token = await getAdminToken();
 
   console.log('📡 Fetching default sales channel...');
 
@@ -116,7 +123,7 @@ async function getDefaultSalesChannel(): Promise<SalesChannel> {
  */
 async function createPublishableKey(title: string): Promise<PublishableApiKey> {
   const adminUrl = getAdminUrl();
-  const token = getAdminToken();
+  const token = await getAdminToken();
 
   console.log(`🔑 Creating publishable API key: "${title}"...`);
 
@@ -161,7 +168,7 @@ async function createPublishableKey(title: string): Promise<PublishableApiKey> {
  */
 async function associateKeyWithChannel(keyId: string, channelId: string): Promise<void> {
   const adminUrl = getAdminUrl();
-  const token = getAdminToken();
+  const token = await getAdminToken();
 
   console.log('🔗 Associating key with sales channel...');
 
@@ -271,9 +278,10 @@ async function main() {
     console.error('\n❌ Setup failed:', error instanceof Error ? error.message : error);
     console.error('\nTroubleshooting:');
     console.error('- Ensure Medusa service is running: pnpm run dev');
-    console.error('- Check MEDUSA_ADMIN_TOKEN is set in .env');
+    console.error('- Check MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env');
     console.error('- Verify MEDUSA_ADMIN_URL is correct');
-    console.error('- Run health check: pnpm run health:check\n');
+    console.error('- Run health check: pnpm run health:check');
+    console.error('- See RFD-005 for authentication details: docs/RFD-005.md\n');
     process.exit(1);
   }
 }

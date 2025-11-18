@@ -4,6 +4,7 @@
  *
  * Verifies that products imported into Medusa match the source catalog.
  * Checks product counts, handles, prices, and metadata integrity.
+ * Updated for RFD-005: JWT authentication via emailpass provider.
  *
  * Usage:
  *   pnpm run verify:catalog
@@ -13,9 +14,9 @@
 import "dotenv/config"
 import { products } from "../../../src/lib/products"
 import { retryFetch } from "./utils/retry.js"
+import { getAdminToken as getJwtToken, getAdminCredentials } from "./utils/auth.js"
 
 const ADMIN_URL = process.env.MEDUSA_ADMIN_URL ?? "http://127.0.0.1:9000"
-const ADMIN_TOKEN = process.env.MEDUSA_ADMIN_TOKEN
 const STORE_URL = process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000"
 
 interface MedusaProduct {
@@ -45,8 +46,9 @@ const issues: VerificationIssue[] = []
 
 /**
  * Fetch all products from Medusa Admin API
+ * Updated for RFD-005: Uses JWT token for authentication
  */
-async function fetchMedusaProducts(): Promise<MedusaProduct[]> {
+async function fetchMedusaProducts(token: string): Promise<MedusaProduct[]> {
   console.log('📡 Fetching products from Medusa...')
 
   const allProducts: MedusaProduct[] = []
@@ -63,7 +65,7 @@ async function fetchMedusaProducts(): Promise<MedusaProduct[]> {
       {
         headers: {
           'Content-Type': 'application/json',
-          ...(ADMIN_TOKEN ? { Authorization: `Bearer ${ADMIN_TOKEN}` } : {}),
+          'Authorization': `Bearer ${token}`,
         },
       },
       { maxAttempts: 3 }
@@ -248,8 +250,14 @@ async function main() {
   const detailed = args.includes('--detailed')
 
   try {
+    // Authenticate to admin API (RFD-005)
+    console.log('🔐 Authenticating as admin user...')
+    const credentials = getAdminCredentials()
+    const token = await getJwtToken(ADMIN_URL, credentials)
+    console.log('✓ Authentication successful\n')
+
     // Fetch products from Medusa
-    const medusaProducts = await fetchMedusaProducts()
+    const medusaProducts = await fetchMedusaProducts(token)
 
     // Run verifications
     verifyProductCount(medusaProducts)
@@ -261,8 +269,9 @@ async function main() {
     console.error('\n❌ Verification error:', error instanceof Error ? error.message : error)
     console.error('\nTroubleshooting:')
     console.error('- Ensure Medusa service is running: pnpm run dev')
-    console.error('- Check MEDUSA_ADMIN_TOKEN is set in .env')
-    console.error('- Run health check: pnpm run health:check\n')
+    console.error('- Check MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD are set in .env')
+    console.error('- Run health check: pnpm run health:check')
+    console.error('- See RFD-005 for authentication details: docs/RFD-005.md\n')
     process.exit(1)
   }
 }
