@@ -1,7 +1,18 @@
 # OpticWorks Platform Migration Plan (Bootstrap Edition)
 
-**Document version**: 4.1
+> **⚠️ DEPRECATED - 2025-11-18**
+>
+> This document described a manual deployment approach that has been replaced with
+> Infrastructure-as-Code via Ansible. Many assumptions in this plan were speculative
+> and were never successfully implemented.
+>
+> **See instead**: `docs/DEPLOYMENT_GUIDE.md` for current architecture and deployment workflow
+
+---
+
+**Document version**: 4.1 (ARCHIVED)
 **Last updated**: 2025-11-17
+**Deprecated**: 2025-11-18
 **Philosophy**: Deploy fast, test early, expand incrementally, secure from day one
 
 This plan replaces the previous waterfall approach. Since the current storefront is **not production**, we can move directly to MedusaJS without maintaining backwards compatibility. The entire strategy focuses on getting a working Medusa backend on Hetzner with one product, then expanding from that validated foundation.

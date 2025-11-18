@@ -6,7 +6,7 @@ This repo contains the production web experience for OpticWorks’ mmWave bed an
 - **Presence-first storytelling**: Hero, Features, and product pages highlight how our intelligent sensing stack delivers room-level presence, respiration, and sleep-quality signals with Apple-grade industrial design.
 - **Hybrid commerce**: Persistent cart + Stripe Elements checkout to sell sensors, bridges, and calibration bundles.
 - **Support + Ops**: Warranty, "Oops Protection," lifecycle maintenance, and installation guides for sleep clinics, integrators, and DIY installers.
-- **Production Backend**: MedusaJS v2 backend deployed at `api.optic.works` (Hetzner + Cloudflare Tunnel) **[Live since 2025-11-17]**
+- **Production Backend**: MedusaJS v2 backend at `api.optic.works` (Hetzner + Cloudflare Tunnel, Ansible-managed) **[Provisioning via IaC - 2025-11-18]**
 
 ## Prerequisites
 - [Node.js](https://nodejs.org/) 18+
@@ -72,7 +72,7 @@ Key rules:
 - `platform/docs-site/` – Hugo + Geekdoc site for the Phase 3 docs launch. Use `pnpm docs:dev` / `pnpm docs:build`.
 - `platform/forum/` – Discourse configuration for the Phase 3 community/forum deliverable.
 
-See `pnpm-workspace.yaml` for the full list and `docs/MIGRATION_PLAN.md` for roadmap context.
+See `pnpm-workspace.yaml` for the full list and `docs/DEPLOYMENT_GUIDE.md` for architecture and deployment workflow.
 
 ## Contributor Environment & SSH
 - The Codespaces/VS Code devcontainer installs pnpm, Hugo, Git LFS, libssl, and all required AI CLIs automatically, normalizes the Hetzner SSH key, and runs a smoke SSH check the first time the container spins up.

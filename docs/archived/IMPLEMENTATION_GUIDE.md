@@ -1,7 +1,19 @@
 # OpticWorks Migration Implementation Guide (Bootstrap Edition)
 
-**Last updated**: 2025-11-17
-**Companion to**: `docs/MIGRATION_PLAN.md` v4.1
+> **⚠️ DEPRECATED - 2025-11-18**
+>
+> This guide contained manual deployment steps that are now obsolete. All infrastructure
+> is now provisioned via Ansible playbooks, making these manual runbooks unnecessary.
+>
+> **See instead**:
+> - `docs/DEPLOYMENT_GUIDE.md` - Current deployment workflow
+> - `infrastructure/ansible/README.md` - Ansible playbook guide
+
+---
+
+**Last updated**: 2025-11-17 (ARCHIVED)
+**Deprecated**: 2025-11-18
+**Companion to**: `docs/archived/MIGRATION_PLAN.md` v4.1 (also deprecated)
 **RFD-004 Status**: ✅ Resolved (all automation implemented)
 **Deployment Philosophy**: Cloudflare Tunnel from day one, SSH for infrastructure only
 

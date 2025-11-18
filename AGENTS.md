@@ -196,11 +196,12 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 ## Reference Documents
 
 ### Core Documentation
-- `README.md` – Quickstart plus high-level repo overview (includes Phase 1 completion status)
-- `docs/DEVELOPMENT_SCORECARD.md` – Phase-by-phase progress tracker, production credentials, action items
-- `docs/MIGRATION_PLAN.md` – Bootstrap plan v4.0 (Phases 1-4: Medusa + Docs + Production Networking)
-- `docs/IMPLEMENTATION_GUIDE.md` – Executable runbooks for all milestones including Cloudflare Tunnel setup
+- `README.md` – Quickstart plus high-level repo overview
+- **`docs/DEPLOYMENT_GUIDE.md`** – **Production architecture and Ansible deployment workflow** (current)
+- `docs/DEVELOPMENT_SCORECARD.md` – Phase-by-phase progress tracker, action items
 - `docs/CONTRIBUTORS.md` – GitHub Codespaces SSH access, dev vs prod workflow, Hetzner deployment
+- `docs/archived/MIGRATION_PLAN.md` – Deprecated manual deployment plan (archived 2025-11-18)
+- `docs/archived/IMPLEMENTATION_GUIDE.md` – Deprecated manual runbooks (archived 2025-11-18)
 
 ### Security & Infrastructure (NEW - 2025-11-17)
 - `docs/CLOUDFLARE_ACCESS_SETUP.md` – **Zero Trust authentication for admin dashboard** (10-15 min setup)
