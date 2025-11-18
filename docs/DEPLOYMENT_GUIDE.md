@@ -411,14 +411,20 @@ ssh hetzner-node "journalctl -xe"
 - ✅ Backend serving at api.optic.works **VERIFIED**
 - ⚠️  Running in dev mode (medusa-dev) due to prod admin bundler issue
 
-### Phase 2: Catalog & Storefront Integration (Weeks 1-2)
+### Phase 2: Catalog & Storefront Integration
+
+**Status:** ✅ Backend ready, products synced, publishable key exists
+
+**Deployment complete!** For storefront integration steps, see:
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Complete Phase 2 integration walkthrough
+
+**Quick checklist:**
 - [x] Execute Ansible provisioning
-- [ ] Resolve Medusa production mode admin bundler issue (or continue with dev mode)
-- [ ] Import full product catalog via automation scripts
-- [ ] Create publishable API key via admin dashboard
-- [ ] Integrate storefront with Medusa API
-- [ ] E2E checkout testing
-- [ ] Sync all secrets to Infisical
+- [x] Import full product catalog (confirmed synced)
+- [x] Create publishable API key (exists in Infisical)
+- [ ] Configure storefront to use Medusa API
+- [ ] E2E checkout testing (Medusa → Stripe)
+- [ ] Verify all secrets in Infisical
 
 ### Phase 3: Documentation & Community (Weeks 3-4)
 - [ ] Hugo docs site deployment

@@ -1,8 +1,22 @@
 # Cloudflare Access Setup for Medusa Admin Dashboard
 
+> **⚠️ DEPRECATED - 2025-11-18**
+>
+> Cloudflare Access is **not yet implemented**. Admin dashboard currently relies on Medusa's
+> built-in authentication only. This guide remains valid for future implementation when needed.
+>
+> **Current state:**
+> - Admin dashboard: `https://api.optic.works/app`
+> - Authentication: Medusa admin login (credentials in Infisical)
+> - No Zero Trust layer yet
+>
+> **Priority:** Low - can be implemented when team access requirements grow
+
+---
+
 **Last updated:** 2025-11-17
 **Maintainer:** Platform Engineering
-**Status:** Production-ready configuration
+**Status:** ~~Production-ready configuration~~ NOT IMPLEMENTED
 
 ## Overview
 

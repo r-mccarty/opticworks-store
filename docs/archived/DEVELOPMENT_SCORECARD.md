@@ -1,5 +1,17 @@
 # Development Scorecard
 
+> **⚠️ DEPRECATED - 2025-11-18**
+>
+> This document is now stale. Phase 1 was successfully completed via Ansible IaC on 2025-11-18.
+> All blockers resolved, products synced, admin dashboard operational.
+>
+> **See instead:**
+> - `README.md` - Current roadmap and phase status
+> - `docs/DEPLOYMENT_GUIDE.md` - Infrastructure deployment
+> - `docs/RFD-006.md` - Deployment drift resolution
+
+---
+
 **Last updated:** 2025-11-18
 **Maintainers:** Platform Engineering
 

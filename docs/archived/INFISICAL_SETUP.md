@@ -1,8 +1,22 @@
 # Infisical Secret Management Setup
 
+> **⚠️ DEPRECATED - 2025-11-18**
+>
+> Infisical is now **actively in use** - setup is complete. This guide references old key names
+> and manual setup steps that are no longer relevant.
+>
+> **Current state:**
+> - Infisical project: OpticWorks (production + development environments)
+> - Auto-sync enabled via GitHub Codespaces secrets
+> - All secrets managed via Infisical web UI
+>
+> **See instead:** `README.md` - Secret Management (Infisical) section
+
+---
+
 **Last updated:** 2025-11-17
 **Maintainer:** Platform Engineering
-**Status:** Production-ready configuration
+**Status:** ~~Production-ready configuration~~ ACTIVE
 
 ## Overview
 

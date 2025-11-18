@@ -1,242 +1,369 @@
 # OpticWorks Presence Intelligence Platform
 
-This repo contains the production web experience for OpticWorks’ mmWave bed and ambient presence sensors. The site narrates the OpticWorks Presence Intelligence hardware family, manages the Stripe checkout flow, and powers support/warranty tooling for integrators and smart-home enthusiasts. It is a pure Next.js + Tailwind + TypeScript stack with a heavy emphasis on cinematic UI polish.
+**Production e-commerce platform** for OpticWorks' mmWave presence sensing hardware. Built with Next.js 15, Medusa v2, and deployed via Ansible Infrastructure-as-Code.
 
-## Why This Exists
-- **Presence-first storytelling**: Hero, Features, and product pages highlight how our intelligent sensing stack delivers room-level presence, respiration, and sleep-quality signals with Apple-grade industrial design.
-- **Hybrid commerce**: Persistent cart + Stripe Elements checkout to sell sensors, bridges, and calibration bundles.
-- **Support + Ops**: Warranty, "Oops Protection," lifecycle maintenance, and installation guides for sleep clinics, integrators, and DIY installers.
-- **Production Backend**: MedusaJS v2 backend at `api.optic.works` (Hetzner + Cloudflare Tunnel, Ansible-managed) **[LIVE via IaC - 2025-11-18]**
+## Overview
 
-## Prerequisites
-- [Node.js](https://nodejs.org/) 18+
-- [pnpm](https://pnpm.io/) (required package manager)
+This monorepo powers the complete OpticWorks commercial presence:
 
-## Getting Started
+- **Storefront** (`src/`): Next.js 15 app with cinematic product storytelling, Stripe checkout, and warranty/support flows
+- **Backend** (`services/medusa/`): Medusa v2 e-commerce engine with product catalog, cart, and payment processing
+- **Infrastructure** (`infrastructure/ansible/`): Fully automated provisioning playbooks for production deployment
+- **Platform** (`platform/`): Hugo docs site and Discourse forum (Phase 3)
+
+**Live Production:**
+- 🌐 Backend API: `https://api.optic.works`
+- 🛠️ Admin Dashboard: `https://api.optic.works/app`
+- ✅ Health: `https://api.optic.works/health`
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js** 18+
+- **pnpm** (required - no npm/yarn)
+- **Infisical Token** (for secrets management)
+
+### Local Development
+
 ```bash
-# 1. Clone
-git clone https://github.com/your-username/opticworks-presence.git
-cd opticworks-presence
+# 1. Clone repository
+git clone https://github.com/r-mccarty/opticworks-store.git
+cd opticworks-store
 
-# 2. Install deps (pnpm only)
+# 2. Install dependencies
 pnpm install
 
-# 3. Pull secrets (Infisical recommended)
-# Codespaces/devcontainer: set INFISICAL_TOKEN as a secret and the post-create script writes .env.local automatically.
-# Local fallback:
-# INFISICAL_TOKEN=st.xxxxx pnpm run secrets:pull
-# or copy .env.template if Infisical is not available:
-# cp .env.template .env.local && edit the values manually.
+# 3. Pull secrets from Infisical
+# Codespaces: INFISICAL_TOKEN is auto-configured
+# Local: export INFISICAL_TOKEN=<your-token>
+pnpm run secrets:pull
 
-# 4. Run the dev server
+# 4. Start development server
 pnpm run dev  # http://localhost:3000
 ```
 
-## Required Workflow Commands
+### Required Commands
+
 ```bash
-pnpm run lint   # REQUIRED pre-commit (strict TS + ESLint)
-pnpm run test   # REQUIRED for cart regressions + unit coverage
-pnpm run build  # REQUIRED pre-commit (ensures hybrid Stripe flow compiles)
-pnpm run dev    # Local development
-pnpm run start  # Preview production build
+pnpm run lint   # ✅ REQUIRED pre-commit
+pnpm run test   # ✅ REQUIRED pre-commit (cart coverage)
+pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 ```
-Never use npm/yarn scripts—tooling and lockfile are pnpm-specific.
 
-## Architecture Overview
+**Note:** Next.js builds can take 2-3 minutes. Increase CLI timeout if needed.
+
+## Architecture
+
+### Deployed Infrastructure (Production)
+
 ```
-src/
-├─ app/              # App Router pages + API routes (landing, store, support, install guides)
-│  ├─ api/          # Stripe + email production routes, shipping/inventory stubs
-│  ├─ products/     # Presence catalog + dynamic detail pages
-│  ├─ store/        # Cart, checkout, success
-│  └─ support/      # Warranty, oops program, compliance tools
-├─ components/
-│  ├─ ui/           # Tier 1 Shadcn (forms/buttons) + Tier 2 bespoke marketing components
-│  ├─ checkout/     # Stripe hybrid flow (CheckoutWrapper, CheckoutForm)
-│  ├─ store/, support/, products/, 3d/
-├─ hooks/           # Zustand stores (useCart, useCheckoutState, useSupportStore)
-├─ lib/
-│  ├─ api/          # Service-layer utilities (presence analytics, orders, billing, compatibility)
-│  ├─ products.ts   # Sensor catalog metadata
-│  └─ utils.ts      # `cn`, `cx`, helpers
-└─ docs/            # CODEBASE_EXPLANATION, STATE_MANAGEMENT, API_STUBS, STRIPE_INTEGRATION
+┌─────────────────────────────────────────────────────────────┐
+│                    CLOUDFLARE SERVICES                       │
+├─────────────────────────────────────────────────────────────┤
+│  Pages (optic.works)          Tunnel (api.optic.works)      │
+│  ↓ Next.js Storefront         ↓ Medusa Backend Proxy        │
+└────────┬──────────────────────────────┬─────────────────────┘
+         │                              │
+         │                              ↓
+         │                    ┌──────────────────────┐
+         │                    │  HETZNER CLOUD       │
+         │                    │  (Ansible-managed)   │
+         │                    ├──────────────────────┤
+         │                    │  • PostgreSQL 17     │
+         │                    │  • Redis 7.x         │
+         │                    │  • Node.js 22        │
+         │                    │  • Medusa v2.11.3    │
+         │                    │  • PM2 (dev mode)    │
+         │                    │  • Cloudflared       │
+         │                    └──────────────────────┘
+         │
+         └──────────────────────────────┘
+                  API Calls
 ```
-Key rules:
-- Tier 1 Shadcn components use `cn` and focus on accessibility; Tier 2 business components use `cx` + premium styling.
-- Zustand: cart + support stores persist via localStorage, checkout store stays ephemeral.
-- Heavy visual blocks leverage Framer Motion and blur/glass gradients to hit the Apple-like art direction.
 
-### Workspaces (pnpm)
-- `.` – Next.js storefront (default package)
-- `services/medusa/` – MedusaJS backend workspace used throughout Phase 1 (bootstrap) and Phase 2 (catalog integration). Run `pnpm --filter @opticworks/medusa-service dev`.
-- `platform/docs-site/` – Hugo + Geekdoc site for the Phase 3 docs launch. Use `pnpm docs:dev` / `pnpm docs:build`.
-- `platform/forum/` – Discourse configuration for the Phase 3 community/forum deliverable.
+**Deployment Method:** All infrastructure provisioned via Ansible playbooks in `infrastructure/ansible/`. See `docs/DEPLOYMENT_GUIDE.md` for details.
 
-See `pnpm-workspace.yaml` for the full list and `docs/DEPLOYMENT_GUIDE.md` for architecture and deployment workflow.
+### Repository Structure
 
-## Contributor Environment & SSH
-- The Codespaces/VS Code devcontainer installs pnpm, Hugo, Git LFS, libssl, and all required AI CLIs automatically, normalizes the Hetzner SSH key, and runs a smoke SSH check the first time the container spins up.
-- For SSH details, troubleshooting, and the latest verification timestamp, see `docs/CONTRIBUTORS.md`. That doc is the source of truth for the Hetzner alias (`ssh hetzner-node`), secret requirements, and `/tmp/hetzner-ssh.log` verification output.
+```
+/
+├── src/                          # Next.js 15 storefront application
+│   ├── app/                      # App Router (pages + API routes)
+│   │   ├── api/                  # Stripe, email, webhooks
+│   │   ├── products/             # Product catalog pages
+│   │   ├── store/                # Cart, checkout, order success
+│   │   └── support/              # Warranty, RMA, contact
+│   ├── components/
+│   │   ├── ui/                   # Shadcn primitives (Tier 1)
+│   │   ├── checkout/             # Stripe Elements integration
+│   │   ├── products/             # Product marketing components (Tier 2)
+│   │   └── 3d/                   # Three.js sensor visualizations
+│   ├── hooks/                    # Zustand stores (cart, checkout, support)
+│   └── lib/
+│       ├── api/                  # Service layer for backend calls
+│       └── products.ts           # Static product catalog (fallback)
+│
+├── services/medusa/              # Medusa v2 backend workspace
+│   ├── scripts/                  # 17 automation scripts (setup, catalog, health)
+│   ├── medusa-config.ts          # Medusa configuration
+│   ├── ecosystem.config.js       # PM2 process management
+│   └── .env.example              # Backend credentials template
+│
+├── infrastructure/ansible/       # Infrastructure-as-Code
+│   ├── roles/                    # postgresql, redis, nodejs, medusa, cloudflared
+│   ├── playbooks/                # provision, deploy, destroy
+│   ├── inventory/                # production.ini (Hetzner node)
+│   └── group_vars/               # all.yml, secrets.yml
+│
+├── platform/
+│   ├── docs-site/                # Hugo + Geekdoc (Phase 3)
+│   └── forum/                    # Discourse config (Phase 3)
+│
+├── docs/                         # Documentation
+│   ├── DEPLOYMENT_GUIDE.md       # Infrastructure deployment & provisioning
+│   ├── CONTRIBUTORS.md           # SSH access, dev workflow, Hetzner setup
+│   ├── CODEBASE_EXPLANATION.md   # Architecture deep dive
+│   ├── STATE_MANAGEMENT.md       # Zustand patterns
+│   ├── STRIPE_INTEGRATION.md     # Checkout flow
+│   ├── RFD-*.md                  # Architecture decision records
+│   └── archived/                 # Deprecated guides
+│
+├── .env.template                 # Storefront environment variables
+├── pnpm-workspace.yaml           # Monorepo workspace config
+└── CLAUDE.md / AGENTS.md         # AI collaboration context
+```
 
-## Feature Pillars
-- **Presence Intelligence Catalog**: Sensor highlights, specs, heatmap demos, integrator kits.
-- **Cart & Checkout**: Persisted cart state, Stripe session creation, Address/Payment Elements, success-state email handoff.
-- **Support Center**: Warranty claims, "Oops Protection," compliance tools, contact flows with persistent form drafts.
-- **Install Guides**: Installation stories for under-mattress tiles, adjustable bases, calibration with Home Assistant.
+## Secret Management (Infisical)
 
-## API & Integrations
-- **Production**: `POST /api/stripe/create-checkout-session`, `POST /api/stripe/webhook`, `POST /api/email/send` (Resend).
-- **Stubs**: Shipping quotes, inventory checks, analytics, bed compatibility guidance. All stubs must simulate latency (300–800 ms) and validate payloads.
-- **Environment**: Requires Stripe publishable/secret keys, Stripe webhook secret, Resend key, Cloudflare storage credentials, plus Hetzner/Medusa endpoints + admin tokens.
+**All secrets are managed via Infisical** - no manual `.env` editing required.
 
-## Development Standards
-1. No `any`—TypeScript strict mode must stay clean.
-2. Use Next.js `<Image>` and lazy loading for heavy visuals / 3D assets.
-3. Provide skeleton/loading states whenever data fetches occur.
-4. Accessibility first: keyboard nav, ARIA labels, semantic headings.
-5. Run `pnpm run lint` and `pnpm run build` locally before opening PRs or commits.
+### Codespaces Setup (Automatic)
+
+1. Add `INFISICAL_TOKEN` to GitHub Codespaces repository secrets
+2. Devcontainer post-create script auto-syncs `.env.local` on startup
+3. Ready to develop immediately
+
+### Local Development
+
+```bash
+# 1. Get Infisical service token from team
+export INFISICAL_TOKEN=st.xxxxx
+
+# 2. Pull secrets (writes .env.local)
+pnpm run secrets:pull
+
+# 3. Verify secrets loaded
+cat .env.local | grep NEXT_PUBLIC_MEDUSA_BASE_URL
+```
+
+### What's in Infisical
+
+**Storefront Secrets** (environment: `development`, path: `/`):
+- `NEXT_PUBLIC_MEDUSA_BASE_URL` - Backend API URL
+- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` - Store API access
+- `STRIPE_PUBLISHABLE_KEY` - Stripe checkout
+- `STRIPE_SECRET_KEY` - Stripe backend
+- `RESEND_API_KEY` - Email delivery
+- Plus ~25 more environment-specific variables
+
+**Backend Secrets** (environment: `production`, path: `/medusa`):
+- `DATABASE_URL` - PostgreSQL connection
+- `JWT_SECRET` - Session tokens
+- `COOKIE_SECRET` - Cookie signing
+- `MEDUSA_ADMIN_EMAIL` / `MEDUSA_ADMIN_PASSWORD` - Admin login
+- Plus Stripe, Redis, CORS configuration
+
+**Key Management:**
+- Secrets auto-rotate: Backend monthly, storefront on-demand
+- Never commit `.env.local` or `services/medusa/.env` to Git
+- Use Infisical web UI to add/update secrets for team access
+
+## Development Workflow
+
+### Component Guidelines
+
+**Tier 1 (Shadcn):** Use `cn()` helper, focus on accessibility primitives
+```tsx
+import { cn } from "@/lib/utils"
+<Button className={cn("bg-primary", className)} />
+```
+
+**Tier 2 (Marketing):** Use `cx()` helper, premium styling, Framer Motion
+```tsx
+import { cx } from "@/lib/utils"
+<div className={cx("glass-gradient cinematic-reveal", className)} />
+```
+
+### State Management (Zustand)
+
+- **`useCart`** - Persisted to localStorage, cart items + totals
+- **`useSupportStore`** - Persisted to localStorage, warranty draft state
+- **`useCheckoutState`** - Ephemeral, Stripe session + payment status
+
+All stores in `src/hooks/`. See `docs/STATE_MANAGEMENT.md` for patterns.
+
+### API Integration Modes
+
+**Legacy Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=false`):
+- Static products from `src/lib/products.ts`
+- Direct Stripe checkout via `src/app/api/stripe/*`
+
+**Medusa Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=true`):
+- Dynamic products from `https://api.optic.works/store/products`
+- Cart sessions via Medusa
+- Stripe integration via Medusa backend
+
+Toggle in `.env.local` (synced from Infisical).
+
+## Production Deployment
+
+### Backend (Hetzner + Ansible)
+
+**Status:** ✅ LIVE since 2025-11-18
+
+**Infrastructure:**
+- Server: Hetzner Cloud (3 vCPU, 4GB RAM)
+- Database: PostgreSQL 17
+- Cache: Redis 7.x
+- Runtime: Node.js 22, pnpm 9.x
+- Process Manager: PM2 (running `medusa-dev`)
+- Tunnel: Cloudflare Tunnel → `api.optic.works`
+
+**Deployment:**
+```bash
+cd infrastructure/ansible
+
+# Full provisioning (first time)
+ansible-playbook playbooks/medusa-provision.yml
+
+# Code updates only
+ansible-playbook playbooks/medusa-deploy.yml
+
+# Teardown for rebuild
+ansible-playbook playbooks/medusa-destroy.yml
+```
+
+See `docs/DEPLOYMENT_GUIDE.md` for complete provisioning guide.
+
+**Health Check:**
+```bash
+curl https://api.optic.works/health
+# Expected: OK
+```
+
+**Admin Access:**
+- URL: `https://api.optic.works/app`
+- Credentials: See Infisical (`MEDUSA_ADMIN_EMAIL`, `MEDUSA_ADMIN_PASSWORD`)
+
+### Storefront (Cloudflare Pages)
+
+**Status:** 🔜 Phase 4 (pending)
+
+Deployment will use:
+- Build command: `pnpm run build`
+- Output directory: `.next`
+- Environment variables: Auto-synced from Infisical
+- Custom domain: `optic.works`
+
+## Testing
+
+```bash
+# Unit tests (cart logic, utilities)
+pnpm run test
+
+# Type checking
+pnpm run build  # Strict TypeScript validation
+
+# Linting
+pnpm run lint
+```
+
+**Coverage Focus:**
+- Cart state normalization
+- Stripe checkout flows
+- Product variant selection
+- Support form persistence
+
+## Contributing
+
+### Before Opening PRs
+
+1. ✅ Run `pnpm run lint` (must pass)
+2. ✅ Run `pnpm run test` (must pass)
+3. ✅ Run `pnpm run build` (must compile)
+4. 📝 Reference RFD if architectural change
+
+### Development Environment
+
+**Codespaces (Recommended):**
+- Pre-configured with pnpm, Hugo, SSH keys
+- Infisical auto-sync on startup
+- Hetzner SSH access verified (`ssh hetzner-node`)
+
+**Local:**
+- Install Node.js 18+, pnpm, Infisical CLI
+- Export `INFISICAL_TOKEN` before `pnpm run secrets:pull`
+- See `docs/CONTRIBUTORS.md` for SSH setup
 
 ## Documentation
 
-Core guidance and architectural details are centralized in the `/docs` directory:
+### Active Guides
 
-- **`docs/CONTRIBUTORS.md`** – GitHub Codespaces SSH access, dev vs prod workflow, Hetzner deployment.
-- **`docs/MIGRATION_PLAN.md`** – Bootstrap migration plan v4.0 (Phases 1-4: Medusa + Docs + Production Networking).
-- **`docs/IMPLEMENTATION_GUIDE.md`** – Executable runbooks for all milestones including Cloudflare Tunnel setup.
-- **`docs/RFD-004.md`** – Infrastructure automation requirements (resolved with 17 automation scripts).
-- **`docs/CI.md`** – CI/CD checklist (build, lint, test commands).
-- **`docs/CODEBASE_EXPLANATION.md`** – Deep dive into architecture, components, and API story.
-- **`docs/STATE_MANAGEMENT.md`** – Zustand store patterns and localStorage persistence.
-- **`docs/API_STUBS.md`** – API endpoint stubs and latency simulation guidelines.
-- **`docs/STRIPE_INTEGRATION.md`** – Stripe Elements, checkout flow, and webhook handling.
-- **`docs/API_ARCHITECTURE.md`** – Service-layer utilities, contracts, and error handling.
+- **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning via Ansible
+- **[CONTRIBUTORS.md](docs/CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
+- **[CODEBASE_EXPLANATION.md](docs/CODEBASE_EXPLANATION.md)** - Architecture patterns
+- **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** - Zustand store design
+- **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** - Checkout implementation
+- **[API_STUBS.md](docs/API_STUBS.md)** - API design patterns
+- **[RFD-004.md](docs/RFD-004.md)** - Infrastructure automation (resolved)
+- **[RFD-005.md](docs/RFD-005.md)** - JWT authentication (implemented)
+- **[RFD-006.md](docs/RFD-006.md)** - Deployment drift (resolved via Ansible)
 
-For development workflows and collaboration notes, see `AGENTS.md` (mirrored in `CLAUDE.md`).
+### Archived Guides
 
-## Environment Configuration Strategy
+- **[archived/MIGRATION_PLAN.md](docs/archived/)** - Deprecated manual deployment plan
+- **[archived/IMPLEMENTATION_GUIDE.md](docs/archived/)** - Deprecated manual runbooks
+- **[archived/DEVELOPMENT_SCORECARD.md](docs/archived/)** - Deprecated progress tracker
+- **[archived/INFISICAL_SETUP.md](docs/archived/)** - Deprecated (Infisical now active)
 
-This repo uses a **two-file environment strategy** to separate storefront and backend concerns:
+## Roadmap
 
-### 1. Storefront Configuration (`.env.template` → `.env.local`)
+### ✅ Phase 1: Backend Infrastructure (COMPLETE - 2025-11-18)
+- Ansible Infrastructure-as-Code
+- Hetzner backend provisioned
+- PostgreSQL 17 + Redis operational
+- Medusa v2 serving at `api.optic.works`
+- Admin dashboard accessible
+- Product catalog synced
 
-**Scope**: Next.js storefront + integrations (Stripe, Resend, Cloudflare, analytics, Medusa client settings)
+### 🔄 Phase 2: Storefront Integration (IN PROGRESS)
+- [ ] Integrate Next.js storefront with Medusa API
+- [ ] E2E checkout testing (Medusa → Stripe)
+- [ ] Verify product catalog rendering
+- [ ] Test cart sessions and payment flows
+- [ ] Sync production secrets to Infisical
 
-**Management**: Populated via Infisical
+### 📋 Phase 3: Documentation & Community
+- [ ] Deploy Hugo docs site
+- [ ] API documentation generation
+- [ ] Discourse forum setup
+- [ ] CI/CD pipeline hardening
 
-**Workflow**:
-- **Codespaces/devcontainer**: Add `INFISICAL_TOKEN` as a repository secret. The post-create script runs `scripts/pull-infisical-secrets.sh` and writes `.env.local` automatically.
-- **Local development**: Export `INFISICAL_TOKEN` and run `pnpm run secrets:pull`.
-- **Manual fallback**: Copy `.env.template` to `.env.local` if Infisical is unavailable (never commit `.env.local`).
+### 📋 Phase 4: Production Storefront
+- [ ] Cloudflare Pages deployment
+- [ ] Webhook buffering (Durable Objects)
+- [ ] Performance optimization
+- [ ] SEO finalization
 
-The `.env.template` file includes header comments explaining its scope and Infisical workflow.
+## Key Contacts & Resources
 
-### 2. Backend Configuration (`services/medusa/.env.example` → `services/medusa/.env`)
+- **Repository:** https://github.com/r-mccarty/opticworks-store
+- **Backend API:** https://api.optic.works
+- **Admin Dashboard:** https://api.optic.works/app
+- **Infisical Project:** OpticWorks (production + development environments)
+- **Ansible Inventory:** `infrastructure/ansible/inventory/production.ini`
 
-**Scope**: Medusa v2 backend ONLY (PostgreSQL, Redis, JWT secrets, admin tokens, Stripe backend key)
+## License
 
-**Management**: Manual configuration after generating credentials
-
-**Workflow**:
-```bash
-# Generate secure credentials
-cd services/medusa
-pnpm run generate:secrets > /tmp/medusa-secrets.env
-
-# Copy template and fill with generated values
-cp .env.example .env
-nano .env  # Paste credentials from /tmp/medusa-secrets.env
-
-# Store in Infisical for team access
-# Tag with: environment=development, service=medusa
-```
-
-The `services/medusa/.env.example` file includes header comments explaining the generation workflow.
-
-### Why Two Files?
-
-- **Separation of concerns**: Storefront secrets (public Stripe key, CDN URLs) vs backend secrets (database passwords, JWT tokens)
-- **Deployment isolation**: Storefront deploys to Cloudflare Pages, backend runs on Hetzner node
-- **Security**: Backend secrets never exposed to client-side code
-- **Team access**: Different secret rotation schedules (backend secrets monthly, storefront keys on-demand)
-
-## Key Environment Variables
-
-### Medusa Integration Flags (Storefront)
-
-Toggle Medusa integration in `.env.local` (or Infisical):
-
-```bash
-# Development (local Medusa)
-NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=http://localhost:9000
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx  # From `pnpm run setup:keys` in Medusa workspace
-
-# Production (via Cloudflare Tunnel) ✅ LIVE
-NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d
-```
-
-When `NEXT_PUBLIC_MEDUSA_ENABLED=false`, the storefront uses:
-- Static catalog from `src/lib/products.ts`
-- Legacy Stripe routes in `src/app/api/stripe/*`
-
-When `NEXT_PUBLIC_MEDUSA_ENABLED=true`, the storefront uses:
-- Product data from Medusa API (`/store/products`)
-- Medusa cart API and payment sessions
-- Stripe integration via Medusa backend
-
-See `docs/api/medusa-integration.md` for the complete API contract and `services/medusa/README.md` for backend setup.
-
-### Backend Credentials (Medusa)
-
-Generate all required backend secrets:
-```bash
-cd services/medusa
-pnpm run generate:secrets
-```
-
-This outputs PostgreSQL password, Redis password, JWT secret, cookie secret, and admin token. Store these in `services/medusa/.env` and Infisical.
-
-**Important**: Never use the legacy `.credentials/` folder. All secrets now managed via:
-1. Root `.env.template` for storefront (Infisical-synced)
-2. `services/medusa/.env.example` for backend (generated credentials)
-
-## Production Deployment Status
-
-### Phase 1: Backend Infrastructure ✅ COMPLETE (2025-11-18)
-
-The MedusaJS v2 backend is **live in production** at `https://api.optic.works`:
-
-**Infrastructure:**
-- **Backend URL:** `https://api.optic.works`
-- **Admin Dashboard:** `https://api.optic.works/app`
-- **Health Endpoint:** `https://api.optic.works/health` (returns "OK")
-- **Store API:** `https://api.optic.works/store/*` (requires publishable key)
-- **Server:** Hetzner Cloud (3 vCPUs, 4GB RAM)
-- **Services:** PostgreSQL 17, Redis, Medusa v2 (dev mode), PM2, Cloudflare Tunnel
-- **Deployment:** Ansible Infrastructure-as-Code (fully automated provisioning)
-
-**Deployment Notes:**
-- Running in development mode (`medusa-dev`) via PM2 due to admin bundler issue in production mode
-- All infrastructure provisioned via Ansible playbooks (`infrastructure/ansible/`)
-- Database credentials URL-encoded to handle special characters
-- Modern GPG key management (signed-by method) for APT repositories
-
-**Quick Verification:**
-```bash
-# Health check
-curl https://api.optic.works/health
-
-# Store API test
-curl -H "x-publishable-api-key: pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d" \
-  https://api.optic.works/store/products
-```
-
-**See `docs/DEVELOPMENT_SCORECARD.md` for detailed deployment status and Phase 2+ roadmap.**
-
-### What's Next?
-
-- **Phase 2:** Catalog import automation + storefront integration
-- **Phase 3:** Hugo docs site + Discourse forum + CI/CD
-- **Phase 4:** Cloudflare Pages production deployment + webhook buffering
+Proprietary - OpticWorks, Inc.
