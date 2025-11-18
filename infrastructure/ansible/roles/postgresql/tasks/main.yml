@@ -1,16 +1,24 @@
 ---
 # PostgreSQL 17 Installation and Configuration
 
-- name: Add PostgreSQL APT repository key
+- name: Create keyring directory
   become: yes
-  ansible.builtin.apt_key:
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download PostgreSQL GPG key
+  become: yes
+  ansible.builtin.get_url:
     url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
-    state: present
+    dest: /etc/apt/keyrings/postgresql.asc
+    mode: '0644'
 
 - name: Add PostgreSQL APT repository
   become: yes
   ansible.builtin.apt_repository:
-    repo: "deb http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
+    repo: "deb [signed-by=/etc/apt/keyrings/postgresql.asc] http://apt.postgresql.org/pub/repos/apt {{ ansible_distribution_release }}-pgdg main"
     state: present
     filename: pgdg
 
@@ -48,8 +56,6 @@
   community.postgresql.postgresql_user:
     name: "{{ postgres_db_user }}"
     password: "{{ postgres_db_password }}"
-    db: "{{ postgres_db_name }}"
-    priv: ALL
     state: present
 
 - name: Grant all privileges to user
