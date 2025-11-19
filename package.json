@@ -10,7 +10,11 @@
     "test": "vitest run",
     "docs:dev": "hugo server -s platform/docs-site -D",
     "docs:build": "hugo -s platform/docs-site",
-    "secrets:pull": "bash scripts/pull-infisical-secrets.sh"
+    "secrets:pull": "bash scripts/pull-infisical-secrets.sh",
+    "secrets:validate": "bash scripts/validate-secrets.sh",
+    "secrets:push": "infisical secrets set --file=.env.infisical-push --env=development --token=$INFISICAL_SERVICE_TOKEN",
+    "medusa:secrets:push": "cd services/medusa && pnpm run secrets:push",
+    "medusa:secrets:pull": "cd services/medusa && pnpm run secrets:pull"
   },
   "dependencies": {
     "@easypost/api": "^8.2.0",

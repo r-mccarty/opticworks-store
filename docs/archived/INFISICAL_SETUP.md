@@ -1,16 +1,25 @@
 # Infisical Secret Management Setup
 
-> **⚠️ DEPRECATED - 2025-11-18**
+> **⚠️ DEPRECATED - 2025-11-19**
 >
-> Infisical is now **actively in use** - setup is complete. This guide references old key names
-> and manual setup steps that are no longer relevant.
+> **This document is archived and contains OUTDATED information.**
+>
+> **CRITICAL CHANGE**: Token environment variable renamed
+> - ❌ **OLD** (this doc): `INFISICAL_TOKEN`
+> - ✅ **NEW** (current): `INFISICAL_SERVICE_TOKEN`
 >
 > **Current state:**
 > - Infisical project: OpticWorks (production + development environments)
 > - Auto-sync enabled via GitHub Codespaces secrets
-> - All secrets managed via Infisical web UI
+> - Only 10/44 variables in Infisical (22% coverage)
+> - Phase 1 push pending: 14 confirmed + 4 requiring action
 >
-> **See instead:** `README.md` - Secret Management (Infisical) section
+> **See instead:**
+> - **[docs/KEY_MANAGEMENT.md](../KEY_MANAGEMENT.md)** - Current inventory and strategy
+> - **[docs/INFISICAL_SECRETS_INVENTORY.md](../INFISICAL_SECRETS_INVENTORY.md)** - Audit results (2025-11-19)
+> - **[.env.infisical-push](.env.infisical-push)** - Ready-to-push secrets file
+>
+> **DO NOT USE THIS DOCUMENT** for new setup - it will cause errors due to wrong token names.
 
 ---
 

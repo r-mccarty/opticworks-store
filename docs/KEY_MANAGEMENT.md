@@ -347,36 +347,83 @@ When adding a new environment variable:
 
 ---
 
-## Current Key Inventory (2025-11-18)
+## Current Key Inventory (2025-11-19)
 
-**Status:** ✅ All critical secrets in Infisical
+**Status:** ⚠️ **10/95 variables in Infisical (10.5%)** - Audit completed, Phase 1 push ready
 
-### Storefront (Development)
+**Last Audit**: 2025-11-19 (see [INFISICAL_SECRETS_INVENTORY.md](INFISICAL_SECRETS_INVENTORY.md))
+
+### Currently in Infisical ✅ (10 variables)
+
+**Storefront**:
 - [x] `NEXT_PUBLIC_MEDUSA_ENABLED=true`
 - [x] `NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works`
-- [x] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx`
-- [x] `STRIPE_PUBLISHABLE_KEY=pk_test_xxx`
-- [x] `STRIPE_SECRET_KEY=sk_test_xxx`
-- [x] `RESEND_API_KEY=re_xxx`
+- [x] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` ⚠️ **INVALID** - Not created in admin yet
+- [x] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_*`
+- [x] `STRIPE_SECRET_KEY=sk_test_*`
+- [x] `NEXT_PUBLIC_APP_URL=http://localhost:3000`
+- [x] `NODE_ENV=development`
 
-### Backend (Production)
-- [x] `DATABASE_URL` (URL-encoded password)
-- [x] `JWT_SECRET` (64 chars)
-- [x] `COOKIE_SECRET` (64 chars)
-- [x] `MEDUSA_ADMIN_EMAIL`
-- [x] `MEDUSA_ADMIN_PASSWORD`
-- [x] `STRIPE_API_KEY`
+**Backend**:
+- [x] `MEDUSA_ADMIN_EMAIL=admin@optic.works`
+- [x] `MEDUSA_ADMIN_PASSWORD` ⚠️ **CONFLICT** - Differs from Ansible
+- [x] `MEDUSA_SECRET_KEY` ⚠️ **UNCLEAR** - May be redundant with JWT_SECRET
 
-### Infrastructure
-- [x] `POSTGRES_PASSWORD` (in Ansible secrets.yml)
-- [x] `CLOUDFLARE_TUNNEL_ID`
-- [ ] `CLOUDFLARE_TUNNEL_CREDENTIALS` (TODO: add to Infisical)
+### Ready to Push from Ansible (6 variables)
 
-**Outstanding Tasks:**
-1. Add Cloudflare Tunnel credentials to Infisical
-2. Encrypt Ansible `secrets.yml` with Ansible Vault
-3. Set up monthly rotation reminders for critical secrets
-4. Document emergency backup procedure
+**Backend Secrets** (in `infrastructure/ansible/group_vars/secrets.yml`):
+- [ ] `DATABASE_URL` - PostgreSQL connection string
+- [ ] `REDIS_URL` - Redis connection (no password)
+- [ ] `JWT_SECRET` - 64-char session token secret
+- [ ] `COOKIE_SECRET` - 64-char cookie signing secret
+- [ ] `MEDUSA_STORE_CORS` - Allowed origins
+- [ ] `MEDUSA_ADMIN_CORS` - Admin origins
+
+### Needs Creation (2 critical blockers)
+
+- [ ] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` - **Create in Medusa admin dashboard**
+- [ ] `STRIPE_WEBHOOK_SECRET` - Get from Stripe dashboard
+
+### Missing (77 variables)
+
+See `.env.template` for full list (95 total variables). Categories:
+- Cloudflare R2 + API (10 vars)
+- Analytics/Telemetry (4 vars)
+- Email delivery (2 vars)
+- Logistics (1 var)
+- Developer tools (3 vars)
+- Additional integrations (57 vars)
+
+**Strategy**: Phased approach - Add Phase 2+ secrets as features are activated
+
+### Infrastructure (Partial)
+
+- [ ] `POSTGRES_PASSWORD` - In Ansible secrets.yml (not pushed to Infisical yet)
+- [ ] `CLOUDFLARE_TUNNEL_ID` - In Ansible: db4738a9-20b7-4dd7-bde2-0760e0188071
+- [ ] `CLOUDFLARE_TUNNEL_CREDENTIALS` - TODO: extract from Hetzner node
+
+---
+
+## Outstanding Tasks (Updated 2025-11-19)
+
+### Immediate (Blocks Phase 2 Storefront Integration)
+1. **Resolve MEDUSA_ADMIN_PASSWORD conflict** - Test login at https://api.optic.works/app
+2. **Create NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY** - In Medusa admin Settings → API Keys
+3. **Get STRIPE_WEBHOOK_SECRET** - From Stripe dashboard
+4. **Push Phase 1 secrets to Infisical** - 14 confirmed + 4 placeholders (see `.env.infisical-push`)
+5. **Test pull and verify** - Ensure `pnpm run secrets:pull` regenerates .env.local correctly
+
+### Short-term (This Week)
+6. Encrypt Ansible `secrets.yml` with Ansible Vault
+7. Add Cloudflare R2 credentials (Phase 4 production deployment)
+8. Add analytics tokens (PostHog, Sentry, GA)
+9. Create validation script to compare .env.local vs .env.template
+10. Set up monthly rotation reminders for critical secrets
+
+### Medium-term (Next Sprint)
+11. Add remaining Cloudflare secrets for production deployment
+12. Document emergency backup procedure
+13. Implement auto-sync for Ansible secrets → Infisical
 
 ---
 
@@ -389,5 +436,5 @@ When adding a new environment variable:
 
 ---
 
-**Last Updated**: 2025-11-18
-**Next Review**: Monthly (align with rotation schedule)
+**Last Updated**: 2025-11-19 (Audit completed, actual inventory: 10/95 vars)
+**Next Review**: After Phase 1 push complete, then monthly
