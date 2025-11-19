@@ -158,8 +158,8 @@ ssh hetzner-node
 # Deploy Medusa backend
 ssh hetzner-node "cd /opt/opticworks/medusa-backend && git pull && pnpm install"
 
-# View Medusa logs
-ssh hetzner-node "sudo journalctl -u medusa -f"
+# View Medusa logs (runs via PM2, not systemd)
+ssh hetzner-node "pm2 logs medusa-dev -f"
 
 # Check server status
 ssh hetzner-node "uptime && df -h"
@@ -178,27 +178,53 @@ SSH access will remain for:
 - Infrastructure provisioning (PostgreSQL, Redis, Cloudflared)
 - Emergency troubleshooting
 
-**Architecture Diagram**:
+**Architecture Diagram** (Ansible-managed infrastructure):
 ```
 GitHub Codespaces
     │ SSH (port 8032)
     ↓
 Hetzner Node (5.78.106.67)
-    ├─ Medusa (localhost:9000) ←─┐
-    ├─ PostgreSQL (localhost:5432) │ (development)
-    ├─ Redis (localhost:6379)      │
-    └─ Cloudflared (tunnel daemon) ┘
+    ├─ Medusa (localhost:9000, PM2-managed) ←─┐
+    ├─ PostgreSQL 17 (localhost:5432)         │ (Ansible-provisioned)
+    ├─ Redis 7.x (localhost:6379)             │
+    └─ Cloudflared (tunnel daemon, systemd)   ┘
               │
               │ HTTPS (production)
               ↓
     Cloudflare Edge
         ├─ api.optic.works → Medusa
-        ├─ optic.works → Pages (storefront)
-        └─ webhook.optic.works → Workers
+        ├─ optic.works → Pages (storefront - Phase 4)
+        └─ webhook.optic.works → Workers (Phase 4)
 ```
 
 ### Deployment to Hetzner
 
-See `docs/IMPLEMENTATION_GUIDE.md` for complete deployment procedures including:
-- Phase 1-3: Direct Medusa deployment via SSH
-- Phase 4: Cloudflare Tunnel + Pages production setup
+**All infrastructure is now managed via Ansible** - See `docs/DEPLOYMENT_GUIDE.md` for complete deployment procedures.
+
+**Quick deployment commands:**
+```bash
+cd infrastructure/ansible
+
+# Full provisioning (first time or after teardown)
+ansible-playbook playbooks/medusa-provision.yml
+
+# Code updates only (2-3 min)
+ansible-playbook playbooks/medusa-deploy.yml
+
+# Complete teardown for rebuilds
+ansible-playbook playbooks/medusa-destroy.yml
+```
+
+**What's deployed:**
+- PostgreSQL 17 + Redis 7.x (system services)
+- Node.js 22 + pnpm (runtime environment)
+- Medusa v2.11.3 (PM2-managed process)
+- Cloudflare Tunnel (systemd service)
+
+**Manual SSH is primarily for:**
+- Monitoring: `pm2 status`, `pm2 logs medusa-dev`
+- Database admin: `psql medusa_db`
+- Troubleshooting: service logs, health checks
+- Emergency operations: restarts, log inspection
+
+See `infrastructure/ansible/README.md` for detailed playbook documentation.
