@@ -33,15 +33,6 @@
   become_user: "{{ app_user }}"
   changed_when: false
 
-- name: Generate Medusa secrets
-  ansible.builtin.command:
-    cmd: pnpm run generate:secrets
-    chdir: "{{ medusa_service_dir }}"
-  become: yes
-  become_user: "{{ app_user }}"
-  register: secrets_output
-  changed_when: false
-
 - name: Create Medusa .env file
   ansible.builtin.template:
     src: medusa.env.j2

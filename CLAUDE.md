@@ -307,10 +307,17 @@ All environment variables are managed via Infisical - no manual `.env` editing r
 
 **Team Workflow**:
 1. Add `INFISICAL_SERVICE_TOKEN` to GitHub Codespaces repository secrets
-2. Codespaces auto-syncs `.env.local` via post-create script
+2. Codespaces auto-syncs `.env.local` via post-create script (storefront secrets)
 3. Update secrets via Infisical web UI for team access
-4. Never commit `.env.local` or `services/medusa/.env` to Git
-5. See `docs/KEY_MANAGEMENT.md` for variable names, rotation schedules, and complete inventory
+4. For backend deployments: Run `infrastructure/ansible/scripts/generate-secrets-from-infisical.sh` before Ansible
+5. Never commit `.env.local`, `services/medusa/.env`, or `infrastructure/ansible/group_vars/secrets.yml` to Git
+6. See `docs/KEY_MANAGEMENT.md` for variable names, rotation schedules, and complete inventory
+
+**Secret Generation Workflow** (one-time setup):
+1. Generate: `cd services/medusa && pnpm run generate:secrets`
+2. Copy output to Infisical web UI (paths: `/infrastructure`, `/medusa`)
+3. Sync to deployment: `bash infrastructure/ansible/scripts/generate-secrets-from-infisical.sh`
+4. Never use generated secrets directly - Infisical is the source of truth
 
 ## Production Deployment
 
@@ -328,8 +335,14 @@ All environment variables are managed via Infisical - no manual `.env` editing r
 
 **Deployment Commands**:
 ```bash
+# STEP 0: Sync secrets from Infisical (REQUIRED before deployment)
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
 cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
+# → Creates group_vars/secrets.yml from Infisical
+# → Script FAILS if required secrets are missing (by design)
 
+# STEP 1: Deploy infrastructure
 # Full provisioning (first time or clean rebuild)
 ansible-playbook playbooks/medusa-provision.yml
 

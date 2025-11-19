@@ -24,33 +24,50 @@ ansible-galaxy collection install community.postgresql
 
 ## Quick Start
 
-### 1. Configure Secrets
+### 1. Configure Secrets (Infisical - Source of Truth)
 
-Choose ONE of the following methods:
+**⚠️ IMPORTANT**: All secrets MUST be stored in Infisical first. Ansible pulls from Infisical - it does NOT generate secrets.
 
-**Method A: Ansible Vault (Recommended for production)**
+**Step 1: Generate Secrets (One-Time Setup)**
 ```bash
-# Copy secrets template
-cp group_vars/secrets.yml.example group_vars/secrets.yml
+# Generate secure secrets locally
+cd services/medusa
+pnpm run generate:secrets
 
-# Edit secrets
-vim group_vars/secrets.yml
-
-# Encrypt with Ansible Vault
-ansible-vault encrypt group_vars/secrets.yml
-# You'll be prompted for a vault password - save this securely!
+# Output example:
+# POSTGRES_PASSWORD=abc123...
+# JWT_SECRET=def456...
+# COOKIE_SECRET=ghi789...
 ```
 
-**Method B: Infisical (Recommended for teams)**
+**Step 2: Populate Infisical**
 ```bash
-# Pull secrets from Infisical (run from repo root)
-cd ../..
-bash scripts/pull-infisical-secrets.sh
+# Manually add secrets to Infisical web UI:
+# - Project: OpticWorks
+# - Environment: production
+# - Paths:
+#   - /infrastructure (POSTGRES_PASSWORD, CLOUDFLARE_TUNNEL_ID, CLOUDFLARE_TUNNEL_CREDENTIALS)
+#   - /medusa (JWT_SECRET, COOKIE_SECRET, MEDUSA_ADMIN_EMAIL, MEDUSA_ADMIN_PASSWORD)
+```
 
-# Then return to ansible directory
+**Step 3: Sync from Infisical to Ansible**
+```bash
+# Set your Infisical service token
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
+
+# Pull secrets from Infisical
 cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
 
 # This creates group_vars/secrets.yml from Infisical
+# The script will FAIL if required secrets are missing - this is intentional!
+```
+
+**Optional: Encrypt with Ansible Vault** (for additional security layer)
+```bash
+# Encrypt the synced secrets file
+ansible-vault encrypt group_vars/secrets.yml
+# You'll be prompted for a vault password - save this securely!
 ```
 
 ### 2. Verify Inventory
@@ -243,28 +260,65 @@ ansible-playbook playbooks/medusa-destroy.yml
 ansible-playbook playbooks/medusa-provision.yml --ask-vault-pass
 ```
 
-## Integration with Infisical
+## Integration with Infisical (Source of Truth)
 
-**Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the complete list of infrastructure secrets that should be stored in Infisical (environment: `production`, path: `/infrastructure`).
+**⚠️ KEY PRINCIPLE**: Infisical is the ONLY source of truth for secrets. Ansible NEVER generates secrets - it only consumes them.
 
-**Key variables**:
-- `POSTGRES_PASSWORD` - Database credentials
-- `CLOUDFLARE_TUNNEL_ID` - Tunnel identifier
-- `CLOUDFLARE_TUNNEL_CREDENTIALS` - Tunnel authentication JSON
-- `HETZNER_API_TOKEN` - Server management API
+### Secret Workflow
 
-The repository includes a script at `scripts/pull-infisical-secrets.sh` that automatically syncs secrets from Infisical.
-
-To use it for Ansible deployment:
-```bash
-# From repository root
-export INFISICAL_SERVICE_TOKEN=st.xxxxx
-bash scripts/pull-infisical-secrets.sh
-
-# Optionally encrypt with Ansible Vault for additional security
-cd infrastructure/ansible
-ansible-vault encrypt group_vars/secrets.yml
 ```
+┌─────────────────────────────────────────────────────────────┐
+│ 1. Generate Secrets (One-Time)                              │
+│    cd services/medusa && pnpm run generate:secrets          │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 2. Manually Add to Infisical Web UI                         │
+│    - Environment: production                                │
+│    - Paths: /infrastructure, /medusa                        │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 3. Sync to Ansible (Before Every Deployment)                │
+│    bash scripts/generate-secrets-from-infisical.sh          │
+│    → Creates group_vars/secrets.yml                         │
+└────────────────────┬────────────────────────────────────────┘
+                     │
+                     ▼
+┌─────────────────────────────────────────────────────────────┐
+│ 4. Run Ansible Playbooks                                    │
+│    ansible-playbook playbooks/medusa-provision.yml          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Required Secrets in Infisical
+
+**Infrastructure Path** (`/infrastructure`, env: `production`):
+- `POSTGRES_PASSWORD` - PostgreSQL database password
+- `CLOUDFLARE_TUNNEL_ID` - Cloudflare Tunnel identifier
+- `CLOUDFLARE_TUNNEL_CREDENTIALS` - Cloudflare Tunnel authentication JSON
+
+**Medusa Path** (`/medusa`, env: `production`):
+- `JWT_SECRET` - JWT signing key (64 hex chars)
+- `COOKIE_SECRET` - Cookie signing key (64 hex chars)
+- `MEDUSA_ADMIN_EMAIL` - Admin login email
+- `MEDUSA_ADMIN_PASSWORD` - Admin login password
+- `MEDUSA_SECRET_KEY` - Optional: Headless API access
+
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for detailed descriptions, rotation schedules, and usage notes.
+
+### Sync Script Behavior
+
+The `scripts/generate-secrets-from-infisical.sh` script:
+- ✅ Pulls secrets from Infisical using `INFISICAL_SERVICE_TOKEN`
+- ✅ Validates all required secrets exist
+- ❌ **FAILS** if any required secret is missing (intentional - forces Infisical population)
+- ❌ **NEVER** generates secrets as fallback
+- ✅ Creates `group_vars/secrets.yml` for Ansible consumption
+
+**If sync fails**: This means secrets are missing from Infisical. Follow the error message to populate Infisical, then re-run the sync script.
 
 ## Directory Structure
 

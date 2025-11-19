@@ -147,9 +147,23 @@ pnpm run secrets:pull
 
 **Access:**
 ```bash
-# Backend secrets are managed via Ansible
-# See infrastructure/ansible/group_vars/secrets.yml
-# Pull from Infisical manually when deploying
+# Backend secrets are ALWAYS synced from Infisical before deployment
+# NEVER edit infrastructure/ansible/group_vars/secrets.yml manually
+
+# 1. Ensure secrets exist in Infisical (one-time setup)
+cd services/medusa
+pnpm run generate:secrets  # Generate locally
+# → Manually add to Infisical web UI (paths: /infrastructure, /medusa)
+
+# 2. Sync from Infisical to Ansible (before every deployment)
+cd infrastructure/ansible
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
+bash scripts/generate-secrets-from-infisical.sh
+# → Creates group_vars/secrets.yml from Infisical
+# → Script FAILS if required secrets are missing (intentional)
+
+# 3. Deploy
+ansible-playbook playbooks/medusa-provision.yml
 ```
 
 ### 3. Infrastructure Secrets (Ansible)
@@ -170,9 +184,16 @@ pnpm run secrets:pull
 
 **Access:**
 ```bash
-# Stored in infrastructure/ansible/group_vars/secrets.yml
-# Encrypted with Ansible Vault (not yet implemented)
-# Sync to Infisical after generating
+# Infrastructure secrets are stored in Infisical and synced to Ansible
+# NEVER generate or edit infrastructure/ansible/group_vars/secrets.yml manually
+
+# Sync from Infisical (same process as backend secrets)
+cd infrastructure/ansible
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
+bash scripts/generate-secrets-from-infisical.sh
+
+# Optional: Encrypt synced file with Ansible Vault for additional security
+ansible-vault encrypt group_vars/secrets.yml
 ```
 
 ---
@@ -181,23 +202,38 @@ pnpm run secrets:pull
 
 ### 1. Generation
 
-**When creating new secrets:**
+**⚠️ IMPORTANT**: All generated secrets MUST be added to Infisical immediately. Never use generated secrets directly in deployment.
+
+**Backend secrets (PostgreSQL, JWT, cookies):**
 
 ```bash
-# Backend secrets (PostgreSQL, JWT, cookies)
+# Generate secure random secrets
 cd services/medusa
-pnpm run generate:secrets > /tmp/medusa-secrets.env
-cat /tmp/medusa-secrets.env
+pnpm run generate:secrets
 
-# Copy output to Infisical immediately
-# Then delete temporary file
-rm /tmp/medusa-secrets.env
+# Output example:
+# POSTGRES_PASSWORD=abc123...
+# REDIS_PASSWORD=def456...
+# JWT_SECRET=ghi789...
+# COOKIE_SECRET=jkl012...
+
+# ✅ DO: Immediately copy to Infisical web UI
+# - Project: OpticWorks
+# - Environment: production
+# - Paths: /infrastructure (POSTGRES_PASSWORD), /medusa (JWT_SECRET, COOKIE_SECRET, etc.)
+
+# ❌ DON'T: Save to local files or use directly in deployment
 ```
 
 **For API keys (Stripe, Resend, etc.):**
 1. Generate in provider dashboard
 2. Copy to Infisical **immediately**
-3. Never store locally except in `.env.local` (gitignored)
+3. Never store locally except in `.env.local` (gitignored, auto-synced from Infisical)
+
+**Deployment workflow:**
+- Infisical is the source of truth
+- Ansible/Storefront pull from Infisical
+- Deployments FAIL if secrets are missing from Infisical (by design)
 
 ### 2. Storage
 
@@ -465,12 +501,18 @@ When adding a new environment variable:
 - [ ] `HETZNER_API_TOKEN` (TODO: add to Infisical)
 
 **Outstanding Tasks:**
-1. Add Cloudflare Tunnel credentials to Infisical (infrastructure path)
-2. Add Hetzner API token to Infisical (infrastructure path)
-3. Encrypt Ansible `secrets.yml` with Ansible Vault
+1. Add Cloudflare Tunnel credentials to Infisical (infrastructure path) - if not already present
+2. Add Hetzner API token to Infisical (infrastructure path) - if not already present
+3. ~~Encrypt Ansible `secrets.yml` with Ansible Vault~~ - Optional, file is auto-generated from Infisical
 4. Set up monthly rotation reminders for critical secrets
 5. Document emergency backup procedure
 6. Audit optional service variables (R2, Analytics, etc.) and add if needed
+
+**Completed:**
+- ✅ Implemented Infisical-first workflow for backend/infrastructure secrets
+- ✅ Removed fallback secret generation from Ansible
+- ✅ Updated documentation to reflect Infisical as source of truth
+- ✅ Created strict sync script that fails if secrets are missing
 
 ---
 

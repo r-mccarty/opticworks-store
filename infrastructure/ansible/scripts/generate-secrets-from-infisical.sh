@@ -1,12 +1,22 @@
 #!/bin/bash
-# Generate Ansible secrets.yml from Infisical
+# Sync Ansible secrets.yml from Infisical (Source of Truth)
+# This script ONLY pulls from Infisical - it does NOT generate secrets
+# Use services/medusa/scripts/generate-secrets.ts to create new secrets first
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ANSIBLE_DIR="$(dirname "$SCRIPT_DIR")"
 SECRETS_FILE="$ANSIBLE_DIR/group_vars/secrets.yml"
 
-echo "🔐 Generating Ansible secrets from Infisical..."
+# Infisical configuration
+INFISICAL_ENV="${INFISICAL_ENV:-production}"
+INFRASTRUCTURE_PATH="/infrastructure"
+MEDUSA_PATH="/medusa"
+
+echo "🔐 Syncing Ansible secrets from Infisical..."
+echo "   Environment: $INFISICAL_ENV"
+echo "   Paths: $INFRASTRUCTURE_PATH, $MEDUSA_PATH"
+echo ""
 
 # Check if Infisical CLI is available
 if ! command -v infisical &> /dev/null; then
@@ -21,50 +31,68 @@ if [ -z "$INFISICAL_SERVICE_TOKEN" ]; then
     exit 1
 fi
 
-# Generate secrets.yml
-cat > "$SECRETS_FILE" <<'EOF'
+# Function to get secret from Infisical with specific path
+get_secret() {
+    local key=$1
+    local path=$2
+    local required=$3
+
+    local value=$(infisical secrets get "$key" \
+        --token="$INFISICAL_SERVICE_TOKEN" \
+        --env="$INFISICAL_ENV" \
+        --path="$path" \
+        --plain 2>/dev/null || echo "")
+
+    if [ -z "$value" ] && [ "$required" = "true" ]; then
+        echo "❌ CRITICAL: Required secret '$key' not found in Infisical"
+        echo "   Path: $path"
+        echo "   Environment: $INFISICAL_ENV"
+        echo ""
+        echo "   To fix this:"
+        echo "   1. Generate secrets: cd services/medusa && pnpm run generate:secrets"
+        echo "   2. Manually add '$key' to Infisical web UI"
+        echo "   3. Re-run this script"
+        exit 1
+    fi
+
+    echo "$value"
+}
+
+# Fetch secrets from Infisical (STRICT - no fallbacks)
+echo "📥 Fetching infrastructure secrets from $INFRASTRUCTURE_PATH..."
+POSTGRES_PASSWORD=$(get_secret "POSTGRES_PASSWORD" "$INFRASTRUCTURE_PATH" "true")
+CF_TUNNEL_ID=$(get_secret "CLOUDFLARE_TUNNEL_ID" "$INFRASTRUCTURE_PATH" "true")
+CF_TUNNEL_CREDS=$(get_secret "CLOUDFLARE_TUNNEL_CREDENTIALS" "$INFRASTRUCTURE_PATH" "true")
+
+echo "📥 Fetching Medusa secrets from $MEDUSA_PATH..."
+JWT_SECRET=$(get_secret "JWT_SECRET" "$MEDUSA_PATH" "true")
+COOKIE_SECRET=$(get_secret "COOKIE_SECRET" "$MEDUSA_PATH" "true")
+MEDUSA_ADMIN_EMAIL=$(get_secret "MEDUSA_ADMIN_EMAIL" "$MEDUSA_PATH" "false")
+MEDUSA_ADMIN_PASSWORD=$(get_secret "MEDUSA_ADMIN_PASSWORD" "$MEDUSA_PATH" "true")
+MEDUSA_SECRET_KEY=$(get_secret "MEDUSA_SECRET_KEY" "$MEDUSA_PATH" "false")
+
+# Default admin email if not set
+MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
+
+# Validate critical secrets are not empty
+if [ -z "$POSTGRES_PASSWORD" ] || [ -z "$JWT_SECRET" ] || [ -z "$COOKIE_SECRET" ] || [ -z "$MEDUSA_ADMIN_PASSWORD" ]; then
+    echo "❌ One or more critical secrets are missing from Infisical"
+    echo "   This should not happen - check error messages above"
+    exit 1
+fi
+
+echo "✅ All required secrets fetched successfully"
+echo ""
+
+# Generate secrets.yml with timestamp
+TIMESTAMP=$(date -u +"%Y-%m-%d %H:%M:%S UTC")
+cat > "$SECRETS_FILE" <<EOF
 ---
 # Auto-generated from Infisical - DO NOT EDIT MANUALLY
-# Generated: $(date -u +"%Y-%m-%d %H:%M:%S UTC")
+# Source of Truth: Infisical (Environment: $INFISICAL_ENV)
+# Generated: $TIMESTAMP
+# Paths: $INFRASTRUCTURE_PATH, $MEDUSA_PATH
 
-EOF
-
-# Fetch secrets from Infisical and convert to Ansible format
-echo "📥 Fetching secrets from Infisical..."
-
-# Get individual secrets
-POSTGRES_PASSWORD=$(infisical secrets get POSTGRES_PASSWORD --plain 2>/dev/null || echo "")
-MEDUSA_ADMIN_EMAIL=$(infisical secrets get MEDUSA_ADMIN_EMAIL --plain 2>/dev/null || echo "admin@optic.works")
-MEDUSA_ADMIN_PASSWORD=$(infisical secrets get MEDUSA_ADMIN_PASSWORD --plain 2>/dev/null || echo "")
-JWT_SECRET=$(infisical secrets get JWT_SECRET --plain 2>/dev/null || echo "")
-COOKIE_SECRET=$(infisical secrets get COOKIE_SECRET --plain 2>/dev/null || echo "")
-MEDUSA_SECRET_KEY=$(infisical secrets get MEDUSA_SECRET_KEY --plain 2>/dev/null || echo "")
-CF_TUNNEL_ID=$(infisical secrets get CLOUDFLARE_TUNNEL_ID --plain 2>/dev/null || echo "db4738a9-20b7-4dd7-bde2-0760e0188071")
-CF_TUNNEL_CREDS=$(infisical secrets get CLOUDFLARE_TUNNEL_CREDENTIALS --plain 2>/dev/null || echo "")
-
-# Generate missing secrets if needed
-if [ -z "$POSTGRES_PASSWORD" ]; then
-    echo "⚠️  POSTGRES_PASSWORD not in Infisical, generating..."
-    POSTGRES_PASSWORD=$(openssl rand -base64 32)
-fi
-
-if [ -z "$MEDUSA_ADMIN_PASSWORD" ]; then
-    echo "⚠️  MEDUSA_ADMIN_PASSWORD not in Infisical, generating..."
-    MEDUSA_ADMIN_PASSWORD=$(openssl rand -base64 16)
-fi
-
-if [ -z "$JWT_SECRET" ]; then
-    echo "⚠️  JWT_SECRET not in Infisical, generating..."
-    JWT_SECRET=$(openssl rand -hex 32)
-fi
-
-if [ -z "$COOKIE_SECRET" ]; then
-    echo "⚠️  COOKIE_SECRET not in Infisical, generating..."
-    COOKIE_SECRET=$(openssl rand -hex 32)
-fi
-
-# Write secrets to file
-cat >> "$SECRETS_FILE" <<EOF
 # PostgreSQL
 postgres_db_password: "$POSTGRES_PASSWORD"
 
@@ -83,11 +111,11 @@ cloudflare_tunnel_credentials: |
   $CF_TUNNEL_CREDS
 EOF
 
-echo "✅ Secrets file generated: $SECRETS_FILE"
+echo "✅ Secrets file synced: $SECRETS_FILE"
 echo ""
 echo "Next steps:"
 echo "  1. Review secrets: cat $SECRETS_FILE"
-echo "  2. Encrypt with Ansible Vault: ansible-vault encrypt $SECRETS_FILE"
-echo "  3. Run playbook: ansible-playbook playbooks/medusa-provision.yml --ask-vault-pass"
+echo "  2. (Optional) Encrypt with Ansible Vault: ansible-vault encrypt $SECRETS_FILE"
+echo "  3. Run playbook: ansible-playbook playbooks/medusa-provision.yml"
 echo ""
-echo "⚠️  IMPORTANT: Store any generated secrets back in Infisical!"
+echo "💡 Remember: Infisical is the source of truth - never edit $SECRETS_FILE manually"
