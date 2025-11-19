@@ -198,13 +198,17 @@ cloudflare_tunnel_credentials: |
 
 **Managed via**: Infisical (production/team)
 
-**Key variables**:
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for all ~50 variables, Infisical paths, and rotation schedules.
+
+**Key variables** (example):
 ```bash
 NEXT_PUBLIC_MEDUSA_ENABLED=true
 NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
+RESEND_API_KEY=re_...
+# See KEY_MANAGEMENT.md for complete list
 ```
 
 ---

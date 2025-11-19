@@ -286,17 +286,23 @@ Test failure cases:
 
 ### 7.1 Audit Current Secrets
 
-**Required in Infisical:**
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the definitive list of all ~50 variables, their Infisical paths, rotation schedules, and criticality ratings.
+
+**Required in Infisical** (core variables):
 ```bash
 # Storefront (environment: development + production)
 NEXT_PUBLIC_MEDUSA_ENABLED=true
 NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx
-STRIPE_PUBLISHABLE_KEY=pk_test_xxx  # Or pk_live_xxx for production
-STRIPE_SECRET_KEY=sk_test_xxx       # Or sk_live_xxx for production
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx  # Or pk_live_xxx for production
+STRIPE_SECRET_KEY=sk_test_xxx                   # Or sk_live_xxx for production
 RESEND_API_KEY=re_xxx
+NEXT_PUBLIC_FROM_EMAIL=hello@optic.works
 
-# Plus any missing variables from .env.template
+# See docs/KEY_MANAGEMENT.md for complete list including:
+# - Cloudflare R2/Images (10 variables)
+# - Analytics (4 variables)
+# - Optional integrations (EasyPost, AI/MCP, Supabase)
 ```
 
 ### 7.2 Add Missing Secrets
@@ -348,7 +354,7 @@ curl -s -H "x-publishable-api-key: pk_xxx" \
 
 **Solutions:**
 - Verify `NEXT_PUBLIC_MEDUSA_ENABLED=true` in `.env.local`
-- Verify `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` is valid
+- Verify `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` is valid (note: correct variable name, see `docs/KEY_MANAGEMENT.md`)
 - Check CORS configuration in `services/medusa/medusa-config.ts`
 
 ### Cart Not Persisting

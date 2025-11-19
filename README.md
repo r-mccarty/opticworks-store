@@ -159,25 +159,25 @@ cat .env.local | grep NEXT_PUBLIC_MEDUSA_BASE_URL
 
 ### What's in Infisical
 
-**Storefront Secrets** (environment: `development`, path: `/`):
-- `NEXT_PUBLIC_MEDUSA_BASE_URL` - Backend API URL
-- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` - Store API access
-- `STRIPE_PUBLISHABLE_KEY` - Stripe checkout
-- `STRIPE_SECRET_KEY` - Stripe backend
-- `RESEND_API_KEY` - Email delivery
-- Plus ~25 more environment-specific variables
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the definitive list of all ~50 variables organized by service (Medusa, Stripe, Cloudflare, Analytics, etc.), their Infisical paths, rotation schedules, and usage notes.
 
-**Backend Secrets** (environment: `production`, path: `/medusa`):
-- `DATABASE_URL` - PostgreSQL connection
-- `JWT_SECRET` - Session tokens
-- `COOKIE_SECRET` - Cookie signing
-- `MEDUSA_ADMIN_EMAIL` / `MEDUSA_ADMIN_PASSWORD` - Admin login
-- Plus Stripe, Redis, CORS configuration
+**Key Variable Categories**:
+- **Storefront** (environment: `development` | `staging` | `production`, path: `/`):
+  - Medusa integration, Stripe payments, Email, Cloudflare R2/Images
+  - Analytics (GA4), Optional: EasyPost, AI/MCP, Supabase
+
+- **Backend** (environment: `production` | `staging`, path: `/medusa`):
+  - Database (`DATABASE_URL`), Redis, Auth (`JWT_SECRET`, `COOKIE_SECRET`)
+  - Admin credentials, Stripe, CORS configuration
+
+- **Infrastructure** (environment: `production`, path: `/infrastructure`):
+  - `POSTGRES_PASSWORD`, Cloudflare Tunnel, Hetzner API token
 
 **Key Management:**
-- Secrets auto-rotate: Backend monthly, storefront on-demand
+- Secrets auto-rotate: Backend monthly, storefront quarterly/yearly
 - Never commit `.env.local` or `services/medusa/.env` to Git
 - Use Infisical web UI to add/update secrets for team access
+- See `docs/KEY_MANAGEMENT.md` for rotation schedules and procedures
 
 ## Development Workflow
 
