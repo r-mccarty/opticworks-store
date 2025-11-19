@@ -1,6 +1,6 @@
 # API Documentation - OpticWorks E-commerce Platform
 
-This document provides comprehensive documentation for all API endpoints in the OpticWorks Window Tinting E-commerce Platform. The system features both **production-ready integrations** and **sophisticated development stubs** that simulate real backend services.
+This document provides comprehensive documentation for all API endpoints in the OpticWorks Presence Intelligence Platform. The system powers the e-commerce experience for mmWave presence sensors, bridges, integrator kits, and developer firmware products with both **production-ready integrations** and **sophisticated development stubs**.
 
 ## Architecture Overview
 
@@ -8,7 +8,7 @@ The API layer consists of two implementation tiers:
 1. **Next.js API Routes** (`src/app/api/`) - HTTP endpoints for frontend integration (12 total)
 2. **Service Layer Functions** (`src/lib/api/`) - Business logic functions (6 total)
 
-**Current Status**: 4 fully production-ready endpoints, 8 advanced development stubs with realistic business logic.
+**Current Status**: 4 fully production-ready endpoints, 8 advanced development stubs with realistic business logic for sensor product commerce.
 
 ---
 
@@ -48,8 +48,8 @@ The API layer consists of two implementation tiers:
 
 **Features**:
 - ✅ **React Email template rendering** with professional styling
-- ✅ **Real email delivery** via Resend API 
-- ✅ **Tesla-specific branding** and automotive content
+- ✅ **Real email delivery** via Resend API
+- ✅ **OpticWorks branding** and sensor product content
 - ✅ **Template validation** and comprehensive error handling
 - ✅ **Environment-based configuration** (dev/prod switching)
 - ✅ **CORS support** for cross-origin requests
@@ -247,9 +247,9 @@ The API layer consists of two implementation tiers:
 ```
 
 **Mock Inventory Features**:
-- Tesla Model Y/3/S/X focused product catalog
+- mmWave sensor and accessory product catalog
 - Realistic stock levels with reserved quantities
-- Restock date predictions
+- Restock date predictions for hardware components
 - Maximum order quantity limits
 - Status categories with business logic
 
@@ -297,10 +297,10 @@ interface ProductAnalyticsEvent {
   properties: {
     productId: string
     productName: string
-    category: string
+    category: 'sensor' | 'bundle' | 'accessory' | 'software'
     price: number
-    vlt?: string // For tinting films
-    teslaCompatible?: boolean
+    sensorType?: string // e.g., 'mmWave 60GHz'
+    firmwareIncluded?: boolean
   }
 }
 ```
@@ -311,7 +311,7 @@ interface ProductAnalyticsEvent {
 - Batch event processing
 - Event filtering and aggregation
 - Summary statistics generation
-- Tesla-specific event tracking
+- Sensor product and firmware event tracking
 
 ---
 
@@ -395,10 +395,10 @@ interface ProductAnalyticsEvent {
 - `sendWarrantyClaimConfirmation(claimDetails)` - 🔄 Template ready
 
 **Template System**:
-- Professional React Email templates with Tesla branding
+- Professional React Email templates with OpticWorks branding
 - Responsive email design with company logo
 - Order itemization and tax breakdown
-- Installation guide links for Tesla products
+- Installation guide links for sensor products
 - Support contact information and next steps
 
 **Integration Features**:
@@ -409,34 +409,35 @@ interface ProductAnalyticsEvent {
 
 ---
 
-### Legal Compliance (`tintingLaws.ts`) 📊 **SOPHISTICATED MOCK**
+### Firmware Management (`firmware.ts`) 📊 **SOPHISTICATED MOCK**
 
 **Core Functions**:
 ```typescript
-fetchTintingLaws(stateCode: string): Promise<TintingLaw>
-checkTintCompliance(stateCode: string, vltPercentage: number, windowType: string): Promise<ComplianceCheck>
-fetchAvailableStates(): Promise<Array<{code: string, name: string}>>
-searchTintingLaws(searchTerm: string): Promise<TintingLaw[]>
+fetchAvailableFirmware(deviceType: string): Promise<FirmwareVersion[]>
+checkFirmwareCompatibility(deviceId: string, firmwareVersion: string): Promise<CompatibilityCheck>
+getFirmwareUpdateStatus(deviceId: string): Promise<UpdateStatus>
+downloadFirmwarePackage(firmwareId: string): Promise<FirmwarePackage>
 ```
 
 **Data Quality**:
-- Complete legal database for CA, TX, FL, NY
-- Real VLT percentages and regulations
-- Penalty structures and fine amounts
-- Medical exemption requirements
-- Color restriction information
+- Complete firmware catalog for ESP32-S3 devices
+- Beta and stable channel versions
+- Release notes and changelog information
+- Compatibility matrices for hardware revisions
+- OTA update package information
 
 **Business Logic**:
 ```typescript
-interface TintingLaw {
-  state: string
-  frontSideWindows: { minVlt: number; maxVlt: number }
-  backSideWindows: { minVlt: number; maxVlt: number }
-  rearWindow: { minVlt: number; maxVlt: number }
-  penalties: { firstOffense: string; repeatOffense: string }
-  medicalExemptions: boolean
-  colorRestrictions: string[]
-  enforcementLevel: 'strict' | 'moderate' | 'lenient'
+interface FirmwareVersion {
+  version: string
+  channel: 'stable' | 'beta' | 'dev'
+  releaseDate: string
+  deviceTypes: string[]
+  features: string[]
+  bugfixes: string[]
+  breakingChanges?: string[]
+  downloadSize: number
+  minHardwareRevision: string
 }
 ```
 
@@ -452,7 +453,7 @@ interface TintingLaw {
 
 **Mock Data Quality**:
 - 2 sample orders with complete lifecycle tracking
-- Realistic Tesla product orders (Model Y kits, films)
+- Realistic sensor product orders (Bed Presence Kits, accessories)
 - Complete shipping and billing address structures
 - Multi-stage tracking updates with timestamps
 - Order modification capabilities based on status
@@ -487,7 +488,7 @@ interface TrackingUpdate {
 - Billing dispute processing with evidence handling
 
 **Mock Invoices**:
-- Realistic Tesla-focused orders ($299-399 range)
+- Realistic sensor product orders ($59-525 range)
 - Complete tax calculations and breakdowns
 - Payment method and shipping information
 - Professional invoice formatting ready for PDF generation
@@ -510,20 +511,21 @@ interface TrackingUpdate {
 
 ---
 
-### Vehicle Compatibility (`compatibility.ts`) 📊 **SOPHISTICATED MOCK**
+### Home Automation Integration (`integration.ts`) 📊 **SOPHISTICATED MOCK**
 
 **Core Functions**:
-- `checkVehicleCompatibility(make, model, year, product)` - Tesla-focused matching
-- `getCompatibleProducts(vehicleInfo)` - Product recommendation engine
-- `searchVehicles(query)` - Vehicle database search
-- `getInstallationDifficulty(vehicle, product)` - Difficulty assessment
+- `checkPlatformCompatibility(platform, sensorModel)` - Home Assistant, Node-RED, etc.
+- `getRecommendedSensors(automationUseCase)` - Product recommendation engine
+- `searchIntegrations(query)` - Integration library search
+- `getInstallationGuide(sensorId, platform)` - Platform-specific setup guides
 
-**Tesla Specialization**:
-- Complete Tesla model database (Model Y, 3, S, X)
-- Year-specific compatibility (including 2025+ Juniper)
-- Product-to-vehicle matching algorithms
-- Installation difficulty ratings
-- Recommendation engine for optimal products
+**Platform Specialization**:
+- Complete Home Assistant integration library
+- ESPHome configuration examples
+- MQTT broker compatibility
+- Blueprint and automation templates
+- Installation difficulty ratings for different platforms
+- Recommendation engine for optimal sensor placement
 
 ---
 
@@ -581,16 +583,16 @@ await new Promise(resolve => setTimeout(resolve, Math.random() * 500 + 300));
 ## Mock Data Quality Standards
 
 ### Business Realism
-- **Tesla Focus**: All products, orders, and scenarios reflect Tesla/automotive specialization
-- **Pricing Accuracy**: Market-realistic pricing ($15-399 range) based on actual tinting industry
+- **Sensor Hardware Focus**: All products, orders, and scenarios reflect mmWave presence sensor products
+- **Pricing Accuracy**: Market-realistic pricing ($59-525 range) based on actual IoT hardware industry
 - **Geographic Accuracy**: Real US states, zip codes, and addresses in mock data
-- **Legal Compliance**: Actual VLT percentages and state law requirements
+- **Technical Specifications**: Accurate sensor specs (60GHz mmWave, ESP32-S3, detection zones)
 
 ### Data Completeness
 - **Complete Address Structures**: Full shipping/billing addresses with proper formatting
 - **Payment Method Details**: Realistic card types, last four digits, expiration dates
 - **Order Lifecycle**: Complete tracking from creation to delivery
-- **Product Specifications**: Accurate VLT percentages, warranty terms, installation difficulty
+- **Product Specifications**: Accurate firmware versions, warranty terms, installation difficulty
 
 ### Integration Readiness
 - **Database Schema**: Mock data structures match planned production database schemas
@@ -676,4 +678,4 @@ const validatedData = requestSchema.parse(requestBody);
 - ✅ **Performance optimization**
 - ✅ **Security audit and compliance**
 
-This comprehensive API documentation reflects the current state of a sophisticated, production-ready e-commerce platform with complete Tesla automotive specialization, real payment processing, and advanced development infrastructure.
+This comprehensive API documentation reflects the current state of a sophisticated, production-ready e-commerce platform for mmWave presence sensors with real payment processing, firmware distribution, and advanced development infrastructure.
