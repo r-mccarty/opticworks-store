@@ -312,6 +312,8 @@ pnpm run lint
 
 - **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning via Ansible
 - **[CONTRIBUTORS.md](docs/CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
+- **[INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
+- **[KEY_MANAGEMENT.md](docs/KEY_MANAGEMENT.md)** - Secret rotation and Infisical strategy
 - **[CODEBASE_EXPLANATION.md](docs/CODEBASE_EXPLANATION.md)** - Architecture patterns
 - **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** - Zustand store design
 - **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** - Checkout implementation
