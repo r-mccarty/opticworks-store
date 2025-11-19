@@ -71,12 +71,22 @@ This guide documents the OpticWorks production architecture and deployment workf
 
 1. **SSH Access**: Configure Hetzner node access (see `docs/CONTRIBUTORS.md`)
 2. **Ansible**: Install locally (`pip install ansible` or `apt install ansible`)
-3. **Secrets**: Configure `infrastructure/ansible/group_vars/secrets.yml`
+3. **Infisical**: Ensure all secrets are stored in Infisical **before** deployment
+   - Project: `OpticWorks`
+   - Environment: `production`
+   - Paths: `/infrastructure`, `/medusa`
+   - See `docs/KEY_MANAGEMENT.md` for complete variable list
+4. **Infisical Service Token**: Set `INFISICAL_SERVICE_TOKEN` environment variable
 
 ### Quick Start
 
 ```bash
+# 0. Sync secrets from Infisical (REQUIRED before every deployment)
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
 cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
+# → Creates group_vars/secrets.yml from Infisical
+# → Script FAILS if required secrets are missing
 
 # 1. Verify connectivity
 ansible all -m ping
