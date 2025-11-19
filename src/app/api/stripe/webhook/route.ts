@@ -13,11 +13,17 @@ const getStripe = () => {
   return stripe;
 }
 
-// Initialize Supabase client
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy-initialize Supabase client (optional - only for order storage)
+let supabase: ReturnType<typeof createClient> | null = null;
+const getSupabase = () => {
+  if (!supabase && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+  }
+  return supabase;
+};
 
 export async function POST(request: NextRequest) {
   const body = await request.text();
@@ -197,20 +203,26 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     const orderNumber = `ORD-${Date.now()}`;
     console.log('🔍 DEBUG: Generated order number:', orderNumber);
 
-    // Insert into test_orders table
-    console.log('🔍 DEBUG: Attempting database insert...');
-    const { error: dbError } = await supabase
-      .from('test_orders')
-      .insert({
-        customer_email: customerEmail,
-        total_amount: total,
-        status: 'completed',
-      });
+    // Insert into test_orders table (if Supabase is configured)
+    const supabaseClient = getSupabase();
+    if (supabaseClient) {
+      console.log('🔍 DEBUG: Attempting database insert...');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: dbError } = await (supabaseClient as any)
+        .from('test_orders')
+        .insert({
+          customer_email: customerEmail,
+          total_amount: total,
+          status: 'completed',
+        });
 
-    if (dbError) {
-      console.error('❌ DEBUG: Database error:', dbError);
+      if (dbError) {
+        console.error('❌ DEBUG: Database error:', dbError);
+      } else {
+        console.log('✅ DEBUG: Database insert successful');
+      }
     } else {
-      console.log('✅ DEBUG: Database insert successful');
+      console.log('⚠️ DEBUG: Supabase not configured, skipping database insert');
     }
 
     // Send order confirmation email
@@ -398,22 +410,28 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       total: totalAmount,
     });
 
-    // Store order in database
-    const { error: dbError } = await supabase
-      .from('test_orders')
-      .insert({
-        customer_email: customerEmail,
-        total_amount: totalAmount,
-        status: 'completed',
-        order_number: orderNumber,
-        checkout_session_id: session.id,
-        stripe_payment_intent_id: session.payment_intent as string,
-      });
+    // Store order in database (if Supabase is configured)
+    const supabaseClient = getSupabase();
+    if (supabaseClient) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: dbError } = await (supabaseClient as any)
+        .from('test_orders')
+        .insert({
+          customer_email: customerEmail,
+          total_amount: totalAmount,
+          status: 'completed',
+          order_number: orderNumber,
+          checkout_session_id: session.id,
+          stripe_payment_intent_id: session.payment_intent as string,
+        });
 
-    if (dbError) {
-      console.error('❌ Database error:', dbError);
+      if (dbError) {
+        console.error('❌ Database error:', dbError);
+      } else {
+        console.log('✅ Order stored in database successfully');
+      }
     } else {
-      console.log('✅ Order stored in database successfully');
+      console.log('⚠️ Supabase not configured, skipping database insert');
     }
 
     // Send order confirmation email  
