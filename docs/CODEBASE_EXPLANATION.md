@@ -66,7 +66,6 @@ src/app/
 - 🔧 **Phase 2 In Progress**: Catalog import & storefront integration
   - Product catalog automation ready (`pnpm run catalog:import`)
   - Storefront API client ready (`src/lib/api/medusa.ts`)
-  - Blocked by Infisical secret management setup (30-45 min)
 
 ### Medusa API Integration Layer
 
