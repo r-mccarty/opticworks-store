@@ -1,6 +1,6 @@
 # State Management
 
-This document explains how state management works in the OpticWorks e-commerce platform.
+This document explains how state management works in the OpticWorks Presence Intelligence Platform.
 
 ## Architecture Overview
 
