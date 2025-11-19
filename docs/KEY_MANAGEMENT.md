@@ -29,17 +29,93 @@ This document defines the strategy for managing API keys, credentials, and secre
 
 **Variables:**
 
+#### Core Application
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NODE_ENV` | String | Never | ⚠️ | Environment (development/production) |
+| `NEXT_PUBLIC_APP_URL` | URL | Never | ⚠️ | Canonical site URL |
+
+#### Medusa Backend Integration
 | Variable | Type | Rotation | Critical | Notes |
 |----------|------|----------|----------|-------|
 | `NEXT_PUBLIC_MEDUSA_ENABLED` | Boolean | Never | ⚠️ | Toggle Medusa integration |
 | `NEXT_PUBLIC_MEDUSA_BASE_URL` | URL | Never | ✅ | Backend API endpoint |
-| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | API Key | Quarterly | ✅ | Store API access |
-| `STRIPE_PUBLISHABLE_KEY` | API Key | Yearly | ✅ | Stripe checkout (public) |
+| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | API Key | Quarterly | ✅ | Store API access (public) |
+| `MEDUSA_ENABLED` | Boolean | Never | ⚠️ | Server-side Medusa toggle |
+| `MEDUSA_BASE_URL` | URL | Never | ⚠️ | Server-side backend URL |
+| `MEDUSA_API_TOKEN` | API Key | Quarterly | ⚠️ | Server-side API access |
+| `MEDUSA_SECRET_KEY` | API Key | Quarterly | ✅ | Admin automation (secret key) |
+| `MEDUSA_ADMIN_EMAIL` | Email | Never | ⚠️ | Admin login (for scripts) |
+| `MEDUSA_ADMIN_PASSWORD` | Password | Monthly | ✅ | Admin login (for scripts) |
+
+#### Stripe Payment Processing
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | API Key | Yearly | ✅ | Stripe checkout (public) |
 | `STRIPE_SECRET_KEY` | API Key | Yearly | ✅ | Stripe backend (private) |
-| `STRIPE_WEBHOOK_SECRET` | Secret | Yearly | ✅ | Webhook verification |
+| `STRIPE_WEBHOOK_SECRET` | Secret | Yearly | ✅ | Production webhook verification |
+| `STRIPE_WEBHOOK_SECRET_DEV` | Secret | Yearly | ⚠️ | Development webhook (Stripe CLI) |
+| `STRIPE_SHIPPING_WEBHOOK_SECRET` | Secret | Yearly | ✅ | Production shipping webhook |
+| `STRIPE_SHIPPING_WEBHOOK_SECRET_DEV` | Secret | Yearly | ⚠️ | Development shipping webhook |
+
+#### Email & Communications
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
 | `RESEND_API_KEY` | API Key | Yearly | ⚠️ | Email delivery |
-| `NEXT_PUBLIC_APP_URL` | URL | Never | ⚠️ | Canonical site URL |
-| `R2_*` | Credentials | Quarterly | ⚠️ | Cloudflare R2 storage |
+| `NEXT_PUBLIC_FROM_EMAIL` | Email | Never | ⚠️ | Sender email address |
+
+#### Cloudflare Services
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `R2_ACCESS_KEY_ID` | Access Key | Quarterly | ⚠️ | R2 storage access |
+| `R2_SECRET_ACCESS_KEY` | Secret Key | Quarterly | ✅ | R2 storage secret |
+| `R2_BUCKET_NAME` | String | Never | ⚠️ | R2 bucket name |
+| `R2_ENDPOINT_URL` | URL | Never | ⚠️ | R2 API endpoint |
+| `R2_PUBLIC_URL` | URL | Never | ⚠️ | R2 public CDN URL |
+| `CLOUDFLARE_IMAGES_TOKEN` | API Token | Quarterly | ⚠️ | Images API access |
+| `CLOUDFLARE_ACCOUNT_ID` | ID | Never | ⚠️ | Account identifier |
+| `CLOUDFLARE_EMAIL` | Email | Never | ⚠️ | Account email |
+| `CLOUDFLARE_GLOBAL_API_KEY` | API Key | Quarterly | ✅ | Global API access |
+| `CLOUDFLARE_API_BASE_URL` | URL | Never | ⚠️ | API base endpoint |
+
+#### Logistics & Shipping
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `EASYPOST_API_KEY` | API Key | Yearly | ⚠️ | Shipping rate calculation |
+
+#### Analytics & Monitoring
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | ID | Never | ⚠️ | Google Analytics tracking |
+| `GOOGLE_CLOUD_PROJECT` | ID | Never | ⚠️ | GCP project ID |
+| `GA4_PROPERTY_ID` | ID | Never | ⚠️ | GA4 property ID |
+| `GOOGLE_APPLICATION_CREDENTIALS` | JSON | Quarterly | ⚠️ | Service account credentials |
+
+#### AI & MCP Integration
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `CONTEXT7_API_KEY` | API Key | Quarterly | ⚠️ | Context7 service |
+| `CONTEXT7_MCP_URL` | URL | Never | ⚠️ | MCP endpoint |
+| `CONTEXT7_API_URL` | URL | Never | ⚠️ | API endpoint |
+| `GEMINI_API_KEY` | API Key | Quarterly | ⚠️ | Google Gemini API |
+
+#### Hetzner Development Access (Development Only)
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `HETZNER_MEDUSA_URL` | URL | Never | ⚠️ | Direct Medusa access |
+| `HETZNER_POSTGRES_URL` | Connection String | Monthly | ✅ | Direct DB access |
+| `HETZNER_POSTGRES_HOST` | Hostname | Never | ⚠️ | PostgreSQL host |
+| `HETZNER_POSTGRES_PORT` | Port | Never | ⚠️ | PostgreSQL port |
+| `HETZNER_POSTGRES_DB` | String | Never | ⚠️ | Database name |
+| `HETZNER_POSTGRES_USER` | String | Never | ⚠️ | Database user |
+| `HETZNER_POSTGRES_PASSWORD` | Password | Monthly | ✅ | Database password |
+| `HETZNER_REDIS_URL` | Connection String | Quarterly | ⚠️ | Direct Redis access |
+
+#### Database & Auth (if using Supabase)
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL | Never | ⚠️ | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | API Key | Quarterly | ✅ | Service role access |
 
 **Access:**
 ```bash
@@ -347,36 +423,54 @@ When adding a new environment variable:
 
 ---
 
-## Current Key Inventory (2025-11-18)
+## Current Key Inventory (2025-11-19)
 
-**Status:** ✅ All critical secrets in Infisical
+**Status:** ✅ Critical secrets in Infisical, ⚠️ Some optional integrations pending
 
-### Storefront (Development)
+### Storefront (Development) - Core
 - [x] `NEXT_PUBLIC_MEDUSA_ENABLED=true`
 - [x] `NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works`
 - [x] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx`
-- [x] `STRIPE_PUBLISHABLE_KEY=pk_test_xxx`
+- [x] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx`
 - [x] `STRIPE_SECRET_KEY=sk_test_xxx`
+- [x] `STRIPE_WEBHOOK_SECRET`
+- [x] `STRIPE_WEBHOOK_SECRET_DEV`
 - [x] `RESEND_API_KEY=re_xxx`
+- [x] `NEXT_PUBLIC_FROM_EMAIL`
+- [x] `NEXT_PUBLIC_APP_URL`
+
+### Storefront (Development) - Optional Services
+- [ ] Cloudflare R2 (`R2_*` - 5 variables)
+- [ ] Cloudflare Images (`CLOUDFLARE_*` - 5 variables)
+- [ ] EasyPost shipping (`EASYPOST_API_KEY`)
+- [ ] Google Analytics (`GA4_*`, `GOOGLE_*` - 4 variables)
+- [ ] AI/MCP integrations (`CONTEXT7_*`, `GEMINI_API_KEY`)
+- [ ] Supabase (if used) (`SUPABASE_*` - 2 variables)
 
 ### Backend (Production)
 - [x] `DATABASE_URL` (URL-encoded password)
+- [x] `REDIS_URL`
 - [x] `JWT_SECRET` (64 chars)
 - [x] `COOKIE_SECRET` (64 chars)
 - [x] `MEDUSA_ADMIN_EMAIL`
 - [x] `MEDUSA_ADMIN_PASSWORD`
 - [x] `STRIPE_API_KEY`
+- [x] `MEDUSA_STORE_CORS`
+- [x] `MEDUSA_ADMIN_CORS`
 
 ### Infrastructure
 - [x] `POSTGRES_PASSWORD` (in Ansible secrets.yml)
 - [x] `CLOUDFLARE_TUNNEL_ID`
 - [ ] `CLOUDFLARE_TUNNEL_CREDENTIALS` (TODO: add to Infisical)
+- [ ] `HETZNER_API_TOKEN` (TODO: add to Infisical)
 
 **Outstanding Tasks:**
-1. Add Cloudflare Tunnel credentials to Infisical
-2. Encrypt Ansible `secrets.yml` with Ansible Vault
-3. Set up monthly rotation reminders for critical secrets
-4. Document emergency backup procedure
+1. Add Cloudflare Tunnel credentials to Infisical (infrastructure path)
+2. Add Hetzner API token to Infisical (infrastructure path)
+3. Encrypt Ansible `secrets.yml` with Ansible Vault
+4. Set up monthly rotation reminders for critical secrets
+5. Document emergency backup procedure
+6. Audit optional service variables (R2, Analytics, etc.) and add if needed
 
 ---
 
@@ -389,5 +483,11 @@ When adding a new environment variable:
 
 ---
 
-**Last Updated**: 2025-11-18
+**Last Updated**: 2025-11-19
 **Next Review**: Monthly (align with rotation schedule)
+
+---
+
+**Change Log:**
+- **2025-11-19**: Expanded storefront secrets with complete variable inventory (~50 variables), corrected variable names to match codebase (e.g., `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`), added categorization by service
+- **2025-11-18**: Initial version with core secrets inventory

@@ -166,6 +166,8 @@ hetzner-node ansible_host=hetzner-node ansible_user=ryan
 - JWT/cookie secrets
 - Cloudflare tunnel credentials
 
+**Note**: See `docs/KEY_MANAGEMENT.md` for complete variable inventory, Infisical organization, and rotation schedules for all secrets (storefront, backend, and infrastructure).
+
 ## Common Tasks
 
 ### Update Medusa Version
@@ -242,6 +244,14 @@ ansible-playbook playbooks/medusa-provision.yml --ask-vault-pass
 ```
 
 ## Integration with Infisical
+
+**Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the complete list of infrastructure secrets that should be stored in Infisical (environment: `production`, path: `/infrastructure`).
+
+**Key variables**:
+- `POSTGRES_PASSWORD` - Database credentials
+- `CLOUDFLARE_TUNNEL_ID` - Tunnel identifier
+- `CLOUDFLARE_TUNNEL_CREDENTIALS` - Tunnel authentication JSON
+- `HETZNER_API_TOKEN` - Server management API
 
 The repository includes a script at `scripts/pull-infisical-secrets.sh` that automatically syncs secrets from Infisical.
 

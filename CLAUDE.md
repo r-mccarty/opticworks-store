@@ -137,25 +137,36 @@ pnpm run build  # ✅ Must pass (use 240s timeout)
 
 All environment variables are managed via Infisical - no manual `.env` editing required.
 
-**What's in Infisical**:
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the definitive list of all ~50 variables, their Infisical paths, rotation schedules, and usage notes.
 
-**Storefront** (environment: `development`, path: `/`):
-- Medusa integration: `NEXT_PUBLIC_MEDUSA_BASE_URL`, `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`
-- Stripe: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`
-- Email: `RESEND_API_KEY`
-- ~25 more environment-specific variables
+**What's in Infisical** (summary):
 
-**Backend** (environment: `production`, path: `/medusa`):
-- Database: `DATABASE_URL` (PostgreSQL connection)
-- Auth: `JWT_SECRET`, `COOKIE_SECRET`
-- Admin: `MEDUSA_ADMIN_EMAIL`, `MEDUSA_ADMIN_PASSWORD`
-- Services: Stripe, Redis, CORS configuration
+**Storefront** (environment: `development` | `staging` | `production`, path: `/`):
+- Medusa integration (6 variables: `NEXT_PUBLIC_MEDUSA_*`, `MEDUSA_*`)
+- Stripe payments (6 variables: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, webhook secrets)
+- Email & communications (2 variables: `RESEND_API_KEY`, `NEXT_PUBLIC_FROM_EMAIL`)
+- Cloudflare services (10 variables: R2 storage, Images API)
+- Analytics & monitoring (4 variables: Google Analytics, GA4)
+- Optional integrations: EasyPost, AI/MCP services, Supabase
+
+**Backend** (environment: `production` | `staging`, path: `/medusa`):
+- Database & cache: `DATABASE_URL`, `REDIS_URL`
+- Authentication: `JWT_SECRET`, `COOKIE_SECRET`
+- Admin access: `MEDUSA_ADMIN_EMAIL`, `MEDUSA_ADMIN_PASSWORD`
+- Payment processing: `STRIPE_API_KEY`
+- CORS configuration: `MEDUSA_STORE_CORS`, `MEDUSA_ADMIN_CORS`
+
+**Infrastructure** (environment: `production`, path: `/infrastructure`):
+- Database: `POSTGRES_PASSWORD`
+- Cloudflare Tunnel: `CLOUDFLARE_TUNNEL_ID`, `CLOUDFLARE_TUNNEL_CREDENTIALS`
+- Server management: `HETZNER_API_TOKEN`
 
 **Team Workflow**:
 1. Add `INFISICAL_SERVICE_TOKEN` to GitHub Codespaces repository secrets
 2. Codespaces auto-syncs `.env.local` via post-create script
 3. Update secrets via Infisical web UI for team access
 4. Never commit `.env.local` or `services/medusa/.env` to Git
+5. See `docs/KEY_MANAGEMENT.md` for variable names, rotation schedules, and complete inventory
 
 ## Production Deployment
 
