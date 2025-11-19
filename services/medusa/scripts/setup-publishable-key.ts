@@ -35,7 +35,9 @@ interface SalesChannel {
 
 interface PublishableApiKey {
   id: string;
+  token: string;
   title: string;
+  type: string;
   created_at: string;
 }
 
@@ -131,14 +133,14 @@ async function createPublishableKey(title: string, auth: AdminAuthHeader): Promi
 
   try {
     const response = await retryFetch(
-      `${adminUrl}/admin/publishable-api-keys`,
+      `${adminUrl}/admin/api-keys`,
       {
         method: 'POST',
         headers: {
           'Authorization': auth.header,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ title }),
+        body: JSON.stringify({ title, type: 'publishable' }),
       },
       {
         maxAttempts: 3,
@@ -154,9 +156,10 @@ async function createPublishableKey(title: string, auth: AdminAuthHeader): Promi
     }
 
     const data = await response.json();
-    const apiKey = data.publishable_api_key;
+    const apiKey = data.api_key;
 
     console.log(`✓ Created publishable API key: ${apiKey.id}`);
+    console.log(`  Token: ${apiKey.token}`);
 
     return apiKey;
   } catch (error) {
@@ -175,7 +178,7 @@ async function associateKeyWithChannel(keyId: string, channelId: string, auth: A
 
   try {
     const response = await retryFetch(
-      `${adminUrl}/admin/publishable-api-keys/${keyId}/sales-channels`,
+      `${adminUrl}/admin/api-keys/${keyId}/sales-channels`,
       {
         method: 'POST',
         headers: {
@@ -183,7 +186,7 @@ async function associateKeyWithChannel(keyId: string, channelId: string, auth: A
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          sales_channel_id: channelId,
+          add: [channelId],
         }),
       },
       {
@@ -215,7 +218,9 @@ function displayResults(apiKey: PublishableApiKey, salesChannel: SalesChannel): 
   console.log('='.repeat(70));
   console.log(`
 Key ID:            ${apiKey.id}
+Token:             ${apiKey.token}
 Title:             ${apiKey.title}
+Type:              ${apiKey.type}
 Sales Channel:     ${salesChannel.name} (${salesChannel.id})
 Created:           ${new Date(apiKey.created_at).toLocaleString()}
 
@@ -223,17 +228,21 @@ Created:           ${new Date(apiKey.created_at).toLocaleString()}
 
 1. Add this key to your storefront .env file:
 
-   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${apiKey.id}
+   NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=${apiKey.token}
 
 2. Include the key in all Store API requests:
 
    fetch('http://localhost:9000/store/products', {
      headers: {
-       'x-publishable-api-key': '${apiKey.id}'
+       'x-publishable-api-key': '${apiKey.token}'
      }
    })
 
-3. Store this key in Infisical for production deployment
+3. Store this key in Infisical for production deployment:
+   - Environment: development
+   - Path: /
+   - Variable: NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+   - Value: ${apiKey.token}
 
 ⚠️  Security Note:
    This key is safe to expose in client-side code, but it should still be
