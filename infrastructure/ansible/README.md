@@ -43,8 +43,12 @@ ansible-vault encrypt group_vars/secrets.yml
 
 **Method B: Infisical (Recommended for teams)**
 ```bash
-# Pull secrets from Infisical
-./scripts/pull-secrets-from-infisical.sh
+# Pull secrets from Infisical (run from repo root)
+cd ../..
+bash scripts/pull-infisical-secrets.sh
+
+# Then return to ansible directory
+cd infrastructure/ansible
 
 # This creates group_vars/secrets.yml from Infisical
 ```
@@ -249,21 +253,17 @@ ansible-playbook playbooks/medusa-provision.yml --ask-vault-pass
 - `CLOUDFLARE_TUNNEL_CREDENTIALS` - Tunnel authentication JSON
 - `HETZNER_API_TOKEN` - Server management API
 
+The repository includes a script at `scripts/pull-infisical-secrets.sh` that automatically syncs secrets from Infisical.
+
+To use it for Ansible deployment:
 ```bash
-# Create script to pull secrets from Infisical
-cat > scripts/pull-secrets-from-infisical.sh <<'EOF'
-#!/bin/bash
-# Pull secrets from Infisical and generate secrets.yml
+# From repository root
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
+bash scripts/pull-infisical-secrets.sh
 
-infisical export --env=production --path=/infrastructure --format=yaml > group_vars/secrets.yml
-
-echo "✅ Secrets pulled from Infisical"
-echo "🔐 Encrypting with Ansible Vault..."
-
+# Optionally encrypt with Ansible Vault for additional security
+cd infrastructure/ansible
 ansible-vault encrypt group_vars/secrets.yml
-EOF
-
-chmod +x scripts/pull-secrets-from-infisical.sh
 ```
 
 ## Directory Structure
