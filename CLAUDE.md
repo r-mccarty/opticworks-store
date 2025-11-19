@@ -79,6 +79,8 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This m
 **Active Guides** (use these):
 - `docs/DEPLOYMENT_GUIDE.md` - Infrastructure provisioning via Ansible
 - `docs/CONTRIBUTORS.md` - Dev setup, SSH access, Hetzner workflow
+- `docs/INTEGRATION_GUIDE.md` - Storefront-Backend integration walkthrough
+- `docs/KEY_MANAGEMENT.md` - Secret rotation and Infisical strategy
 - `docs/CODEBASE_EXPLANATION.md` - Architecture patterns
 - `docs/STATE_MANAGEMENT.md` - Zustand store design
 - `docs/STRIPE_INTEGRATION.md` - Checkout implementation
