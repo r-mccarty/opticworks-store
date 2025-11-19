@@ -4,7 +4,7 @@
 **Last updated**: 2025-03-14  
 **Owner**: Platform Engineering
 
-This note captures every storefront touchpoint that needs Medusa data so the Phase 2 rollout can replace the static catalog without breaking the current experience. It complements `docs/MIGRATION_PLAN.md` and `docs/IMPLEMENTATION_GUIDE.md`.
+This note captures every storefront touchpoint that needs Medusa data so the Phase 2 rollout can replace the static catalog without breaking the current experience. It complements `docs/DEPLOYMENT_GUIDE.md` for infrastructure and deployment procedures.
 
 ## 1. Where Product Data Is Consumed
 

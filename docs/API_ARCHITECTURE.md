@@ -1,10 +1,10 @@
 # API Architecture - HTTP Routes vs Service Layer
 
-This document explains the **two-tier API architecture** used in the OpticWorks platform, clarifying the critical distinction between HTTP API endpoints and service layer functions.
+This document explains the **two-tier API architecture** used in the OpticWorks Presence Intelligence Platform, clarifying the critical distinction between HTTP API endpoints and service layer functions.
 
 ## Overview
 
-The OpticWorks platform uses a **dual-layer API architecture** that separates external communication from internal business logic:
+The OpticWorks Presence Intelligence Platform uses a **dual-layer API architecture** that separates external communication from internal business logic:
 
 1. **HTTP API Routes** (`/src/app/api/`) - External HTTP endpoints
 2. **Service Layer APIs** (`/src/lib/api/`) - Internal TypeScript functions
@@ -117,10 +117,10 @@ curl -X POST https://yoursite.com/api/shipping/rates \
 ```
 src/lib/api/
 ├── email.ts              # Email service functions
-├── orders.ts             # Order management functions  
+├── orders.ts             # Order management functions
 ├── billing.ts            # Invoice and payment functions
-├── tintingLaws.ts        # Legal compliance functions
-└── compatibility.ts      # Vehicle compatibility functions
+├── privacyCompliance.ts  # Privacy and data protection compliance
+└── compatibility.ts      # Sensor compatibility and installation guidance
 ```
 
 ### Implementation Pattern
@@ -309,12 +309,12 @@ export async function processFullOrder(orderData: OrderData) {
 
 ### Active Service Layer Functions (6 modules)
 ```typescript
-✅ email.ts         // Email templates and delivery
-✅ orders.ts        // Order management and tracking
-✅ billing.ts       // Invoice generation and payments  
-✅ tintingLaws.ts   // Legal compliance checking
-🔄 compatibility.ts // Vehicle compatibility (stub)
-🔄 shipping.ts      // Shipping calculations (stub)
+✅ email.ts              // Email templates and delivery
+✅ orders.ts             // Order management and tracking
+✅ billing.ts            // Invoice generation and payments
+✅ privacyCompliance.ts  // Privacy and data protection compliance
+🔄 compatibility.ts      // Sensor compatibility and installation (stub)
+🔄 shipping.ts           // Shipping calculations (stub)
 ```
 
 ---

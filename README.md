@@ -90,48 +90,184 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 /
 ├── src/                          # Next.js 15 storefront application
 │   ├── app/                      # App Router (pages + API routes)
-│   │   ├── api/                  # Stripe, email, webhooks
+│   │   ├── page.tsx              # Landing page
+│   │   ├── layout.tsx            # Root layout
+│   │   ├── globals.css           # Global styles
+│   │   ├── siteConfig.ts         # Site configuration
+│   │   │
+│   │   ├── api/                  # API routes
+│   │   │   ├── analytics/        # Analytics endpoints
+│   │   │   ├── stripe/           # Stripe integration
+│   │   │   ├── email/            # Email service (Resend)
+│   │   │   ├── easypost/         # EasyPost shipping integration
+│   │   │   ├── shipping/         # Shipping calculations
+│   │   │   ├── inventory/        # Inventory checks
+│   │   │   └── order-details/    # Order information
+│   │   │
 │   │   ├── products/             # Product catalog pages
-│   │   ├── store/                # Cart, checkout, order success
-│   │   └── support/              # Warranty, RMA, contact
+│   │   │   ├── page.tsx          # All products listing
+│   │   │   └── [slug]/           # Dynamic product detail pages
+│   │   │
+│   │   ├── store/                # Shopping experience
+│   │   │   ├── page.tsx          # Store main page
+│   │   │   └── cart/             # Cart page
+│   │   │
+│   │   ├── install-guides/       # Installation documentation
+│   │   │   ├── page.tsx          # Install guides hub
+│   │   │   ├── bed-presence-sensor/
+│   │   │   ├── presence-duo-pack/
+│   │   │   ├── adjustable-base/
+│   │   │   └── cybershade-irx-tesla-model-y/
+│   │   │
+│   │   └── support/              # Customer support pages
+│   │       ├── page.tsx          # Support hub
+│   │       ├── faq/              # FAQ page
+│   │       ├── contact/          # Contact form
+│   │       ├── orders/           # Order tracking
+│   │       ├── warranty/         # Warranty claims
+│   │       ├── billing/          # Billing help
+│   │       ├── compatibility/    # Compatibility checker
+│   │       ├── legal/            # Legal pages
+│   │       └── oops/             # Error pages
+│   │
 │   ├── components/
-│   │   ├── ui/                   # Shadcn primitives (Tier 1)
+│   │   ├── ui/                   # Tier 1: Shadcn primitives + marketing UI
+│   │   │   ├── button.tsx, card.tsx, dialog.tsx, form.tsx, input.tsx
+│   │   │   ├── Hero.tsx, Navbar.tsx, Footer.tsx, Features.tsx
+│   │   │   ├── PresenceHowItWorks.tsx, TechnicalDifferentiators.tsx
+│   │   │   ├── VideoBackground.tsx, GoogleAnalytics.tsx
+│   │   │   └── Map/ (map components)
+│   │   │
 │   │   ├── checkout/             # Stripe Elements integration
-│   │   ├── products/             # Product marketing components (Tier 2)
-│   │   └── 3d/                   # Three.js sensor visualizations
-│   ├── hooks/                    # Zustand stores (cart, checkout, support)
-│   └── lib/
-│       ├── api/                  # Service layer for backend calls
-│       └── products.ts           # Static product catalog (fallback)
+│   │   │   ├── CheckoutWrapper.tsx, CheckoutForm.tsx
+│   │   │   ├── PaymentForm.tsx, AddressForm.tsx
+│   │   │
+│   │   ├── products/             # Tier 2: Product marketing components
+│   │   │   ├── ProductHero.tsx, ProductDetailView.tsx
+│   │   │   ├── BentoProductShowcase.tsx, AnimatedSpecsSection.tsx
+│   │   │   ├── dashboard/, developer/, duo-pack/, enclosure/
+│   │   │   ├── lab-subscription/, spare-sensor/
+│   │   │
+│   │   ├── store/                # Store/cart components
+│   │   │   ├── CartPage.tsx, ProductGrid.tsx
+│   │   │
+│   │   ├── support/              # Support page components
+│   │   │   ├── SupportHero.tsx, ContactForm.tsx
+│   │   │   ├── FAQAccordion.tsx, WarrantyClaimForm.tsx
+│   │   │
+│   │   ├── 3d/                   # Three.js visualizations
+│   │   │   ├── Scene.tsx, Tesla3DViewer.tsx, TeslaModel.tsx
+│   │   │
+│   │   ├── skeletons/            # Loading skeleton components
+│   │   └── theme-provider.tsx, theme-toggle.tsx, Icons.tsx
+│   │
+│   ├── hooks/                    # Zustand state management stores
+│   │   ├── useCart.ts            # Shopping cart state (persisted)
+│   │   ├── useCheckoutState.ts   # Checkout flow state (ephemeral)
+│   │   └── useSupportStore.ts    # Support form state (persisted)
+│   │
+│   ├── lib/                      # Utilities and API layer
+│   │   ├── utils.ts              # Helper functions (cn/cx classname utils)
+│   │   ├── analytics.ts, products.ts, gradients.ts, faqData.ts
+│   │   │
+│   │   ├── api/                  # API service layer
+│   │   │   ├── medusa.ts         # Medusa backend integration
+│   │   │   ├── billing.ts, orders.ts, easypost.ts
+│   │   │   ├── email.ts, compatibility.ts, tintingLaws.ts
+│   │   │
+│   │   ├── cart/                 # Cart utilities
+│   │   │   ├── types.ts, utils.ts
+│   │   │   └── utils.test.ts     # Cart tests (Vitest)
+│   │   │
+│   │   └── email/templates/      # Email templates
+│   │
+│   └── types/                    # TypeScript type definitions
+│       ├── checkout.ts, stripe-checkout.ts
 │
 ├── services/medusa/              # Medusa v2 backend workspace
-│   ├── scripts/                  # 17 automation scripts (setup, catalog, health)
-│   ├── medusa-config.ts          # Medusa configuration
+│   ├── scripts/                  # 9+ automation scripts
+│   │   ├── generate-secrets.ts, health-check.ts
+│   │   ├── setup-publishable-key.ts, import-products.ts
+│   │   ├── verify-catalog.ts, smoke-test.ts
+│   │   ├── utils/ (auth.ts, retry.ts)
+│   │
+│   ├── medusa-config.ts          # Medusa v2 configuration
 │   ├── ecosystem.config.js       # PM2 process management
-│   └── .env.example              # Backend credentials template
+│   ├── docker-compose.yml        # Local development database
+│   ├── .medusa/                  # Generated Medusa internals
+│   │   ├── client/ (admin dashboard assets)
+│   │   └── types/ (generated type definitions)
+│   ├── src/                      # Medusa source code
+│   └── logs/                     # Service logs
 │
-├── infrastructure/ansible/       # Infrastructure-as-Code
-│   ├── roles/                    # postgresql, redis, nodejs, medusa, cloudflared
-│   ├── playbooks/                # provision, deploy, destroy
-│   ├── inventory/                # production.ini (Hetzner node)
-│   └── group_vars/               # all.yml, secrets.yml
+├── infrastructure/ansible/       # Infrastructure-as-Code (IaC)
+│   ├── playbooks/                # Ansible playbooks
+│   │   ├── medusa-provision.yml  # Full infrastructure provision
+│   │   ├── medusa-deploy.yml     # Code update deployment
+│   │   └── medusa-destroy.yml    # Infrastructure teardown
+│   │
+│   ├── roles/                    # Ansible roles
+│   │   ├── infrastructure/, postgresql/, redis/
+│   │   ├── nodejs/, medusa/, cloudflared/
+│   │
+│   ├── inventory/production.ini  # Hetzner node inventory
+│   ├── group_vars/               # all.yml, secrets.yml
+│   ├── scripts/                  # Helper scripts
+│   │   └── generate-secrets-from-infisical.sh
+│   └── ansible.cfg               # Ansible configuration
 │
-├── platform/
-│   ├── docs-site/                # Hugo + Geekdoc (Phase 3)
-│   └── forum/                    # Discourse config (Phase 3)
+├── platform/                     # Community & Documentation platforms
+│   ├── docs-site/                # Hugo documentation site (Phase 3)
+│   │   ├── hugo.toml, netlify.toml
+│   │   └── content/
+│   │
+│   └── forum/                    # Discourse forum setup (Phase 3)
+│       ├── docker-compose.yml
+│       └── theme/ (settings.yml, theme.scss)
 │
-├── docs/                         # Documentation
-│   ├── DEPLOYMENT_GUIDE.md       # Infrastructure deployment & provisioning
-│   ├── CONTRIBUTORS.md           # SSH access, dev workflow, Hetzner setup
+├── docs/                         # Documentation (source of truth)
+│   ├── DEPLOYMENT_GUIDE.md       # ⭐ Infrastructure provisioning
+│   ├── CONTRIBUTORS.md           # ⭐ SSH access, dev workflow
+│   ├── KEY_MANAGEMENT.md         # ⭐ Infisical secrets (CRITICAL)
+│   ├── INTEGRATION_GUIDE.md      # Storefront-Backend integration
 │   ├── CODEBASE_EXPLANATION.md   # Architecture deep dive
 │   ├── STATE_MANAGEMENT.md       # Zustand patterns
-│   ├── STRIPE_INTEGRATION.md     # Checkout flow
-│   ├── RFD-*.md                  # Architecture decision records
-│   └── archived/                 # Deprecated guides
+│   ├── STRIPE_INTEGRATION.md     # Checkout implementation
+│   ├── API_STUBS.md, API_ARCHITECTURE.md, CI.md
+│   │
+│   ├── api/                      # API documentation
+│   │   └── medusa-integration.md
+│   ├── marketing/                # Marketing & content docs
+│   ├── third-party/              # Third-party integration docs
+│   ├── issues/                   # Issue tracking & notes
+│   │
+│   └── archived/                 # Deprecated documentation
+│       ├── MIGRATION_PLAN.md, IMPLEMENTATION_GUIDE.md
+│       ├── INFISICAL_SETUP.md (superseded by KEY_MANAGEMENT.md)
+│       └── RFD-004.md, RFD-005.md, RFD-006.md (resolved)
+│
+├── public/                       # Static assets
+│   ├── fonts/                    # Web fonts (Colfax, Feature Flat, Barlow)
+│   └── images/                   # Image assets
+│
+├── scripts/                      # Root-level automation scripts
+│   └── pull-infisical-secrets.sh # Infisical secret sync
+│
+├── .devcontainer/                # GitHub Codespaces configuration
+│   ├── devcontainer.json, Dockerfile
+│   └── post-create.sh            # Secret sync hook
+│
+├── .vscode/                      # VS Code workspace settings
+├── archive/                      # Archived code & dependencies
 │
 ├── .env.template                 # Storefront environment variables
 ├── pnpm-workspace.yaml           # Monorepo workspace config
-└── CLAUDE.md / AGENTS.md         # AI collaboration context
+├── package.json                  # Workspace root dependencies
+├── next.config.ts                # Next.js 15 configuration
+├── tailwind.config.js            # Tailwind CSS 4 configuration
+├── tsconfig.json                 # TypeScript configuration
+├── vitest.config.ts              # Vitest test runner config
+└── CLAUDE.md / AGENTS.md / README.md
 ```
 
 ## Secret Management (Infisical)
@@ -159,25 +295,25 @@ cat .env.local | grep NEXT_PUBLIC_MEDUSA_BASE_URL
 
 ### What's in Infisical
 
-**Storefront Secrets** (environment: `development`, path: `/`):
-- `NEXT_PUBLIC_MEDUSA_BASE_URL` - Backend API URL
-- `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` - Store API access
-- `STRIPE_PUBLISHABLE_KEY` - Stripe checkout
-- `STRIPE_SECRET_KEY` - Stripe backend
-- `RESEND_API_KEY` - Email delivery
-- Plus ~25 more environment-specific variables
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the definitive list of all ~50 variables organized by service (Medusa, Stripe, Cloudflare, Analytics, etc.), their Infisical paths, rotation schedules, and usage notes.
 
-**Backend Secrets** (environment: `production`, path: `/medusa`):
-- `DATABASE_URL` - PostgreSQL connection
-- `JWT_SECRET` - Session tokens
-- `COOKIE_SECRET` - Cookie signing
-- `MEDUSA_ADMIN_EMAIL` / `MEDUSA_ADMIN_PASSWORD` - Admin login
-- Plus Stripe, Redis, CORS configuration
+**Key Variable Categories**:
+- **Storefront** (environment: `development` | `staging` | `production`, path: `/`):
+  - Medusa integration, Stripe payments, Email, Cloudflare R2/Images
+  - Analytics (GA4), Optional: EasyPost, AI/MCP, Supabase
+
+- **Backend** (environment: `production` | `staging`, path: `/medusa`):
+  - Database (`DATABASE_URL`), Redis, Auth (`JWT_SECRET`, `COOKIE_SECRET`)
+  - Admin credentials, Stripe, CORS configuration
+
+- **Infrastructure** (environment: `production`, path: `/infrastructure`):
+  - `POSTGRES_PASSWORD`, Cloudflare Tunnel, Hetzner API token
 
 **Key Management:**
-- Secrets auto-rotate: Backend monthly, storefront on-demand
+- Secrets auto-rotate: Backend monthly, storefront quarterly/yearly
 - Never commit `.env.local` or `services/medusa/.env` to Git
 - Use Infisical web UI to add/update secrets for team access
+- See `docs/KEY_MANAGEMENT.md` for rotation schedules and procedures
 
 ## Development Workflow
 
@@ -312,13 +448,12 @@ pnpm run lint
 
 - **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning via Ansible
 - **[CONTRIBUTORS.md](docs/CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
+- **[INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
+- **[KEY_MANAGEMENT.md](docs/KEY_MANAGEMENT.md)** - Secret rotation and Infisical strategy
 - **[CODEBASE_EXPLANATION.md](docs/CODEBASE_EXPLANATION.md)** - Architecture patterns
 - **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** - Zustand store design
 - **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** - Checkout implementation
 - **[API_STUBS.md](docs/API_STUBS.md)** - API design patterns
-- **[RFD-004.md](docs/RFD-004.md)** - Infrastructure automation (resolved)
-- **[RFD-005.md](docs/RFD-005.md)** - JWT authentication (implemented)
-- **[RFD-006.md](docs/RFD-006.md)** - Deployment drift (resolved via Ansible)
 
 ### Archived Guides
 
@@ -326,6 +461,9 @@ pnpm run lint
 - **[archived/IMPLEMENTATION_GUIDE.md](docs/archived/)** - Deprecated manual runbooks
 - **[archived/DEVELOPMENT_SCORECARD.md](docs/archived/)** - Deprecated progress tracker
 - **[archived/INFISICAL_SETUP.md](docs/archived/)** - Deprecated (Infisical now active)
+- **[archived/RFD-004.md](docs/archived/)** - Infrastructure automation (resolved, archived)
+- **[archived/RFD-005.md](docs/archived/)** - JWT authentication (implemented, archived)
+- **[archived/RFD-006.md](docs/archived/)** - Deployment drift (resolved via Ansible, archived)
 
 ## Roadmap
 

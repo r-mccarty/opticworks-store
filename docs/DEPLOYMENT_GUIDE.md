@@ -71,12 +71,22 @@ This guide documents the OpticWorks production architecture and deployment workf
 
 1. **SSH Access**: Configure Hetzner node access (see `docs/CONTRIBUTORS.md`)
 2. **Ansible**: Install locally (`pip install ansible` or `apt install ansible`)
-3. **Secrets**: Configure `infrastructure/ansible/group_vars/secrets.yml`
+3. **Infisical**: Ensure all secrets are stored in Infisical **before** deployment
+   - Project: `OpticWorks`
+   - Environment: `production`
+   - Paths: `/infrastructure`, `/medusa`
+   - See `docs/KEY_MANAGEMENT.md` for complete variable list
+4. **Infisical Service Token**: Set `INFISICAL_SERVICE_TOKEN` environment variable
 
 ### Quick Start
 
 ```bash
+# 0. Sync secrets from Infisical (REQUIRED before every deployment)
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
 cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
+# → Creates group_vars/secrets.yml from Infisical
+# → Script FAILS if required secrets are missing
 
 # 1. Verify connectivity
 ansible all -m ping
@@ -190,7 +200,7 @@ cloudflare_tunnel_credentials: |
 **Security**:
 - Never commit secrets.yml to Git (`.gitignore` configured)
 - Use Ansible Vault for encryption: `ansible-vault encrypt secrets.yml`
-- Sync to Infisical for team access (see `docs/INFISICAL_SETUP.md`)
+- Sync to Infisical for team access (see `docs/KEY_MANAGEMENT.md`)
 
 ### Environment Variables (Storefront)
 
@@ -198,13 +208,17 @@ cloudflare_tunnel_credentials: |
 
 **Managed via**: Infisical (production/team)
 
-**Key variables**:
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for all ~50 variables, Infisical paths, and rotation schedules.
+
+**Key variables** (example):
 ```bash
 NEXT_PUBLIC_MEDUSA_ENABLED=true
 NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
 NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
+RESEND_API_KEY=re_...
+# See KEY_MANAGEMENT.md for complete list
 ```
 
 ---
@@ -244,7 +258,7 @@ ssh hetzner-node
 
 # PM2 status
 pm2 status
-pm2 logs medusa-prod
+pm2 logs medusa-dev
 
 # Service health
 systemctl status cloudflared
@@ -302,7 +316,7 @@ curl -H "x-publishable-api-key: pk_..." \
 ### 4. Sync Secrets to Infisical
 ```bash
 # Upload generated secrets for team access
-# See: docs/INFISICAL_SETUP.md
+# See: docs/KEY_MANAGEMENT.md
 
 # Key secrets to sync:
 - POSTGRES_PASSWORD
@@ -334,7 +348,7 @@ ansible all -m ping -vvv
 ```bash
 # Check build logs
 ssh hetzner-node
-pm2 logs medusa-prod --lines 100
+pm2 logs medusa-dev --lines 100
 
 # Manually rebuild
 cd /opt/opticworks/medusa-backend/services/medusa
@@ -349,7 +363,7 @@ systemctl status cloudflared
 
 # Check Medusa service
 pm2 status
-pm2 restart medusa-prod
+pm2 restart medusa-dev
 
 # Check local health
 curl http://localhost:9000/health
@@ -388,7 +402,7 @@ ssh hetzner-node "systemctl status cloudflared"
 
 ```bash
 # Application logs
-ssh hetzner-node "pm2 logs medusa-prod --lines 50"
+ssh hetzner-node "pm2 logs medusa-dev --lines 50"
 
 # Cloudflare Tunnel logs
 ssh hetzner-node "journalctl -u cloudflared -n 50"
@@ -447,11 +461,8 @@ ssh hetzner-node "journalctl -xe"
 **Core Guides**:
 - `infrastructure/ansible/README.md` - Ansible playbook details
 - `docs/CONTRIBUTORS.md` - SSH access and dev workflow
-- `docs/RFD-006.md` - Deployment drift diagnosis
-
-**Security**:
-- `docs/CLOUDFLARE_ACCESS_SETUP.md` - Zero Trust authentication
-- `docs/INFISICAL_SETUP.md` - Centralized secret management
+- `docs/INTEGRATION_GUIDE.md` - Storefront-Backend integration walkthrough
+- `docs/KEY_MANAGEMENT.md` - Secret rotation and Infisical strategy
 
 **Application**:
 - `docs/CODEBASE_EXPLANATION.md` - Storefront architecture
@@ -461,6 +472,8 @@ ssh hetzner-node "journalctl -xe"
 **Deprecated** (archived):
 - `docs/archived/MIGRATION_PLAN.md` - Old manual deployment plan
 - `docs/archived/IMPLEMENTATION_GUIDE.md` - Manual setup runbooks
+- `docs/archived/INFISICAL_SETUP.md` - Superseded by KEY_MANAGEMENT.md
+- `docs/archived/CLOUDFLARE_ACCESS_SETUP.md` - Not implemented
 
 ---
 
@@ -487,7 +500,7 @@ pm2 status
 systemctl status cloudflared postgresql redis-server
 
 # View logs
-pm2 logs medusa-prod
+pm2 logs medusa-dev
 journalctl -u cloudflared -f
 
 # Database access

@@ -29,17 +29,93 @@ This document defines the strategy for managing API keys, credentials, and secre
 
 **Variables:**
 
+#### Core Application
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NODE_ENV` | String | Never | ⚠️ | Environment (development/production) |
+| `NEXT_PUBLIC_APP_URL` | URL | Never | ⚠️ | Canonical site URL |
+
+#### Medusa Backend Integration
 | Variable | Type | Rotation | Critical | Notes |
 |----------|------|----------|----------|-------|
 | `NEXT_PUBLIC_MEDUSA_ENABLED` | Boolean | Never | ⚠️ | Toggle Medusa integration |
 | `NEXT_PUBLIC_MEDUSA_BASE_URL` | URL | Never | ✅ | Backend API endpoint |
-| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | API Key | Quarterly | ✅ | Store API access |
-| `STRIPE_PUBLISHABLE_KEY` | API Key | Yearly | ✅ | Stripe checkout (public) |
+| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | API Key | Quarterly | ✅ | Store API access (public) |
+| `MEDUSA_ENABLED` | Boolean | Never | ⚠️ | Server-side Medusa toggle |
+| `MEDUSA_BASE_URL` | URL | Never | ⚠️ | Server-side backend URL |
+| `MEDUSA_API_TOKEN` | API Key | Quarterly | ⚠️ | Server-side API access |
+| `MEDUSA_SECRET_KEY` | API Key | Quarterly | ✅ | Admin automation (secret key) |
+| `MEDUSA_ADMIN_EMAIL` | Email | Never | ⚠️ | Admin login (for scripts) |
+| `MEDUSA_ADMIN_PASSWORD` | Password | Monthly | ✅ | Admin login (for scripts) |
+
+#### Stripe Payment Processing
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | API Key | Yearly | ✅ | Stripe checkout (public) |
 | `STRIPE_SECRET_KEY` | API Key | Yearly | ✅ | Stripe backend (private) |
-| `STRIPE_WEBHOOK_SECRET` | Secret | Yearly | ✅ | Webhook verification |
+| `STRIPE_WEBHOOK_SECRET` | Secret | Yearly | ✅ | Production webhook verification |
+| `STRIPE_WEBHOOK_SECRET_DEV` | Secret | Yearly | ⚠️ | Development webhook (Stripe CLI) |
+| `STRIPE_SHIPPING_WEBHOOK_SECRET` | Secret | Yearly | ✅ | Production shipping webhook |
+| `STRIPE_SHIPPING_WEBHOOK_SECRET_DEV` | Secret | Yearly | ⚠️ | Development shipping webhook |
+
+#### Email & Communications
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
 | `RESEND_API_KEY` | API Key | Yearly | ⚠️ | Email delivery |
-| `NEXT_PUBLIC_APP_URL` | URL | Never | ⚠️ | Canonical site URL |
-| `R2_*` | Credentials | Quarterly | ⚠️ | Cloudflare R2 storage |
+| `NEXT_PUBLIC_FROM_EMAIL` | Email | Never | ⚠️ | Sender email address |
+
+#### Cloudflare Services
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `R2_ACCESS_KEY_ID` | Access Key | Quarterly | ⚠️ | R2 storage access |
+| `R2_SECRET_ACCESS_KEY` | Secret Key | Quarterly | ✅ | R2 storage secret |
+| `R2_BUCKET_NAME` | String | Never | ⚠️ | R2 bucket name |
+| `R2_ENDPOINT_URL` | URL | Never | ⚠️ | R2 API endpoint |
+| `R2_PUBLIC_URL` | URL | Never | ⚠️ | R2 public CDN URL |
+| `CLOUDFLARE_IMAGES_TOKEN` | API Token | Quarterly | ⚠️ | Images API access |
+| `CLOUDFLARE_ACCOUNT_ID` | ID | Never | ⚠️ | Account identifier |
+| `CLOUDFLARE_EMAIL` | Email | Never | ⚠️ | Account email |
+| `CLOUDFLARE_GLOBAL_API_KEY` | API Key | Quarterly | ✅ | Global API access |
+| `CLOUDFLARE_API_BASE_URL` | URL | Never | ⚠️ | API base endpoint |
+
+#### Logistics & Shipping
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `EASYPOST_API_KEY` | API Key | Yearly | ⚠️ | Shipping rate calculation |
+
+#### Analytics & Monitoring
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NEXT_PUBLIC_GA_MEASUREMENT_ID` | ID | Never | ⚠️ | Google Analytics tracking |
+| `GOOGLE_CLOUD_PROJECT` | ID | Never | ⚠️ | GCP project ID |
+| `GA4_PROPERTY_ID` | ID | Never | ⚠️ | GA4 property ID |
+| `GOOGLE_APPLICATION_CREDENTIALS` | JSON | Quarterly | ⚠️ | Service account credentials |
+
+#### AI & MCP Integration
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `CONTEXT7_API_KEY` | API Key | Quarterly | ⚠️ | Context7 service |
+| `CONTEXT7_MCP_URL` | URL | Never | ⚠️ | MCP endpoint |
+| `CONTEXT7_API_URL` | URL | Never | ⚠️ | API endpoint |
+| `GEMINI_API_KEY` | API Key | Quarterly | ⚠️ | Google Gemini API |
+
+#### Hetzner Development Access (Development Only)
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `HETZNER_MEDUSA_URL` | URL | Never | ⚠️ | Direct Medusa access |
+| `HETZNER_POSTGRES_URL` | Connection String | Monthly | ✅ | Direct DB access |
+| `HETZNER_POSTGRES_HOST` | Hostname | Never | ⚠️ | PostgreSQL host |
+| `HETZNER_POSTGRES_PORT` | Port | Never | ⚠️ | PostgreSQL port |
+| `HETZNER_POSTGRES_DB` | String | Never | ⚠️ | Database name |
+| `HETZNER_POSTGRES_USER` | String | Never | ⚠️ | Database user |
+| `HETZNER_POSTGRES_PASSWORD` | Password | Monthly | ✅ | Database password |
+| `HETZNER_REDIS_URL` | Connection String | Quarterly | ⚠️ | Direct Redis access |
+
+#### Database & Auth (if using Supabase)
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `NEXT_PUBLIC_SUPABASE_URL` | URL | Never | ⚠️ | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | API Key | Quarterly | ✅ | Service role access |
 
 **Access:**
 ```bash
@@ -71,9 +147,23 @@ pnpm run secrets:pull
 
 **Access:**
 ```bash
-# Backend secrets are managed via Ansible
-# See infrastructure/ansible/group_vars/secrets.yml
-# Pull from Infisical manually when deploying
+# Backend secrets are ALWAYS synced from Infisical before deployment
+# NEVER edit infrastructure/ansible/group_vars/secrets.yml manually
+
+# 1. Ensure secrets exist in Infisical (one-time setup)
+cd services/medusa
+pnpm run generate:secrets  # Generate locally
+# → Manually add to Infisical web UI (paths: /infrastructure, /medusa)
+
+# 2. Sync from Infisical to Ansible (before every deployment)
+cd infrastructure/ansible
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
+bash scripts/generate-secrets-from-infisical.sh
+# → Creates group_vars/secrets.yml from Infisical
+# → Script FAILS if required secrets are missing (intentional)
+
+# 3. Deploy
+ansible-playbook playbooks/medusa-provision.yml
 ```
 
 ### 3. Infrastructure Secrets (Ansible)
@@ -94,9 +184,16 @@ pnpm run secrets:pull
 
 **Access:**
 ```bash
-# Stored in infrastructure/ansible/group_vars/secrets.yml
-# Encrypted with Ansible Vault (not yet implemented)
-# Sync to Infisical after generating
+# Infrastructure secrets are stored in Infisical and synced to Ansible
+# NEVER generate or edit infrastructure/ansible/group_vars/secrets.yml manually
+
+# Sync from Infisical (same process as backend secrets)
+cd infrastructure/ansible
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
+bash scripts/generate-secrets-from-infisical.sh
+
+# Optional: Encrypt synced file with Ansible Vault for additional security
+ansible-vault encrypt group_vars/secrets.yml
 ```
 
 ---
@@ -105,23 +202,38 @@ pnpm run secrets:pull
 
 ### 1. Generation
 
-**When creating new secrets:**
+**⚠️ IMPORTANT**: All generated secrets MUST be added to Infisical immediately. Never use generated secrets directly in deployment.
+
+**Backend secrets (PostgreSQL, JWT, cookies):**
 
 ```bash
-# Backend secrets (PostgreSQL, JWT, cookies)
+# Generate secure random secrets
 cd services/medusa
-pnpm run generate:secrets > /tmp/medusa-secrets.env
-cat /tmp/medusa-secrets.env
+pnpm run generate:secrets
 
-# Copy output to Infisical immediately
-# Then delete temporary file
-rm /tmp/medusa-secrets.env
+# Output example:
+# POSTGRES_PASSWORD=abc123...
+# REDIS_PASSWORD=def456...
+# JWT_SECRET=ghi789...
+# COOKIE_SECRET=jkl012...
+
+# ✅ DO: Immediately copy to Infisical web UI
+# - Project: OpticWorks
+# - Environment: production
+# - Paths: /infrastructure (POSTGRES_PASSWORD), /medusa (JWT_SECRET, COOKIE_SECRET, etc.)
+
+# ❌ DON'T: Save to local files or use directly in deployment
 ```
 
 **For API keys (Stripe, Resend, etc.):**
 1. Generate in provider dashboard
 2. Copy to Infisical **immediately**
-3. Never store locally except in `.env.local` (gitignored)
+3. Never store locally except in `.env.local` (gitignored, auto-synced from Infisical)
+
+**Deployment workflow:**
+- Infisical is the source of truth
+- Ansible/Storefront pull from Infisical
+- Deployments FAIL if secrets are missing from Infisical (by design)
 
 ### 2. Storage
 
@@ -349,81 +461,58 @@ When adding a new environment variable:
 
 ## Current Key Inventory (2025-11-19)
 
-**Status:** ⚠️ **10/95 variables in Infisical (10.5%)** - Audit completed, Phase 1 push ready
+**Status:** ✅ Critical secrets in Infisical, ⚠️ Some optional integrations pending
 
-**Last Audit**: 2025-11-19 (see [INFISICAL_SECRETS_INVENTORY.md](INFISICAL_SECRETS_INVENTORY.md))
-
-### Currently in Infisical ✅ (10 variables)
-
-**Storefront**:
+### Storefront (Development) - Core
 - [x] `NEXT_PUBLIC_MEDUSA_ENABLED=true`
 - [x] `NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works`
-- [x] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` ⚠️ **INVALID** - Not created in admin yet
-- [x] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_*`
-- [x] `STRIPE_SECRET_KEY=sk_test_*`
-- [x] `NEXT_PUBLIC_APP_URL=http://localhost:3000`
-- [x] `NODE_ENV=development`
+- [x] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx`
+- [x] `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_xxx`
+- [x] `STRIPE_SECRET_KEY=sk_test_xxx`
+- [x] `STRIPE_WEBHOOK_SECRET`
+- [x] `STRIPE_WEBHOOK_SECRET_DEV`
+- [x] `RESEND_API_KEY=re_xxx`
+- [x] `NEXT_PUBLIC_FROM_EMAIL`
+- [x] `NEXT_PUBLIC_APP_URL`
 
-**Backend**:
-- [x] `MEDUSA_ADMIN_EMAIL=admin@optic.works`
-- [x] `MEDUSA_ADMIN_PASSWORD` ⚠️ **CONFLICT** - Differs from Ansible
-- [x] `MEDUSA_SECRET_KEY` ⚠️ **UNCLEAR** - May be redundant with JWT_SECRET
+### Storefront (Development) - Optional Services
+- [ ] Cloudflare R2 (`R2_*` - 5 variables)
+- [ ] Cloudflare Images (`CLOUDFLARE_*` - 5 variables)
+- [ ] EasyPost shipping (`EASYPOST_API_KEY`)
+- [ ] Google Analytics (`GA4_*`, `GOOGLE_*` - 4 variables)
+- [ ] AI/MCP integrations (`CONTEXT7_*`, `GEMINI_API_KEY`)
+- [ ] Supabase (if used) (`SUPABASE_*` - 2 variables)
 
-### Ready to Push from Ansible (6 variables)
+### Backend (Production)
+- [x] `DATABASE_URL` (URL-encoded password)
+- [x] `REDIS_URL`
+- [x] `JWT_SECRET` (64 chars)
+- [x] `COOKIE_SECRET` (64 chars)
+- [x] `MEDUSA_ADMIN_EMAIL`
+- [x] `MEDUSA_ADMIN_PASSWORD`
+- [x] `STRIPE_API_KEY`
+- [x] `MEDUSA_STORE_CORS`
+- [x] `MEDUSA_ADMIN_CORS`
 
-**Backend Secrets** (in `infrastructure/ansible/group_vars/secrets.yml`):
-- [ ] `DATABASE_URL` - PostgreSQL connection string
-- [ ] `REDIS_URL` - Redis connection (no password)
-- [ ] `JWT_SECRET` - 64-char session token secret
-- [ ] `COOKIE_SECRET` - 64-char cookie signing secret
-- [ ] `MEDUSA_STORE_CORS` - Allowed origins
-- [ ] `MEDUSA_ADMIN_CORS` - Admin origins
+### Infrastructure
+- [x] `POSTGRES_PASSWORD` (in Ansible secrets.yml)
+- [x] `CLOUDFLARE_TUNNEL_ID`
+- [ ] `CLOUDFLARE_TUNNEL_CREDENTIALS` (TODO: add to Infisical)
+- [ ] `HETZNER_API_TOKEN` (TODO: add to Infisical)
 
-### Needs Creation (2 critical blockers)
+**Outstanding Tasks:**
+1. Add Cloudflare Tunnel credentials to Infisical (infrastructure path) - if not already present
+2. Add Hetzner API token to Infisical (infrastructure path) - if not already present
+3. ~~Encrypt Ansible `secrets.yml` with Ansible Vault~~ - Optional, file is auto-generated from Infisical
+4. Set up monthly rotation reminders for critical secrets
+5. Document emergency backup procedure
+6. Audit optional service variables (R2, Analytics, etc.) and add if needed
 
-- [ ] `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` - **Create in Medusa admin dashboard**
-- [ ] `STRIPE_WEBHOOK_SECRET` - Get from Stripe dashboard
-
-### Missing (77 variables)
-
-See `.env.template` for full list (95 total variables). Categories:
-- Cloudflare R2 + API (10 vars)
-- Analytics/Telemetry (4 vars)
-- Email delivery (2 vars)
-- Logistics (1 var)
-- Developer tools (3 vars)
-- Additional integrations (57 vars)
-
-**Strategy**: Phased approach - Add Phase 2+ secrets as features are activated
-
-### Infrastructure (Partial)
-
-- [ ] `POSTGRES_PASSWORD` - In Ansible secrets.yml (not pushed to Infisical yet)
-- [ ] `CLOUDFLARE_TUNNEL_ID` - In Ansible: db4738a9-20b7-4dd7-bde2-0760e0188071
-- [ ] `CLOUDFLARE_TUNNEL_CREDENTIALS` - TODO: extract from Hetzner node
-
----
-
-## Outstanding Tasks (Updated 2025-11-19)
-
-### Immediate (Blocks Phase 2 Storefront Integration)
-1. **Resolve MEDUSA_ADMIN_PASSWORD conflict** - Test login at https://api.optic.works/app
-2. **Create NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY** - In Medusa admin Settings → API Keys
-3. **Get STRIPE_WEBHOOK_SECRET** - From Stripe dashboard
-4. **Push Phase 1 secrets to Infisical** - 14 confirmed + 4 placeholders (see `.env.infisical-push`)
-5. **Test pull and verify** - Ensure `pnpm run secrets:pull` regenerates .env.local correctly
-
-### Short-term (This Week)
-6. Encrypt Ansible `secrets.yml` with Ansible Vault
-7. Add Cloudflare R2 credentials (Phase 4 production deployment)
-8. Add analytics tokens (PostHog, Sentry, GA)
-9. Create validation script to compare .env.local vs .env.template
-10. Set up monthly rotation reminders for critical secrets
-
-### Medium-term (Next Sprint)
-11. Add remaining Cloudflare secrets for production deployment
-12. Document emergency backup procedure
-13. Implement auto-sync for Ansible secrets → Infisical
+**Completed:**
+- ✅ Implemented Infisical-first workflow for backend/infrastructure secrets
+- ✅ Removed fallback secret generation from Ansible
+- ✅ Updated documentation to reflect Infisical as source of truth
+- ✅ Created strict sync script that fails if secrets are missing
 
 ---
 
@@ -436,5 +525,11 @@ See `.env.template` for full list (95 total variables). Categories:
 
 ---
 
-**Last Updated**: 2025-11-19 (Audit completed, actual inventory: 10/95 vars)
-**Next Review**: After Phase 1 push complete, then monthly
+**Last Updated**: 2025-11-19
+**Next Review**: Monthly (align with rotation schedule)
+
+---
+
+**Change Log:**
+- **2025-11-19**: Expanded storefront secrets with complete variable inventory (~50 variables), corrected variable names to match codebase (e.g., `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`), added categorization by service
+- **2025-11-18**: Initial version with core secrets inventory

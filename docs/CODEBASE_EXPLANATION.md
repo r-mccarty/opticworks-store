@@ -1,10 +1,10 @@
-# OpticWorks Window Tinting E-commerce Platform - Codebase Architecture
+# OpticWorks Presence Intelligence Platform - Codebase Architecture
 
-This document provides a comprehensive architectural overview of the OpticWorks Window Tinting E-commerce Platform, a sophisticated Next.js application specializing in Tesla and automotive DIY window tinting solutions.
+This document provides a comprehensive architectural overview of the OpticWorks Presence Intelligence Platform, a sophisticated Next.js application for intelligent sensing hardware and IoT solutions.
 
 ## Executive Overview
 
-**OpticWorks** is a production-ready, Tesla-specialized e-commerce platform that combines modern web technologies with deep automotive industry knowledge. The platform features complete payment processing, email automation, legal compliance checking, and a sophisticated component architecture designed for both accessibility and brand customization.
+**OpticWorks** is a production-ready e-commerce platform specializing in mmWave presence sensing hardware, including bed/under-mattress sensors, bridges, integrator kits, and developer firmware programs. The platform features Apple-grade art direction, cinematic product experiences, complete payment processing, email automation, and a sophisticated component architecture designed for both accessibility and premium brand presentation.
 
 ### Core Technology Foundation
 
@@ -13,7 +13,8 @@ This document provides a comprehensive architectural overview of the OpticWorks 
 - **Styling**: Tailwind CSS 4.1.12 with hybrid component system
 - **State Management**: Zustand 5.0.8 with localStorage persistence
 - **Package Management**: pnpm (required - not npm/yarn)
-- **Production Integrations**: Stripe payment processing, Resend email service
+- **Backend**: Medusa v2 (Phase 1 deployed, Phase 2 integration in progress)
+- **Production Integrations**: Stripe payment processing, Resend email service, Medusa e-commerce API
 
 ---
 
@@ -45,21 +46,100 @@ src/app/
 ├── products/                # Product catalog (2+ routes)
 │   └── [slug]/              # Dynamic product pages
 ├── install-guides/          # Educational content (2 routes)
-└── page.tsx                 # Tesla-focused landing page
+└── page.tsx                 # Landing page (cinematic hero, 3D assets)
 ```
 
 **Key Architecture Decision**: Routes are organized by **business domains** (store, support, products) rather than technical layers, improving maintainability and developer understanding of business flows.
 
 ---
 
+## Backend Integration: Medusa v2
+
+### Integration Status (2025-11-18)
+
+- ✅ **Phase 1 Complete**: Medusa backend deployed on Hetzner with Cloudflare Tunnel
+  - Backend URL: `https://api.optic.works`
+  - Admin Dashboard: `https://api.optic.works/app`
+  - Store API: `https://api.optic.works/store/*`
+  - Health Endpoint: `https://api.optic.works/health`
+
+- 🔧 **Phase 2 In Progress**: Catalog import & storefront integration
+  - Product catalog automation ready (`pnpm run catalog:import`)
+  - Storefront API client ready (`src/lib/api/medusa.ts`)
+
+### Medusa API Integration Layer
+
+```typescript
+// src/lib/api/medusa.ts
+import Medusa from "@medusajs/medusa-js"
+
+const MEDUSA_BACKEND_URL = process.env.NEXT_PUBLIC_MEDUSA_BASE_URL || 'https://api.optic.works'
+const MEDUSA_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+
+export const medusaClient = new Medusa({
+  baseUrl: MEDUSA_BACKEND_URL,
+  maxRetries: 3,
+  apiKey: MEDUSA_PUBLISHABLE_KEY
+})
+
+// Product fetching
+export async function getProducts() {
+  try {
+    const { products } = await medusaClient.products.list()
+    return products
+  } catch (error) {
+    console.error('Failed to fetch products from Medusa:', error)
+    return []
+  }
+}
+
+// Cart operations
+export async function createCart() {
+  const { cart } = await medusaClient.carts.create()
+  return cart
+}
+
+export async function addToCart(cartId: string, variantId: string, quantity: number) {
+  const { cart } = await medusaClient.carts.lineItems.create(cartId, {
+    variant_id: variantId,
+    quantity
+  })
+  return cart
+}
+
+// Checkout session
+export async function createPaymentSession(cartId: string) {
+  const { cart } = await medusaClient.carts.createPaymentSessions(cartId)
+  return cart
+}
+```
+
+### Hybrid Backend Strategy
+
+The platform implements a **phased migration approach** with both Medusa backend and Next.js API stubs:
+
+**Phase 2 (Current)**: Storefront integrating with Medusa
+- Product catalog managed in Medusa admin
+- Cart and checkout use Medusa sessions
+- Stripe payments coordinated through Medusa
+- Next.js API stubs remain for development/testing
+
+**Phase 3+ (Future)**: Full Medusa integration
+- All e-commerce logic migrated to Medusa
+- Next.js focuses on presentation layer
+- Hugo docs site + Discourse forum
+- Cloudflare Pages deployment
+
+---
+
 ## Component Architecture: Two-Tier System
 
-The platform implements a **sophisticated hybrid component architecture** that balances accessibility requirements with custom Tesla branding.
+The platform implements a **sophisticated hybrid component architecture** that balances accessibility requirements with premium brand presentation.
 
 ### Tier 1: Shadcn/ui Components (Accessibility-First)
 
-**Location**: `src/components/ui/` (mixed with Tier 2)  
-**Purpose**: Form primitives, dialogs, interactive elements requiring accessibility compliance  
+**Location**: `src/components/ui/` (mixed with Tier 2)
+**Purpose**: Form primitives, dialogs, interactive elements requiring accessibility compliance
 **Pattern**: Radix UI primitives + class-variance-authority (cva) + `cn()` utility
 
 ```typescript
@@ -101,25 +181,25 @@ const buttonVariants = cva(
 
 ### Tier 2: Custom Business Components (Brand-First)
 
-**Location**: `src/components/ui/` (mixed with Tier 1)  
-**Purpose**: Tesla-specific features, marketing sections, complex interactive elements  
+**Location**: `src/components/ui/` and feature folders
+**Purpose**: Hardware-specific features, marketing sections, complex interactive elements
 **Pattern**: Custom styling + `cx()` utility + Framer Motion animations
 
 ```typescript
-// Example: Custom Hero component with Tesla branding
+// Example: Custom Hero component with premium branding
 export function Hero() {
   return (
     <section className="relative min-h-screen overflow-hidden">
-      <VideoBackground videoUrl="https://r2.dev/tesla-model-y-tinting.mp4" />
+      <VideoBackground videoUrl="https://r2.dev/opticworks-hero-video.mp4" />
       <FadeContainer className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4">
         <h1 className={cx(
           "font-barlow mt-8 text-center text-8xl font-normal tracking-[1px] text-white drop-shadow-2xl uppercase",
           "md:text-9xl lg:text-[10rem] xl:text-[12rem]"
         )}>
-          <FadeSpan>Tesla</FadeSpan> <FadeSpan>Tint</FadeSpan> <FadeSpan>Kits</FadeSpan>
+          <FadeSpan>Presence</FadeSpan> <FadeSpan>Intelligence</FadeSpan>
         </h1>
         <FadeDiv className="mt-6 max-w-2xl text-center text-xl text-gray-200">
-          Professional-grade DIY window tinting specifically designed for Tesla Model Y, 3, S, and X
+          Professional mmWave sensing hardware for intelligent presence detection
         </FadeDiv>
       </FadeContainer>
     </section>
@@ -131,22 +211,19 @@ export function Hero() {
 - `Hero.tsx` - Landing page hero with video background
 - `Features.tsx` - Interactive feature showcase with animations
 - `Navbar.tsx` - Navigation with cart integration
-- `Tesla3DViewer.tsx` - Three.js Model Y visualization
-- `Map.tsx` - Interactive state law checker
-- `SolarAnalytics.tsx` - Data visualization components
+- `Map.tsx` - Interactive visualizations
+- `ProductViewer.tsx` - Hardware product showcase components
 
 ### Component Organization Strategy
 
 ```
 src/components/
 ├── ui/                      # Base UI system (Shadcn + Custom mixed)
-├── 3d/                      # Three.js/WebGL components
-│   ├── Tesla3DViewer.tsx    # Interactive Model Y viewer
-│   ├── TeslaModel.tsx       # 3D model rendering
-│   ├── Scene.tsx            # Three.js scene setup
+├── 3d/                      # Three.js/WebGL components (optional)
+│   ├── SceneViewer.tsx      # Interactive 3D viewer
 │   └── ErrorBoundary.tsx    # 3D-specific error handling
 ├── checkout/                # Payment flow components
-│   ├── CheckoutWrapper.tsx  # Stripe session management
+│   ├── CheckoutWrapper.tsx  # Stripe + Medusa session management
 │   ├── CheckoutForm.tsx     # Payment form with Elements
 │   ├── AddressForm.tsx      # Shipping address collection
 │   └── PaymentForm.tsx      # Card payment processing
@@ -154,7 +231,9 @@ src/components/
 │   ├── ProductDetailView.tsx # Product specifications
 │   ├── ProductHero.tsx      # Product page headers
 │   ├── InstallProcess.tsx   # Installation guides
-│   └── Tesla3DSection.tsx   # 3D product visualization
+│   └── duo-pack/            # Feature-specific folders
+│       ├── DuoPackHero.tsx  # Duo Pack product hero
+│       └── DuoPackFeatures.tsx
 ├── store/                   # E-commerce components
 │   ├── CartPage.tsx         # Shopping cart interface
 │   └── ProductGrid.tsx      # Product catalog display
@@ -180,20 +259,20 @@ interface CartStore {
   items: CartItem[]
   isOpen: boolean
   paymentSession: PaymentSession | null
-  
+
   // Cart operations
   addToCart: (product: Product) => void
   removeFromCart: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
-  
+
   // Cart calculations
   getTotalItems: () => number
   getTotalPrice: () => number
-  
+
   // UI state
   setIsOpen: (open: boolean) => void
-  
+
   // Stripe integration
   setPaymentSession: (sessionId: string) => void
 }
@@ -259,9 +338,37 @@ export const useCart = create<CartStore>()(
 - **Payment session tracking** - Stripe integration for checkout flow
 - **Type safety** - Complete TypeScript coverage for all operations and migrations
 
-> 📦 **New Cart Utilities**
+> 📦 **Cart Normalization Utilities**
 >
-> Legacy carts stored in browsers before the 2025.02 release lacked specification data, causing client-side crashes during hydration. The new `src/lib/cart` namespace provides `normalizeCartItem`, `normalizeCartItems`, and `summarizeSpecifications` helpers so UI components can tolerate partial data. These helpers are unit-tested with Vitest (`src/lib/cart/utils.test.ts`).
+> The new `src/lib/cart` namespace provides `normalizeCartItem`, `normalizeCartItems`, and `summarizeSpecifications` helpers so UI components can tolerate partial data during migrations. These helpers are unit-tested with Vitest (`src/lib/cart/utils.test.ts`).
+
+### Medusa Integration in Cart Store
+
+When Medusa integration is enabled (`NEXT_PUBLIC_MEDUSA_ENABLED=true`), cart operations sync with Medusa backend:
+
+```typescript
+addToCart: async (product: Product) => {
+  // Local state update (immediate UI feedback)
+  const items = get().items
+  set({ items: [...items, normalizeCartItem(product)] })
+
+  // Sync with Medusa backend
+  if (process.env.NEXT_PUBLIC_MEDUSA_ENABLED === 'true') {
+    try {
+      const cartId = get().medusaCartId || await createMedusaCart()
+      await medusaClient.carts.lineItems.create(cartId, {
+        variant_id: product.medusaVariantId,
+        quantity: 1
+      })
+    } catch (error) {
+      console.error('Failed to sync with Medusa:', error)
+      // Fallback to local-only cart
+    }
+  }
+
+  toast.success(`${product.name} added to cart`)
+}
+```
 
 ### Support System Store (`src/hooks/useSupportStore.ts`)
 
@@ -271,15 +378,15 @@ interface SupportStore {
   contactForm: Partial<ContactFormData>
   warrantyForm: Partial<WarrantyFormData>
   preferredContactMethod: 'email' | 'phone' | null
-  
+
   // Ticket system
   tickets: SupportTicket[]
-  
+
   // Search and navigation
   searchQuery: string
   selectedCategory: string | null
   searchResults: FAQ[]
-  
+
   // Session tracking (not persisted)
   currentSession: {
     startTime: number | null
@@ -287,15 +394,15 @@ interface SupportStore {
     searchQueries: string[]
     ticketsCreated: number
   }
-  
+
   // Form operations
   updateContactForm: (data: Partial<ContactFormData>) => void
   submitTicket: (ticket: CreateTicketRequest) => Promise<SupportTicket>
-  
+
   // Search operations
   searchFAQs: (query: string) => void
   clearSearch: () => void
-  
+
   // Session tracking
   trackPageView: (page: string) => void
   trackSearch: (query: string) => void
@@ -313,7 +420,7 @@ interface CheckoutState {
   shippingAddress: ShippingAddress | null
   subtotal: number
   total: number
-  
+
   setTaxAmount: (amount: number) => void
   setIsCalculatingTax: (calculating: boolean) => void
   setShippingAddress: (address: ShippingAddress | null) => void
@@ -328,43 +435,78 @@ export const useCheckoutState = create<CheckoutState>((set, get) => ({
   shippingAddress: null,
   subtotal: 0,
   total: 0,
-  
+
   setTaxAmount: (amount: number) => {
     set({ taxAmount: amount })
     get().updateTotal() // Reactive calculation
   },
-  
+
   updateTotal: () => {
     const { subtotal, taxAmount } = get()
     set({ total: subtotal + taxAmount })
   },
-  
+
   // ... other methods
 }))
 ```
 
-**Key Design Decision**: **No persistence for checkout state** - Stripe manages payment session state, so local state is ephemeral and resets between sessions.
+**Key Design Decision**: **No persistence for checkout state** - Stripe and Medusa manage payment session state, so local state is ephemeral and resets between sessions.
 
 ---
 
-## API Architecture: Production-Ready + Development Stubs
+## API Architecture: Hybrid Medusa + Next.js Strategy
 
-The platform implements a **dual-layer API strategy** with production-ready integrations for critical business functions and sophisticated development stubs for remaining features.
+The platform implements a **dual-layer API strategy** during the Medusa migration:
 
-### Production-Ready Endpoints ✅
+### Production-Ready Medusa Integration ✅
 
-#### Stripe Payment Integration
+**Backend**: `https://api.optic.works`
+- Product catalog management
+- Cart and checkout sessions
+- Order processing
+- Customer profiles
+- Inventory management
 
-**`POST /api/stripe/webhook`** - Complete payment processing automation
+**Storefront API Client**:
+```typescript
+// Fetch products from Medusa
+export async function getProducts() {
+  const { products } = await medusaClient.products.list({
+    limit: 100,
+    expand: 'variants,images'
+  })
+  return products
+}
+
+// Get single product
+export async function getProduct(id: string) {
+  const { product } = await medusaClient.products.retrieve(id, {
+    expand: 'variants,images,options'
+  })
+  return product
+}
+
+// Create checkout session
+export async function createCheckout(cartId: string) {
+  const { cart } = await medusaClient.carts.complete(cartId)
+  return cart
+}
+```
+
+### Next.js API Endpoints (Production + Stubs)
+
+#### Production-Ready Stripe Integration
+
+**`POST /api/stripe/webhook`** - Payment processing automation
 ```typescript
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const signature = request.headers.get('stripe-signature')
-  
+
   try {
-    // Verify webhook signature (dev: Stripe CLI, prod: Dashboard)
+    // Verify webhook signature
     const event = stripe.webhooks.constructEvent(body, signature!, webhookSecret)
-    
+
     switch (event.type) {
       case 'checkout.session.completed':
         await handleCheckoutCompletion(event.data.object)
@@ -373,36 +515,20 @@ export async function POST(request: NextRequest) {
         await handlePaymentFailure(event.data.object)
         break
     }
-    
+
     return NextResponse.json({ received: true })
   } catch (error) {
     console.error('Webhook error:', error)
     return NextResponse.json({ error: 'Webhook error' }, { status: 400 })
   }
 }
-
-async function handleCheckoutCompletion(session: Stripe.Checkout.Session) {
-  // Extract order details from session metadata
-  const orderDetails = {
-    customerEmail: session.customer_details?.email,
-    orderNumber: generateOrderNumber(),
-    items: JSON.parse(session.metadata?.items || '[]'),
-    total: session.amount_total! / 100
-  }
-  
-  // Store order in Supabase (when configured)
-  await storeOrder(orderDetails)
-  
-  // Send automatic order confirmation email
-  await sendOrderConfirmation(orderDetails)
-}
 ```
 
-**`POST /api/stripe/get-session-tax`** - Real-time tax calculation
+**`POST /api/stripe/get-session-tax`** - Real-time tax calculation via Stripe Tax
 ```typescript
 export async function POST(request: NextRequest) {
   const { items, shippingAddress } = await request.json()
-  
+
   const calculation = await stripe.tax.calculations.create({
     currency: 'usd',
     line_items: items.map((item: CartItem) => ({
@@ -421,26 +547,21 @@ export async function POST(request: NextRequest) {
       },
       address_source: 'shipping'
     },
-    shipping_cost: { amount: 0, tax_behavior: 'exclusive' } // Free shipping
+    shipping_cost: { amount: 0, tax_behavior: 'exclusive' }
   })
-  
+
   return NextResponse.json({
     success: true,
     taxAmount: calculation.tax_amount_exclusive / 100,
     subtotal: (calculation.amount_total - calculation.tax_amount_exclusive) / 100,
-    total: calculation.amount_total / 100,
-    taxBreakdown: calculation.tax_breakdown?.map(breakdown => ({
-      jurisdiction: breakdown.jurisdiction?.display_name,
-      rate: breakdown.tax_rate_details?.percentage_decimal,
-      taxAmount: breakdown.tax_amount / 100
-    }))
+    total: calculation.amount_total / 100
   })
 }
 ```
 
-#### Email Automation System
+#### Email Automation System (Production)
 
-**`POST /api/email/send`** - Production email delivery
+**`POST /api/email/send`** - Resend integration
 ```typescript
 import { render } from '@react-email/render'
 import { Resend } from 'resend'
@@ -450,10 +571,10 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(request: NextRequest) {
   const { to, subject, template, data } = await request.json()
-  
+
   try {
     let emailHtml: string
-    
+
     switch (template) {
       case 'order-confirmation':
         emailHtml = render(<OrderConfirmation {...data} />)
@@ -464,156 +585,87 @@ export async function POST(request: NextRequest) {
       default:
         throw new Error(`Unknown template: ${template}`)
     }
-    
+
     const result = await resend.emails.send({
       from: 'OpticWorks <orders@notifications.optic.works>',
       to,
       subject,
       html: emailHtml
     })
-    
+
     return NextResponse.json({
       success: true,
-      messageId: result.data?.id,
-      template
+      messageId: result.data?.id
     })
   } catch (error) {
     console.error('Email send error:', error)
-    return NextResponse.json(
-      { error: 'Failed to send email' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Failed to send email' }, { status: 500 })
   }
 }
 ```
 
-### Advanced Development Stubs 🔧
+### Development Stubs 🔧
 
-The platform includes **9 sophisticated development stubs** that provide complete business functionality while establishing clear integration patterns for production services.
-
-#### Example: Shipping Rates Stub
+The platform includes **sophisticated development stubs** for features not yet migrated to Medusa:
 
 ```typescript
 // src/app/api/shipping/rates/route.ts
 const SHIPPING_CARRIERS = {
   'standard': { name: 'Standard Shipping', baseRate: 5.99, perItem: 1.50, days: '5-7' },
-  'expedited': { name: 'Expedited Shipping', baseRate: 12.99, perItem: 2.00, days: '2-3' },
-  'overnight': { name: 'Overnight Express', baseRate: 24.99, perItem: 3.50, days: '1' }
+  'expedited': { name: 'Expedited Shipping', baseRate: 12.99, perItem: 2.00, days: '2-3' }
 }
 
 export async function POST(request: NextRequest) {
   const { items, shippingAddress } = await request.json()
-  
+
   // Simulate realistic API delay
   await new Promise(resolve => setTimeout(resolve, 500))
-  
-  const totalWeight = items.reduce((sum: number, item: any) => sum + (item.weight || 1) * item.quantity, 0)
-  
-  const rates = Object.entries(SHIPPING_CARRIERS).map(([key, carrier]) => {
-    const baseRate = carrier.baseRate
-    const itemRate = carrier.perItem * items.length
-    const weightRate = totalWeight > 5 ? (totalWeight - 5) * 0.50 : 0
-    
-    return {
-      carrierId: key,
-      name: carrier.name,
-      rate: parseFloat((baseRate + itemRate + weightRate).toFixed(2)),
-      estimatedDays: carrier.days,
-      description: `Delivery in ${carrier.days} business days`
-    }
-  })
-  
-  return NextResponse.json({
-    success: true,
-    rates,
-    selectedAddress: shippingAddress
-  })
-}
-```
 
-### Service Layer Architecture (`src/lib/api/`)
+  const rates = Object.entries(SHIPPING_CARRIERS).map(([key, carrier]) => ({
+    carrierId: key,
+    name: carrier.name,
+    rate: carrier.baseRate + (carrier.perItem * items.length),
+    estimatedDays: carrier.days
+  }))
 
-The service layer provides **business logic functions** that abstract API complexity and provide consistent interfaces for frontend components.
-
-#### Legal Compliance Service
-
-```typescript
-// src/lib/api/tintingLaws.ts
-interface TintingLaw {
-  state: string
-  frontSideWindows: { minVlt: number; maxVlt: number }
-  backSideWindows: { minVlt: number; maxVlt: number }
-  rearWindow: { minVlt: number; maxVlt: number }
-  penalties: { firstOffense: string; repeatOffense: string }
-  medicalExemptions: boolean
-  colorRestrictions: string[]
-  enforcementLevel: 'strict' | 'moderate' | 'lenient'
-}
-
-export async function checkTintCompliance(
-  stateCode: string,
-  vltPercentage: number,
-  windowType: 'front-side' | 'back-side' | 'rear'
-): Promise<ComplianceCheck> {
-  await new Promise(resolve => setTimeout(resolve, 400)) // Simulate API delay
-  
-  const law = TINTING_LAWS[stateCode]
-  if (!law) throw new Error(`No tinting laws found for state: ${stateCode}`)
-  
-  const limits = law[`${windowType.replace('-', '')}Windows` as keyof TintingLaw] as { minVlt: number; maxVlt: number }
-  const isCompliant = vltPercentage >= limits.minVlt && vltPercentage <= limits.maxVlt
-  
-  return {
-    compliant: isCompliant,
-    riskLevel: isCompliant ? 'low' : law.enforcementLevel === 'strict' ? 'high' : 'medium',
-    recommendation: isCompliant 
-      ? 'This VLT percentage is legal in your state.'
-      : `Consider ${limits.minVlt}% or higher VLT for compliance.`,
-    penalties: law.penalties,
-    state: stateCode
-  }
+  return NextResponse.json({ success: true, rates })
 }
 ```
 
 ---
 
-## Business Logic & Tesla Specialization
+## Product Architecture & Hardware Focus
 
-### Product Architecture & Tesla Focus
-
-The platform implements **deep Tesla specialization** throughout its product catalog and business logic:
+### Product Catalog Structure
 
 ```typescript
 // src/lib/products.ts
 interface Product {
   id: string
   name: string
-  category: 'film' | 'kit' | 'tool' | 'accessory'
+  category: 'sensor' | 'bridge' | 'kit' | 'accessory' | 'developer'
   price: number
   originalPrice?: number
-  
-  // Tesla-specific fields
-  teslaCompatible: boolean
-  supportedModels?: ('model-y' | 'model-3' | 'model-s' | 'model-x')[]
-  
+
   specifications: {
-    vlt?: string                    // Visible Light Transmission %
-    heatRejection?: string          // IR rejection percentage
+    connectivity?: string           // WiFi, Zigbee, etc.
+    powerSupply?: string            // USB-C, battery, etc.
+    dimensions?: string             // Physical dimensions
     warranty?: string               // Warranty coverage
-    thickness?: string              // Film thickness in mils
+    certifications?: string[]       // FCC, CE, etc.
     difficulty?: 'Beginner' | 'Intermediate' | 'Professional'
-    installationTime?: string       // Estimated installation time
+    installationTime?: string       // Estimated setup time
   }
-  
-  // VLT variants for legal compliance
+
+  // Hardware variants
   variants?: Array<{
     id: string
     name: string
-    vlt: string
+    sku: string
     price: number
-    legalStates: string[]          // States where this VLT is legal
+    specifications?: Partial<Product['specifications']>
   }>
-  
+
   features: string[]
   description: string
   images: string[]
@@ -621,84 +673,63 @@ interface Product {
   installationGuideUrl?: string
 }
 
-// Example: CyberShade IRX™ Tesla Model Y Kit
+// Example: Bed Presence Sensor
 export const products: Product[] = [
   {
-    id: 'cybershade-irx-tesla-model-y',
-    name: 'CyberShade IRX™ Tesla Model Y Complete Kit',
-    category: 'kit',
-    price: 399,
-    originalPrice: 499,
-    teslaCompatible: true,
-    supportedModels: ['model-y'],
-    
+    id: 'bed-presence-sensor',
+    name: 'OpticWorks Bed Presence Sensor',
+    category: 'sensor',
+    price: 149,
+
     specifications: {
-      vlt: '35%',
-      heatRejection: '99% IR',
-      warranty: 'Lifetime',
-      thickness: '2.0 mil',
+      connectivity: 'WiFi 2.4GHz + Bluetooth LE',
+      powerSupply: 'USB-C (5V 1A)',
+      dimensions: '120mm × 80mm × 15mm',
+      warranty: '2 years',
+      certifications: ['FCC', 'CE', 'RoHS'],
       difficulty: 'Beginner',
-      installationTime: '2-3 hours'
+      installationTime: '5 minutes'
     },
-    
-    variants: [
-      { id: 'my-20', name: '20% VLT', vlt: '20%', price: 399, legalStates: ['CA', 'TX'] },
-      { id: 'my-35', name: '35% VLT', vlt: '35%', price: 379, legalStates: ['NY', 'FL', 'TX'] },
-      { id: 'my-50', name: '50% VLT', vlt: '50%', price: 359, legalStates: ['NY', 'FL'] }
-    ],
-    
+
     features: [
-      'Pre-cut templates for 2020-2024 Model Y',
-      'Foolproof installation system',
-      'Professional-grade ceramic film',
-      'Heat gun and squeegee included',
-      'Video installation guide',
-      'Oops Protection warranty'
+      'mmWave radar technology (60GHz)',
+      'Under-mattress installation',
+      'Real-time presence detection',
+      'Privacy-first (no camera/audio)',
+      'Home Assistant integration',
+      'Cloud + local processing'
     ],
-    
-    description: 'The ultimate DIY window tinting solution specifically designed for Tesla Model Y. Our pre-cut ceramic films are precision-cut using actual Model Y templates...',
-    
+
+    description: 'Professional mmWave presence sensor designed for unobtrusive bed occupancy detection...',
+
     images: [
-      'https://r2.dev/model-y-kit-hero.jpg',
-      'https://r2.dev/model-y-installation.jpg'
+      'https://r2.dev/bed-sensor-hero.jpg',
+      'https://r2.dev/bed-sensor-installed.jpg'
     ],
-    videoUrl: 'https://r2.dev/model-y-install-guide.mp4',
-    installationGuideUrl: '/install-guides/cybershade-irx-tesla-model-y'
+    videoUrl: 'https://r2.dev/bed-sensor-demo.mp4',
+    installationGuideUrl: '/install-guides/bed-presence-sensor'
   }
-  // ... 10 additional Tesla-focused products
+  // ... additional hardware products
 ]
 ```
 
-### Legal Compliance Integration
+### Medusa Product Sync
 
-**VLT Compliance Checking** is integrated throughout the product experience:
+Products are managed in Medusa and synced to the storefront:
 
 ```typescript
-// Automatic compliance checking during product selection
-export async function validateProductLegality(
-  productId: string,
-  vltVariant: string,
-  customerState: string
-): Promise<LegalityCheck> {
-  const product = products.find(p => p.id === productId)
-  const variant = product?.variants?.find(v => v.vlt === vltVariant)
-  
-  if (!variant) return { legal: false, reason: 'Invalid product variant' }
-  
-  const compliance = await checkTintCompliance(
-    customerState,
-    parseInt(variant.vlt),
-    'front-side' // Most restrictive window type
-  )
-  
-  return {
-    legal: compliance.compliant,
-    riskLevel: compliance.riskLevel,
-    recommendation: compliance.recommendation,
-    alternativeVariants: product?.variants
-      ?.filter(v => v.legalStates.includes(customerState))
-      .map(v => ({ vlt: v.vlt, price: v.price }))
+// Fetch products from Medusa with local fallback
+export async function getProductCatalog() {
+  if (process.env.NEXT_PUBLIC_MEDUSA_ENABLED === 'true') {
+    try {
+      const medusaProducts = await medusaClient.products.list()
+      return medusaProducts.products
+    } catch (error) {
+      console.error('Failed to fetch from Medusa, using local catalog:', error)
+      return products // Fallback to local catalog
+    }
   }
+  return products
 }
 ```
 
@@ -706,279 +737,63 @@ export async function validateProductLegality(
 
 ## Checkout Flow Architecture
 
-The platform implements a **sophisticated hybrid Stripe integration** that combines the power of Stripe Checkout Sessions with the flexibility of custom UI through Stripe Elements.
+### Hybrid Stripe + Medusa Checkout
 
-### Hybrid Stripe Architecture
+The platform integrates **Stripe Elements** with **Medusa cart sessions** for a seamless checkout experience:
 
 ```typescript
 // src/components/checkout/CheckoutWrapper.tsx
 export default function CheckoutWrapper({ onPaymentSuccess, onError }: CheckoutWrapperProps) {
   const [checkout, setCheckout] = useState<StripeCheckout | null>(null)
-  const [elementsReady, setElementsReady] = useState(false)
-  
+  const { items, medusaCartId } = useCart()
+
   useEffect(() => {
     async function initializeCheckout() {
       try {
-        // Create checkout session via API
-        const sessionResponse = await fetch('/api/stripe/create-checkout-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            items: cartItems,
-            email: customerEmail,
-            successUrl: `${window.location.origin}/store/cart/success`,
-            cancelUrl: `${window.location.origin}/store/cart`
+        // Option 1: Medusa-managed checkout (Phase 2+)
+        if (process.env.NEXT_PUBLIC_MEDUSA_ENABLED === 'true' && medusaCartId) {
+          const paymentSession = await medusaClient.carts.createPaymentSessions(medusaCartId)
+          const clientSecret = paymentSession.cart.payment_sessions[0].data.client_secret
+
+          const checkoutInstance = await stripe.initCheckout({
+            fetchClientSecret: async () => clientSecret,
+            elementsOptions: { /* styling */ }
           })
-        })
-        
-        const { clientSecret } = await sessionResponse.json()
-        
-        // Initialize Stripe Elements with custom styling
-        const checkoutInstance = await stripe.initCheckout({
-          fetchClientSecret: async () => clientSecret,
-          elementsOptions: {
-            fonts: [{
-              family: 'Colfax',
-              src: 'url(https://r2.dev/fonts/ColfaxWebRegular.woff2)',
-              weight: '400',
-              style: 'normal',
-              display: 'swap'
-            }],
-            appearance: {
-              theme: 'stripe',
-              variables: {
-                fontFamily: 'Colfax, -apple-system, sans-serif',
-                colorPrimary: '#f59e0b',
-                colorBackground: '#ffffff',
-                colorText: '#1f2937',
-                borderRadius: '8px'
-              }
-            }
-          }
-        })
-        
-        setCheckout(checkoutInstance)
-        setElementsReady(true)
-        
+
+          setCheckout(checkoutInstance)
+        }
+        // Option 2: Direct Stripe checkout (Phase 1)
+        else {
+          const response = await fetch('/api/stripe/create-checkout-session', {
+            method: 'POST',
+            body: JSON.stringify({ items })
+          })
+          const { clientSecret } = await response.json()
+
+          const checkoutInstance = await stripe.initCheckout({
+            fetchClientSecret: async () => clientSecret,
+            elementsOptions: { /* styling */ }
+          })
+
+          setCheckout(checkoutInstance)
+        }
       } catch (error) {
         console.error('Checkout initialization error:', error)
-        onError('Failed to initialize checkout. Please try again.')
+        onError('Failed to initialize checkout')
       }
     }
-    
+
     initializeCheckout()
-  }, [cartItems, customerEmail])
-  
+  }, [items, medusaCartId])
+
   return (
     <div className="checkout-container">
-      {elementsReady && checkout ? (
-        <CheckoutForm 
-          checkout={checkout}
-          onPaymentSuccess={onPaymentSuccess}
-          onError={onError}
-        />
+      {checkout ? (
+        <CheckoutForm checkout={checkout} onPaymentSuccess={onPaymentSuccess} />
       ) : (
-        <div className="loading-state">
-          <Loader2 className="h-8 w-8 animate-spin" />
-          <p>Preparing your checkout...</p>
-        </div>
+        <LoadingState />
       )}
     </div>
-  )
-}
-```
-
-### Payment Flow Integration
-
-```typescript
-// src/components/checkout/CheckoutForm.tsx
-export default function CheckoutForm({ checkout, onPaymentSuccess, onError }: CheckoutFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const { items, getTotalPrice } = useCart()
-  const { taxAmount, isCalculatingTax, setTaxAmount, setShippingAddress } = useCheckoutState()
-  
-  // Real-time tax calculation on address changes
-  const calculateTax = useCallback(async (address: ShippingAddress) => {
-    if (!address?.state) return
-    
-    setIsCalculatingTax(true)
-    try {
-      const response = await fetch('/api/stripe/get-session-tax', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          items: items.map(item => ({
-            id: item.id,
-            price: item.price,
-            quantity: item.quantity
-          })),
-          shippingAddress: address
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        setTaxAmount(data.taxAmount || 0)
-      }
-    } catch (error) {
-      console.warn('Tax calculation failed:', error)
-      setTaxAmount(0)
-    } finally {
-      setIsCalculatingTax(false)
-    }
-  }, [items, setIsCalculatingTax, setTaxAmount])
-  
-  // Mount Stripe Elements and set up event listeners
-  useEffect(() => {
-    if (!checkout || !elementsReady) return
-    
-    async function mountElements() {
-      try {
-        // Create and mount address element
-        const addressElement = checkout.createShippingAddressElement()
-        addressElement.mount('#address-element')
-        
-        // Listen for address changes to calculate tax
-        addressElement.on('change', (event: any) => {
-          if (event.complete && event.value?.address) {
-            const address = event.value.address
-            setShippingAddress(address)
-            calculateTax(address)
-          }
-        })
-        
-        // Create and mount payment element
-        const paymentElement = checkout.createPaymentElement()
-        paymentElement.mount('#payment-element')
-        
-        setElementsReady(true)
-      } catch (error) {
-        console.error('Error mounting elements:', error)
-        onError('Failed to load payment form')
-      }
-    }
-    
-    mountElements()
-  }, [checkout, calculateTax, setShippingAddress])
-  
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault()
-    if (!checkout || isSubmitting) return
-    
-    setIsSubmitting(true)
-    
-    try {
-      const { error } = await checkout.confirm({
-        return_url: `${window.location.origin}/store/cart/success`
-      })
-      
-      if (error) {
-        onError(error.message || 'Payment failed')
-      } else {
-        // Payment success is handled by return_url redirect
-        onPaymentSuccess('payment_completed')
-      }
-    } catch (error) {
-      console.error('Payment submission error:', error)
-      onError('An unexpected error occurred during payment')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-  
-  return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Customer email input */}
-      <div className="space-y-2">
-        <Label htmlFor="email">Email for receipt</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full"
-        />
-      </div>
-      
-      {/* Stripe Address Element */}
-      <div className="space-y-2">
-        <Label>Shipping Address</Label>
-        <div id="address-element" className="border rounded-md p-3">
-          {/* Stripe will mount the address element here */}
-        </div>
-      </div>
-      
-      {/* Order Summary */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Order Summary</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {/* Item list */}
-          {items.map((item) => (
-            <div key={item.id} className="flex justify-between">
-              <span>{item.name} × {item.quantity}</span>
-              <span>${(item.price * item.quantity).toFixed(2)}</span>
-            </div>
-          ))}
-          
-          {/* Totals */}
-          <Separator />
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>${getTotalPrice().toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Tax</span>
-            <span>
-              {isCalculatingTax ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                `$${taxAmount.toFixed(2)}`
-              )}
-            </span>
-          </div>
-          <div className="flex justify-between">
-            <span>Shipping</span>
-            <span>Free</span>
-          </div>
-          <Separator />
-          <div className="flex justify-between font-semibold text-lg">
-            <span>Total</span>
-            <span>${(getTotalPrice() + taxAmount).toFixed(2)}</span>
-          </div>
-        </CardContent>
-      </Card>
-      
-      {/* Stripe Payment Element */}
-      <div className="space-y-2">
-        <Label>Payment Details</Label>
-        <div id="payment-element" className="border rounded-md p-3">
-          {/* Stripe will mount the payment element here */}
-        </div>
-      </div>
-      
-      {/* Submit button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting || isCalculatingTax}
-        className="w-full"
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Processing Payment...
-          </>
-        ) : (
-          `Pay $${(getTotalPrice() + taxAmount).toFixed(2)}`
-        )}
-      </Button>
-      
-      <p className="text-sm text-gray-500 text-center">
-        Your payment information is secure and encrypted.
-      </p>
-    </form>
   )
 }
 ```
@@ -989,67 +804,45 @@ export default function CheckoutForm({ checkout, onPaymentSuccess, onError }: Ch
 
 ### Comprehensive Error Boundary Strategy
 
-The platform implements **multi-layer error boundaries** to ensure graceful degradation:
-
 ```typescript
 // src/components/3d/ErrorBoundary.tsx
-export default class ThreeDErrorBoundary extends Component<
-  { children: React.ReactNode; fallback?: React.ComponentType },
-  { hasError: boolean; error: Error | null }
-> {
-  constructor(props: any) {
-    super(props)
-    this.state = { hasError: false, error: null }
-  }
-  
+export default class ThreeDErrorBoundary extends Component {
+  state = { hasError: false, error: null }
+
   static getDerivedStateFromError(error: Error) {
     return { hasError: true, error }
   }
-  
+
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('3D Component Error:', error, errorInfo)
-    
-    // Track error for analytics (in production)
+
     if (process.env.NODE_ENV === 'production') {
-      // analytics.track('component_error', {
-      //   component: '3D_Viewer',
-      //   error: error.message,
-      //   stack: error.stack
-      // })
+      // Track error for analytics
     }
   }
-  
+
   render() {
     if (this.state.hasError) {
-      const Fallback = this.props.fallback || DefaultThreeDFallback
-      return <Fallback onRetry={() => this.setState({ hasError: false, error: null })} />
+      return (
+        <Card className="p-8 text-center">
+          <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
+          <h3 className="text-lg font-semibold">3D Viewer Unavailable</h3>
+          <p className="text-gray-600">
+            The 3D viewer encountered an error. Product images are still available below.
+          </p>
+          <Button onClick={() => this.setState({ hasError: false })}>
+            Try Again
+          </Button>
+        </Card>
+      )
     }
-    
+
     return this.props.children
   }
 }
-
-function DefaultThreeDFallback({ onRetry }: { onRetry: () => void }) {
-  return (
-    <Card className="p-8 text-center">
-      <div className="space-y-4">
-        <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
-        <h3 className="text-lg font-semibold">3D Viewer Unavailable</h3>
-        <p className="text-gray-600">
-          The 3D model viewer encountered an error. You can still view product images and details below.
-        </p>
-        <Button onClick={onRetry} variant="outline">
-          Try Again
-        </Button>
-      </div>
-    </Card>
-  )
-}
 ```
 
-### User Experience Patterns
-
-#### Loading States and Skeleton UI
+### Loading States and Skeleton UI
 
 ```typescript
 // src/components/skeletons/order-success-skeleton.tsx
@@ -1062,20 +855,13 @@ export function OrderSuccessSkeleton() {
           <div className="h-8 bg-gray-200 rounded w-64 mx-auto animate-pulse" />
           <div className="h-4 bg-gray-200 rounded w-96 mx-auto animate-pulse" />
         </div>
-        
+
         {/* Order details skeleton */}
         <Card>
-          <CardHeader>
-            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse" />
-          </CardHeader>
           <CardContent className="space-y-4">
-            {/* Order items */}
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="flex justify-between items-center">
-                <div className="space-y-2">
-                  <div className="h-4 bg-gray-200 rounded w-48 animate-pulse" />
-                  <div className="h-3 bg-gray-200 rounded w-32 animate-pulse" />
-                </div>
+              <div key={i} className="flex justify-between">
+                <div className="h-4 bg-gray-200 rounded w-48 animate-pulse" />
                 <div className="h-4 bg-gray-200 rounded w-16 animate-pulse" />
               </div>
             ))}
@@ -1087,68 +873,27 @@ export function OrderSuccessSkeleton() {
 }
 ```
 
-#### Toast Notification System
-
-The platform uses **Sonner** for consistent user feedback:
-
-```typescript
-// Integrated into cart operations
-addToCart: (product: Product) => {
-  // ... cart logic
-  
-  // Immediate user feedback
-  toast.success(`${product.name} added to cart`, {
-    description: `Total: ${get().getTotalItems()} items`,
-    action: {
-      label: 'View Cart',
-      onClick: () => set({ isOpen: true })
-    }
-  })
-},
-
-removeFromCart: (productId: string) => {
-  const item = get().items.find(i => i.id === productId)
-  
-  // ... removal logic
-  
-  if (item) {
-    toast.info(`${item.name} removed from cart`, {
-      action: {
-        label: 'Undo',
-        onClick: () => get().addToCart(item)
-      }
-    })
-  }
-}
-```
-
 ---
 
 ## Performance Optimization Strategies
 
-### Next.js Configuration for Optimization
+### Next.js Configuration
 
 ```typescript
 // next.config.ts
-import type { NextConfig } from "next";
-
 const nextConfig: NextConfig = {
-  // Image optimization for multiple CDNs
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'pub-e97850e2b6554798b4b0ec23548c975d.r2.dev', // Cloudflare R2
-        port: '',
         pathname: '/**',
       }
     ],
   },
-  
-  // Three.js optimization
+
   transpilePackages: ['three'],
-  
-  // GLSL shader support for 3D components
+
   webpack: (config) => {
     config.module.rules.push({
       test: /\.(glsl|vs|fs|vert|frag)$/,
@@ -1156,8 +901,7 @@ const nextConfig: NextConfig = {
     });
     return config;
   },
-  
-  // Enable experimental features
+
   experimental: {
     optimizeCss: true,
     gzipSize: true
@@ -1165,57 +909,26 @@ const nextConfig: NextConfig = {
 };
 ```
 
-### Component Optimization Patterns
-
-#### Lazy Loading for Heavy Components
+### Component Optimization
 
 ```typescript
-// Lazy load 3D viewer to improve initial page load
-const Tesla3DViewer = lazy(() => import('@/components/3d/Tesla3DViewer'))
+// Lazy load heavy 3D components
+const SceneViewer = lazy(() => import('@/components/3d/SceneViewer'))
 
 function ProductPage() {
   return (
     <div>
-      {/* Critical content loads immediately */}
       <ProductHero product={product} />
       <ProductDetails product={product} />
-      
-      {/* 3D viewer loads after critical content */}
-      <Suspense fallback={<ThreeDViewerSkeleton />}>
+
+      <Suspense fallback={<ViewerSkeleton />}>
         <ThreeDErrorBoundary>
-          <Tesla3DViewer modelId={product.id} />
+          <SceneViewer modelId={product.id} />
         </ThreeDErrorBoundary>
       </Suspense>
     </div>
   )
 }
-```
-
-#### Selective State Persistence
-
-```typescript
-// Optimized persistence configuration
-const useCart = create<CartStore>()(
-  persist(
-    (set, get) => ({ /* store implementation */ }),
-    {
-      name: 'cart-storage',
-      
-      // Only persist essential data
-      partialize: (state) => ({
-        items: state.items,
-        paymentSession: state.paymentSession
-        // Exclude UI state, computed values, and temporary data
-      }),
-      
-      // Optimize serialization
-      serialize: {
-        serialize: JSON.stringify,
-        deserialize: JSON.parse
-      }
-    }
-  )
-)
 ```
 
 ---
@@ -1227,35 +940,23 @@ const useCart = create<CartStore>()(
 ```typescript
 // Webhook signature verification
 export async function POST(request: NextRequest) {
-  const body = await request.text()
   const signature = request.headers.get('stripe-signature')
-  
+
   if (!signature) {
-    console.error('No Stripe signature provided')
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    )
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
-  
+
   try {
-    // Verify webhook signature
     const event = stripe.webhooks.constructEvent(
-      body,
+      await request.text(),
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!
     )
-    
-    // Process verified event
+
     await processWebhookEvent(event)
-    
     return NextResponse.json({ received: true })
   } catch (error) {
-    console.error('Webhook signature verification failed:', error)
-    return NextResponse.json(
-      { error: 'Invalid signature' },
-      { status: 400 }
-    )
+    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }
 }
 ```
@@ -1263,33 +964,16 @@ export async function POST(request: NextRequest) {
 ### Input Validation with Zod
 
 ```typescript
-// Comprehensive validation schemas
 import { z } from 'zod'
 
 export const ContactFormSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  phone: z.string().regex(/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number').optional(),
-  subject: z.enum(['general', 'order', 'technical', 'warranty'], {
-    required_error: 'Please select a subject'
-  }),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(1000, 'Message too long'),
-  orderNumber: z.string().regex(/^OP-\d{4}-\d{3}$/).optional(),
-  attachments: z.array(z.instanceof(File)).max(3, 'Maximum 3 files allowed').optional()
+  email: z.string().email('Please enter a valid email'),
+  subject: z.enum(['general', 'order', 'technical', 'warranty']),
+  message: z.string().min(10, 'Message must be at least 10 characters').max(1000)
 })
 
 export type ContactFormData = z.infer<typeof ContactFormSchema>
-
-// Usage in components
-const form = useForm<ContactFormData>({
-  resolver: zodResolver(ContactFormSchema),
-  defaultValues: {
-    name: '',
-    email: '',
-    subject: undefined,
-    message: ''
-  }
-})
 ```
 
 ### Environment Variable Management
@@ -1297,27 +981,24 @@ const form = useForm<ContactFormData>({
 ```typescript
 // Centralized environment validation
 const requiredEnvVars = {
-  // Stripe (Production Ready)
+  // Stripe (Production)
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
-  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
-  
-  // Email (Production Ready)
-  RESEND_API_KEY: process.env.RESEND_API_KEY,
-  NEXT_PUBLIC_FROM_EMAIL: process.env.NEXT_PUBLIC_FROM_EMAIL,
-  
-  // Database (Integration Ready)
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  // Medusa (Production)
+  NEXT_PUBLIC_MEDUSA_BASE_URL: process.env.NEXT_PUBLIC_MEDUSA_BASE_URL,
+  NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+
+  // Email (Production)
+  RESEND_API_KEY: process.env.RESEND_API_KEY
 }
 
-// Validate environment on startup
 export function validateEnvironment() {
   const missing = Object.entries(requiredEnvVars)
     .filter(([_, value]) => !value)
     .map(([key, _]) => key)
-  
-  if (missing.length > 0) {
+
+  if (missing.length > 0 && process.env.NODE_ENV === 'production') {
     throw new Error(`Missing required environment variables: ${missing.join(', ')}`)
   }
 }
@@ -1327,7 +1008,7 @@ export function validateEnvironment() {
 
 ## Development Workflow & Quality Assurance
 
-### TypeScript Strict Mode Configuration
+### TypeScript Strict Mode
 
 ```json
 // tsconfig.json
@@ -1356,8 +1037,7 @@ export function validateEnvironment() {
   "rules": {
     "@typescript-eslint/no-explicit-any": "error",
     "@typescript-eslint/no-unused-vars": "error",
-    "prefer-const": "error",
-    "react-hooks/exhaustive-deps": "warn"
+    "prefer-const": "error"
   }
 }
 ```
@@ -1365,15 +1045,14 @@ export function validateEnvironment() {
 ### Development Scripts
 
 ```json
-// package.json scripts
+// package.json
 {
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "lint:fix": "next lint --fix",
-    "type-check": "tsc --noEmit",
+    "test": "vitest",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook"
   }
 }
@@ -1383,27 +1062,33 @@ export function validateEnvironment() {
 
 ## Conclusion
 
-The **OpticWorks Window Tinting E-commerce Platform** represents a sophisticated, production-ready application that balances modern web development practices with deep business domain specialization. Key architectural strengths include:
+The **OpticWorks Presence Intelligence Platform** represents a sophisticated, production-ready application that balances modern web development practices with deep hardware domain specialization. Key architectural strengths include:
 
 ### Technical Excellence
 - **Type-safe architecture** with comprehensive TypeScript coverage
-- **Production-ready integrations** for payment processing and email automation
-- **Sophisticated component system** balancing accessibility and customization
+- **Production-ready integrations** for Medusa e-commerce, Stripe payments, and email automation
+- **Sophisticated component system** balancing accessibility and premium branding
 - **Performance optimization** with lazy loading, caching, and efficient state management
 - **Error resilience** with comprehensive error boundaries and graceful degradation
 
 ### Business Value
-- **Tesla specialization** with deep automotive industry knowledge
-- **Legal compliance** integration for state-by-state tinting regulations
-- **Complete e-commerce flow** from product discovery to order fulfillment
-- **Customer service integration** with support ticket system and FAQ database
-- **Premium user experience** with 3D visualization and interactive features
+- **Hardware specialization** with deep IoT and presence sensing expertise
+- **Complete e-commerce flow** from product discovery to order fulfillment via Medusa
+- **Premium user experience** with cinematic visuals and interactive features
+- **Scalable backend** with Medusa v2 providing production-grade infrastructure
+- **Privacy-first messaging** aligned with mmWave sensing value proposition
 
 ### Development Experience
 - **Clear architectural patterns** enabling team productivity
 - **Comprehensive documentation** for onboarding and maintenance
-- **Stub-driven development** allowing frontend completion while backend evolves
+- **Hybrid development approach** (Medusa + stubs) allowing parallel frontend/backend work
 - **Quality assurance** with strict typing, linting, and testing patterns
 - **Scalable structure** supporting feature growth and team expansion
 
-This codebase serves as an excellent foundation for a specialized e-commerce business, demonstrating how modern web technologies can be applied to create sophisticated, domain-specific applications that deliver real business value.
+### Migration Roadmap
+- ✅ **Phase 1**: Medusa backend deployed with Ansible IaC
+- 🔧 **Phase 2**: Catalog import + storefront integration (in progress, blocked by Infisical setup)
+- 📋 **Phase 3**: Hugo docs site + Discourse forum + CI hardening
+- 📋 **Phase 4**: Cloudflare Pages production deployment + webhook buffering
+
+This codebase serves as an excellent foundation for a specialized IoT hardware business, demonstrating how modern web technologies can be applied to create sophisticated, domain-specific applications that deliver real business value.
