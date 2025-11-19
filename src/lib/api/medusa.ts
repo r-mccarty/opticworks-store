@@ -1,6 +1,6 @@
 import { products as fallbackProducts, type Product } from "@/lib/products"
 
-type EnvKey = "MEDUSA_ENABLED" | "MEDUSA_BASE_URL" | "MEDUSA_API_TOKEN"
+type EnvKey = "MEDUSA_ENABLED" | "MEDUSA_BASE_URL" | "MEDUSA_PUBLISHABLE_KEY"
 
 const isBrowser = typeof window !== "undefined"
 
@@ -15,7 +15,7 @@ const readEnv = (key: EnvKey): string | undefined => {
 const medusaEnv = {
   enabled: readEnv("MEDUSA_ENABLED") === "true",
   baseUrl: readEnv("MEDUSA_BASE_URL"),
-  token: readEnv("MEDUSA_API_TOKEN"),
+  publishableKey: readEnv("MEDUSA_PUBLISHABLE_KEY"),
 }
 
 type MedusaListResponse = {
@@ -115,8 +115,8 @@ const medusaHeaders = (): HeadersInit => {
     "Content-Type": "application/json",
   }
 
-  if (medusaEnv.token) {
-    headers.Authorization = `Bearer ${medusaEnv.token}`
+  if (medusaEnv.publishableKey) {
+    headers["x-publishable-api-key"] = medusaEnv.publishableKey
   }
 
   return headers
