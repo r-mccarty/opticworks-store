@@ -51,8 +51,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
 ├── public/                  # Images, fonts, static assets (served via Next Image/R2 URLs)
 ├── docs/                    # Canonical documentation (see below)
 │   ├── API_STUBS.md, CODEBASE_EXPLANATION.md, STATE_MANAGEMENT.md, etc.
-│   ├── MIGRATION_PLAN.md    # Bootstrap plan v4.0 (Phases 1-4 complete architecture)
-│   ├── IMPLEMENTATION_GUIDE.md  # Runbooks for all milestones including Cloudflare Tunnel
+│   ├── DEPLOYMENT_GUIDE.md  # Production architecture & Ansible deployment workflow
 │   ├── CONTRIBUTORS.md      # SSH access, dev/prod workflow, Hetzner deployment
 │   ├── RFD-004.md           # Infrastructure automation requirements (resolved)
 │   ├── CI.md                # CI checklist (moved from legacy /config/)
@@ -81,7 +80,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
   - `src/*` — Storefront application (Next.js 15.5)
   - `services/medusa/` — Backend workspace with 17 automation scripts
   - `infrastructure/ansible/` — Infrastructure-as-Code for backend provisioning **[NEW]**
-  - `docs/` — Canonical documentation (MIGRATION_PLAN v4.0, IMPLEMENTATION_GUIDE, CONTRIBUTORS)
+  - `docs/` — Canonical documentation (DEPLOYMENT_GUIDE, CONTRIBUTORS, RFD records)
   - `.env.template` + `services/medusa/.env.example` — Environment configuration
   - `platform/` — Hugo docs + Discourse forum scaffolds
   - `workers/` — Cloudflare Workers (Phase 4)
@@ -143,7 +142,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This r
    - See `.env.template` and `services/medusa/.env.example` header comments for detailed scope explanation
 
 7. **Root cleanup / ops**
-   - Follow `docs/IMPLEMENTATION_GUIDE.md` for deployment procedures (Phases 1-4)
+   - Follow `docs/DEPLOYMENT_GUIDE.md` for deployment procedures (Ansible IaC workflow)
    - Legacy `/config/` folder **deleted** — CI checklist now at `docs/CI.md`
    - Old SDKs archived under `/archive/` (do not delete without confirming no dependencies)
    - CI must run: `pnpm run lint`, `pnpm run build`, `pnpm docs:build`, `pnpm --filter @opticworks/medusa-service build`

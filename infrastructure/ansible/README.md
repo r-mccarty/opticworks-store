@@ -292,6 +292,7 @@ Add to `.github/workflows/deploy.yml`:
 
 ## Related Documentation
 
-- [IMPLEMENTATION_GUIDE.md](../../docs/IMPLEMENTATION_GUIDE.md) - Manual setup instructions (deprecated)
+- [DEPLOYMENT_GUIDE.md](../../docs/DEPLOYMENT_GUIDE.md) - Production architecture and deployment workflow
 - [CONTRIBUTORS.md](../../docs/CONTRIBUTORS.md) - SSH access and dev workflow
 - [RFD-006.md](../../docs/RFD-006.md) - Deployment issues that led to this automation
+- [archived/IMPLEMENTATION_GUIDE.md](../../docs/archived/IMPLEMENTATION_GUIDE.md) - Deprecated manual setup instructions
