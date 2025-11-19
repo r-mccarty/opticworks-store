@@ -177,6 +177,9 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This m
 │   ├── DEPLOYMENT_GUIDE.md       # ⭐ Infrastructure provisioning
 │   ├── CONTRIBUTORS.md           # ⭐ SSH access, dev workflow
 │   ├── KEY_MANAGEMENT.md         # ⭐ Infisical secrets (CRITICAL)
+│   ├── PHASE2_INTEGRATION_SUMMARY.md  # ⭐ Phase 2 complete integration guide
+│   ├── PHASE2_RECREATION_GUIDE.md     # ⭐ Recreate validated Phase 2 state
+│   ├── BUILD_CONFIGURATION.md    # ⭐ Build troubleshooting & workflow
 │   ├── INTEGRATION_GUIDE.md      # Storefront-Backend integration
 │   ├── CODEBASE_EXPLANATION.md   # Architecture deep dive
 │   ├── STATE_MANAGEMENT.md       # Zustand patterns
@@ -192,6 +195,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This m
 │   └── archived/                 # Deprecated documentation (see below)
 │       ├── MIGRATION_PLAN.md, IMPLEMENTATION_GUIDE.md
 │       ├── INFISICAL_SETUP.md (superseded by KEY_MANAGEMENT.md)
+│       ├── ENV_BASELINE_PHASE2.md, INFISICAL_PUSH_GUIDE.md (superseded)
 │       └── RFD-004.md, RFD-005.md, RFD-006.md (resolved)
 │
 ├── public/                       # Static assets
@@ -490,12 +494,14 @@ pnpm --filter @opticworks/medusa-service build
 - Cloudflare Tunnel configured
 - Infisical secret management adopted
 
-### 🔄 Phase 2: Storefront Integration (IN PROGRESS)
-- [ ] Integrate Next.js storefront with Medusa API
-- [ ] E2E checkout testing (Medusa → Stripe)
-- [ ] Verify product catalog rendering
-- [ ] Test cart sessions and payment flows
-- [ ] Production secrets synced to Infisical
+### ✅ Phase 2: Storefront Integration (COMPLETE - 2025-11-19)
+- ✅ Next.js storefront integrated with Medusa v2 Store API
+- ✅ Product catalog rendering from live backend (7 products)
+- ✅ Cart and checkout pages operational
+- ✅ Build process optimized (46 pages, ~2-3min)
+- ✅ Type checking validated (runs separately)
+- ⏳ E2E checkout testing (Stripe webhooks) - pending Phase 3
+- 📋 Production secrets ready for Infisical push
 
 ### 📋 Phase 3: Documentation & Community
 - [ ] Deploy Hugo docs site (`platform/docs-site/`)

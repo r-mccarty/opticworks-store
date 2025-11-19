@@ -22,7 +22,7 @@ token: readEnv("MEDUSA_API_TOKEN"),
 
 **We have** (`.env.local` and Infisical):
 ```bash
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY='pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681'
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY='pk_REDACTED_GET_FROM_INFISICAL'
 ```
 
 **2. Authentication Header Mismatch**

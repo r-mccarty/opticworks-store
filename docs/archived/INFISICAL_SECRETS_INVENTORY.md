@@ -57,7 +57,7 @@
 
 ### MEDUSA_ADMIN_PASSWORD Mismatch
 
-**Current .env.local**: `EhDLY9Z8YwtH5M`
+**Current .env.local**: `REDACTED_PASSWORD`
 **Ansible secrets.yml**: `ZpgJf6vpjyPM0ByZz77fag==` (base64/encrypted)
 
 **Resolution needed**:

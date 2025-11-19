@@ -29,7 +29,7 @@
 ### 1. Resolve Admin Password Conflict ⚠️ CRITICAL
 
 **Issue**: Two different passwords found:
-- `.env.local`: `EhDLY9Z8YwtH5M`
+- `.env.local`: `REDACTED_PASSWORD`
 - Ansible `secrets.yml`: `ZpgJf6vpjyPM0ByZz77fag==` (base64-encoded)
 
 **Action**:
@@ -37,7 +37,7 @@
 # Test which password works
 open https://api.optic.works/app
 
-# Try Option A: EhDLY9Z8YwtH5M
+# Try Option A: REDACTED_PASSWORD
 # Try Option B: Need to decode Ansible password first
 
 # Once determined, update .env.infisical-push line 49:

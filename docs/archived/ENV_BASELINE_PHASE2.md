@@ -27,7 +27,7 @@ This document captures the frozen state of environment configurations used for P
 - `NEXT_PUBLIC_MEDUSA_BASE_URL` - https://api.optic.works
 - `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` - pk_32db... (NEW VALID KEY)
 - `MEDUSA_ADMIN_EMAIL` - admin@optic.works
-- `MEDUSA_ADMIN_PASSWORD` - EhDLY9Z8YwtH5M
+- `MEDUSA_ADMIN_PASSWORD` - REDACTED_PASSWORD
 - `MEDUSA_SECRET_KEY` - sk_8253...
 - `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` - pk_test_51RzV...
 - `STRIPE_SECRET_KEY` - sk_test_51RzV...
@@ -67,7 +67,7 @@ postgres_db_password: "KAbNeXLFMQX3JS/lqso/c2eSMmn3BK0nNr0J9j4N60A="
 
 # Medusa Admin
 medusa_admin_email: "admin@optic.works"
-medusa_admin_password: "EhDLY9Z8YwtH5M"
+medusa_admin_password: "REDACTED_PASSWORD"
 
 # Medusa Secrets
 jwt_secret: "310290041d7bef6153d1e67b1fd733ab5758dd42fedbda3bd4e59a7ecb57c74f"
@@ -125,7 +125,7 @@ cp .env.local.phase2-baseline .env.local
 
 # Verify restoration
 cat .env.local | grep NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-# Should show: pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681
+# Should show: pk_REDACTED_GET_FROM_INFISICAL
 
 # Re-sync from Infisical (if baseline is outdated)
 pnpm run secrets:pull

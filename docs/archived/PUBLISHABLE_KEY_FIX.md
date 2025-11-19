@@ -33,7 +33,7 @@ Successfully created a new publishable API key using Medusa v2 Admin API:
 # Get JWT token
 curl -X POST https://api.optic.works/auth/user/emailpass \
   -H 'Content-Type: application/json' \
-  -d '{"email":"admin@optic.works","password":"EhDLY9Z8YwtH5M"}'
+  -d '{"email":"admin@optic.works","password":"REDACTED_PASSWORD"}'
 
 # Create publishable key
 curl -X POST https://api.optic.works/admin/api-keys \
@@ -45,7 +45,7 @@ curl -X POST https://api.optic.works/admin/api-keys \
 {
   "api_key": {
     "id": "apk_01KAD3DAK5T2TBMC749HCJQAPQ",
-    "token": "pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681",
+    "token": "pk_REDACTED_GET_FROM_INFISICAL",
     "title": "OpticWorks Production Store",
     "type": "publishable"
   }
@@ -66,7 +66,7 @@ curl -X POST https://api.optic.works/admin/api-keys/apk_01KAD3DAK5T2TBMC749HCJQA
 ### 3. Verified Working
 
 ```bash
-curl -H 'x-publishable-api-key: pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681' \
+curl -H 'x-publishable-api-key: pk_REDACTED_GET_FROM_INFISICAL' \
   https://api.optic.works/store/products
 
 # Response: Successfully retrieved all 7 products
@@ -76,7 +76,7 @@ curl -H 'x-publishable-api-key: pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1
 
 **NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY**:
 ```
-pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681
+pk_REDACTED_GET_FROM_INFISICAL
 ```
 
 **Key Details**:
@@ -97,7 +97,7 @@ pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681
   - Environment: `development`
   - Path: `/`
   - Variable: `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`
-  - Value: `pk_32db24ec8a755da925c1c0be033e49117bdb1f08da2e1d39a21e7ed29f618681`
+  - Value: `pk_REDACTED_GET_FROM_INFISICAL`
 
 ### Follow-up
 - [ ] Update `setup-publishable-key.ts` script to use Medusa v2 endpoint (`/admin/api-keys` instead of `/admin/publishable-api-keys`)
