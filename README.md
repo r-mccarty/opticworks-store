@@ -7,14 +7,17 @@
 This monorepo powers the complete OpticWorks commercial presence:
 
 - **Storefront** (`src/`): Next.js 15 app with cinematic product storytelling, Stripe checkout, and warranty/support flows
-- **Backend** (`services/medusa/`): Medusa v2 e-commerce engine with product catalog, cart, and payment processing
-- **Infrastructure** (`infrastructure/ansible/`): Fully automated provisioning playbooks for production deployment
-- **Platform** (`platform/`): Hugo docs site and Discourse forum (Phase 3)
+- **Backend** (`services/medusa/`): Medusa v2 e-commerce engine with product catalog API (✅ operational, e-commerce config in Phase 3)
+- **Infrastructure** (`infrastructure/ansible/`): Fully automated provisioning playbooks for production deployment (✅ deployed)
+- **Platform** (`platform/`): Hugo docs site and Discord community (Phase 3)
 
-**Live Production:**
-- 🌐 Backend API: `https://api.optic.works`
-- 🛠️ Admin Dashboard: `https://api.optic.works/app`
-- ✅ Health: `https://api.optic.works/health`
+**Live Production Endpoints:**
+- 🌐 Backend API: `https://api.optic.works` (✅ OPERATIONAL)
+- 🛠️ Admin Dashboard: `https://api.optic.works/app` (✅ ACCESSIBLE)
+- ✅ Health Check: `https://api.optic.works/health` (✅ LIVE)
+- 📦 Store API: `https://api.optic.works/store/*` (✅ 7 PRODUCTS)
+
+**Current Status**: Phase 2 infrastructure deployment complete. Phase 3 e-commerce configuration in planning.
 
 ## Quick Start
 
@@ -55,16 +58,24 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 ## Project Status & Roadmap
 
-### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - Nov 2025)
+### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - 2025-11-20)
 
 **Infrastructure operational and validated** - backend deployed, accessible via API, ready for e-commerce configuration.
 
-- Backend at `https://api.optic.works` (Hetzner + Cloudflare Tunnel)
-- PostgreSQL 17 + Redis 7.x operational
-- Medusa v2 serving Store/Admin APIs (7 products queryable)
-- Infisical secret management integrated
-- Ansible automation preventing drift
-- **Validation**: See `docs/PHASE2_VALIDATION_REPORT.md`
+**Delivered:**
+- ✅ Backend at `https://api.optic.works` (Hetzner + Cloudflare Tunnel)
+- ✅ PostgreSQL 17 + Redis 7.x operational (proven via API)
+- ✅ Medusa v2.11.3 serving Store/Admin APIs (7 products queryable)
+- ✅ Admin dashboard accessible with authentication
+- ✅ Cloudflare Tunnel configured and routing traffic
+- ✅ Infisical secret management integrated
+- ✅ Ansible automation preventing infrastructure drift
+- ✅ Next.js storefront builds successfully (46 pages)
+- ✅ Infrastructure validation suite created
+
+**Validation**: See `docs/PHASE2_VALIDATION_REPORT.md` for complete test results.
+
+**What's Deferred to Phase 3**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - infrastructure is ready, configuration is next.
 
 ### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
 
@@ -79,6 +90,8 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 - Automated E2E testing + CI/CD
 
 **Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide (7 tracks, ~15-20 sessions).
+
+**Status**: Planning complete, ready for implementation. Critical path: Medusa configuration → Cart/Checkout integration.
 
 ### 📋 Phase 4: Production Optimization
 
@@ -254,14 +267,15 @@ Cloudflare Pages migration, performance optimization, international expansion.
 │   │   ├── hugo.toml, netlify.toml
 │   │   └── content/
 │   │
-│   └── forum/                    # Discourse forum setup (Phase 3)
-│       ├── docker-compose.yml
-│       └── theme/ (settings.yml, theme.scss)
+│   └── forum/                    # Discourse forum (DEPRECATED - replaced by Discord)
 │
 ├── docs/                         # Documentation (source of truth)
 │   ├── DEPLOYMENT_GUIDE.md       # ⭐ Infrastructure provisioning
 │   ├── CONTRIBUTORS.md           # ⭐ SSH access, dev workflow
 │   ├── KEY_MANAGEMENT.md         # ⭐ Infisical secrets (CRITICAL)
+│   ├── PHASE2_VALIDATION_REPORT.md  # ⭐ Phase 2 infrastructure validation
+│   ├── PHASE2_RECREATION_GUIDE.md   # ⭐ Recreate validated Phase 2 state
+│   ├── PHASE3_PLAN.md            # ⭐ Complete e-commerce integration plan
 │   ├── INTEGRATION_GUIDE.md      # Storefront-Backend integration
 │   ├── CODEBASE_EXPLANATION.md   # Architecture deep dive
 │   ├── STATE_MANAGEMENT.md       # Zustand patterns
@@ -479,14 +493,22 @@ pnpm run lint
 
 ### Active Guides
 
+**Infrastructure & Deployment:**
 - **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning via Ansible
 - **[CONTRIBUTORS.md](docs/CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
-- **[INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
 - **[KEY_MANAGEMENT.md](docs/KEY_MANAGEMENT.md)** - Secret rotation and Infisical strategy
+
+**Development & Integration:**
+- **[INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
 - **[CODEBASE_EXPLANATION.md](docs/CODEBASE_EXPLANATION.md)** - Architecture patterns
 - **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** - Zustand store design
 - **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** - Checkout implementation
 - **[API_STUBS.md](docs/API_STUBS.md)** - API design patterns
+
+**Phase Documentation:**
+- **[PHASE2_VALIDATION_REPORT.md](docs/PHASE2_VALIDATION_REPORT.md)** - Phase 2 validation results and infrastructure proof
+- **[PHASE2_RECREATION_GUIDE.md](docs/PHASE2_RECREATION_GUIDE.md)** - How to recreate validated Phase 2 state
+- **[PHASE3_PLAN.md](docs/PHASE3_PLAN.md)** - Complete e-commerce integration plan (7 tracks)
 
 ### Archived Guides
 
@@ -501,31 +523,44 @@ pnpm run lint
 ## Roadmap
 
 ### ✅ Phase 1: Backend Infrastructure (COMPLETE - 2025-11-18)
-- Ansible Infrastructure-as-Code
-- Hetzner backend provisioned
-- PostgreSQL 17 + Redis operational
-- Medusa v2 serving at `api.optic.works`
-- Admin dashboard accessible
-- Product catalog synced
+- ✅ Ansible Infrastructure-as-Code
+- ✅ Hetzner backend provisioned
+- ✅ PostgreSQL 17 + Redis operational
+- ✅ Medusa v2 serving at `api.optic.works`
+- ✅ Admin dashboard accessible
+- ✅ Product catalog synced (7 products)
 
-### 🔄 Phase 2: Storefront Integration (IN PROGRESS)
-- [ ] Integrate Next.js storefront with Medusa API
-- [ ] E2E checkout testing (Medusa → Stripe)
-- [ ] Verify product catalog rendering
-- [ ] Test cart sessions and payment flows
-- [ ] Sync production secrets to Infisical
+### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - 2025-11-20)
+- ✅ Backend deployed and accessible at `api.optic.works`
+- ✅ Database operational (proven via API queries)
+- ✅ Medusa Store API serving products
+- ✅ Admin API authenticated and working
+- ✅ Cloudflare Tunnel routing traffic
+- ✅ Infisical secret management integrated
+- ✅ Ansible automation preventing drift
+- ✅ Next.js storefront builds successfully
+- ✅ E2E validation suite created
 
-### 📋 Phase 3: Documentation & Community
-- [ ] Deploy Hugo docs site
-- [ ] API documentation generation
-- [ ] Discourse forum setup
-- [ ] CI/CD pipeline hardening
+**Note**: Phase 2 focused on infrastructure deployment and operational readiness. E-commerce configuration (cart/checkout, regions, payments) is Phase 3 scope.
 
-### 📋 Phase 4: Production Storefront
-- [ ] Cloudflare Pages deployment
-- [ ] Webhook buffering (Durable Objects)
-- [ ] Performance optimization
+### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
+**7 Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
+- [ ] **Track 1**: Medusa e-commerce configuration (regions, payments, shipping)
+- [ ] **Track 2**: Cart & checkout integration (full customer purchase flow)
+- [ ] **Track 3**: Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
+- [ ] **Track 4**: Customer authentication & portal (Medusa CIAM)
+- [ ] **Track 5**: Discord integration (community server + bot)
+- [ ] **Track 6**: Hugo documentation site (`docs.optic.works`)
+- [ ] **Track 7**: CI/CD hardening (E2E tests, deployment automation)
+
+**Estimated Effort**: ~15-20 implementation sessions
+
+### 📋 Phase 4: Production Optimization
+- [ ] Migrate storefront from Vercel to Cloudflare Pages
+- [ ] Performance optimization (Core Web Vitals)
 - [ ] SEO finalization
+- [ ] International expansion (EU region, multi-currency)
+- [ ] Advanced features (subscriptions, bundles, pre-orders)
 
 ## Key Contacts & Resources
 
