@@ -1,6 +1,6 @@
-# AGENTS.md
+# CLAUDE.md
 
-Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This monorepo powers the complete OpticWorks e-commerce platform with Next.js storefront and Medusa v2 backend. `CLAUDE.md` must mirror this file (hard link or identical copy).
+Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This monorepo powers the complete OpticWorks e-commerce platform with Next.js storefront and Medusa v2 backend. `AGENTS.md` must mirror this file (hard link or identical copy).
 
 ## Platform Snapshot (Updated 2025-11-19)
 
@@ -177,6 +177,9 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This m
 │   ├── DEPLOYMENT_GUIDE.md       # ⭐ Infrastructure provisioning
 │   ├── CONTRIBUTORS.md           # ⭐ SSH access, dev workflow
 │   ├── KEY_MANAGEMENT.md         # ⭐ Infisical secrets (CRITICAL)
+│   ├── PHASE2_INTEGRATION_SUMMARY.md  # ⭐ Phase 2 complete integration guide
+│   ├── PHASE2_RECREATION_GUIDE.md     # ⭐ Recreate validated Phase 2 state
+│   ├── BUILD_CONFIGURATION.md    # ⭐ Build troubleshooting & workflow
 │   ├── INTEGRATION_GUIDE.md      # Storefront-Backend integration
 │   ├── CODEBASE_EXPLANATION.md   # Architecture deep dive
 │   ├── STATE_MANAGEMENT.md       # Zustand patterns
@@ -192,6 +195,7 @@ Canonical guidance for the **OpticWorks Presence Intelligence Platform**. This m
 │   └── archived/                 # Deprecated documentation (see below)
 │       ├── MIGRATION_PLAN.md, IMPLEMENTATION_GUIDE.md
 │       ├── INFISICAL_SETUP.md (superseded by KEY_MANAGEMENT.md)
+│       ├── ENV_BASELINE_PHASE2.md, INFISICAL_PUSH_GUIDE.md (superseded)
 │       └── RFD-004.md, RFD-005.md, RFD-006.md (resolved)
 │
 ├── public/                       # Static assets
@@ -281,25 +285,43 @@ pnpm run build  # ✅ Must pass (use 240s timeout)
 
 All environment variables are managed via Infisical - no manual `.env` editing required.
 
-**What's in Infisical**:
+**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for the definitive list of all ~50 variables, their Infisical paths, rotation schedules, and usage notes.
 
-**Storefront** (environment: `development`, path: `/`):
-- Medusa integration: `NEXT_PUBLIC_MEDUSA_BASE_URL`, `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`
-- Stripe: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`
-- Email: `RESEND_API_KEY`
-- ~25 more environment-specific variables
+**What's in Infisical** (summary):
 
-**Backend** (environment: `production`, path: `/medusa`):
-- Database: `DATABASE_URL` (PostgreSQL connection)
-- Auth: `JWT_SECRET`, `COOKIE_SECRET`
-- Admin: `MEDUSA_ADMIN_EMAIL`, `MEDUSA_ADMIN_PASSWORD`
-- Services: Stripe, Redis, CORS configuration
+**Storefront** (environment: `development` | `staging` | `production`, path: `/`):
+- Medusa integration (6 variables: `NEXT_PUBLIC_MEDUSA_*`, `MEDUSA_*`)
+- Stripe payments (6 variables: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, webhook secrets)
+- Email & communications (2 variables: `RESEND_API_KEY`, `NEXT_PUBLIC_FROM_EMAIL`)
+- Cloudflare services (10 variables: R2 storage, Images API)
+- Analytics & monitoring (4 variables: Google Analytics, GA4)
+- Optional integrations: EasyPost, AI/MCP services, Supabase
+
+**Backend** (environment: `production` | `staging`, path: `/medusa`):
+- Database & cache: `DATABASE_URL`, `REDIS_URL`
+- Authentication: `JWT_SECRET`, `COOKIE_SECRET`
+- Admin access: `MEDUSA_ADMIN_EMAIL`, `MEDUSA_ADMIN_PASSWORD`
+- Payment processing: `STRIPE_API_KEY`
+- CORS configuration: `MEDUSA_STORE_CORS`, `MEDUSA_ADMIN_CORS`
+
+**Infrastructure** (environment: `production`, path: `/infrastructure`):
+- Database: `POSTGRES_PASSWORD`
+- Cloudflare Tunnel: `CLOUDFLARE_TUNNEL_ID`, `CLOUDFLARE_TUNNEL_CREDENTIALS`
+- Server management: `HETZNER_API_TOKEN`
 
 **Team Workflow**:
 1. Add `INFISICAL_SERVICE_TOKEN` to GitHub Codespaces repository secrets
-2. Codespaces auto-syncs `.env.local` via post-create script
+2. Codespaces auto-syncs `.env.local` via post-create script (storefront secrets)
 3. Update secrets via Infisical web UI for team access
-4. Never commit `.env.local` or `services/medusa/.env` to Git
+4. For backend deployments: Run `infrastructure/ansible/scripts/generate-secrets-from-infisical.sh` before Ansible
+5. Never commit `.env.local`, `services/medusa/.env`, or `infrastructure/ansible/group_vars/secrets.yml` to Git
+6. See `docs/KEY_MANAGEMENT.md` for variable names, rotation schedules, and complete inventory
+
+**Secret Generation Workflow** (one-time setup):
+1. Generate: `cd services/medusa && pnpm run generate:secrets`
+2. Copy output to Infisical web UI (paths: `/infrastructure`, `/medusa`)
+3. Sync to deployment: `bash infrastructure/ansible/scripts/generate-secrets-from-infisical.sh`
+4. Never use generated secrets directly - Infisical is the source of truth
 
 ## Production Deployment
 
@@ -317,8 +339,14 @@ All environment variables are managed via Infisical - no manual `.env` editing r
 
 **Deployment Commands**:
 ```bash
+# STEP 0: Sync secrets from Infisical (REQUIRED before deployment)
+export INFISICAL_SERVICE_TOKEN=st.xxxxx
 cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
+# → Creates group_vars/secrets.yml from Infisical
+# → Script FAILS if required secrets are missing (by design)
 
+# STEP 1: Deploy infrastructure
 # Full provisioning (first time or clean rebuild)
 ansible-playbook playbooks/medusa-provision.yml
 
@@ -466,24 +494,61 @@ pnpm --filter @opticworks/medusa-service build
 - Cloudflare Tunnel configured
 - Infisical secret management adopted
 
-### 🔄 Phase 2: Storefront Integration (IN PROGRESS)
-- [ ] Integrate Next.js storefront with Medusa API
-- [ ] E2E checkout testing (Medusa → Stripe)
-- [ ] Verify product catalog rendering
-- [ ] Test cart sessions and payment flows
-- [ ] Production secrets synced to Infisical
+### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - 2025-11-20)
+**Scope**: Deploy and validate backend infrastructure operational readiness
 
-### 📋 Phase 3: Documentation & Community
-- [ ] Deploy Hugo docs site (`platform/docs-site/`)
+- ✅ Hetzner backend deployed and accessible at `api.optic.works`
+- ✅ PostgreSQL 17 + Redis 7.x operational (proven via API)
+- ✅ Medusa v2.11.3 serving Store API (7 products queryable)
+- ✅ Admin dashboard accessible with authentication
+- ✅ Cloudflare Tunnel configured and routing traffic
+- ✅ Infisical secret management integrated
+- ✅ Ansible automation preventing infrastructure drift
+- ✅ Next.js storefront builds successfully (46 pages)
+- ✅ Infrastructure validation suite created
+- ✅ **Validation Report**: `docs/PHASE2_VALIDATION_REPORT.md`
+
+**What's NOT in Phase 2**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - deferred to Phase 3.
+
+### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
+**Scope**: Transform infrastructure into fully functional e-commerce platform
+
+**E-Commerce Configuration & Flow**:
+- [ ] Configure Medusa regions (US, currencies, tax rates)
+- [ ] Set up Stripe payment provider in Medusa
+- [ ] Configure shipping providers and rates
+- [ ] Complete product catalog seeding (variants, images, metadata)
+- [ ] **Full cart/checkout flow** (browse → cart → checkout → order)
+- [ ] End-to-end order processing
+- [ ] Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
+- [ ] Stripe webhook handling (payment success/failure, refunds)
+
+**Customer Authentication (Medusa CIAM)**:
+- [ ] Customer registration and login
+- [ ] Customer portal (order history, tracking, account settings)
+- [ ] Warranty claim submission
+- [ ] Protected routes in Next.js storefront
+
+**Documentation & Community**:
+- [ ] Hugo documentation site (`docs.optic.works`)
 - [ ] API documentation generation
-- [ ] Discourse forum setup (`platform/forum/`)
-- [ ] CI/CD pipeline hardening
+- [ ] **Discord community** (server + bot) - replaces Discourse
+- [ ] Discord bot (order notifications, support tickets)
 
-### 📋 Phase 4: Production Storefront
-- [ ] Migrate from Vercel to Cloudflare Pages
-- [ ] Webhook buffering (Durable Objects)
-- [ ] Performance optimization
+**CI/CD & Monitoring**:
+- [ ] Automated E2E testing (Playwright)
+- [ ] Deployment automation (Cloudflare Pages + Ansible)
+- [ ] Error tracking and monitoring
+- [ ] Webhook monitoring and alerting
+
+**📋 See**: `docs/PHASE3_PLAN.md` for complete implementation guide
+
+### 📋 Phase 4: Production Optimization & Scale
+- [ ] Migrate storefront from Vercel to Cloudflare Pages
+- [ ] Performance optimization (Core Web Vitals)
 - [ ] SEO finalization
+- [ ] International expansion (EU region, multi-currency)
+- [ ] Advanced features (subscriptions, bundles, pre-orders)
 
 ## Quick Commands Reference
 
@@ -510,8 +575,14 @@ ansible-playbook playbooks/medusa-provision.yml  # Full rebuild
 
 # Health checks
 curl https://api.optic.works/health
-curl -H "x-publishable-api-key: pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d" \
+curl -H "x-publishable-api-key: $NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY" \
   https://api.optic.works/store/products
+
+# E2E validation (from Codespaces or Hetzner)
+cd services/medusa
+pnpm run test:e2e              # Run E2E validation
+pnpm run test:e2e:report       # Generate markdown report
+bash ../../scripts/e2e-phase2-validation.sh --full  # Full validation with report
 ```
 
 ## Collaboration Notes

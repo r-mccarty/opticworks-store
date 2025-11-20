@@ -53,6 +53,39 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 **Note:** Next.js builds can take 2-3 minutes. Increase CLI timeout if needed.
 
+## Project Status & Roadmap
+
+### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - Nov 2025)
+
+**Infrastructure operational and validated** - backend deployed, accessible via API, ready for e-commerce configuration.
+
+- Backend at `https://api.optic.works` (Hetzner + Cloudflare Tunnel)
+- PostgreSQL 17 + Redis 7.x operational
+- Medusa v2 serving Store/Admin APIs (7 products queryable)
+- Infisical secret management integrated
+- Ansible automation preventing drift
+- **Validation**: See `docs/PHASE2_VALIDATION_REPORT.md`
+
+### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
+
+**Transform infrastructure into fully functional e-commerce platform.**
+
+**Core Features:**
+- Full cart/checkout flow (Medusa regions, Stripe payments, shipping)
+- Customer authentication (Medusa CIAM) + customer portal
+- Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
+- Discord community (replaces planned Discourse forum)
+- Hugo documentation site (`docs.optic.works`)
+- Automated E2E testing + CI/CD
+
+**Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide (7 tracks, ~15-20 sessions).
+
+### 📋 Phase 4: Production Optimization
+
+Cloudflare Pages migration, performance optimization, international expansion.
+
+---
+
 ## Architecture
 
 ### Deployed Infrastructure (Production)

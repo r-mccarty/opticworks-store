@@ -494,26 +494,61 @@ pnpm --filter @opticworks/medusa-service build
 - Cloudflare Tunnel configured
 - Infisical secret management adopted
 
-### ✅ Phase 2: Storefront Integration (COMPLETE - 2025-11-19)
-- ✅ Next.js storefront integrated with Medusa v2 Store API
-- ✅ Product catalog rendering from live backend (7 products)
-- ✅ Cart and checkout pages operational
-- ✅ Build process optimized (46 pages, ~2-3min)
-- ✅ Type checking validated (runs separately)
-- ⏳ E2E checkout testing (Stripe webhooks) - pending Phase 3
-- 📋 Production secrets ready for Infisical push
+### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - 2025-11-20)
+**Scope**: Deploy and validate backend infrastructure operational readiness
 
-### 📋 Phase 3: Documentation & Community
-- [ ] Deploy Hugo docs site (`platform/docs-site/`)
+- ✅ Hetzner backend deployed and accessible at `api.optic.works`
+- ✅ PostgreSQL 17 + Redis 7.x operational (proven via API)
+- ✅ Medusa v2.11.3 serving Store API (7 products queryable)
+- ✅ Admin dashboard accessible with authentication
+- ✅ Cloudflare Tunnel configured and routing traffic
+- ✅ Infisical secret management integrated
+- ✅ Ansible automation preventing infrastructure drift
+- ✅ Next.js storefront builds successfully (46 pages)
+- ✅ Infrastructure validation suite created
+- ✅ **Validation Report**: `docs/PHASE2_VALIDATION_REPORT.md`
+
+**What's NOT in Phase 2**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - deferred to Phase 3.
+
+### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
+**Scope**: Transform infrastructure into fully functional e-commerce platform
+
+**E-Commerce Configuration & Flow**:
+- [ ] Configure Medusa regions (US, currencies, tax rates)
+- [ ] Set up Stripe payment provider in Medusa
+- [ ] Configure shipping providers and rates
+- [ ] Complete product catalog seeding (variants, images, metadata)
+- [ ] **Full cart/checkout flow** (browse → cart → checkout → order)
+- [ ] End-to-end order processing
+- [ ] Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
+- [ ] Stripe webhook handling (payment success/failure, refunds)
+
+**Customer Authentication (Medusa CIAM)**:
+- [ ] Customer registration and login
+- [ ] Customer portal (order history, tracking, account settings)
+- [ ] Warranty claim submission
+- [ ] Protected routes in Next.js storefront
+
+**Documentation & Community**:
+- [ ] Hugo documentation site (`docs.optic.works`)
 - [ ] API documentation generation
-- [ ] Discourse forum setup (`platform/forum/`)
-- [ ] CI/CD pipeline hardening
+- [ ] **Discord community** (server + bot) - replaces Discourse
+- [ ] Discord bot (order notifications, support tickets)
 
-### 📋 Phase 4: Production Storefront
-- [ ] Migrate from Vercel to Cloudflare Pages
-- [ ] Webhook buffering (Durable Objects)
-- [ ] Performance optimization
+**CI/CD & Monitoring**:
+- [ ] Automated E2E testing (Playwright)
+- [ ] Deployment automation (Cloudflare Pages + Ansible)
+- [ ] Error tracking and monitoring
+- [ ] Webhook monitoring and alerting
+
+**📋 See**: `docs/PHASE3_PLAN.md` for complete implementation guide
+
+### 📋 Phase 4: Production Optimization & Scale
+- [ ] Migrate storefront from Vercel to Cloudflare Pages
+- [ ] Performance optimization (Core Web Vitals)
 - [ ] SEO finalization
+- [ ] International expansion (EU region, multi-currency)
+- [ ] Advanced features (subscriptions, bundles, pre-orders)
 
 ## Quick Commands Reference
 
@@ -540,8 +575,14 @@ ansible-playbook playbooks/medusa-provision.yml  # Full rebuild
 
 # Health checks
 curl https://api.optic.works/health
-curl -H "x-publishable-api-key: pk_opticworks_2025_live_c9fa7e3575be7d2fc8082e3d088bcf5d" \
+curl -H "x-publishable-api-key: $NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY" \
   https://api.optic.works/store/products
+
+# E2E validation (from Codespaces or Hetzner)
+cd services/medusa
+pnpm run test:e2e              # Run E2E validation
+pnpm run test:e2e:report       # Generate markdown report
+bash ../../scripts/e2e-phase2-validation.sh --full  # Full validation with report
 ```
 
 ## Collaboration Notes
