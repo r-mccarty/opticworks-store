@@ -885,6 +885,381 @@ login_provider_verification_duration_seconds
 
 ---
 
-**Last Updated**: 2025-11-19
+## Addendum: Simplified Community & Auth Strategy (2025-11-20)
+
+**Author**: Platform Engineering
+**Date**: 2025-11-20
+
+### Executive Summary
+
+After reviewing the proposed multi-phase authentication architecture, we recommend a **simplified approach** that eliminates the complexity of Ory Hydra SSO and Discourse forum deployment. Instead:
+
+1. **Community**: Launch with Discord (not Discourse)
+2. **Authentication**: Stick with Medusa Native Auth indefinitely (no Ory Hydra)
+
+This dramatically reduces operational complexity while delivering 95% of customer value.
+
+---
+
+### Rationale: Discord vs. Discourse
+
+**Original Plan (Phase 3)**:
+- Deploy self-hosted Discourse forum (`community.optic.works`)
+- Requires SSO integration (triggers Phase 4 Hydra deployment)
+- Requires moderation infrastructure, backups, updates
+- Higher barrier to community participation
+
+**Simplified Approach**:
+- Launch OpticWorks Discord server immediately
+- Channels: `#general`, `#hardware-support`, `#firmware-dev`, `#integrations`
+- Zero infrastructure (Discord hosts everything)
+- Lower barrier to entry (most customers already have Discord)
+- Richer community features (voice, video, screen share)
+
+**Decision Matrix**:
+
+| Criteria | Discourse | Discord | Winner |
+|----------|-----------|---------|--------|
+| **Time to Launch** | 4-6 weeks (infrastructure + moderation setup) | 1 day (create server + channels) | ✅ Discord |
+| **Operational Burden** | High (self-hosted, backups, security patches) | Zero (SaaS) | ✅ Discord |
+| **SSO Required?** | Yes (triggers Hydra deployment) | No (Discord handles auth) | ✅ Discord |
+| **Community Features** | Forums, badges, plugins | Voice, video, threads, bots | ✅ Discord (richer) |
+| **Monetization** | Difficult (self-hosted) | Server boosts, roles | ✅ Discord |
+| **Search/Discoverability** | Excellent (SEO-friendly) | Poor (private by default) | ⚠️ Discourse |
+| **Customer Familiarity** | Low (forum UX feels dated) | High (gamers, developers) | ✅ Discord |
+| **Integration Ecosystem** | Limited | Excellent (webhooks, bots, APIs) | ✅ Discord |
+
+**Key Insight**: The **only** advantage of Discourse is SEO/public discoverability. However:
+- Discord threads can be made publicly viewable via community settings
+- We can mirror important Discord discussions to Hugo docs site (`docs.optic.works`)
+- Most support interactions happen privately anyway (warranty claims, billing)
+
+**Cost Comparison**:
+
+```
+Discourse (self-hosted):
+- Infrastructure: $20/month (Hetzner VM)
+- Engineering time: 40 hours (setup + ongoing maintenance)
+- SSO complexity: Triggers entire Phase 4 Hydra deployment
+
+Discord:
+- Infrastructure: $0 (SaaS)
+- Engineering time: 2 hours (server setup + channel creation)
+- SSO complexity: $0 (Discord handles auth, no integration needed)
+```
+
+**Recommendation**: Launch Discord community in Phase 3, revisit Discourse only if Discord proves insufficient (unlikely).
+
+---
+
+### Rationale: Medusa Native Auth (No Hydra)
+
+**Original Plan**:
+- Phase 3: Medusa cookie/session auth (storefront only)
+- Phase 4: Deploy Ory Hydra for SSO across storefront + forum + warranty portal
+- Phase 5: OAuth for third-party developer API
+
+**Simplified Approach**:
+- Phase 3: Medusa cookie/session auth (permanent solution)
+- Future phases: Continue using Medusa auth for all properties
+- Developer API: Implement API keys (not OAuth)
+
+**Why Hydra is Overkill**:
+
+1. **No Multi-Property SSO Needed**:
+   - Discord handles its own auth (no integration required)
+   - Warranty portal can share Medusa session cookies (same domain strategy)
+   - Docs site is public (no auth required)
+   - **Result**: Only one authenticated property (storefront)
+
+2. **Developer API Doesn't Need OAuth**:
+   - OpticWorks is a hardware company, not a platform
+   - Third-party integrations are **rare** (not a core revenue stream)
+   - Simple API keys are sufficient for IoT provisioning:
+     ```bash
+     curl -H "X-API-Key: opw_live_abc123..." \
+       https://api.optic.works/store/devices
+     ```
+   - OAuth complexity (scopes, consent, refresh tokens) provides zero value
+
+3. **Operational Complexity**:
+   - Hydra + Login Provider: 2 new services to maintain
+   - Additional secrets: `HYDRA_SYSTEM_SECRET`, `HYDRA_DB_PASSWORD`, OAuth client secrets
+   - Additional failure modes: Hydra unavailable → all apps lose auth
+   - Debugging complexity: "Is this a Medusa issue or Hydra issue?"
+
+4. **Customer Value**:
+   - Customers don't care about SSO (they only use storefront)
+   - Phase 4 Hydra provides **zero customer-facing features**
+   - Engineering time better spent on product features (sensor firmware, integrations)
+
+**Revised Architecture** (Phase 3 Permanent):
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                  Next.js Storefront                      │
+│                  (optic.works)                           │
+│                                                          │
+│  ┌────────────────────────────────────────────┐         │
+│  │  User visits /account/orders                │         │
+│  │  → Checks for medusa_session cookie        │         │
+│  │  → If missing, redirect to /auth/login     │         │
+│  └────────────────────────────────────────────┘         │
+└────────────────────┬─────────────────────────────────────┘
+                     │ Cookie: medusa_session (httpOnly)
+                     ▼
+┌──────────────────────────────────────────────────────────┐
+│              Medusa Store API                            │
+│              (api.optic.works)                           │
+│                                                          │
+│  ┌────────────────────────────────────────────┐         │
+│  │  POST /store/auth/customer/emailpass       │         │
+│  │  → Verifies credentials                    │         │
+│  │  → Creates session in Redis                │         │
+│  │  → Returns httpOnly cookie                 │         │
+│  └────────────────────────────────────────────┘         │
+│                                                          │
+│  ┌────────────────────────────────────────────┐         │
+│  │  GET /store/customers/me                   │         │
+│  │  → Validates session cookie                │         │
+│  │  → Returns customer profile + orders       │         │
+│  └────────────────────────────────────────────┘         │
+└────────────────────┬─────────────────────────────────────┘
+                     │
+                     ▼
+┌──────────────────────────────────────────────────────────┐
+│         PostgreSQL + Redis (Hetzner)                     │
+│                                                          │
+│  ┌──────────┐  ┌──────────┐  ┌────────────┐            │
+│  │customers │  │  orders  │  │  sessions  │            │
+│  │(postgres)│  │(postgres)│  │  (redis)   │            │
+│  └──────────┘  └──────────┘  └────────────┘            │
+└──────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────┐
+│            Discord Community                             │
+│         (discord.gg/opticworks)                          │
+│                                                          │
+│  • Separate Discord auth (no integration)                │
+│  • Customers join with Discord account                   │
+│  • Optional: Verification bot links Discord → email      │
+└──────────────────────────────────────────────────────────┘
+```
+
+**Warranty Portal Strategy**:
+
+Instead of SSO, use **shared cookie domain**:
+
+```typescript
+// Warranty portal: warranty.optic.works
+// Storefront: optic.works
+
+// Medusa sets cookie on parent domain:
+Set-Cookie: medusa_session=abc123; Domain=.optic.works; Secure; HttpOnly
+
+// Result: Both optic.works and warranty.optic.works can read cookie
+// → No SSO needed, session just works™
+```
+
+**Developer API Strategy**:
+
+```typescript
+// Generate API key in Medusa admin
+POST /admin/api-keys
+{
+  "name": "Smart Home App",
+  "scopes": ["devices:read", "sensors:read"],
+  "expires_at": "2026-12-31"
+}
+
+// Returns:
+{
+  "api_key": "opw_live_abc123...",
+  "secret": "sk_live_def456..."  // stored hashed, show once
+}
+
+// Usage:
+curl -H "X-API-Key: opw_live_abc123..." \
+  https://api.optic.works/store/devices
+```
+
+Simple, secure, zero OAuth complexity.
+
+---
+
+### Revised Implementation Plan
+
+**Phase 3: Customer Accounts + Discord Community** (Q1 2025)
+
+**Week 1-2: Storefront Authentication**
+- ✅ Add login/signup UI (`/auth/login`, `/auth/signup`)
+- ✅ Implement session middleware (validate `medusa_session` cookie)
+- ✅ Create protected routes:
+  - `/account/orders` - Order history
+  - `/account/profile` - Customer profile
+  - `/account/subscriptions` - Lab subscription management
+  - `/account/warranties` - Warranty claims
+
+**Week 3: Discord Community Setup**
+- ✅ Create OpticWorks Discord server
+- ✅ Configure channels:
+  - `#announcements` (product launches, firmware updates)
+  - `#general` (community chat)
+  - `#hardware-support` (sensor troubleshooting)
+  - `#firmware-dev` (developer discussion)
+  - `#integrations` (Home Assistant, ESPHome, etc.)
+- ✅ Set up moderation bots (MEE6, Dyno)
+- ✅ Create welcome message + rules
+- ✅ Link from storefront footer: "Join our Discord"
+
+**Week 4: Testing & Launch**
+- ✅ E2E testing: Signup → Login → View orders → Logout
+- ✅ Security audit: Session expiration, CSRF, XSS
+- ✅ Performance testing: Session lookup latency (<50ms)
+- ✅ Launch announcement email to existing customers
+
+**Future Phases**:
+- **Phase 4**: Warranty portal (shared cookie domain)
+- **Phase 5**: API keys for developer integrations (if demand exists)
+- **Phase 6**: Mobile app (reuse Medusa session cookies)
+
+**Never**:
+- ❌ Ory Hydra deployment
+- ❌ Discourse forum
+- ❌ OAuth implementation
+
+---
+
+### Cost Savings
+
+**Original Plan (Phases 3-5)**:
+```
+Phase 3: Medusa Auth
+- Engineering: 2 weeks (1 engineer)
+- Infrastructure: $0 (existing Medusa)
+
+Phase 4: Hydra SSO + Discourse
+- Engineering: 4 weeks (1-2 engineers)
+- Infrastructure: $24/month (Discourse + Hydra)
+
+Phase 5: Developer API (OAuth)
+- Engineering: 6 weeks (2 engineers)
+- Infrastructure: $0 (reuse Hydra)
+
+Total: 12 weeks engineering, $24/month ongoing
+```
+
+**Simplified Plan**:
+```
+Phase 3: Medusa Auth + Discord
+- Engineering: 2 weeks (1 engineer)
+- Infrastructure: $0
+
+Future: API Keys (if needed)
+- Engineering: 1 week (1 engineer)
+- Infrastructure: $0
+
+Total: 3 weeks engineering, $0/month ongoing
+```
+
+**Savings**: 9 weeks engineering time (~$50K), $288/year infrastructure
+
+---
+
+### Security Implications
+
+**No regression** from original Phase 3 security model:
+- ✅ Same bcrypt password hashing
+- ✅ Same httpOnly cookie protection
+- ✅ Same HTTPS enforcement
+- ✅ Same session expiration logic
+
+**Improvements** from removing Hydra:
+- ✅ Reduced attack surface (2 fewer services to exploit)
+- ✅ Simpler secret management (no Hydra secrets)
+- ✅ Fewer failure modes (Hydra outage can't break auth)
+
+**Discord considerations**:
+- ⚠️ Discord handles all auth (we trust Discord's security)
+- ✅ No customer data stored in Discord (just community chat)
+- ✅ Optional: Verification bot can link Discord → email for warranty support
+
+---
+
+### Migration from Original Plan
+
+**Status**: This is a **course correction**, not a migration
+- Phase 3 Medusa auth was already approved
+- Phase 4 Hydra was never implemented
+- **Action**: Cancel Phase 4 & 5 planning, proceed with Phase 3 only
+
+**No customer impact**: Customers never experienced Hydra SSO
+
+---
+
+### Open Questions (Updated)
+
+1. ~~**2FA Implementation**~~ → **Resolved**: Implement via Medusa plugin (TOTP)
+2. ~~**Session Lifetime**~~ → **Resolved**: 7 days default, 30 days with "Remember Me"
+3. ~~**Mobile App Strategy**~~ → **Resolved**: Reuse Medusa session cookies (WebView or native)
+4. ~~**Discourse SSO**~~ → **Resolved**: Use Discord (no SSO needed)
+
+**New Questions**:
+1. **Discord Verification**: Should we link Discord accounts to customer emails?
+   - **Recommendation**: Optional, use verification bot for warranty support priority
+2. **Public Knowledge Base**: How to make Discord threads discoverable via search engines?
+   - **Recommendation**: Mirror important threads to Hugo docs site
+3. **API Keys**: When should we build developer API?
+   - **Recommendation**: Wait for 3+ inbound requests from integrators
+
+---
+
+### Updated Success Metrics
+
+**Phase 3** (Medusa Auth + Discord):
+- [ ] 60%+ of purchases use customer accounts (vs. guest checkout)
+- [ ] <1% login failure rate (excluding bad passwords)
+- [ ] <50ms median session validation latency
+- [ ] 500+ Discord members within 6 months
+- [ ] <24hr median support response time (Discord vs. email)
+
+~~**Phase 4**~~ (Cancelled)
+~~**Phase 5**~~ (Deferred indefinitely)
+
+---
+
+### Revised Decision
+
+**Status**: **Revised Recommendation** (2025-11-20)
+
+**Approved**:
+- ✅ **Phase 3**: Medusa Native Auth (permanent solution, not transitional)
+- ✅ **Phase 3**: Discord community (replaces Discourse)
+
+**Cancelled**:
+- ❌ **Phase 4**: Ory Hydra SSO deployment
+- ❌ **Phase 4**: Discourse forum setup
+
+**Deferred**:
+- ⏸️ **Phase 5**: Developer API (implement as API keys when demand exists, not OAuth)
+
+**Rationale**:
+- Discord eliminates need for forum SSO (primary Phase 4 driver)
+- Medusa auth is sufficient for single-property authentication
+- OAuth complexity provides zero customer value
+- $50K engineering cost better spent on product features
+
+**Next Steps**:
+1. ✅ Proceed with Phase 3 Medusa auth implementation (already planned)
+2. ✅ Create OpticWorks Discord server (1 day)
+3. ✅ Update roadmap to remove Phase 4 Hydra deployment
+4. ✅ Archive this RFD section as historical context
+
+**Reviewers**: @platform-engineering, @security, @product
+
+---
+
+**Last Updated**: 2025-11-20
 **Changelog**:
 - 2025-11-19: Initial draft (Phase 3-5 architecture)
+- 2025-11-20: **Addendum** - Simplified strategy (Discord + Medusa native auth only)
