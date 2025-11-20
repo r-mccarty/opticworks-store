@@ -96,9 +96,13 @@ import { cx } from "@/lib/utils"
 See `docs/STATE_MANAGEMENT.md` for patterns.
 
 ### API Integration Modes
-Toggle via `NEXT_PUBLIC_MEDUSA_ENABLED` in `.env.local`:
-- `false` - Legacy mode (static products, direct Stripe)
-- `true` - Medusa mode (dynamic products, Medusa cart/checkout)
+**Current: Medusa Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=true`) - Active since Phase 2
+- ✅ Dynamic products from Medusa API
+- ✅ Cart sessions via Medusa
+- ✅ Stripe integration via Medusa backend
+
+**Legacy Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=false`) - *Deprecated* (reference only)
+- Static products, direct Stripe checkout
 
 ---
 

@@ -418,58 +418,86 @@ ssh hetzner-node "journalctl -xe"
 
 ## Roadmap
 
-### Current State (2025-11-18)
+### Current State (2025-11-20)
 - ✅ Ansible Infrastructure-as-Code **COMPLETE**
 - ✅ Hetzner backend provisioned **LIVE**
 - ✅ Cloudflare Tunnel operational **LIVE**
 - ✅ Backend serving at api.optic.works **VERIFIED**
+- ✅ Phase 2 infrastructure deployment **COMPLETE**
 - ⚠️  Running in dev mode (medusa-dev) due to prod admin bundler issue
 
-### Phase 2: Catalog & Storefront Integration
+### Phase 2: Infrastructure & Backend Deployment (✅ COMPLETE - 2025-11-20)
 
-**Status:** ✅ Backend ready, products synced, publishable key exists
+**Status:** ✅ All infrastructure operational and validated
 
-**Deployment complete!** For storefront integration steps, see:
-- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Complete Phase 2 integration walkthrough
+**Delivered:**
+- ✅ Backend at `https://api.optic.works` (Hetzner + Cloudflare Tunnel)
+- ✅ PostgreSQL 17 + Redis 7.x operational (proven via API)
+- ✅ Medusa v2.11.3 serving Store/Admin APIs (7 products queryable)
+- ✅ Admin dashboard accessible with authentication
+- ✅ Cloudflare Tunnel configured and routing traffic
+- ✅ Infisical secret management integrated
+- ✅ Ansible automation preventing infrastructure drift
+- ✅ Next.js storefront builds successfully (46 pages)
+- ✅ Infrastructure validation suite created
 
-**Quick checklist:**
-- [x] Execute Ansible provisioning
-- [x] Import full product catalog (confirmed synced)
-- [x] Create publishable API key (exists in Infisical)
-- [ ] Configure storefront to use Medusa API
-- [ ] E2E checkout testing (Medusa → Stripe)
-- [ ] Verify all secrets in Infisical
+**Validation**: See `docs/PHASE2_VALIDATION_REPORT.md` for complete test results.
 
-### Phase 3: Documentation & Community (Weeks 3-4)
-- [ ] Hugo docs site deployment
-- [ ] API documentation generation
-- [ ] Discourse forum setup
-- [ ] Developer onboarding guide
-- [ ] CI/CD pipeline hardening
+**What's Deferred to Phase 3**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - infrastructure is ready, configuration is next.
 
-### Phase 4: Production Storefront (Week 5+)
-- [ ] Cloudflare Pages deployment
-- [ ] Webhook buffering (Durable Objects)
-- [ ] Production monitoring setup
-- [ ] Performance optimization
+### Phase 3: Complete E-Commerce Integration (📋 IN PLANNING)
+
+**Status:** Planning complete, ready for implementation
+
+**7 Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
+- [ ] **Track 1**: Medusa e-commerce configuration (regions, payments, shipping)
+- [ ] **Track 2**: Cart & checkout integration (full customer purchase flow)
+- [ ] **Track 3**: Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
+- [ ] **Track 4**: Customer authentication & portal (Medusa CIAM)
+- [ ] **Track 5**: Discord integration (community server + bot)
+- [ ] **Track 6**: Hugo documentation site (`docs.optic.works`)
+- [ ] **Track 7**: CI/CD hardening (E2E tests, deployment automation)
+
+**Estimated Effort**: ~15-20 implementation sessions
+
+**Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide.
+
+### Phase 4: Production Optimization (📋 FUTURE)
+
+**Planned features:**
+- [ ] Migrate storefront from Vercel to Cloudflare Pages
+- [ ] Performance optimization (Core Web Vitals)
 - [ ] SEO finalization
+- [ ] International expansion (EU region, multi-currency)
+- [ ] Advanced features (subscriptions, bundles, pre-orders)
 
 ---
 
 ## Related Documentation
 
-**Core Guides**:
+### Documentation Priority
+
+**Start Here:**
+1. **This file (DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning and deployment
+2. **[PHASE2_VALIDATION_REPORT.md](PHASE2_VALIDATION_REPORT.md)** - Infrastructure validation results
+3. **[PHASE3_PLAN.md](PHASE3_PLAN.md)** - Next implementation phase
+
+**Infrastructure & Deployment:**
+- **[CONTRIBUTORS.md](CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
+- **[KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)** - Secret rotation and Infisical strategy
 - `infrastructure/ansible/README.md` - Ansible playbook details
-- `docs/CONTRIBUTORS.md` - SSH access and dev workflow
-- `docs/INTEGRATION_GUIDE.md` - Storefront-Backend integration walkthrough
-- `docs/KEY_MANAGEMENT.md` - Secret rotation and Infisical strategy
 
-**Application**:
-- `docs/CODEBASE_EXPLANATION.md` - Storefront architecture
-- `docs/STATE_MANAGEMENT.md` - Zustand store patterns
-- `docs/API_STUBS.md` - API endpoint design
+**Integration & Development:**
+- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
+- **[CODEBASE_EXPLANATION.md](CODEBASE_EXPLANATION.md)** - Storefront architecture
+- **[STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)** - Zustand store patterns
+- **[STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md)** - Checkout implementation
+- **[API_STUBS.md](API_STUBS.md)** - API endpoint design
 
-**Deprecated** (archived):
+**Phase Documentation:**
+- **[PHASE2_RECREATION_GUIDE.md](PHASE2_RECREATION_GUIDE.md)** - How to recreate validated Phase 2 state
+
+**Archived (Reference Only):**
 - `docs/archived/MIGRATION_PLAN.md` - Old manual deployment plan
 - `docs/archived/IMPLEMENTATION_GUIDE.md` - Manual setup runbooks
 - `docs/archived/INFISICAL_SETUP.md` - Superseded by KEY_MANAGEMENT.md
@@ -521,5 +549,5 @@ redis-cli
 
 ---
 
-**Last Updated**: 2025-11-18
-**Next Review**: After Phase 2 completion
+**Last Updated**: 2025-11-20
+**Next Review**: After Phase 3 Track 1 completion

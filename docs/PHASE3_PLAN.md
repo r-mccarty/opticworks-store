@@ -737,7 +737,7 @@ pnpm exec tsx scripts/verify-catalog.ts --full
 - [ ] Configure build settings:
   - Build command: `hugo --minify`
   - Build output directory: `public`
-  - Environment variables: `HUGO_VERSION=0.123.0`
+  - Environment variables: `HUGO_VERSION=0.140.0` (Extended version)
 - [ ] Configure custom domain: `docs.optic.works`
 - [ ] Set up automatic deployments from GitHub
 - [ ] Configure redirects and 404 page
