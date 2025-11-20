@@ -23,7 +23,7 @@ This monorepo powers the complete OpticWorks commercial presence:
 
 ### Prerequisites
 
-- **Node.js** 18+
+- **Node.js** 18+ (20+ recommended, 22 in production)
 - **pnpm** (required - no npm/yarn)
 - **Infisical Token** (for secrets management)
 
@@ -112,17 +112,18 @@ Cloudflare Pages migration, performance optimization, international expansion.
 └────────┬──────────────────────────────┬─────────────────────┘
          │                              │
          │                              ↓
-         │                    ┌──────────────────────┐
-         │                    │  HETZNER CLOUD       │
-         │                    │  (Ansible-managed)   │
-         │                    ├──────────────────────┤
-         │                    │  • PostgreSQL 17     │
-         │                    │  • Redis 7.x         │
-         │                    │  • Node.js 22        │
-         │                    │  • Medusa v2.11.3    │
-         │                    │  • PM2 (dev mode)    │
-         │                    │  • Cloudflared       │
-         │                    └──────────────────────┘
+         │                    ┌───────────────────────────┐
+         │                    │  HETZNER CLOUD            │
+         │                    │  (3 vCPU, 4GB RAM)        │
+         │                    │  Ansible-managed          │
+         │                    ├───────────────────────────┤
+         │                    │  • PostgreSQL 17          │
+         │                    │  • Redis 7.x              │
+         │                    │  • Node.js 22             │
+         │                    │  • Medusa v2.11.3         │
+         │                    │  • PM2 (dev mode)         │
+         │                    │  • Cloudflared            │
+         │                    └───────────────────────────┘
          │
          └──────────────────────────────┘
                   API Calls
@@ -388,16 +389,18 @@ All stores in `src/hooks/`. See `docs/STATE_MANAGEMENT.md` for patterns.
 
 ### API Integration Modes
 
-**Legacy Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=false`):
+**Current Mode: Medusa (Production)** (`NEXT_PUBLIC_MEDUSA_ENABLED=true`):
+- ✅ Dynamic products from `https://api.optic.works/store/products`
+- ✅ Cart sessions via Medusa
+- ✅ Stripe integration via Medusa backend
+- **Status**: Active since Phase 2 (2025-11-20)
+
+**Legacy Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=false`) - *Deprecated*:
 - Static products from `src/lib/products.ts`
 - Direct Stripe checkout via `src/app/api/stripe/*`
+- **Status**: Maintained for reference only, use Medusa mode
 
-**Medusa Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=true`):
-- Dynamic products from `https://api.optic.works/store/products`
-- Cart sessions via Medusa
-- Stripe integration via Medusa backend
-
-Toggle in `.env.local` (synced from Infisical).
+Configuration managed in `.env.local` (synced from Infisical).
 
 ## Production Deployment
 
