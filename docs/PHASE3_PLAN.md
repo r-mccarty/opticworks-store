@@ -369,35 +369,55 @@ pnpm exec tsx scripts/verify-catalog.ts --full
 ### Track 3: Hookdeck Webhook Infrastructure
 
 **Owner**: Backend/DevOps
-**Duration**: ~1-2 implementation sessions
+**Duration**: ~2-3 implementation sessions
 **Dependencies**: Track 1.2 (Stripe payment provider)
+
+**Security Priority**: This track implements defense-in-depth security to prevent unauthorized webhook attacks. Only valid Stripe events routed through Hookdeck can reach the Medusa endpoint.
 
 #### 3.1 Hookdeck Setup
 
-**Task**: Configure Hookdeck as webhook gateway for Stripe → Medusa.
+**Task**: Configure Hookdeck as secure webhook gateway for Stripe → Medusa.
 
 **Actions**:
 - [ ] Create Hookdeck account: https://hookdeck.com
+- [ ] Obtain Hookdeck IP allowlist ranges (for firewall configuration)
+- [ ] Generate webhook URL with non-predictable suffix:
+  - Format: `https://api.optic.works/webhooks/stripe-{random-suffix}`
+  - Example: `https://api.optic.works/webhooks/stripe-8f3a2b9c`
+  - Store suffix in Infisical as `WEBHOOK_URL_SUFFIX`
 - [ ] Create Hookdeck connection:
-  - **Source**: Stripe
-  - **Destination**: Medusa (`https://api.optic.works/webhooks/stripe`)
+  - **Source**: Stripe (with signature verification enabled)
+  - **Destination**: Medusa webhook URL (with random suffix)
   - **Transformations**: None (pass-through)
   - **Rate limiting**: 100 requests/minute
-  - **Retry policy**: Exponential backoff (3 retries)
-- [ ] Configure Hookdeck webhook endpoint
-- [ ] Add Hookdeck endpoint to Stripe webhooks
-- [ ] Configure webhook events:
+  - **Retry policy**: Exponential backoff (3 retries, max 1 hour)
+- [ ] Configure custom authentication header in Hookdeck destination:
+  - Header name: `X-Webhook-Secret`
+  - Value: Generate random 256-bit secret, store in Infisical as `WEBHOOK_CUSTOM_SECRET`
+- [ ] Add Hookdeck URL to Stripe webhook endpoints
+- [ ] Configure webhook events (Stripe → Hookdeck):
   - `payment_intent.succeeded`
   - `payment_intent.payment_failed`
   - `charge.refunded`
   - `checkout.session.completed`
-- [ ] Store Hookdeck webhook signing secret in Infisical
+- [ ] Store secrets in Infisical:
+  - `HOOKDECK_SIGNING_SECRET` - From Hookdeck dashboard (used for signature verification)
+  - `WEBHOOK_CUSTOM_SECRET` - Custom header authentication
+  - `WEBHOOK_URL_SUFFIX` - Random URL suffix
+  - `STRIPE_WEBHOOK_SECRET` - Already exists (Stripe signature verification)
 
 **Validation**:
 ```bash
-# Trigger test webhook from Stripe dashboard
-# Verify appears in Hookdeck logs
-# Verify delivered to Medusa
+# 1. Trigger test webhook from Stripe dashboard
+# 2. Verify appears in Hookdeck logs with "verified" status
+# 3. Verify delivered to Medusa (check PM2 logs)
+# 4. Verify Hookdeck signature in request headers
+
+# Test security: Direct attack should fail
+curl -X POST https://api.optic.works/webhooks/stripe-8f3a2b9c \
+  -H "Content-Type: application/json" \
+  -d '{"id": "evt_malicious", "type": "payment_intent.succeeded"}'
+# Expected: 401 Unauthorized (no valid Hookdeck signature)
 ```
 
 **Documentation**: Create `docs/HOOKDECK_SETUP.md`.
@@ -406,52 +426,259 @@ pnpm exec tsx scripts/verify-catalog.ts --full
 
 #### 3.2 Medusa Webhook Handler
 
-**Task**: Implement Stripe webhook processing in Medusa.
+**Task**: Implement secure Stripe webhook processing in Medusa with multi-layer authentication.
 
 **Actions**:
-- [ ] Create webhook endpoint: `src/api/webhooks/stripe/route.ts`
-- [ ] Verify Hookdeck signature
-- [ ] Process webhook events:
-  - `payment_intent.succeeded` → Complete order, send confirmation email
-  - `payment_intent.payment_failed` → Mark payment failed, notify customer
-  - `charge.refunded` → Process refund, update order status
-- [ ] Log all webhook events to database
-- [ ] Handle idempotency (duplicate webhook protection)
+
+**A. Configure Raw Body Preservation Middleware** (Required for signature verification):
+- [ ] Create `services/medusa/src/api/middlewares.ts`:
+  ```typescript
+  import { defineMiddlewares } from "@medusajs/medusa";
+
+  export default defineMiddlewares({
+    routes: [
+      {
+        matcher: "/webhooks/*",
+        middlewares: [
+          {
+            bodyParser: {
+              preserveRawBody: true, // Critical for HMAC verification
+            },
+          },
+        ],
+        method: ["POST"],
+      },
+    ],
+  });
+  ```
+
+**B. Implement Webhook Endpoint with Security Layers**:
+- [ ] Create webhook endpoint: `services/medusa/src/api/webhooks/stripe-{suffix}/route.ts`
+  - Use same random suffix from Infisical (`WEBHOOK_URL_SUFFIX`)
+- [ ] **Layer 1: Hookdeck Signature Verification** (Primary defense):
+  - Extract `x-hookdeck-signature` header
+  - Verify SHA-256 HMAC using `HOOKDECK_SIGNING_SECRET`
+  - Return 401 if signature invalid or missing
+  - Handle `x-hookdeck-signature-2` during secret rotation
+- [ ] **Layer 2: Custom Header Verification** (Secondary defense):
+  - Verify `X-Webhook-Secret` matches `WEBHOOK_CUSTOM_SECRET`
+  - Return 403 if header missing or incorrect
+- [ ] **Layer 3: Idempotency Protection**:
+  - Store processed event IDs in Redis with 24-hour TTL
+  - Check `event.id` before processing
+  - Return 200 for duplicates (prevent retries) but skip processing
+- [ ] **Layer 4: Fast Response Pattern**:
+  - Return HTTP 200 immediately (within 1 second)
+  - Process webhook asynchronously in background job
+  - Prevents Hookdeck timeouts and retry storms
+
+**C. Process Webhook Events**:
+- [ ] Implement event handlers:
+  - `payment_intent.succeeded` → Complete order, decrement inventory, send confirmation email
+  - `payment_intent.payment_failed` → Mark payment failed, notify customer, restore inventory
+  - `charge.refunded` → Process refund, update order status, notify customer
+  - `checkout.session.completed` → Link session to order (if applicable)
+- [ ] Log all webhook events to database (event ID, type, timestamp, processing status)
+- [ ] Implement error handling:
+  - Catch exceptions during processing
+  - Log errors with full context
+  - Still return 200 (manual review required)
 
 **Files**:
-- `services/medusa/src/api/webhooks/stripe/route.ts`
-- `services/medusa/src/subscribers/stripe-webhook.ts`
+- `services/medusa/src/api/middlewares.ts` - Raw body preservation
+- `services/medusa/src/api/webhooks/stripe-{suffix}/route.ts` - Webhook endpoint
+- `services/medusa/src/lib/webhook-security.ts` - Signature verification utilities
+- `services/medusa/src/subscribers/stripe-webhook.ts` - Event processing logic
+
+**Security Implementation Example**:
+```typescript
+// services/medusa/src/api/webhooks/stripe-{suffix}/route.ts
+import crypto from 'crypto';
+import { MedusaRequest, MedusaResponse } from '@medusajs/medusa';
+
+export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  // Layer 1: Hookdeck signature verification
+  const hookdeckSig = req.headers['x-hookdeck-signature'];
+  const rawBody = req.rawBody; // Preserved by middleware
+
+  if (!verifyHookdeckSignature(hookdeckSig, rawBody)) {
+    return res.status(401).json({ error: 'Invalid signature' });
+  }
+
+  // Layer 2: Custom header verification
+  if (req.headers['x-webhook-secret'] !== process.env.WEBHOOK_CUSTOM_SECRET) {
+    return res.status(403).json({ error: 'Forbidden' });
+  }
+
+  const event = JSON.parse(rawBody);
+
+  // Layer 3: Idempotency check
+  if (await isEventProcessed(event.id)) {
+    return res.status(200).json({ received: true, duplicate: true });
+  }
+
+  // Layer 4: Fast response + async processing
+  processWebhookAsync(event); // Fire and forget
+  return res.status(200).json({ received: true });
+}
+```
 
 **Validation**:
-- [ ] Webhook signature verification works
+- [ ] Hookdeck signature verification blocks invalid requests (test with curl)
+- [ ] Custom header verification blocks requests without secret
+- [ ] Duplicate events return 200 but don't double-process
 - [ ] Payment success triggers order completion
 - [ ] Payment failure sends notification
 - [ ] Refunds processed correctly
-- [ ] Duplicate webhooks handled gracefully
+- [ ] Webhook responds within 1 second
+- [ ] Background processing completes successfully
 
-**Documentation**: Update `docs/HOOKDECK_SETUP.md` with handler implementation.
+**Documentation**: Update `docs/HOOKDECK_SETUP.md` with security implementation details.
 
 ---
 
-#### 3.3 Webhook Monitoring
+#### 3.2.5 Network Security (IP Allowlisting)
 
-**Task**: Set up monitoring and alerting for webhook processing.
+**Task**: Configure network-level access controls to restrict webhook endpoint to Hookdeck IPs only.
+
+**Priority**: High (additional defense layer)
 
 **Actions**:
-- [ ] Configure Hookdeck alerts:
-  - Failed deliveries (> 3 retries)
-  - High latency (> 5 seconds)
-  - Rate limit exceeded
-- [ ] Set up notification channels (email, Discord)
-- [ ] Create webhook dashboard for monitoring
-- [ ] Document troubleshooting procedures
+- [ ] Obtain current Hookdeck IP ranges:
+  - Contact Hookdeck support or check documentation
+  - Verify IP ranges for webhook delivery (may differ by region)
+  - Document IPs in Infisical or Ansible variables
+- [ ] Configure Hetzner firewall rules:
+  - Allow port 9000 (Medusa) only from Hookdeck IP ranges
+  - Block all other IPs from accessing `/webhooks/*` path
+  - Maintain access to admin and store APIs from Cloudflare
+- [ ] Update Ansible playbook for firewall automation:
+  ```yaml
+  # infrastructure/ansible/playbooks/medusa-provision.yml
+  - name: Allow webhook traffic from Hookdeck only
+    ufw:
+      rule: allow
+      port: 9000
+      proto: tcp
+      from_ip: "{{ item }}"
+      comment: "Hookdeck webhook delivery"
+    loop: "{{ hookdeck_ip_ranges }}"
+  ```
+- [ ] **Alternative**: Configure Cloudflare Access policy (if using Cloudflare Tunnel):
+  - Create access policy for `/webhooks/*` path
+  - Allow only Hookdeck IP ranges
+  - Provides UI-based management and logging
+- [ ] Deploy firewall changes via Ansible
+- [ ] Test webhook delivery after firewall changes
+
+**Files**:
+- `infrastructure/ansible/playbooks/medusa-provision.yml`
+- `infrastructure/ansible/group_vars/all.yml` - Add `hookdeck_ip_ranges` variable
 
 **Validation**:
-- [ ] Alerts trigger on failed webhooks
-- [ ] Dashboard shows webhook status
-- [ ] Can replay failed webhooks
+```bash
+# 1. Webhook from Hookdeck should succeed
+curl -X POST https://api.optic.works/webhooks/stripe-{suffix} \
+  -H "x-hookdeck-signature: {valid-sig}" \
+  -d '{"id": "evt_test"}'
+# Expected: 200 OK (if from Hookdeck IP)
 
-**Documentation**: Update `docs/HOOKDECK_SETUP.md` with monitoring section.
+# 2. Direct attack from unauthorized IP should fail at network layer
+curl -X POST https://api.optic.works/webhooks/stripe-{suffix} \
+  -d '{"id": "evt_malicious"}'
+# Expected: Connection timeout or firewall block (before reaching app)
+
+# 3. Verify UFW rules
+ssh hetzner-node
+sudo ufw status numbered | grep 9000
+```
+
+**Trade-offs**:
+- **Pros**: Blocks attacks at network layer (saves compute resources)
+- **Cons**: Must update firewall when Hookdeck IPs change (rare)
+- **Recommendation**: Implement if Hookdeck provides stable IP ranges
+
+**Documentation**: Create `docs/WEBHOOK_NETWORK_SECURITY.md`.
+
+---
+
+#### 3.3 Webhook Monitoring & Security Alerting
+
+**Task**: Set up comprehensive monitoring and alerting for webhook processing and security events.
+
+**Actions**:
+
+**A. Hookdeck Dashboard Monitoring**:
+- [ ] Configure Hookdeck alerts:
+  - **Failed deliveries** (> 3 retries) → Immediate alert
+  - **High latency** (> 5 seconds) → Warning alert
+  - **Rate limit exceeded** → Critical alert
+  - **Signature verification failures** (Stripe → Hookdeck) → Security alert
+- [ ] Set up notification channels:
+  - Email notifications for critical failures
+  - Discord webhook for real-time alerts (#team channel)
+  - Slack integration (optional)
+
+**B. Application-Level Security Monitoring**:
+- [ ] Log all webhook security events to database:
+  - Invalid Hookdeck signatures (potential attacks)
+  - Missing custom header attempts
+  - Duplicate event IDs (replay attempts)
+  - Malformed payloads
+- [ ] Create security metrics dashboard:
+  - Track signature verification failures per hour
+  - Monitor duplicate event rate
+  - Track webhook processing latency
+  - Alert on anomalies (> 5 failures/hour)
+- [ ] Implement automated alerting:
+  - **Critical**: Signature verification failures > 10/hour → Discord + email
+  - **Warning**: Duplicate events > 20/hour → Discord
+  - **Info**: Failed processing → Log only (review daily)
+
+**C. Operational Monitoring**:
+- [ ] Create webhook health dashboard:
+  - Success rate (target: > 99%)
+  - Average processing time
+  - Failed events requiring manual review
+  - Hookdeck retry statistics
+- [ ] Document troubleshooting procedures:
+  - How to replay failed webhooks via Hookdeck
+  - How to manually process stuck orders
+  - How to investigate security incidents
+  - How to rotate Hookdeck signing secrets
+- [ ] Set up periodic security reviews:
+  - Weekly review of blocked requests
+  - Monthly audit of webhook secrets rotation
+  - Quarterly review of IP allowlist
+
+**D. Logging Strategy**:
+- [ ] Log all webhook attempts with:
+  - Event ID, type, timestamp
+  - Source IP (if available)
+  - Signature verification result
+  - Processing outcome (success/failure/duplicate)
+  - Processing duration
+- [ ] Retain logs for 90 days (compliance)
+- [ ] Create log queries for common investigations:
+  - Failed payments in last 24 hours
+  - Security violations by IP
+  - Slowest webhook processing events
+
+**Validation**:
+- [ ] Alerts trigger correctly for simulated failures
+- [ ] Discord notifications appear in #team channel
+- [ ] Dashboard shows accurate real-time metrics
+- [ ] Can replay failed webhooks from Hookdeck UI
+- [ ] Security events logged and queryable
+- [ ] Can identify attack patterns from logs
+
+**Tools**:
+- Hookdeck built-in dashboard and alerting
+- PostgreSQL for application-level event logging
+- Custom dashboard (future: Grafana or similar)
+- Discord webhooks for notifications
+
+**Documentation**: Update `docs/HOOKDECK_SETUP.md` with monitoring and incident response procedures.
 
 ---
 
@@ -874,13 +1101,19 @@ Phase 3 is complete when ALL of the following criteria are met:
 - [ ] Customer can submit warranty claims
 - [ ] Customer can update profile/addresses
 
-### Webhook Infrastructure ✅
+### Webhook Infrastructure & Security ✅
 
-- [ ] Stripe webhooks route through Hookdeck
+- [ ] Stripe webhooks route through Hookdeck (with source verification)
+- [ ] Hookdeck signature verification blocks unauthorized requests
+- [ ] Custom header authentication configured
+- [ ] IP allowlisting configured (recommended)
+- [ ] Idempotency protection prevents duplicate processing
 - [ ] Webhooks buffered and retried on failure
-- [ ] All webhook events logged
+- [ ] All webhook events logged (including security events)
 - [ ] Payment success triggers order completion
 - [ ] Payment failure sends notification
+- [ ] Security alerts configured (signature failures, attacks)
+- [ ] Can replay failed webhooks from Hookdeck dashboard
 
 ### Community & Documentation ✅
 
@@ -917,7 +1150,14 @@ Phase 3 is complete when ALL of the following criteria are met:
 | Medusa regions configured | ⏳ Pending | Blocks cart/checkout |
 | Stripe test mode enabled | ✅ Complete | Already configured |
 | Infisical secrets | ✅ Complete | All backend secrets ready |
+| Webhook security secrets | ⏳ Pending | New secrets required for Track 3 |
 | Hetzner backend | ✅ Complete | api.optic.works operational |
+
+**New Secrets Required for Track 3** (add to Infisical):
+- `HOOKDECK_SIGNING_SECRET` - Provided by Hookdeck dashboard
+- `WEBHOOK_CUSTOM_SECRET` - Generate 256-bit random hex: `openssl rand -hex 32`
+- `WEBHOOK_URL_SUFFIX` - Generate random suffix: `openssl rand -hex 4` (e.g., `8f3a2b9c`)
+- `STRIPE_WEBHOOK_SECRET` - Already exists (verify in Infisical)
 
 ---
 
@@ -956,16 +1196,22 @@ pnpm run test:e2e --ui    # Interactive test runner
 - [ ] All E2E tests passing
 - [ ] Smoke tests passing
 - [ ] Stripe test purchases complete successfully
-- [ ] Webhooks processed correctly
+- [ ] Webhooks processed correctly (signature verification working)
+- [ ] Webhook security tested (unauthorized requests blocked)
+- [ ] IP allowlisting configured and tested (if implemented)
+- [ ] Idempotency protection working (duplicate events handled)
 - [ ] Customer can complete full purchase flow
 - [ ] Admin dashboard functional
 - [ ] Documentation complete and deployed
+- [ ] Webhook monitoring and alerts configured
 
 **Post-Launch Monitoring**:
 - Monitor error rates (< 1%)
 - Monitor checkout conversion (track funnel)
 - Monitor webhook success rate (> 99%)
+- Monitor webhook security events (signature failures, blocked attacks)
 - Monitor uptime (target: 99.9%)
+- Review Hookdeck dashboard daily for anomalies
 
 ---
 
@@ -977,13 +1223,13 @@ This plan does NOT include specific dates - implementation will proceed based on
 |-------|-------------------|------------|
 | **Track 1**: Medusa Configuration | 2-3 sessions | Medium |
 | **Track 2**: Cart/Checkout | 3-4 sessions | High |
-| **Track 3**: Hookdeck Webhooks | 1-2 sessions | Low |
+| **Track 3**: Hookdeck Webhooks (Security) | 2-3 sessions | High |
 | **Track 4**: Customer Auth/Portal | 3-4 sessions | High |
 | **Track 5**: Discord | 2 sessions | Low |
 | **Track 6**: Hugo Docs | 2-3 sessions | Medium |
 | **Track 7**: CI/CD | 2 sessions | Medium |
 
-**Total Estimated Effort**: ~15-20 implementation sessions
+**Total Estimated Effort**: ~16-22 implementation sessions
 
 **Parallelization**: Tracks 1, 4, 5, 6 can all start immediately. Track 2 depends on Track 1.1. Track 3 depends on Track 1.2. Track 7 depends on Track 2.
 
@@ -1002,5 +1248,5 @@ This plan does NOT include specific dates - implementation will proceed based on
 ---
 
 **Phase 3 Plan Status**: ✅ Ready for Implementation
-**Last Updated**: 2025-11-20
+**Last Updated**: 2025-11-20 (Track 3 security enhancements added)
 **Next Review**: After Track 1 completion
