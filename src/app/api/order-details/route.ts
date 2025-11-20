@@ -10,9 +10,8 @@ interface OrderData {
 }
 
 // Initialize Stripe with the secret key from environment variables.
-// The exclamation mark (!) asserts that the environment variable is non-null.
-// This is safe because the server should not start if the key is missing.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+// Use a placeholder during build time if the key is not available.
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder_for_build', {
   typescript: true,
 });
 

@@ -1,6 +1,112 @@
 @import "tailwindcss";
 
 @theme {
+  /* Material Design 3 Color Tokens */
+  /* Primary Color Palette (Purple) */
+  --color-md-primary-10: #21005d;
+  --color-md-primary-20: #381e72;
+  --color-md-primary-30: #4f378b;
+  --color-md-primary-40: #6750a4;
+  --color-md-primary-50: #7f67be;
+  --color-md-primary-60: #9a82db;
+  --color-md-primary-70: #b69df8;
+  --color-md-primary-80: #d0bcff;
+  --color-md-primary-90: #eaddff;
+  --color-md-primary-95: #f6edff;
+  --color-md-primary-99: #fffbfe;
+
+  /* Secondary Color Palette (Teal/Cyan) */
+  --color-md-secondary-10: #001f24;
+  --color-md-secondary-20: #003640;
+  --color-md-secondary-30: #004f58;
+  --color-md-secondary-40: #006874;
+  --color-md-secondary-50: #00839c;
+  --color-md-secondary-60: #5dd5fc;
+  --color-md-secondary-70: #86f0ff;
+  --color-md-secondary-80: #b3f5ff;
+  --color-md-secondary-90: #d6f6ff;
+  --color-md-secondary-95: #eefbff;
+  --color-md-secondary-99: #fbfcff;
+
+  /* Tertiary Color Palette (Orange) */
+  --color-md-tertiary-10: #31111d;
+  --color-md-tertiary-20: #492532;
+  --color-md-tertiary-30: #633b48;
+  --color-md-tertiary-40: #7d5260;
+  --color-md-tertiary-50: #986977;
+  --color-md-tertiary-60: #b58392;
+  --color-md-tertiary-70: #d29dac;
+  --color-md-tertiary-80: #efb8c8;
+  --color-md-tertiary-90: #ffd8e4;
+  --color-md-tertiary-95: #ffecf1;
+  --color-md-tertiary-99: #fffbfa;
+
+  /* Neutral Color Palette */
+  --color-md-neutral-10: #1c1b1f;
+  --color-md-neutral-20: #313033;
+  --color-md-neutral-30: #484649;
+  --color-md-neutral-40: #605d62;
+  --color-md-neutral-50: #79767a;
+  --color-md-neutral-60: #939094;
+  --color-md-neutral-70: #aeaaae;
+  --color-md-neutral-80: #c9c5ca;
+  --color-md-neutral-90: #e6e1e5;
+  --color-md-neutral-95: #f4eff4;
+  --color-md-neutral-99: #fffbfe;
+
+  /* Error Color Palette */
+  --color-md-error-10: #410e0b;
+  --color-md-error-20: #601410;
+  --color-md-error-30: #8c1d18;
+  --color-md-error-40: #b3261e;
+  --color-md-error-50: #dc362e;
+  --color-md-error-60: #e46962;
+  --color-md-error-70: #ec928e;
+  --color-md-error-80: #f2b8b5;
+  --color-md-error-90: #f9dedc;
+  --color-md-error-95: #fceeee;
+  --color-md-error-99: #fffbf9;
+
+  /* Material Design 3 Typography Scale */
+  --font-size-display-large: 57px;
+  --font-size-display-medium: 45px;
+  --font-size-display-small: 36px;
+  --font-size-headline-large: 32px;
+  --font-size-headline-medium: 28px;
+  --font-size-headline-small: 24px;
+  --font-size-title-large: 22px;
+  --font-size-title-medium: 16px;
+  --font-size-title-small: 14px;
+  --font-size-body-large: 16px;
+  --font-size-body-medium: 14px;
+  --font-size-body-small: 12px;
+  --font-size-label-large: 14px;
+  --font-size-label-medium: 12px;
+  --font-size-label-small: 11px;
+
+  /* Material Design 3 Elevation Shadows */
+  --shadow-md-elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --shadow-md-elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --shadow-md-elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md-elevation-4: 0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px rgba(0, 0, 0, 0.3);
+  --shadow-md-elevation-5: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3);
+
+  /* Material Design 3 Shape Scale */
+  --radius-md-none: 0px;
+  --radius-md-extra-small: 4px;
+  --radius-md-small: 8px;
+  --radius-md-medium: 12px;
+  --radius-md-large: 16px;
+  --radius-md-extra-large: 28px;
+  --radius-md-full: 9999px;
+
+  /* Material Design 3 Motion (Easing) */
+  --ease-md-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-md-emphasized: cubic-bezier(0.2, 0, 0, 1);
+  --ease-md-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-md-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+
+  /* Existing animations */
   --animate-hide: hide 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-down-and-fade: slideDownAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-left-and-fade: slideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
