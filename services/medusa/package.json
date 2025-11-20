@@ -23,7 +23,10 @@
     "validate:build": "tsx scripts/validate-build.ts",
     "catalog:import": "tsx scripts/import-products.ts",
     "catalog:verify": "tsx scripts/verify-catalog.ts",
-    "test:smoke": "tsx scripts/smoke-test.ts"
+    "test:smoke": "tsx scripts/smoke-test.ts",
+    "test:e2e": "tsx scripts/e2e-validation.ts",
+    "test:e2e:verbose": "tsx scripts/e2e-validation.ts --verbose",
+    "test:e2e:report": "tsx scripts/e2e-validation.ts --report=markdown"
   },
   "dependencies": {
     "@medusajs/admin-sdk": "^2.11.3",
