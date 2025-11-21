@@ -1,80 +1,76 @@
 import Link from "next/link"
 import { Button } from "../Button"
+import { GlassCard } from "./GlassCard"
 
 export function CallToAction() {
   return (
-    <section aria-labelledby="cta-title" className="mx-auto max-w-6xl">
-      <div className="grid items-center gap-10 rounded-3xl border border-white/40 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-10 text-white shadow-[0_25px_120px_rgba(15,23,42,0.45)] lg:grid-cols-[1.1fr_0.9fr]">
+    <section aria-labelledby="cta-title" className="mx-auto max-w-7xl px-4">
+      <GlassCard className="grid items-center gap-12 p-12 text-white lg:grid-cols-[1.1fr_0.9fr]" gradient="amber">
         <div>
-          <p className="text-sm uppercase tracking-[0.15em] text-white/60 sm:tracking-[0.4em]">
-            Ready for dependable automations?
+          <p className="font-mono text-xs uppercase tracking-wider text-amber-400">
+            {`// Ready for dependable automations?`}
           </p>
           <h2
             id="cta-title"
-            className="mt-4 text-3xl font-semibold tracking-tight text-balance text-white md:text-4xl"
+            className="mt-6 text-4xl font-black tracking-tight-cyber text-balance text-white md:text-5xl leading-tight"
           >
             Get the Bed Presence Sensor and finally trust your bedtime routines.
           </h2>
-          <p className="mt-4 text-lg text-white/70">
-            Primary CTA: <strong>Get Yours Today</strong>. Secondary:{" "}
-            <strong>View Documentation</strong>. Tertiary:{" "}
-            <strong>Read the Technical Architecture</strong>.
-          </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <Button asChild className="text-md bg-orange-500 hover:bg-orange-400">
+            <Button asChild className="text-sm font-mono uppercase tracking-wider bg-amber-500 hover:bg-amber-400 text-cyber-black rounded-full h-12 px-8">
               <Link href="/store">Get Yours Today</Link>
             </Button>
             <Button
               asChild
-              className="text-md border-white/40 bg-transparent text-white hover:bg-white/10"
+              className="text-sm font-mono uppercase tracking-wider glass-card text-white hover:border-white/20 rounded-full h-12 px-8"
               variant="secondary"
             >
-              <Link href="https://github.com">View Documentation</Link>
+              <Link href="https://github.com">Documentation</Link>
             </Button>
             <Button
               asChild
-              className="text-md border-white/40 bg-transparent text-white hover:bg-white/10"
+              className="text-sm font-mono uppercase tracking-wider glass-card text-white hover:border-white/20 rounded-full h-12 px-8"
               variant="secondary"
             >
-              <Link href="/docs">Read Architecture</Link>
+              <Link href="/docs">Architecture</Link>
             </Button>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/80">
-          <p className="text-xs uppercase tracking-[0.15em] text-white/60 sm:tracking-[0.4em]">
-            What you get
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-sm text-sm text-white/80">
+          <p className="font-mono text-xs uppercase tracking-wider text-white/40 mb-6">
+            [[ What you get ]]
           </p>
-          <ul className="mt-5 space-y-4">
-            <li className="flex items-start gap-3">
-              <span className="mt-1 inline-flex size-5 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-300">
-                •
+          <ul className="space-y-5">
+            <li className="flex items-start gap-4">
+              <span className="mt-1 font-mono text-emerald-400">
+                +
               </span>
-              <p>
+              <p className="leading-relaxed-cyber">
                 Complete mmWave sensor kit with tuned firmware and printed
                 enclosure.
               </p>
             </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-1 inline-flex size-5 items-center justify-center rounded-full bg-sky-400/20 text-sky-300">
-                •
+            <li className="flex items-start gap-4">
+              <span className="mt-1 font-mono text-sky-400">
+                +
               </span>
-              <p>
+              <p className="leading-relaxed-cyber">
                 Live Home Assistant dashboard with tunable parameters and debug
                 text sensor.
               </p>
             </li>
-            <li className="flex items-start gap-3">
-              <span className="mt-1 inline-flex size-5 items-center justify-center rounded-full bg-amber-400/20 text-amber-200">
-                •
+            <li className="flex items-start gap-4">
+              <span className="mt-1 font-mono text-amber-400">
+                +
               </span>
-              <p>
+              <p className="leading-relaxed-cyber">
                 Documentation and GitHub repo with the full presence engine
                 architecture.
               </p>
             </li>
           </ul>
         </div>
-      </div>
+      </GlassCard>
     </section>
   )
 }

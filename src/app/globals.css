@@ -212,6 +212,23 @@
   font-family: var(--font-feature-condensed), ui-sans-serif, system-ui, -apple-system, sans-serif;
 }
 
+.font-mono {
+  font-family: var(--font-geist-mono), 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Soft Cybernetic Glass Effect */
+.glass-card {
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card-hover:hover {
+  border-color: rgba(251, 191, 36, 0.3);
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.2);
+  transition: all 0.3s ease-out;
+}
+
 .mask {
   mask-image: radial-gradient(rgba(0, 0, 0, 1) 0%, transparent 80%);
 }

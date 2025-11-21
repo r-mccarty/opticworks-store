@@ -67,105 +67,34 @@ const Footer = () => {
   }
 
   return (
-    <div className="px-4 xl:px-0">
+    <div className="px-4 xl:px-0 bg-cyber-black">
       <footer
         id="footer"
-        className="relative mx-auto flex max-w-6xl flex-wrap pt-4"
+        className="relative mx-auto flex max-w-7xl flex-wrap pt-20 pb-12 border-t border-white/5"
       >
-        {/* Vertical Lines */}
-        <div className="pointer-events-none inset-0">
-          {/* Left */}
-          <div
-            className="absolute inset-y-0 my-[-5rem] w-px"
-            style={{
-              maskImage: "linear-gradient(transparent, white 5rem)",
-            }}
-          >
-            <svg className="h-full w-full" preserveAspectRatio="none">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                className="stroke-gray-300"
-                strokeWidth="2"
-                strokeDasharray="3 3"
-              />
-            </svg>
-          </div>
-
-          {/* Right */}
-          <div
-            className="absolute inset-y-0 right-0 my-[-5rem] w-px"
-            style={{
-              maskImage: "linear-gradient(transparent, white 5rem)",
-            }}
-          >
-            <svg className="h-full w-full" preserveAspectRatio="none">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                className="stroke-gray-300"
-                strokeWidth="2"
-                strokeDasharray="3 3"
-              />
-            </svg>
+        {/* ASCII divider */}
+        <div className="absolute top-0 left-0 right-0 h-px">
+          <div className="font-mono text-xs text-white/10 tracking-widest overflow-hidden whitespace-nowrap">
+            / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / / /
           </div>
         </div>
-        <svg
-          className="mb-10 h-20 w-full border-y border-dashed border-gray-300 stroke-gray-300"
-          // style={{
-          //   maskImage:
-          //     "linear-gradient(transparent, white 10rem, white calc(100% - 10rem), transparent)",
-          // }}
-        >
-          <defs>
-            <pattern
-              id="diagonal-footer-pattern"
-              patternUnits="userSpaceOnUse"
-              width="64"
-              height="64"
-            >
-              {Array.from({ length: 17 }, (_, i) => {
-                const offset = i * 8
-                return (
-                  <path
-                    key={i}
-                    d={`M${-106 + offset} 110L${22 + offset} -18`}
-                    stroke=""
-                    strokeWidth="1"
-                  />
-                )
-              })}
-            </pattern>
-          </defs>
-          <rect
-            stroke="none"
-            width="100%"
-            height="100%"
-            fill="url(#diagonal-footer-pattern)"
-          />
-        </svg>
         <div className="mr-auto flex w-full justify-between lg:w-fit lg:flex-col">
           <Link
             href="/"
-            className="flex items-center font-medium text-gray-700 select-none sm:text-sm"
+            className="flex items-center font-medium text-white/70 select-none hover:text-white transition-colors sm:text-sm"
           >
             <SolarLogo className="ml-2 w-20" />
-
             <span className="sr-only">OpticWorks Logo (go home)</span>
           </Link>
 
-          <div className="flex flex-col space-y-3">
+          <div className="flex flex-col space-y-4 mt-6">
             {/* Social Icons */}
             <div className="flex items-center">
               <Link
                 href="https://twitter.com/opticworks"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
+                className="rounded-lg p-2 text-white/50 transition-all duration-200 hover:bg-white/5 hover:text-amber-400"
               >
                 <RiTwitterXFill className="size-5" />
               </Link>
@@ -173,7 +102,7 @@ const Footer = () => {
                 href="https://youtube.com/@opticworks"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
+                className="rounded-lg p-2 text-white/50 transition-all duration-200 hover:bg-white/5 hover:text-amber-400"
               >
                 <RiYoutubeFill className="size-5" />
               </Link>
@@ -181,37 +110,37 @@ const Footer = () => {
                 href="https://github.com/opticworks"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
+                className="rounded-lg p-2 text-white/50 transition-all duration-200 hover:bg-white/5 hover:text-amber-400"
               >
                 <RiGithubFill className="size-5" />
               </Link>
               <Link
                 href={siteConfig.baseLinks.supportContact}
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
+                className="rounded-lg p-2 text-white/50 transition-all duration-200 hover:bg-white/5 hover:text-amber-400"
               >
                 <RiSlackFill className="size-5" />
               </Link>
             </div>
-            
+
             {/* Copyright */}
-            <div className="ml-2 text-sm text-gray-700">
-              &copy; {CURRENT_YEAR} OpticWorks LLC
+            <div className="ml-2 font-mono text-xs text-white/30">
+              © {CURRENT_YEAR} OpticWorks LLC
             </div>
-            
+
             {/* Legal Links */}
-            <div className="ml-2 text-xs text-gray-600">
-              <Link 
+            <div className="ml-2 font-mono text-xs text-white/40">
+              <Link
                 href={siteConfig.baseLinks.supportPrivacy}
-                className="hover:text-gray-900 transition-colors"
+                className="hover:text-amber-400 transition-colors"
               >
-                Privacy Policy
+                Privacy
               </Link>
-              <span className="mx-2">•</span>
-              <Link 
+              <span className="mx-2 text-white/20">{`//`}</span>
+              <Link
                 href={siteConfig.baseLinks.supportTerms}
-                className="hover:text-gray-900 transition-colors"
+                className="hover:text-amber-400 transition-colors"
               >
-                Terms of Service
+                Terms
               </Link>
             </div>
           </div>
@@ -220,15 +149,15 @@ const Footer = () => {
         {/* Footer Sections */}
         {Object.entries(sections).map(([key, section]) => (
           <div key={key} className="mt-10 min-w-44 pl-2 lg:mt-0 lg:pl-0">
-            <h3 className="mb-4 font-medium text-gray-900 sm:text-sm">
-              {section.title}
+            <h3 className="mb-6 font-mono text-xs uppercase tracking-wider text-amber-400">
+              + {section.title}
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-3">
               {section.items.map((item) => (
                 <li key={item.label} className="text-sm">
                   <Link
                     href={item.href}
-                    className="text-gray-600 transition-colors duration-200 hover:text-gray-900"
+                    className="text-white/50 transition-colors duration-200 hover:text-white font-light"
                   >
                     {item.label}
                   </Link>

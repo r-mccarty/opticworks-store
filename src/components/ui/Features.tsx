@@ -7,7 +7,7 @@ import {
   RiTerminalBoxLine,
 } from "@remixicon/react"
 
-import { cx } from "@/lib/utils"
+import { GlassCard } from "./GlassCard"
 
 const VALUE_PROPS = [
   {
@@ -100,80 +100,59 @@ export default function Features() {
   return (
     <section
       aria-labelledby="value-propositions"
-      className="relative mx-auto max-w-6xl scroll-my-24"
+      className="relative mx-auto max-w-7xl scroll-my-24 px-4"
     >
-      <div className="mb-12 space-y-4 text-center">
-        <p className="text-sm uppercase tracking-[0.15em] text-orange-500 sm:tracking-[0.3em]">
-          Value Propositions
+      <div className="mb-16 space-y-6 text-center">
+        <p className="font-mono text-xs uppercase tracking-wider text-amber-400">
+          {`// Value Propositions`}
         </p>
         <h2
           id="value-propositions"
-          className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl"
+          className="text-4xl font-black tracking-tight-cyber text-white md:text-6xl leading-tight"
         >
           Built to fix every pain point smart homes have with bed sensors
         </h2>
-        <p className="text-lg text-gray-600">
+        <p className="text-xl text-white/60 leading-relaxed-cyber max-w-3xl mx-auto">
           These are the headline features customers should see the moment they
           land on the site.
         </p>
       </div>
-      <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {VALUE_PROPS.map((value, index) => {
           const Icon = value.icon
+          const gradients = ['amber', 'blue', 'violet', 'amber', 'blue', 'violet'] as const
           return (
-            <article
+            <GlassCard
               key={value.title}
-              style={{ background: value.accent.gradient }}
-              className={cx(
-                "group relative flex h-full flex-col overflow-hidden rounded-[32px] border border-white/50 p-8 shadow-[0_35px_120px_rgba(15,23,42,0.15)]",
-                "backdrop-blur-xl transition duration-500 hover:-translate-y-2 hover:shadow-[0_55px_160px_rgba(15,23,42,0.18)]"
-              )}
+              className="group flex h-full flex-col p-8 transition-all duration-300"
+              hover={true}
+              gradient={gradients[index % gradients.length]}
             >
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute -inset-20 opacity-70 blur-3xl transition duration-700 group-hover:opacity-100"
-                style={{ background: value.accent.glow }}
-              />
               <div className="relative flex h-full flex-col gap-6">
                 <div className="flex items-start justify-between gap-6">
-                  <div
-                    className={cx(
-                      "flex size-16 items-center justify-center rounded-2xl bg-gradient-to-br text-white shadow-xl shadow-black/20 transition duration-500 group-hover:scale-110",
-                      value.accent.icon
-                    )}
-                  >
+                  <div className="flex size-14 items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-amber-400 transition-all duration-300 group-hover:bg-amber-500/20 group-hover:border-amber-500/30 group-hover:scale-110">
                     <Icon className="size-7" />
                   </div>
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em] text-gray-500/80 sm:tracking-[0.4em]">
-                    {String(index + 1).padStart(2, "0")} /{" "}
-                    {String(VALUE_PROPS.length).padStart(2, "0")}
+                  <span className="font-mono text-xs uppercase tracking-wider text-white/30">
+                    [{String(index + 1).padStart(2, "0")}]
                   </span>
                 </div>
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.15em] text-gray-500/90 sm:tracking-[0.35em]">
-                    {value.title}
+                <div className="space-y-4">
+                  <p className="font-mono text-xs uppercase tracking-wider text-white/50">
+                    + {value.title}
                   </p>
-                  <p className="text-xl font-semibold leading-snug text-gray-900 sm:text-2xl">
+                  <p className="text-2xl font-bold leading-tight text-white">
                     {value.description}
                   </p>
                 </div>
-                <div
-                  className={cx(
-                    "mt-auto rounded-2xl bg-gradient-to-r p-4 text-sm text-gray-700 shadow-inner shadow-white/40",
-                    value.accent.detailBg
-                  )}
-                >
-                  <p className="text-sm font-semibold text-gray-900">
-                    Why it matters
+                <div className="mt-auto rounded-2xl border border-white/5 bg-white/5 p-4 backdrop-blur-sm">
+                  <p className="font-mono text-xs uppercase tracking-wider text-amber-400 mb-2">
+                    {`// Why it matters`}
                   </p>
-                  <p className="mt-1 text-sm text-gray-700/90">{value.detail}</p>
-                </div>
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.1em] text-gray-500/80 sm:tracking-[0.3em]">
-                  <span className="text-[0.65rem] sm:text-xs">Engineered Precision</span>
-                  <span className="text-[0.65rem] sm:text-xs">Apple-Grade Finish</span>
+                  <p className="text-sm text-white/70 leading-relaxed-cyber">{value.detail}</p>
                 </div>
               </div>
-            </article>
+            </GlassCard>
           )
         })}
       </div>

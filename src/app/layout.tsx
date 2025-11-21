@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
+import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 
 import { Toaster } from "@/components/ui/sonner"
@@ -123,8 +124,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <body className="min-h-screen overflow-x-hidden scroll-auto bg-[#050505] antialiased selection:bg-amber-500/20 selection:text-amber-300 font-colfax">
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />

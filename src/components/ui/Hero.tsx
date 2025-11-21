@@ -2,7 +2,6 @@
 
 import {
   RiArrowRightUpLine,
-  RiCheckLine,
   RiGithubFill,
 } from "@remixicon/react"
 import Link from "next/link"
@@ -11,6 +10,8 @@ import { cx } from "@/lib/utils"
 
 import { FadeContainer, FadeDiv } from "../Fade"
 import { Button } from "./button"
+import { AsciiBackground } from "./AsciiBackground"
+import { GlassCard } from "./GlassCard"
 
 // Track button clicks
 function trackButtonClick(buttonName: string, href: string) {
@@ -40,40 +41,46 @@ export function Hero() {
   return (
     <section
       aria-label="hero"
-      className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950"
+      className="relative overflow-hidden bg-cyber-black"
     >
-      <div className="absolute inset-x-0 top-10 mx-auto hidden max-w-5xl rounded-full bg-white/5 blur-3xl lg:block" />
-      <FadeContainer className="relative z-10 mx-auto grid min-h-screen max-w-6xl items-center gap-12 px-4 py-24 lg:grid-cols-[1.1fr_0.9fr]">
+      <AsciiBackground />
+
+      {/* Optical blur gradient orbs */}
+      <div className="absolute top-20 left-1/4 w-96 h-96 bg-amber-500/20 rounded-full blur-[120px] -z-10" />
+      <div className="absolute top-40 right-1/4 w-80 h-80 bg-blue-500/15 rounded-full blur-[100px] -z-10" />
+      <div className="absolute bottom-20 left-1/3 w-72 h-72 bg-violet-500/15 rounded-full blur-[90px] -z-10" />
+
+      <FadeContainer className="relative z-10 mx-auto grid min-h-screen max-w-7xl items-center gap-16 px-4 py-24 lg:grid-cols-[1.2fr_0.8fr]">
         <div>
           <FadeDiv>
             <a
               aria-label="Read the latest shipping update"
               href="https://www.optic.works/products/bed-presence-sensor"
-              className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/5 px-4 py-1 text-sm text-white transition hover:border-white/40"
+              className="inline-flex items-center gap-3 rounded-full glass-card px-5 py-2 text-sm text-white transition glass-card-hover"
             >
-              <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs uppercase tracking-wide">
+              <span className="rounded-full bg-amber-500/30 px-3 py-1 font-mono text-xs uppercase tracking-wider text-amber-300">
                 News
               </span>
-              <span className="flex items-center gap-2 text-sm">
+              <span className="flex items-center gap-2 font-mono text-xs tracking-wide">
                 Now shipping the Bed Presence Sensor
                 <RiArrowRightUpLine className="size-4" />
               </span>
             </a>
           </FadeDiv>
           <FadeDiv>
-            <h1 className="mt-8 text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+            <h1 className="mt-10 text-5xl font-black tracking-tight-cyber text-white sm:text-6xl lg:text-7xl leading-tight">
               Stop detecting motion. Start understanding presence.
             </h1>
           </FadeDiv>
           <FadeDiv>
-            <p className="mt-6 text-lg text-balance text-white/70 sm:text-xl">
+            <p className="mt-8 text-xl text-balance text-white/60 sm:text-2xl leading-relaxed-cyber font-light">
               A statistical presence engine with temporal filtering delivers
               rock-solid bed occupancy detection. No more lights turning off
               while you sleep. No more mystery triggers when a cat walks by.
             </p>
           </FadeDiv>
-          <FadeDiv className="mt-8 flex flex-wrap gap-4">
-            <Button asChild size="lg" className="bg-orange-500 text-white hover:bg-orange-400">
+          <FadeDiv className="mt-10 flex flex-wrap gap-4">
+            <Button asChild size="lg" className="bg-amber-500 text-cyber-black hover:bg-amber-400 font-mono text-sm uppercase tracking-wider rounded-full h-12 px-8">
               <Link
                 href="/store"
                 onClick={() => trackButtonClick("Get Yours Today - Hero", "/store")}
@@ -85,66 +92,59 @@ export function Hero() {
               asChild
               variant="secondary"
               size="lg"
-              className="bg-white/10 text-white hover:bg-white/20"
+              className="glass-card text-white hover:border-white/20 font-mono text-sm uppercase tracking-wider rounded-full h-12 px-8"
             >
               <Link
                 href="https://github.com"
                 onClick={() => trackButtonClick("View Documentation - Hero", "https://github.com")}
               >
                 <RiGithubFill className="size-5" />
-                View Documentation
+                Documentation
               </Link>
             </Button>
           </FadeDiv>
-          <FadeDiv className="mt-10 space-y-3">
+          <FadeDiv className="mt-12 space-y-4">
             {PAIN_POINTS.map((point) => (
-              <div key={point} className="flex items-center gap-3 text-white/80">
-                <span className="inline-flex size-7 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-300">
-                  <RiCheckLine className="size-4" />
+              <div key={point} className="flex items-center gap-4 text-white/70">
+                <span className="inline-flex size-8 items-center justify-center rounded-lg bg-emerald-400/20 text-emerald-300 font-mono">
+                  /
                 </span>
-                <p className="text-base">{point}</p>
+                <p className="text-lg font-light leading-relaxed-cyber">{point}</p>
               </div>
             ))}
           </FadeDiv>
         </div>
         <FadeDiv className="relative">
-          <div
-            className={cx(
-              "relative overflow-hidden rounded-[32px] border border-white/10 bg-white/5 p-6 text-white",
-              "shadow-[0_25px_100px_rgba(15,23,42,0.6)] backdrop-blur"
-            )}
-          >
-            <div className="flex items-center justify-between text-sm uppercase tracking-[0.1em] text-white/60 sm:tracking-[0.3em]">
-              <span className="text-xs sm:text-sm">Home Assistant</span>
-              <span className="text-xs sm:text-sm">Presence Engine</span>
+          <GlassCard className="relative overflow-hidden p-8 text-white" gradient="amber">
+            <div className="flex items-center justify-between font-mono text-xs uppercase tracking-wider text-white/50">
+              <span>{`[[ Home Assistant ]]`}</span>
+              <span>{`// Presence Engine`}</span>
             </div>
-            <div className="mt-6 space-y-5">
+            <div className="mt-8 space-y-4">
               {DEBUG_STATES.map((state) => (
-                <div key={state.label} className="rounded-2xl border border-white/15 bg-white/5 p-4">
-                  <p className="break-all text-xs uppercase tracking-[0.1em] text-white/50 sm:break-normal sm:tracking-[0.3em]">
+                <div key={state.label} className="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm">
+                  <p className="break-all font-mono text-xs uppercase tracking-wider text-white/40 sm:break-normal">
                     {state.label}
                   </p>
-                  <p className={cx("mt-2 font-mono text-2xl", state.accent)}>
+                  <p className={cx("mt-3 font-mono text-2xl font-bold", state.accent)}>
                     {state.value}
                   </p>
                 </div>
               ))}
             </div>
-            <div className="mt-6 rounded-xl border border-white/15 bg-black/40 p-4">
-              <p className="text-xs uppercase tracking-[0.1em] text-white/40 sm:tracking-[0.3em]">
-                State Machine Log
+            <div className="mt-6 rounded-2xl border border-white/10 bg-cyber-black/60 p-5 backdrop-blur-sm">
+              <p className="font-mono text-xs uppercase tracking-wider text-white/30 flex items-center gap-2">
+                <span className="text-amber-400">*</span> State Machine Log
               </p>
-              <pre className="mt-2 text-sm leading-relaxed text-emerald-200">
+              <pre className="mt-3 font-mono text-sm leading-relaxed text-emerald-300">
                 {`03:14:01  z_still = 9.8  →  DEBOUNCING_ON
 03:14:04  timer met      →  PRESENT
 03:18:29  z_still = 3.7  + abs_clear_delay running`}
               </pre>
             </div>
-          </div>
+          </GlassCard>
         </FadeDiv>
       </FadeContainer>
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_55%)]" />
-      <div className="absolute inset-0 -z-20 bg-[radial-gradient(circle_at_center,_rgba(251,191,36,0.08),_transparent_60%)]" />
     </section>
   )
 }

@@ -26,10 +26,10 @@ export function NavBar() {
   return (
     <header
       className={cx(
-        "fixed inset-x-4 top-4 z-50 mx-auto flex max-w-6xl justify-center rounded-lg border border-transparent px-3 py-3 transition duration-300",
+        "fixed inset-x-4 top-4 z-50 mx-auto flex max-w-5xl justify-center rounded-full px-6 py-3 transition-all duration-300",
         scrolled || open
-          ? "border-gray-200/50 bg-white/80 shadow-2xl shadow-black/5 backdrop-blur-sm"
-          : "bg-white/0",
+          ? "glass-card shadow-2xl shadow-black/20"
+          : "bg-transparent border border-white/5",
       )}
     >
       <div className="w-full md:my-auto">
@@ -39,18 +39,18 @@ export function NavBar() {
             <SolarLogo className="w-22" />
           </Link>
           <nav className="hidden sm:block md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:transform">
-            <div className="flex items-center gap-10 font-bold">
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/products">
+            <div className="flex items-center gap-8 font-mono text-xs uppercase tracking-wider">
+              <Link className="px-3 py-1.5 text-white/70 hover:text-amber-400 transition-colors" href="/products">
                 Products
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/store">
+              <Link className="px-3 py-1.5 text-white/70 hover:text-amber-400 transition-colors" href="/store">
                 Store
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href={siteConfig.baseLinks.support}>
-                Customer Support
+              <Link className="px-3 py-1.5 text-white/70 hover:text-amber-400 transition-colors" href={siteConfig.baseLinks.support}>
+                Support
               </Link>
-              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/install-guides">
-                Install Guides
+              <Link className="px-3 py-1.5 text-white/70 hover:text-amber-400 transition-colors" href="/install-guides">
+                Guides
               </Link>
             </div>
           </nav>
@@ -58,12 +58,12 @@ export function NavBar() {
             <Button
               asChild
               variant="ghost"
-              className="relative p-2"
+              className="relative p-2 text-white/70 hover:text-amber-400"
             >
               <Link href="/store/cart">
                 <ShoppingCartIcon className="w-5 h-5" />
                 {mounted && totalItems > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-amber-500 text-cyber-black font-mono text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {totalItems}
                   </span>
                 )}
@@ -72,7 +72,7 @@ export function NavBar() {
             <Button
               asChild
               variant="secondary"
-              className="h-10 font-medium"
+              className="h-9 font-mono text-xs uppercase tracking-wider bg-white/10 text-white hover:bg-amber-500 hover:text-cyber-black transition-all rounded-full"
             >
               <Link href="/store">Shop Now</Link>
             </Button>
@@ -80,17 +80,17 @@ export function NavBar() {
           <Button
             onClick={() => setOpen(!open)}
             variant="secondary"
-            className="p-1.5 sm:hidden"
+            className="p-1.5 sm:hidden bg-white/10 text-white hover:bg-amber-500 hover:text-cyber-black"
             aria-label={open ? "CloseNavigation Menu" : "Open Navigation Menu"}
           >
             {!open ? (
               <RiMenuFill
-                className="size-6 shrink-0 text-gray-900"
+                className="size-6 shrink-0"
                 aria-hidden
               />
             ) : (
               <RiCloseFill
-                className="size-6 shrink-0 text-gray-900"
+                className="size-6 shrink-0"
                 aria-hidden
               />
             )}
@@ -102,21 +102,21 @@ export function NavBar() {
             open ? "" : "hidden",
           )}
         >
-          <ul className="space-y-4 font-bold">
+          <ul className="space-y-4 font-mono text-sm uppercase tracking-wider">
             <li onClick={() => setOpen(false)}>
-              <Link href="/products" className="hover:text-orange-600 transition-colors">Products</Link>
+              <Link href="/products" className="text-white/70 hover:text-amber-400 transition-colors">Products</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="/store" className="hover:text-orange-600 transition-colors">Store</Link>
+              <Link href="/store" className="text-white/70 hover:text-amber-400 transition-colors">Store</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href={siteConfig.baseLinks.support} className="hover:text-orange-600 transition-colors">Customer Support</Link>
+              <Link href={siteConfig.baseLinks.support} className="text-white/70 hover:text-amber-400 transition-colors">Support</Link>
             </li>
             <li onClick={() => setOpen(false)}>
-              <Link href="/install-guides" className="hover:text-orange-600 transition-colors">Install Guides</Link>
+              <Link href="/install-guides" className="text-white/70 hover:text-amber-400 transition-colors">Guides</Link>
             </li>
           </ul>
-          <Button asChild variant="secondary" className="text-lg">
+          <Button asChild variant="secondary" className="text-sm font-mono uppercase bg-white/10 text-white hover:bg-amber-500 hover:text-cyber-black rounded-full">
             <Link href="/store">Shop Now</Link>
           </Button>
         </nav>
