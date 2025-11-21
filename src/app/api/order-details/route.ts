@@ -10,13 +10,22 @@ interface OrderData {
 }
 
 // Initialize Stripe with the secret key from environment variables.
-// The exclamation mark (!) asserts that the environment variable is non-null.
-// This is safe because the server should not start if the key is missing.
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  typescript: true,
-});
+// Conditional initialization to support build-time when env vars may not be available.
+const stripe = process.env.STRIPE_SECRET_KEY
+  ? new Stripe(process.env.STRIPE_SECRET_KEY, {
+      typescript: true,
+    })
+  : null;
 
 export async function GET(request: NextRequest) {
+  // Check if Stripe is configured
+  if (!stripe) {
+    return NextResponse.json(
+      { error: 'Service Unavailable: Stripe is not configured.' },
+      { status: 503 }
+    );
+  }
+
   // Extract the 'payment_intent' ID from the request's URL search parameters.
   const searchParams = request.nextUrl.searchParams;
   const paymentIntentId = searchParams.get('payment_intent');

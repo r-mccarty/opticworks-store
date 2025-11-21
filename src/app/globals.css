@@ -231,3 +231,113 @@
     opacity: 100;
   }
 }
+
+/* ============================================
+   SOFT-TECH DESIGN SYSTEM UTILITIES
+   ============================================ */
+
+/* Glassmorphism Base Classes */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-card-light {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Optical Glows (replaces drop shadows) */
+.glow-amber {
+  box-shadow: 0 0 40px rgba(255, 153, 0, 0.3);
+}
+
+.glow-amber-lg {
+  box-shadow: 0 0 80px rgba(255, 153, 0, 0.4);
+}
+
+.glow-white {
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
+}
+
+.glow-white-lg {
+  box-shadow: 0 0 60px rgba(255, 255, 255, 0.15);
+}
+
+/* ASCII Pattern Backgrounds */
+.ascii-grid {
+  background-image:
+    linear-gradient(0deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.ascii-dots::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+.ascii-plus::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(0deg, transparent, transparent 15px, rgba(255, 255, 255, 0.05) 15px, rgba(255, 255, 255, 0.05) 16px),
+    repeating-linear-gradient(90deg, transparent, transparent 15px, rgba(255, 255, 255, 0.05) 15px, rgba(255, 255, 255, 0.05) 16px);
+  background-size: 16px 16px;
+  pointer-events: none;
+}
+
+/* Typography Utilities */
+.text-eyebrow {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.text-headline-massive {
+  font-family: var(--font-colfax), sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+
+/* ASCII Decorative Elements */
+.ascii-bracket::before {
+  content: '[ ';
+  opacity: 0.5;
+}
+
+.ascii-bracket::after {
+  content: ' ]';
+  opacity: 0.5;
+}
+
+.ascii-slash::before {
+  content: '// ';
+  opacity: 0.4;
+  font-family: var(--font-mono), monospace;
+}
+
+/* Smooth Corner Radius (Apple-style) */
+.smooth-corners {
+  border-radius: 16px;
+}
+
+.smooth-corners-sm {
+  border-radius: 12px;
+}
+
+.smooth-corners-lg {
+  border-radius: 20px;
+}

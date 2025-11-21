@@ -32,9 +32,14 @@ const barlowFont = localFont({
   display: "swap",
 })
 
-// Define Colfax font
+// Define Colfax font with bold simulation for Black/Bold headlines
 const colfaxFont = localFont({
   src: [
+    {
+      path: "../../public/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2",
+      weight: "300",
+      style: "normal",
+    },
     {
       path: "../../public/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2",
       weight: "400",
@@ -45,10 +50,24 @@ const colfaxFont = localFont({
       weight: "500",
       style: "normal",
     },
+    {
+      path: "../../public/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../../public/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2",
+      weight: "800",
+      style: "normal",
+    },
   ],
   variable: "--font-colfax",
   display: "swap",
 })
+
+// System monospace font for eyebrows, tags, data readouts (no external dependency)
+// Using CSS variable that will fallback to system monospace fonts
+// To add a custom mono font later, download woff2 files to public/fonts/ and load here
 
 
 const featureFont = localFont({
@@ -123,8 +142,8 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning style={{ '--font-mono': 'ui-monospace, Menlo, Monaco, "Cascadia Code", "Segoe UI Mono", "Roboto Mono", "Ubuntu Mono", monospace' } as React.CSSProperties}>
+      <body className="min-h-screen overflow-x-hidden scroll-auto bg-void antialiased selection:bg-amber-500/20 selection:text-amber-400 font-colfax">
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
