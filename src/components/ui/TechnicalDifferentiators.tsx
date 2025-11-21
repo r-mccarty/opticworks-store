@@ -36,18 +36,15 @@ export function TechnicalDifferentiators() {
       className="relative mx-auto max-w-6xl"
     >
       <div className="mb-10 text-center">
-        <p className="text-sm uppercase tracking-[0.15em] text-emerald-500 sm:tracking-[0.3em]">
-          Technical Differentiators
-        </p>
+        <p className="font-jetbrains text-xs uppercase tracking-[3px] text-amber-300">Technical differentiators</p>
         <h2
           id="technical-differentiators"
-          className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl"
+          className="text-4xl font-black tracking-[-0.03em] text-white md:text-6xl"
         >
           Built for real-world bedrooms, not lab demos
         </h2>
-        <p className="mt-4 text-lg text-gray-600">
-          The Bed Presence Sensor&apos;s architecture attacks the three failure
-          modes that frustrate smart home power users.
+        <p className="mt-4 text-lg text-zinc-300">
+          The Bed Presence Sensor&apos;s architecture attacks the three failure modes that frustrate smart home power users.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-3">
@@ -57,20 +54,20 @@ export function TechnicalDifferentiators() {
             <article
               key={difference.title}
               className={cx(
-                "flex h-full flex-col rounded-2xl border border-white/50 bg-white/90 p-6 shadow-xl shadow-sky-950/5 backdrop-blur",
-                "ring-1 ring-gray-200 transition hover:-translate-y-1 hover:ring-emerald-400/40"
+                "flex h-full flex-col rounded-2xl border border-white/10 bg-white/5 p-6 text-white backdrop-blur-2xl optic-glow",
+                "transition hover:-translate-y-1 hover:border-amber-400/40"
               )}
             >
-              <div className="mb-4 inline-flex items-center gap-3 rounded-full bg-emerald-50 px-4 py-2 text-emerald-600">
+              <div className="mb-4 inline-flex items-center gap-3 rounded-full border border-amber-300/40 bg-amber-500/10 px-4 py-2 text-amber-200 ring-1 ring-amber-300/30">
                 <Icon className="size-5" />
-                <span className="text-sm font-medium uppercase tracking-wide">
+                <span className="text-sm font-medium uppercase tracking-[2px]">
                   {difference.title}
                 </span>
               </div>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-lg font-semibold leading-snug text-white">
                 {difference.description}
               </p>
-              <p className="mt-3 text-sm text-gray-600">{difference.detail}</p>
+              <p className="mt-3 text-sm text-zinc-300">{difference.detail}</p>
             </article>
           )
         })}
