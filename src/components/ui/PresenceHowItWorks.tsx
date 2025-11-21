@@ -9,35 +9,35 @@ import { cx } from "@/lib/utils"
 
 const HOW_IT_WORKS_STEPS = [
   {
-    title: "The 4-State Presence Engine",
+    title: "The 4-state engine",
     description:
-      "A deliberate finite state machine validates every transition before it ever flips the presence bit in Home Assistant.",
+      "A finite state machine validates every transition before it ever flips the presence bit in Home Assistant.",
     detail:
-      "It filters out drive-bys and pet hops by verifying that presence is intentional and sustained.",
+      "Built to feel intentional: every move narrates itself in the debug sensor like a Grok trace.",
     icon: RiStackLine,
   },
   {
-    title: "Temporal Filtering",
+    title: "Temporal filtering",
     description:
-      "Configurable 3s ON / 5s OFF debounce timers demand sustained signals before any change is announced.",
+      "Configurable debounce timers demand sustained signals before any change is announced.",
     detail:
-      "No more twitchy sensors. The engine only moves when the signal proves it is real.",
+      "Drive-bys drop out instantly; actual presence glides through.",
     icon: RiRepeatLine,
   },
   {
     title: "Absolute Clear Delay",
     description:
-      "A 30s cooldown remembers the last confident presence so perfectly still sleepers do not trigger false 'off' events.",
+      "A 30s cooldown remembers the last confident presence so perfectly still sleepers do not trigger false off events.",
     detail:
-      "Lights stay on while you rest, yet the system still reacts quickly once the bed is truly empty.",
+      "Lights stay on while you rest, yet clear decisively when you stand.",
     icon: RiDashboard2Line,
   },
   {
-    title: "Z-Score Statistical Analysis",
+    title: "Z-score intelligence",
     description:
-      "Instead of raw amplitudes, we examine how far a reading deviates from the empty-bed baseline using z-scores.",
+      "Instead of raw amplitudes, the engine looks at deviation from an adaptive baseline—portable across rooms and boards.",
     detail:
-      "This adaptive approach travels well between hardware variations and room conditions without manual retuning.",
+      "You get mathematical calm, not guesswork.",
     icon: RiRadarLine,
   },
 ]
@@ -46,45 +46,45 @@ export function PresenceHowItWorks() {
   return (
     <section
       aria-labelledby="presence-how-it-works"
-      className="relative mx-auto max-w-6xl"
+      className="relative mx-auto max-w-6xl text-white"
     >
-      <div className="mb-10 space-y-4 text-center">
-        <p className="text-sm uppercase tracking-[0.15em] text-blue-500 sm:tracking-[0.3em]">
-          How It Works
+      <div className="mb-12 space-y-4 text-center">
+        <p className="text-xs uppercase tracking-[0.35em] text-white/50">
+          How it works
         </p>
         <h2
           id="presence-how-it-works"
-          className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl"
+          className="text-3xl font-semibold tracking-tight text-balance md:text-5xl"
         >
-          Reliability engineered in four deliberate stages
+          Reliability explained like an xAI system diagram
         </h2>
-        <p className="text-lg text-balance text-gray-600 md:text-xl">
-          Each layer of the Bed Presence Sensor eliminates a class of false
-          positives so your automations only fire when the bed is truly
-          occupied—or truly empty.
+        <p className="text-lg text-balance text-white/70 md:text-xl">
+          Each layer removes noise until only deliberate presence remains. Every threshold is visible, every timer logged.
         </p>
       </div>
       <div className="grid gap-6 md:grid-cols-2">
-        {HOW_IT_WORKS_STEPS.map((step) => {
+        {HOW_IT_WORKS_STEPS.map((step, idx) => {
           const Icon = step.icon
           return (
             <article
               key={step.title}
               className={cx(
-                "h-full rounded-2xl border border-white/40 bg-white/80 p-6 shadow-[0_30px_120px_rgba(15,23,42,0.08)] backdrop-blur",
-                "ring-1 ring-gray-200 transition hover:-translate-y-1 hover:ring-blue-500/40"
+                "relative h-full overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6",
+                "shadow-[0_25px_120px_rgba(0,0,0,0.35)] backdrop-blur"
               )}
             >
-              <div className="mb-4 flex items-center gap-3">
-                <div className="rounded-full bg-blue-50 p-3 text-blue-600">
-                  <Icon className="size-5" />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/0 via-white/5 to-white/0" />
+              <div className="relative flex h-full flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-sm uppercase tracking-[0.25em] text-white/70">
+                    <Icon className="size-5" />
+                    <span>{step.title}</span>
+                  </div>
+                  <span className="text-xs uppercase tracking-[0.35em] text-white/40">0{idx + 1}</span>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
-                  {step.title}
-                </h3>
+                <p className="text-lg font-semibold text-white">{step.description}</p>
+                <p className="text-sm text-white/70">{step.detail}</p>
               </div>
-              <p className="text-base text-gray-700">{step.description}</p>
-              <p className="mt-3 text-sm text-gray-500">{step.detail}</p>
             </article>
           )
         })}
