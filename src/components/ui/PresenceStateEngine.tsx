@@ -48,19 +48,19 @@ export function PresenceStateEngine() {
   return (
     <section
       aria-labelledby="presence-state-engine"
-      className="relative mx-auto max-w-6xl"
+      className="relative mx-auto max-w-6xl text-white"
     >
       <div className="mb-10 text-center">
-        <p className="text-sm uppercase tracking-[0.15em] text-indigo-500 sm:tracking-[0.3em]">
+        <p className="mono-meta text-xs uppercase tracking-[0.35em] text-indigo-300/80 sm:tracking-[0.4em]">
           Deep Dive
         </p>
         <h2
           id="presence-state-engine"
-          className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl"
+          className="text-3xl font-black tracking-[-0.02em] text-white md:text-5xl"
         >
           The 4-state presence engine makes binary sensors feel intentional
         </h2>
-        <p className="mt-4 text-lg text-gray-600">
+        <p className="mt-4 text-lg text-white/70">
           Each transition has guardrails, timers, and abort paths so the Bed
           Presence Sensor behaves like the presence engine it is.
         </p>
@@ -71,28 +71,28 @@ export function PresenceStateEngine() {
             <li
               key={step.title}
               className={cx(
-                "flex gap-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-lg shadow-slate-900/5 backdrop-blur",
-                "ring-1 ring-gray-200 transition hover:shadow-xl hover:ring-indigo-500/30"
+                "flex gap-4 rounded-2xl glass-panel border-white/10 p-5 shadow-lg shadow-black/20 backdrop-blur",
+                "transition hover:shadow-xl hover:border-white/20"
               )}
             >
-              <div className="shrink-0 rounded-full bg-indigo-50 p-3 text-indigo-600">
+              <div className="shrink-0 rounded-full bg-indigo-400/15 p-3 text-indigo-200">
                 <step.Icon className="size-5" />
               </div>
               <div className="space-y-1.5">
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-xl font-semibold text-white">
                   {step.title}
                 </h3>
-                <p className="text-base text-gray-700">{step.description}</p>
-                <p className="text-sm text-gray-500">{step.detail}</p>
+                <p className="text-base text-white/80">{step.description}</p>
+                <p className="text-sm text-white/60">{step.detail}</p>
               </div>
             </li>
           ))}
         </ol>
-        <div className="rounded-3xl border border-white/40 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-8 text-white shadow-[0_30px_80px_rgba(15,23,42,0.6)]">
-          <p className="text-sm uppercase tracking-[0.1em] text-white/70 sm:tracking-[0.25em]">
+        <div className="rounded-3xl border border-white/20 bg-gradient-to-br from-slate-900 via-slate-950 to-black p-8 text-white shadow-[0_30px_80px_rgba(0,0,0,0.55)] glass-panel">
+          <p className="mono-meta text-sm uppercase tracking-[0.15em] text-white/70 sm:tracking-[0.3em]">
             Thresholds & Timers
           </p>
-          <div className="mt-6 space-y-4 font-mono text-sm text-white/90">
+          <div className="mt-6 space-y-4 mono-meta text-sm text-white/90">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <span>k_on</span>
               <span className="text-lg font-semibold text-emerald-300">9.0</span>

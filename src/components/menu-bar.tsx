@@ -73,9 +73,6 @@ const fastTransition = {
 
 import { cx } from "@/lib/utils"
 import useScroll from "@/lib/useScroll"
-import { usePathname } from "next/navigation"
-
-const lightRoutes = ["/products", "/store", "/install-guides", "/support"]
 
 export const MenuBar = React.memo(function MenuBar() {
   const totalItems = useCart(
@@ -84,11 +81,6 @@ export const MenuBar = React.memo(function MenuBar() {
   const [mounted, setMounted] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const scrolled = useScroll(15)
-  const pathname = usePathname()
-
-  const isLightPage = React.useMemo(() => {
-    return lightRoutes.some((route) => pathname.startsWith(route))
-  }, [pathname])
 
   React.useEffect(() => {
     setMounted(true)
@@ -108,10 +100,9 @@ export const MenuBar = React.memo(function MenuBar() {
     >
       <nav
         className={cx(
-          "p-3 rounded-2xl relative w-full will-change-transform transition-all duration-300 max-w-6xl",
-          scrolled
-            ? "bg-white/90 border border-gray-200/50 shadow-lg"
-            : "bg-transparent border-transparent",
+          "relative w-full max-w-6xl will-change-transform transition-all duration-300",
+          "glass-panel rounded-full px-4 py-3 border-white/10",
+          scrolled ? "backdrop-blur-xl" : "backdrop-blur-lg",
         )}
       >
         <div className="flex items-center justify-between relative">
@@ -123,18 +114,17 @@ export const MenuBar = React.memo(function MenuBar() {
           >
             <SolarLogo
               className={cx(
-                "w-20 transition-colors duration-300",
-                scrolled || isLightPage ? "text-gray-900" : "text-white",
+                "w-20 transition-colors duration-300 text-white",
               )}
             />
           </Link>
 
           {/* Navigation Menu */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-2">
             {menuItems.map((item) => (
               <motion.div key={item.label} className="relative group">
                 <motion.div
-                  className="absolute inset-0 rounded-xl pointer-events-none will-change-transform"
+                  className="absolute inset-0 rounded-2xl pointer-events-none will-change-transform"
                   variants={glowVariants}
                   initial="initial"
                   whileHover="hover"
@@ -154,10 +144,8 @@ export const MenuBar = React.memo(function MenuBar() {
                   <Link
                     href={item.href}
                     className={cx(
-                      "flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium will-change-transform nav-link transition-colors duration-300",
-                      scrolled || isLightPage
-                        ? "text-gray-700 hover:text-gray-900"
-                        : "text-white hover:text-gray-200",
+                      "flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-semibold will-change-transform nav-link transition-colors duration-300",
+                      "text-slate-100 hover:text-white mono-meta tracking-tight",
                     )}
                     style={
                       {
@@ -182,24 +170,22 @@ export const MenuBar = React.memo(function MenuBar() {
               onClick={() => setMobileMenuOpen((prev) => !prev)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               className={cx(
-                "flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300 lg:hidden",
-                scrolled || isLightPage
-                  ? "bg-gray-100 hover:bg-gray-200"
-                  : "bg-white/10 hover:bg-white/20",
+                "flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-300 lg:hidden glass-panel border-white/10",
+                "text-white",
               )}
             >
               {mobileMenuOpen ? (
                 <X
                   className={cx(
                     "w-5 h-5",
-                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                    "text-white",
                   )}
                 />
               ) : (
                 <Menu
                   className={cx(
                     "w-5 h-5",
-                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                    "text-white",
                   )}
                 />
               )}
@@ -214,16 +200,13 @@ export const MenuBar = React.memo(function MenuBar() {
               <Link
                 href="/store/cart"
                 className={cx(
-                  "flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300",
-                  scrolled || isLightPage
-                    ? "bg-gray-100 hover:bg-gray-200"
-                    : "bg-white/10 hover:bg-white/20",
+                  "flex items-center justify-center w-10 h-10 rounded-full transition-colors duration-300 glass-panel border-white/10 text-white",
                 )}
               >
                 <ShoppingCart
                   className={cx(
                     "w-5 h-5 transition-colors duration-300",
-                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                    "text-white",
                   )}
                 />
                 {mounted && totalItemsCount > 0 && (
@@ -241,7 +224,7 @@ export const MenuBar = React.memo(function MenuBar() {
             >
               <Link
                 href="/store"
-                className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-medium text-sm transition-colors"
+                className="pill-button px-5 py-2 text-sm font-semibold text-white mono-meta bg-orange-500/80 hover:bg-orange-500"
               >
                 Shop Now
               </Link>
@@ -256,10 +239,7 @@ export const MenuBar = React.memo(function MenuBar() {
               exit={{ opacity: 0, y: -8 }}
               transition={fastTransition}
               className={cx(
-                "mt-4 flex flex-col gap-2 lg:hidden rounded-xl p-4 border shadow-lg",
-                scrolled || isLightPage
-                  ? "bg-white/90 border-gray-200/50"
-                  : "bg-gray-900/90 border-gray-700/50",
+                "mt-4 flex flex-col gap-2 lg:hidden rounded-2xl p-4 glass-panel border-white/10 text-white",
               )}
             >
               {menuItems.map((item) => (
@@ -268,10 +248,8 @@ export const MenuBar = React.memo(function MenuBar() {
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cx(
-                    "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
-                    scrolled || isLightPage
-                      ? "text-gray-700 hover:bg-gray-100"
-                      : "text-white hover:bg-white/10",
+                    "px-4 py-3 rounded-xl text-sm font-semibold transition-colors mono-meta",
+                    "text-slate-100 hover:bg-white/5",
                   )}
                 >
                   {item.label}

@@ -5,10 +5,10 @@ export default function Testimonial() {
       <div className="absolute inset-y-0 right-0 w-1/2 bg-[radial-gradient(circle_at_center,_rgba(148,163,184,0.2),_transparent_60%)] blur-3xl" />
       <div className="relative z-10 grid gap-10 p-10 text-white lg:grid-cols-[1fr_0.8fr] lg:p-20">
         <div>
-          <p className="text-sm uppercase tracking-[0.15em] text-white/50 sm:tracking-[0.4em]">
+          <p className="mono-meta text-sm uppercase tracking-[0.25em] text-white/50 sm:tracking-[0.4em]">
             Trusted by Home Assistant power users
           </p>
-          <blockquote className="mt-6 text-2xl leading-normal text-balance sm:text-3xl">
+          <blockquote className="mt-6 text-2xl leading-normal text-balance sm:text-3xl font-black tracking-[-0.02em]">
             “I&apos;ve tried every mmWave board out there. This is the first
             sensor that stays ON while I&apos;m reading in bed and instantly
             clears once I stand up. The debug text sensor makes it totally
@@ -19,8 +19,8 @@ export default function Testimonial() {
             <p className="text-sm">Home Assistant Moderator</p>
           </div>
         </div>
-        <div className="rounded-2xl border border-white/10 bg-black/30 p-6">
-          <p className="text-xs uppercase tracking-[0.15em] text-white/50 sm:tracking-[0.4em]">
+        <div className="rounded-2xl border border-white/10 bg-black/30 p-6 glass-panel">
+          <p className="mono-meta text-xs uppercase tracking-[0.2em] text-white/50 sm:tracking-[0.35em]">
             Live HA Dashboard
           </p>
           <div className="mt-6 space-y-5 text-sm text-white/80">

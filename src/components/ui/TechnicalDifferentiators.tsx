@@ -33,19 +33,19 @@ export function TechnicalDifferentiators() {
   return (
     <section
       aria-labelledby="technical-differentiators"
-      className="relative mx-auto max-w-6xl"
+      className="relative mx-auto max-w-6xl text-white"
     >
       <div className="mb-10 text-center">
-        <p className="text-sm uppercase tracking-[0.15em] text-emerald-500 sm:tracking-[0.3em]">
+        <p className="mono-meta text-xs uppercase tracking-[0.35em] text-emerald-300/80 sm:tracking-[0.4em]">
           Technical Differentiators
         </p>
         <h2
           id="technical-differentiators"
-          className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl"
+          className="text-3xl font-black tracking-[-0.02em] text-white md:text-5xl"
         >
           Built for real-world bedrooms, not lab demos
         </h2>
-        <p className="mt-4 text-lg text-gray-600">
+        <p className="mt-4 text-lg text-white/70">
           The Bed Presence Sensor&apos;s architecture attacks the three failure
           modes that frustrate smart home power users.
         </p>
@@ -57,20 +57,20 @@ export function TechnicalDifferentiators() {
             <article
               key={difference.title}
               className={cx(
-                "flex h-full flex-col rounded-2xl border border-white/50 bg-white/90 p-6 shadow-xl shadow-sky-950/5 backdrop-blur",
-                "ring-1 ring-gray-200 transition hover:-translate-y-1 hover:ring-emerald-400/40"
+                "flex h-full flex-col rounded-2xl glass-panel border-white/10 p-6 shadow-xl shadow-black/30 backdrop-blur",
+                "transition hover:-translate-y-1 hover:border-white/20"
               )}
             >
-              <div className="mb-4 inline-flex items-center gap-3 rounded-full bg-emerald-50 px-4 py-2 text-emerald-600">
+              <div className="mb-4 inline-flex items-center gap-3 rounded-full bg-emerald-400/10 px-4 py-2 text-emerald-200">
                 <Icon className="size-5" />
                 <span className="text-sm font-medium uppercase tracking-wide">
                   {difference.title}
                 </span>
               </div>
-              <p className="text-lg font-semibold text-gray-900">
+              <p className="text-lg font-semibold text-white">
                 {difference.description}
               </p>
-              <p className="mt-3 text-sm text-gray-600">{difference.detail}</p>
+              <p className="mt-3 text-sm text-white/70">{difference.detail}</p>
             </article>
           )
         })}

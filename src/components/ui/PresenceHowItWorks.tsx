@@ -46,19 +46,19 @@ export function PresenceHowItWorks() {
   return (
     <section
       aria-labelledby="presence-how-it-works"
-      className="relative mx-auto max-w-6xl"
+      className="relative mx-auto max-w-6xl text-white"
     >
       <div className="mb-10 space-y-4 text-center">
-        <p className="text-sm uppercase tracking-[0.15em] text-blue-500 sm:tracking-[0.3em]">
+        <p className="mono-meta text-xs uppercase tracking-[0.35em] text-sky-300/80 sm:tracking-[0.4em]">
           How It Works
         </p>
         <h2
           id="presence-how-it-works"
-          className="text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl"
+          className="text-3xl font-black tracking-[-0.02em] text-white md:text-5xl"
         >
           Reliability engineered in four deliberate stages
         </h2>
-        <p className="text-lg text-balance text-gray-600 md:text-xl">
+        <p className="text-lg text-balance text-white/70 md:text-xl">
           Each layer of the Bed Presence Sensor eliminates a class of false
           positives so your automations only fire when the bed is truly
           occupied—or truly empty.
@@ -71,20 +71,20 @@ export function PresenceHowItWorks() {
             <article
               key={step.title}
               className={cx(
-                "h-full rounded-2xl border border-white/40 bg-white/80 p-6 shadow-[0_30px_120px_rgba(15,23,42,0.08)] backdrop-blur",
-                "ring-1 ring-gray-200 transition hover:-translate-y-1 hover:ring-blue-500/40"
+                "h-full rounded-2xl glass-panel border-white/10 p-6 shadow-[0_30px_120px_rgba(0,0,0,0.35)] backdrop-blur",
+                "transition hover:-translate-y-1 hover:border-white/20"
               )}
             >
               <div className="mb-4 flex items-center gap-3">
-                <div className="rounded-full bg-blue-50 p-3 text-blue-600">
+                <div className="rounded-full bg-sky-400/10 p-3 text-sky-200">
                   <Icon className="size-5" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900">
+                <h3 className="text-xl font-semibold text-white">
                   {step.title}
                 </h3>
               </div>
-              <p className="text-base text-gray-700">{step.description}</p>
-              <p className="mt-3 text-sm text-gray-500">{step.detail}</p>
+              <p className="text-base text-white/80">{step.description}</p>
+              <p className="mt-3 text-sm text-white/60">{step.detail}</p>
             </article>
           )
         })}

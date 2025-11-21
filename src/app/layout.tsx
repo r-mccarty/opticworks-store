@@ -124,11 +124,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+      <body className="relative min-h-screen overflow-x-hidden scroll-auto bg-[#050505] text-slate-100 antialiased selection:bg-orange-200/30 selection:text-orange-200 font-colfax">
+        <div className="pointer-events-none fixed inset-0 -z-10 ascii-surface">
+          <div className="orb-layer" />
+          <div className="absolute inset-0 soft-grid" />
+        </div>
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
-          {children}
+          <main className="relative z-10 flex flex-col gap-24 pb-24">{children}</main>
           <Footer />
           <Toaster />
         </ThemeProvider>
