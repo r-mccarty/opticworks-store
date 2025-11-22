@@ -314,17 +314,20 @@ pnpm exec tsx scripts/verify-catalog.ts --full
   2. **Shipping Method** - select shipping option
   3. **Payment** - Stripe Elements integration
   4. **Review** - confirm order details
-- [ ] Integrate Stripe Payment Intents API
+- [ ] Integrate Stripe Checkout Sessions API (with `ui_mode: 'custom'`)
+  - Provides automatic tax calculation via Stripe Tax
+  - Provides automatic shipping rate calculation
+  - Provides line item tracking
 - [ ] Handle payment success/failure
 - [ ] Complete order and redirect to confirmation
 - [ ] Send order confirmation email (via Resend)
 
 **Files**:
 - `src/hooks/useCheckoutState.ts` - Checkout state
-- `src/app/checkout/page.tsx` - Checkout page
-- `src/components/checkout/CheckoutFlow.tsx` - Multi-step checkout
-- `src/components/checkout/PaymentForm.tsx` - Stripe Elements
-- `src/app/api/stripe/create-payment-intent/route.ts` - Payment intent API
+- `src/app/checkout/page.tsx` - Checkout page (future, currently cart page handles checkout)
+- `src/components/checkout/CheckoutWrapper.tsx` - Checkout initialization
+- `src/components/checkout/CheckoutForm.tsx` - Stripe Elements with Checkout Sessions
+- `src/app/api/stripe/create-checkout-session/route.ts` - Checkout session API (✅ already implemented)
 
 **Validation**:
 - [ ] Can navigate through all checkout steps
@@ -386,11 +389,11 @@ pnpm exec tsx scripts/verify-catalog.ts --full
   - **Retry policy**: Exponential backoff (3 retries)
 - [ ] Configure Hookdeck webhook endpoint
 - [ ] Add Hookdeck endpoint to Stripe webhooks
-- [ ] Configure webhook events:
-  - `payment_intent.succeeded`
-  - `payment_intent.payment_failed`
-  - `charge.refunded`
-  - `checkout.session.completed`
+- [ ] Configure webhook events (Checkout Sessions API):
+  - **Primary**: `checkout.session.completed` - Order completion
+  - **Optional**: `checkout.session.expired` - Abandoned checkouts
+  - **Optional**: `charge.refunded` - Refund processing
+  - Note: NOT using `payment_intent.*` events (those are for Payment Intents API)
 - [ ] Store Hookdeck webhook signing secret in Infisical
 
 **Validation**:
@@ -409,23 +412,24 @@ pnpm exec tsx scripts/verify-catalog.ts --full
 **Task**: Implement Stripe webhook processing in Medusa.
 
 **Actions**:
-- [ ] Create webhook endpoint: `src/api/webhooks/stripe/route.ts`
-- [ ] Verify Hookdeck signature
-- [ ] Process webhook events:
-  - `payment_intent.succeeded` → Complete order, send confirmation email
-  - `payment_intent.payment_failed` → Mark payment failed, notify customer
-  - `charge.refunded` → Process refund, update order status
+- [ ] Create webhook endpoint: `src/api/webhooks/stripe/route.ts` (or verify existing in storefront)
+- [ ] Verify Stripe/Hookdeck signature
+- [ ] Process webhook events (Checkout Sessions API):
+  - **Primary**: `checkout.session.completed` → Complete order, send confirmation email
+  - **Optional**: `checkout.session.expired` → Handle abandoned checkout cleanup
+  - **Optional**: `charge.refunded` → Process refund, update order status
 - [ ] Log all webhook events to database
 - [ ] Handle idempotency (duplicate webhook protection)
 
 **Files**:
-- `services/medusa/src/api/webhooks/stripe/route.ts`
-- `services/medusa/src/subscribers/stripe-webhook.ts`
+- `src/app/api/stripe/webhook/route.ts` - Storefront webhook handler (✅ already implemented)
+- `services/medusa/src/api/webhooks/stripe/route.ts` - Backend webhook handler (if needed)
+- `services/medusa/src/subscribers/stripe-webhook.ts` - Webhook subscribers (if needed)
 
 **Validation**:
 - [ ] Webhook signature verification works
-- [ ] Payment success triggers order completion
-- [ ] Payment failure sends notification
+- [ ] `checkout.session.completed` triggers order completion
+- [ ] Abandoned sessions handled (if implementing)
 - [ ] Refunds processed correctly
 - [ ] Duplicate webhooks handled gracefully
 
@@ -879,8 +883,8 @@ Phase 3 is complete when ALL of the following criteria are met:
 - [ ] Stripe webhooks route through Hookdeck
 - [ ] Webhooks buffered and retried on failure
 - [ ] All webhook events logged
-- [ ] Payment success triggers order completion
-- [ ] Payment failure sends notification
+- [ ] `checkout.session.completed` event triggers order completion
+- [ ] Checkout session failures handled appropriately
 
 ### Community & Documentation ✅
 

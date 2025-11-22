@@ -2,7 +2,11 @@
 
 ## Overview
 
-This codebase implements **Option B: The Integrated Model** from our Payment Architecture design - a modern, streamlined approach using **Elements with Checkout Sessions API**. This architecture delegates complex state management to Stripe while maintaining full control over the UI through custom Elements integration.
+This codebase implements **Option B: The Integrated Model** from our Payment Architecture design - a modern, streamlined approach using **Elements with Checkout Sessions API** (`ui_mode: 'custom'`). This architecture delegates complex state management to Stripe while maintaining full control over the UI through custom Elements integration.
+
+**Critical**: This uses **Checkout Sessions API**, NOT Payment Intents API. The two APIs have different methods and webhooks:
+- ✅ **Checkout Sessions**: `stripe.initCheckout()`, `checkout.confirm()`, `checkout.session.completed` webhook
+- ❌ **Payment Intents**: `stripe.confirmPayment()`, `payment_intent.succeeded` webhook (not used)
 
 ## Architecture: Option B - The Integrated Model
 
@@ -114,14 +118,31 @@ const options = {
 
 ### 4. Payment Confirmation
 
+**Important**: This implementation uses **Checkout Sessions API**, not Payment Intents API.
+
 ```typescript
-const { error } = await stripe.confirmPayment({
-  elements,
-  confirmParams: {
-    return_url: `${window.location.origin}/store/cart/success`,
+// CORRECT: Checkout Sessions API with ui_mode: 'custom'
+const checkout = await stripe.initCheckout({
+  fetchClientSecret: async () => {
+    const response = await fetch('/api/stripe/create-checkout-session');
+    const { clientSecret } = await response.json();
+    return clientSecret;
   },
 });
+
+// Confirm the checkout session
+const { error } = await checkout.confirm({
+  redirect: 'if_required',
+});
+
+// NOT using stripe.confirmPayment() - that's for Payment Intents API
 ```
+
+**Key Difference**:
+- ✅ **Checkout Sessions**: `checkout.confirm()` - Used in this codebase
+- ❌ **Payment Intents**: `stripe.confirmPayment()` - NOT used here
+
+See `src/components/checkout/CheckoutForm.tsx` for implementation details.
 
 ## Webhook Integration
 
@@ -129,11 +150,15 @@ const { error } = await stripe.confirmPayment({
 
 **Endpoint**: `/api/stripe/webhook`
 
-**Key Events Handled**:
-- `checkout.session.completed` - Order fulfillment and email confirmation
-- `checkout.session.expired` - Handle abandoned checkouts
-- `payment_intent.succeeded` - Legacy support for direct PaymentIntents
-- `payment_intent.payment_failed` - Failed payment notifications
+**Active Events (Checkout Sessions API)**:
+- ✅ `checkout.session.completed` - **PRIMARY**: Order fulfillment and email confirmation
+- ✅ `checkout.session.expired` - Handle abandoned checkouts (optional)
+
+**Legacy Events (Payment Intents API - Backward Compatibility Only)**:
+- ⚠️ `payment_intent.succeeded` - Legacy support (not used in current flow)
+- ⚠️ `payment_intent.payment_failed` - Legacy support (not used in current flow)
+
+**Note**: The current implementation uses Checkout Sessions exclusively. Payment Intent webhook handlers exist for backward compatibility but are not part of the active checkout flow.
 
 ### Order Processing Flow
 

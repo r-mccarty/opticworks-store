@@ -78,7 +78,12 @@ export async function POST(request: NextRequest) {
     console.log('🔍 Full event data:', JSON.stringify(event, null, 2));
     
     switch (event.type) {
-      // Checkout Session events (new primary flow)
+      // ===================================================================
+      // ACTIVE FLOW: Checkout Sessions API (ui_mode: 'custom')
+      // ===================================================================
+      // This is the PRIMARY and ACTIVE checkout flow for this codebase.
+      // All new checkouts use Checkout Sessions, NOT Payment Intents.
+
       case 'checkout.session.completed':
         await handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
         break;
@@ -93,7 +98,16 @@ export async function POST(request: NextRequest) {
       //   console.log('📍 Address updated event received - this should be handled by shipping webhook endpoint');
       //   break;
 
-      // Payment Intent events (legacy support)
+      // ===================================================================
+      // LEGACY FLOW: Payment Intents API (Backward Compatibility Only)
+      // ===================================================================
+      // These handlers exist for backward compatibility but are NOT part
+      // of the active checkout flow. The current implementation uses
+      // Checkout Sessions exclusively.
+      //
+      // Do NOT configure these events in new Stripe webhook endpoints.
+      // Only kept for potential migration scenarios or legacy integrations.
+
       case 'payment_intent.succeeded':
         await handlePaymentSucceeded(event.data.object as Stripe.PaymentIntent);
         break;
@@ -123,8 +137,17 @@ export async function POST(request: NextRequest) {
   }
 }
 
+/**
+ * LEGACY HANDLER: Payment Intents API
+ *
+ * This handler exists for backward compatibility only and is NOT part of the
+ * active checkout flow. The current implementation uses Checkout Sessions API.
+ *
+ * Consider removing this handler if you're certain no legacy Payment Intent
+ * webhooks will be received.
+ */
 async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
-  console.log('💳 Payment succeeded:', paymentIntent.id);
+  console.log('⚠️  LEGACY: Payment Intent succeeded (not part of active flow):', paymentIntent.id);
   console.log('🔍 FULL PaymentIntent object:', JSON.stringify(paymentIntent, null, 2));
 
   try {
@@ -281,8 +304,17 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   }
 }
 
+/**
+ * LEGACY HANDLER: Payment Intents API
+ *
+ * This handler exists for backward compatibility only and is NOT part of the
+ * active checkout flow. The current implementation uses Checkout Sessions API.
+ *
+ * Consider removing this handler if you're certain no legacy Payment Intent
+ * webhooks will be received.
+ */
 async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
-  console.log('💸 Payment failed:', paymentIntent.id);
+  console.log('⚠️  LEGACY: Payment Intent failed (not part of active flow):', paymentIntent.id);
 
   try {
     // Get customer details - prioritize receipt_email over customer.email
@@ -356,8 +388,19 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
   }
 }
 
+/**
+ * PRIMARY ACTIVE HANDLER: Checkout Sessions API (ui_mode: 'custom')
+ *
+ * This is the main webhook handler for successful checkouts. All new checkouts
+ * go through this flow. This handler:
+ * - Processes completed checkout sessions
+ * - Sends order confirmation emails
+ * - Stores order data in the database
+ *
+ * This uses the Checkout Sessions API, NOT Payment Intents API.
+ */
 async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
-  console.log('🛒 Checkout session completed:', session.id);
+  console.log('✅ ACTIVE: Checkout session completed:', session.id);
   console.log('🔍 FULL Checkout Session object:', JSON.stringify(session, null, 2));
 
   try {
@@ -480,8 +523,18 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   }
 }
 
+/**
+ * ACTIVE HANDLER: Checkout Sessions API - Expired Sessions
+ *
+ * Handles abandoned/expired checkout sessions. This can be used for:
+ * - Analytics tracking of cart abandonment
+ * - Sending follow-up emails to recover sales
+ * - Cleaning up temporary data
+ *
+ * Part of the active Checkout Sessions flow.
+ */
 async function handleCheckoutSessionExpired(session: Stripe.Checkout.Session) {
-  console.log('⏰ Checkout session expired:', session.id);
+  console.log('⏰ ACTIVE: Checkout session expired (abandoned):', session.id);
   
   try {
     const customerEmail = session.customer_details?.email || session.metadata?.customer_email;
