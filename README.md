@@ -56,61 +56,42 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 **Note:** Next.js builds can take 2-3 minutes. Increase CLI timeout if needed.
 
-## Project Status & Roadmap
+## Roadmap (Phases 0-4)
+
+**Current Status**: Phases 0-2 are complete. We are pre-Phase 3 implementation, focusing on documentation cleanup and refactors to unblock the Medusa migration.
+
+### ✅ Phase 0: Storefront Foundation (COMPLETE - 2025-11-15)
+- Next.js 15 storefront with App Router and cinematic marketing pages
+- Static product catalog and direct Stripe checkout (no backend)
+- Shadcn + Tailwind UI/UX, Three.js product visualizations
+- Support pages and installation guides
 
 ### ✅ Phase 1: Backend Infrastructure Deployment (COMPLETE - 2025-11-18)
-
-**Backend infrastructure deployed and operational** - Medusa v2 backend live on Hetzner with Ansible automation.
-
-**Delivered:**
-- ✅ Hetzner Cloud server provisioned (3 vCPU, 4GB RAM)
-- ✅ PostgreSQL 17 + Redis 7.x installed and configured
-- ✅ Node.js 22 runtime and PM2 process manager
-- ✅ Medusa v2.11.3 deployed at `https://api.optic.works`
-- ✅ Cloudflare Tunnel configured and routing traffic
-- ✅ Admin dashboard accessible at `https://api.optic.works/app`
-- ✅ Product catalog API operational (7 products)
-- ✅ Ansible Infrastructure-as-Code created for reproducible deployments
-
-**Note**: Infrastructure initially deployed manually (Nov 16-17), then automated with Ansible playbooks (Nov 18) to prevent drift and enable reproducible deployments.
+- Manual deployment of Medusa v2.11.3 to Hetzner (PostgreSQL 17, Redis 7.x, Node.js 22, PM2)
+- Cloudflare Tunnel configured → `https://api.optic.works` with admin dashboard at `/app`
+- Initial product catalog API serving 7 products
+- Ansible Infrastructure-as-Code retrofit for provisioning, deploy, and destroy playbooks
 
 ### ✅ Phase 2: Storefront-Backend Integration (COMPLETE - 2025-11-20)
+- Next.js storefront integrated with Medusa Store API (dynamic products)
+- Build optimizations and TypeScript configuration tuned for 46-page production builds
+- Infisical CLI workflow for secrets; Supabase made optional
+- Infrastructure validation and E2E coverage for the integrated stack
 
-**Storefront integrated with Medusa backend** - Next.js loading dynamic products from API, build optimized, validated.
+### 🚧 Phase 3: Complete E-Commerce Migration (PRE-IMPLEMENTATION)
+Preparing to execute the multi-track migration defined in `docs/PHASE3_PLAN.md`:
+- **Track 1: Backend Configuration** – Medusa regions, currencies, payment/shipping providers, cache module
+- **Track 2: Products API Integration** – Align product variants/options with Medusa catalog services
+- **Track 3: Cart API Integration** – Replace local cart state with Medusa cart sessions and pricing
+- **Track 4: Checkout Flow Migration** – Stripe via Medusa provider, address/fulfillment flows, email confirmations
+- **Track 5: Webhook Migration** – Hookdeck routing for Stripe events into Medusa
+- **Track 6: Customer Authentication** – Medusa customer accounts, portal, and auth flows
+- **Track 7: E2E Testing** – Playwright coverage across checkout, auth, and notifications
 
-**Delivered:**
-- ✅ Medusa Store API authentication configured
-- ✅ Next.js storefront integrated with Medusa backend
-- ✅ Products loading dynamically from API (replaced static catalog)
-- ✅ Next.js production build optimized (46 pages, 2-3min build time)
-- ✅ Infisical CLI integration for secret management
-- ✅ Supabase made optional (no longer blocks builds)
-- ✅ E2E validation suite created and passing
-- ✅ Infrastructure operational validation complete
-
-**Validation**: See `docs/PHASE2_VALIDATION_REPORT.md` for complete test results.
-
-**What's Deferred to Phase 3**: Medusa e-commerce configuration (regions, cart API, checkout flow, customer auth). Phase 2 proved infrastructure works; Phase 3 will complete the e-commerce migration.
-
-### 📋 Phase 3: Complete E-Commerce Integration (READY TO IMPLEMENT)
-
-**Transform infrastructure into fully functional Medusa-backed e-commerce platform.**
-
-**Core Features:**
-- Full cart/checkout flow (Medusa regions, Stripe payments, shipping)
-- Customer authentication (Medusa CIAM) + customer portal
-- Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
-- Automated E2E testing + CI/CD for checkout flows
-
-**Deferred to Phase 4 (per `docs/PHASE3_PLAN.md`):** Discord community, Hugo documentation site, CI/CD hardening beyond checkout validation, and internationalization.
-
-**Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide (7 tracks, ~15-20 sessions).
-
-**Status**: Ready for implementation. Critical path: Medusa configuration → Cart/Checkout integration.
-
-### 📋 Phase 4: Production Optimization
-
-Cloudflare Pages migration, performance optimization, international expansion.
+### 📋 Phase 4: Platform & Production Optimization (PLANNED)
+- Discord community + bot, Hugo docs site
+- CI/CD hardening beyond checkout, performance and SEO optimization
+- Cloudflare Pages migration and internationalization
 
 ---
 
@@ -509,79 +490,33 @@ pnpm run lint
 
 ## Documentation
 
-### Active Guides
+### Core References
+- **[PROJECT_TIMELINE_AUDIT.md](docs/PROJECT_TIMELINE_AUDIT.md)** – Source of truth for Phases 0-4 definitions and evidence
+- **[PHASE3_PLAN.md](docs/PHASE3_PLAN.md)** – Complete Phase 3 migration plan and track breakdown
+- **[PHASE2_VALIDATION_REPORT.md](docs/PHASE2_VALIDATION_REPORT.md)** – Infrastructure and integration validation proof
+- **[PHASE2_RECREATION_GUIDE.md](docs/PHASE2_RECREATION_GUIDE.md)** / **[PHASE2_INTEGRATION_SUMMARY.md](docs/PHASE2_INTEGRATION_SUMMARY.md)** – How to recreate the validated Phase 2 state and lessons learned
 
-**Infrastructure & Deployment:**
-- **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning via Ansible
-- **[CONTRIBUTORS.md](docs/CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
-- **[KEY_MANAGEMENT.md](docs/KEY_MANAGEMENT.md)** - Secret rotation and Infisical strategy
+### Operations & Security
+- **[KEY_MANAGEMENT.md](docs/KEY_MANAGEMENT.md)** – Infisical inventory, rotation policy, and usage
+- **[DEPLOYMENT_GUIDE.md](docs/DEPLOYMENT_GUIDE.md)** – Ansible workflows for provisioning, deploy, and teardown
+- **[CONTRIBUTORS.md](docs/CONTRIBUTORS.md)** – Local/Codespaces setup, SSH access, and team workflows
+- **[INFISICAL_AUTOMATION.md](docs/INFISICAL_AUTOMATION.md)** / **[KEY_MANAGEMENT_AUDIT.md](docs/KEY_MANAGEMENT_AUDIT.md)** – Secret automation steps and audit trail
 
-**Development & Integration:**
-- **[INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
-- **[CODEBASE_EXPLANATION.md](docs/CODEBASE_EXPLANATION.md)** - Architecture patterns
-- **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** - Zustand store design
-- **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** - Checkout implementation
-- **[API_STUBS.md](docs/API_STUBS.md)** - API design patterns
+### Development & Integration
+- **[INTEGRATION_GUIDE.md](docs/INTEGRATION_GUIDE.md)** – Storefront ↔ Medusa integration walkthrough
+- **[STRIPE_INTEGRATION.md](docs/STRIPE_INTEGRATION.md)** – Checkout flow implementation
+- **[STATE_MANAGEMENT.md](docs/STATE_MANAGEMENT.md)** – Zustand patterns for cart/support flows
+- **[CODEBASE_EXPLANATION.md](docs/CODEBASE_EXPLANATION.md)** / **[API_ARCHITECTURE.md](docs/API_ARCHITECTURE.md)** / **[API_STUBS.md](docs/API_STUBS.md)** – Architecture and API design references
+- **[BUILD_CONFIGURATION.md](docs/BUILD_CONFIGURATION.md)** / **[MEDUSA_MODULES_REVIEW.md](docs/MEDUSA_MODULES_REVIEW.md)** – Build tuning notes and Medusa module decisions
 
-**Phase Documentation:**
-- **[PHASE2_VALIDATION_REPORT.md](docs/PHASE2_VALIDATION_REPORT.md)** - Phase 2 validation results and infrastructure proof
-- **[PHASE2_RECREATION_GUIDE.md](docs/PHASE2_RECREATION_GUIDE.md)** - How to recreate validated Phase 2 state
-- **[PHASE3_PLAN.md](docs/PHASE3_PLAN.md)** - Complete e-commerce integration plan (7 tracks)
+### Archived (Deprecated)
+- **[archived/DOCUMENTATION_CLEANUP_2025-11-19.md](docs/archived/DOCUMENTATION_CLEANUP_2025-11-19.md)** – Historical documentation cleanup log (archived)
+- **[archived/MIGRATION_PLAN.md](docs/archived/MIGRATION_PLAN.md)** and **[archived/IMPLEMENTATION_GUIDE.md](docs/archived/IMPLEMENTATION_GUIDE.md)** – Deprecated manual deployment/runbooks
+- **[archived/INFISICAL_SETUP.md](docs/archived/INFISICAL_SETUP.md)** and **[archived/INFISICAL_SECRETS_INVENTORY.md](docs/archived/INFISICAL_SECRETS_INVENTORY.md)** – Superseded by `KEY_MANAGEMENT.md`
+- **[archived/DEVELOPMENT_SCORECARD.md](docs/archived/DEVELOPMENT_SCORECARD.md)** – Deprecated progress tracker
+- **[archived/RFD-004.md](docs/archived/RFD-004.md)** / **[archived/RFD-005.md](docs/archived/RFD-005.md)** / **[archived/RFD-006.md](docs/archived/RFD-006.md)** – Resolved RFCs archived for reference
 
-### Archived Guides
-
-- **[archived/MIGRATION_PLAN.md](docs/archived/)** - Deprecated manual deployment plan
-- **[archived/IMPLEMENTATION_GUIDE.md](docs/archived/)** - Deprecated manual runbooks
-- **[archived/DEVELOPMENT_SCORECARD.md](docs/archived/)** - Deprecated progress tracker
-- **[archived/INFISICAL_SETUP.md](docs/archived/)** - Deprecated (Infisical now active)
-- **[archived/RFD-004.md](docs/archived/)** - Infrastructure automation (resolved, archived)
-- **[archived/RFD-005.md](docs/archived/)** - JWT authentication (implemented, archived)
-- **[archived/RFD-006.md](docs/archived/)** - Deployment drift (resolved via Ansible, archived)
-
-## Roadmap
-
-### ✅ Phase 1: Backend Infrastructure Deployment (COMPLETE - 2025-11-18)
-- ✅ Hetzner Cloud server provisioned (3 vCPU, 4GB RAM)
-- ✅ PostgreSQL 17 + Redis 7.x installed and configured
-- ✅ Node.js 22 runtime and PM2 process manager
-- ✅ Medusa v2.11.3 deployed at `https://api.optic.works`
-- ✅ Cloudflare Tunnel configured and routing traffic
-- ✅ Admin dashboard accessible at `/app`
-- ✅ Product catalog API operational (7 products)
-- ✅ Ansible Infrastructure-as-Code created for automation
-
-**Note**: Infrastructure initially deployed manually (Nov 16-17), then automated with Ansible playbooks (Nov 18) to prevent drift and enable reproducible deployments.
-
-### ✅ Phase 2: Storefront-Backend Integration (COMPLETE - 2025-11-20)
-- ✅ Medusa Store API authentication configured
-- ✅ Next.js storefront integrated with Medusa backend
-- ✅ Products loading dynamically from API (replaced static catalog)
-- ✅ Next.js production build optimized (46 pages)
-- ✅ Infisical CLI integration for secret management
-- ✅ Supabase made optional (no longer blocks builds)
-- ✅ E2E validation suite created and passing
-- ✅ Infrastructure operational validation complete
-
-**Note**: Phase 2 focused on storefront-backend integration and build optimization. E-commerce configuration (cart/checkout, regions, payments) is Phase 3 scope.
-
-### 📋 Phase 3: Complete E-Commerce Integration (READY TO IMPLEMENT)
-**Core Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
-- [ ] **Track 1**: Medusa e-commerce configuration (regions, payments, shipping)
-- [ ] **Track 2**: Cart & checkout integration (full customer purchase flow)
-- [ ] **Track 3**: Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
-- [ ] **Track 4**: Customer authentication & portal (Medusa CIAM)
-- [ ] **Track 5**: E2E + CI coverage for checkout flows
-
-**Deferred to Phase 4 (per `docs/PHASE3_PLAN.md`):** Discord integration, Hugo documentation site, and broader CI/CD hardening.
-
-**Estimated Effort**: ~15-20 implementation sessions focused on Medusa migration
-
-### 📋 Phase 4: Production Optimization
-- [ ] Migrate storefront from Vercel to Cloudflare Pages
-- [ ] Performance optimization (Core Web Vitals)
-- [ ] SEO finalization
-- [ ] International expansion (EU region, multi-currency)
-- [ ] Advanced features (subscriptions, bundles, pre-orders)
+> Deprecated documents have been relocated to `docs/archived/` to reduce confusion; rely on the core references above for current workflows and roadmap context.
 
 ## Key Contacts & Resources
 
