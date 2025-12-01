@@ -9,7 +9,7 @@ This monorepo powers the complete OpticWorks commercial presence:
 - **Storefront** (`src/`): Next.js 15 app with cinematic product storytelling, Stripe checkout, and warranty/support flows
 - **Backend** (`services/medusa/`): Medusa v2 e-commerce engine with product catalog API (✅ operational, e-commerce config in Phase 3)
 - **Infrastructure** (`infrastructure/ansible/`): Fully automated provisioning playbooks for production deployment (✅ deployed)
-- **Platform** (`platform/`): Hugo docs site and Discord community (Phase 3)
+- **Platform** (`platform/`): Hugo docs site and Discord community (Deferred to Phase 4)
 
 **Live Production Endpoints:**
 - 🌐 Backend API: `https://api.optic.works` (✅ OPERATIONAL)
@@ -17,7 +17,7 @@ This monorepo powers the complete OpticWorks commercial presence:
 - ✅ Health Check: `https://api.optic.works/health` (✅ LIVE)
 - 📦 Store API: `https://api.optic.works/store/*` (✅ 7 PRODUCTS)
 
-**Current Status**: Phase 2 infrastructure deployment complete. Phase 3 e-commerce configuration in planning.
+**Current Status**: Phase 2 infrastructure deployment complete. Phase 3 Medusa e-commerce migration ready for implementation (docs site + Discord deferred to Phase 4).
 
 ## Quick Start
 
@@ -77,21 +77,21 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 **What's Deferred to Phase 3**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - infrastructure is ready, configuration is next.
 
-### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
+### 📋 Phase 3: Complete E-Commerce Integration (READY TO IMPLEMENT)
 
-**Transform infrastructure into fully functional e-commerce platform.**
+**Transform infrastructure into fully functional Medusa-backed e-commerce platform.**
 
 **Core Features:**
 - Full cart/checkout flow (Medusa regions, Stripe payments, shipping)
 - Customer authentication (Medusa CIAM) + customer portal
 - Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
-- Discord community (replaces planned Discourse forum)
-- Hugo documentation site (`docs.optic.works`)
-- Automated E2E testing + CI/CD
+- Automated E2E testing + CI/CD for checkout flows
+
+**Deferred to Phase 4 (per `docs/PHASE3_PLAN.md`):** Discord community, Hugo documentation site, CI/CD hardening beyond checkout validation, and internationalization.
 
 **Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide (7 tracks, ~15-20 sessions).
 
-**Status**: Planning complete, ready for implementation. Critical path: Medusa configuration → Cart/Checkout integration.
+**Status**: Ready for implementation. Critical path: Medusa configuration → Cart/Checkout integration.
 
 ### 📋 Phase 4: Production Optimization
 
@@ -546,17 +546,17 @@ pnpm run lint
 
 **Note**: Phase 2 focused on infrastructure deployment and operational readiness. E-commerce configuration (cart/checkout, regions, payments) is Phase 3 scope.
 
-### 📋 Phase 3: Complete E-Commerce Integration (IN PLANNING)
-**7 Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
+### 📋 Phase 3: Complete E-Commerce Integration (READY TO IMPLEMENT)
+**Core Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
 - [ ] **Track 1**: Medusa e-commerce configuration (regions, payments, shipping)
 - [ ] **Track 2**: Cart & checkout integration (full customer purchase flow)
 - [ ] **Track 3**: Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
 - [ ] **Track 4**: Customer authentication & portal (Medusa CIAM)
-- [ ] **Track 5**: Discord integration (community server + bot)
-- [ ] **Track 6**: Hugo documentation site (`docs.optic.works`)
-- [ ] **Track 7**: CI/CD hardening (E2E tests, deployment automation)
+- [ ] **Track 5**: E2E + CI coverage for checkout flows
 
-**Estimated Effort**: ~15-20 implementation sessions
+**Deferred to Phase 4 (per `docs/PHASE3_PLAN.md`):** Discord integration, Hugo documentation site, and broader CI/CD hardening.
+
+**Estimated Effort**: ~15-20 implementation sessions focused on Medusa migration
 
 ### 📋 Phase 4: Production Optimization
 - [ ] Migrate storefront from Vercel to Cloudflare Pages

@@ -1,6 +1,6 @@
 # OpticWorks Platform - Agent Context
 
-**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (infrastructure operational), Phase 3 planned (e-commerce integration).
+**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (infrastructure operational), Phase 3 ready to implement (Medusa e-commerce migration; docs site + Discord deferred to Phase 4).
 
 **Live Endpoints**: `api.optic.works` (backend), `api.optic.works/app` (admin), `api.optic.works/health` (status)
 
@@ -69,7 +69,7 @@
 │   └── archived/                 # Deprecated docs (ignore these)
 │
 └── platform/
-    ├── docs-site/                # Hugo docs (Phase 3)
+    ├── docs-site/                # Hugo docs (Phase 4)
     └── forum/                    # Discourse (deprecated, using Discord)
 ```
 
@@ -151,14 +151,14 @@ curl https://api.optic.works/health  # Health check
 
 **Not in Phase 2**: Full e-commerce config (cart/checkout, regions, payments) → Phase 3
 
-### 📋 Phase 3 Planned (E-Commerce Integration)
+### 📋 Phase 3 Ready (Medusa E-Commerce Migration)
 - Medusa regions, Stripe payments, shipping
 - Full cart/checkout flow
 - Customer authentication (Medusa CIAM)
 - Hookdeck webhook infrastructure
-- Discord community + bot
-- Hugo docs site
-- E2E testing + CI/CD
+- E2E testing + CI/CD for checkout flows
+
+**Deferred to Phase 4:** Discord community + bot, Hugo docs site, CI/CD hardening, internationalization.
 
 See `docs/PHASE3_PLAN.md` for details (7 tracks, ~15-20 sessions).
 

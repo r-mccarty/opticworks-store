@@ -445,20 +445,20 @@ ssh hetzner-node "journalctl -xe"
 
 **What's Deferred to Phase 3**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - infrastructure is ready, configuration is next.
 
-### Phase 3: Complete E-Commerce Integration (📋 IN PLANNING)
+### Phase 3: Complete E-Commerce Integration (📋 READY TO IMPLEMENT)
 
-**Status:** Planning complete, ready for implementation
+**Status:** Ready for implementation; focused on Medusa e-commerce migration
 
-**7 Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
+**Core Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
 - [ ] **Track 1**: Medusa e-commerce configuration (regions, payments, shipping)
 - [ ] **Track 2**: Cart & checkout integration (full customer purchase flow)
 - [ ] **Track 3**: Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
 - [ ] **Track 4**: Customer authentication & portal (Medusa CIAM)
-- [ ] **Track 5**: Discord integration (community server + bot)
-- [ ] **Track 6**: Hugo documentation site (`docs.optic.works`)
-- [ ] **Track 7**: CI/CD hardening (E2E tests, deployment automation)
+- [ ] **Track 5**: E2E + CI coverage for checkout flows
 
-**Estimated Effort**: ~15-20 implementation sessions
+**Deferred to Phase 4 (per `docs/PHASE3_PLAN.md`):** Discord integration, Hugo documentation site, and broader CI/CD hardening.
+
+**Estimated Effort**: ~15-20 implementation sessions focused on Medusa migration
 
 **Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide.
 
