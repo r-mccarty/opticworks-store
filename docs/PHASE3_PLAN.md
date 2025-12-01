@@ -1,7 +1,7 @@
-# Phase 3: Complete E-Commerce Integration
+# Phase 3: Medusa E-Commerce Migration
 
 **Status**: 📋 Planning Complete, Ready for Implementation
-**Start Date**: 2025-11-20
+**Updated**: 2025-12-01
 **Prerequisites**: ✅ Phase 2 Infrastructure Complete
 
 ---
@@ -9,18 +9,17 @@
 ## Table of Contents
 
 1. [Overview](#overview)
-2. [Scope Changes from Original Plan](#scope-changes-from-original-plan)
+2. [Scope](#scope)
 3. [Architecture](#architecture)
 4. [Implementation Tracks](#implementation-tracks)
 5. [Success Criteria](#success-criteria)
-6. [Dependencies](#dependencies)
-7. [Testing Strategy](#testing-strategy)
+6. [Timeline](#timeline)
 
 ---
 
 ## Overview
 
-Phase 3 transforms the deployed Medusa infrastructure into a **fully functional e-commerce platform** with complete cart/checkout flow, customer authentication, webhook processing, and community/documentation infrastructure.
+Phase 3 **replaces static product placeholders with full Medusa integration** for cart, checkout, orders, and customer authentication. This migration transforms the storefront from a static prototype into a production e-commerce platform backed entirely by Medusa.
 
 ### Phase 2 Delivered (Infrastructure)
 
@@ -28,900 +27,1115 @@ Phase 3 transforms the deployed Medusa infrastructure into a **fully functional 
 ✅ PostgreSQL 17 + Redis 7.x deployed
 ✅ Medusa v2.11.3 serving Store/Admin APIs
 ✅ Cloudflare Tunnel routing traffic
-✅ Infisical secret management
+✅ Stripe payment provider configured in Medusa
 ✅ Ansible automation preventing drift
 
-### Phase 3 Will Deliver (E-Commerce)
+### Phase 3 Will Deliver (Medusa Migration)
 
-🎯 **Complete customer purchase flow** (browse → cart → checkout → order)
-🎯 **Customer authentication portal** (login, order history, warranty claims)
-🎯 **Production webhook infrastructure** (Stripe → Hookdeck → Medusa)
-🎯 **Community platform** (Discord server + bot)
-🎯 **Public documentation** (Hugo docs site)
-🎯 **Automated testing** (E2E checkout flow validation)
+🎯 **Products API enabled** (replace static products with Medusa Store API)
+🎯 **Cart API integration** (replace Zustand localStorage with Medusa Cart API)
+🎯 **Checkout via Medusa** (replace direct Stripe with Medusa Stripe provider)
+🎯 **Orders in Medusa** (replace Supabase with Medusa Orders API)
+🎯 **Webhooks to Medusa** (route Stripe webhooks to Medusa backend via Hookdeck)
+🎯 **Customer authentication** (Medusa CIAM for login/register/portal)
+🎯 **E2E testing** (validate complete purchase flow)
+
+### Deferred to Phase 4
+
+- Discord community integration
+- Hugo documentation site
+- CI/CD hardening
+- Performance optimization
+- International expansion (EU region)
 
 ---
 
-## Scope Changes from Original Plan
+## Scope
 
-### Original Phase 3 Scope
-- ❌ **Discourse forum** → Replaced with Discord (simpler, less overhead)
-- ✅ Hugo docs site (kept)
-- ✅ CI/CD hardening (kept)
+**IN SCOPE** (Phase 3):
+- ✅ Enable existing Products API integration (fix auth header, enable flag)
+- ✅ Implement Medusa Cart API (replace Zustand)
+- ✅ Migrate checkout to Medusa Stripe provider
+- ✅ Configure Medusa regions + payment providers
+- ✅ Move webhook handlers to Medusa backend
+- ✅ Basic customer authentication (login/register)
+- ✅ Customer portal (order history, profile)
+- ✅ E2E testing (Playwright checkout flow)
 
-### Revised Phase 3 Scope
-- ✅ **Medusa complete configuration** (NEW - regions, payments, shipping)
-- ✅ **Full cart/checkout integration** (MOVED from Phase 2)
-- ✅ **Hookdeck webhook infrastructure** (NEW - buffering/logging layer)
-- ✅ **Customer authentication (Medusa CIAM)** (EXPANDED - was just admin auth)
-- ✅ **Customer portal** (NEW - order history, warranty, tracking)
-- ✅ **Discord integration** (NEW - replaces Discourse)
-- ✅ Hugo documentation site (kept from original)
-- ✅ CI/CD with E2E testing (kept from original)
+**OUT OF SCOPE** (Phase 4+):
+- ❌ Discord server/bot
+- ❌ Hugo docs site deployment
+- ❌ Advanced CI/CD automation
+- ❌ Performance optimization
+- ❌ International regions (EU, CA, etc.)
+- ❌ Warranty claims portal (future enhancement)
+- ❌ Advanced customer features (wishlists, reviews, etc.)
 
 ---
 
 ## Architecture
 
-### Overall System Architecture (Phase 3 Complete)
+### Current Architecture (Phase 2)
 
 ```
-┌─────────────────────────────────────────────────────────────────────┐
-│                         CUSTOMER JOURNEY                             │
-└─────────────────────────────────────────────────────────────────────┘
-
-  [Customer Browser]
-         │
-         ├─→ optic.works (Cloudflare Pages)
-         │    └─→ Next.js 15 Storefront
-         │         ├─→ Browse Products
-         │         ├─→ Add to Cart
-         │         ├─→ Checkout (Stripe Elements)
-         │         └─→ Customer Portal (Login, Orders, Warranty)
-         │
-         ├─→ api.optic.works (Cloudflare Tunnel → Hetzner)
-         │    └─→ Medusa v2 Backend
-         │         ├─→ Store API (products, carts, checkout)
-         │         ├─→ Customer Auth API (login, registration)
-         │         └─→ Admin API (order management)
-         │
-         ├─→ docs.optic.works (Cloudflare Pages)
-         │    └─→ Hugo Documentation Site
-         │
-         └─→ Discord Community
-              └─→ Support, announcements, developer chat
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                      PAYMENT & WEBHOOK FLOW                          │
-└─────────────────────────────────────────────────────────────────────┘
-
-  [Stripe Payment]
-         │
-         ├─→ Customer pays via Stripe Elements
-         │
-         └─→ Stripe Webhooks
-              │
-              └─→ [Hookdeck Gateway]
-                   ├─→ Buffer & queue webhooks
-                   ├─→ Retry with exponential backoff
-                   ├─→ Log all events
-                   └─→ Route to Medusa
-                        │
-                        └─→ api.optic.works/webhooks/stripe
-                             └─→ Medusa processes:
-                                  - payment_intent.succeeded
-                                  - payment_intent.payment_failed
-                                  - charge.refunded
-
-┌─────────────────────────────────────────────────────────────────────┐
-│                     DATA & INFRASTRUCTURE                            │
-└─────────────────────────────────────────────────────────────────────┘
-
-  [Hetzner Cloud - Dedicated Server]
-   ├─→ PostgreSQL 17 (Medusa data, orders, customers)
-   ├─→ Redis 7.x (sessions, caching)
-   ├─→ Node.js 22 + PM2 (Medusa process management)
-   └─→ Cloudflare Tunnel (public access)
-
-  [Infisical - Secret Management]
-   └─→ Single source of truth for all secrets
-
-  [GitHub Actions - CI/CD]
-   ├─→ Automated E2E tests on PR
-   ├─→ Deployment to Cloudflare Pages (storefront)
-   └─→ Ansible deployment to Hetzner (backend)
+┌──────────────┐
+│  Storefront  │
+└──────┬───────┘
+       │
+       ├─→ Static Products (src/lib/products.ts) ← REPLACE
+       │
+       ├─→ Zustand Cart (localStorage) ← REPLACE
+       │
+       ├─→ Stripe API (direct) ← REPLACE
+       │   └─ Checkout Sessions
+       │
+       └─→ Stripe Webhooks → Storefront → Supabase ← REPLACE
 ```
+
+**Issues:**
+- Products hardcoded in JavaScript
+- Cart state client-only (single device)
+- Checkout bypasses Medusa
+- Orders stored in Supabase instead of Medusa
+- Webhooks handled in wrong location
+
+---
+
+### Target Architecture (Phase 3)
+
+```
+┌──────────────┐
+│  Storefront  │
+└──────┬───────┘
+       │
+       ├─→ Medusa Store API
+       │   └─ GET /store/products
+       │
+       ├─→ Medusa Cart API
+       │   ├─ POST /store/carts
+       │   ├─ POST /store/carts/{id}/line-items
+       │   └─ GET /store/carts/{id}
+       │
+       ├─→ Medusa Checkout
+       │   └─ POST /store/carts/{id}/payment-sessions
+       │       └─ Medusa Stripe Provider
+       │           └─ Stripe API
+       │
+       └─→ Medusa Customer API
+           ├─ POST /store/auth (login)
+           ├─ POST /store/auth/customer (register)
+           └─ GET /store/customers/me/orders
+
+┌─────────────────┐
+│ Stripe Webhooks │
+└────────┬────────┘
+         │
+         ├─→ Hookdeck (gateway)
+         │   └─ Buffer, retry, log
+         │
+         └─→ Medusa Backend
+             └─ /webhooks/stripe
+                 └─ Process checkout.session.completed
+                     └─ Create order in Medusa PostgreSQL
+```
+
+**Benefits:**
+- ✅ Single source of truth (Medusa)
+- ✅ Multi-device cart sync (Redis sessions)
+- ✅ Order history available via API
+- ✅ Customer authentication built-in
+- ✅ Production-ready webhook infrastructure
+- ✅ Inventory management via Medusa Admin
 
 ---
 
 ## Implementation Tracks
 
-Phase 3 is organized into 7 parallel implementation tracks that can progress simultaneously.
+### Track 1: Backend Configuration (BLOCKER)
 
-### Track 1: Medusa E-Commerce Configuration
+**Duration**: 1-2 hours
+**Dependencies**: None (start immediately)
 
-**Owner**: Backend
-**Duration**: ~2-3 implementation sessions
-**Dependencies**: None (can start immediately)
+#### 1.1 Configure Medusa Regions
 
-#### 1.1 Configure Regions
-
-**Task**: Set up geographic regions for cart/checkout functionality.
+**Task**: Create geographic regions for cart/checkout functionality.
 
 **Actions**:
 - [ ] Access Admin dashboard: `https://api.optic.works/app`
+- [ ] Navigate to Settings → Regions
 - [ ] Create **US Region**:
+  - Name: "United States"
   - Currency: USD
   - Countries: United States
-  - Tax provider: Default (manual tax rates)
-  - Payment providers: Stripe
-  - Fulfillment providers: Manual (for now)
-- [ ] Create **EU Region** (optional, for future expansion):
-  - Currency: EUR
-  - Countries: EU member states
-  - Tax provider: Default
-  - Payment providers: Stripe
-- [ ] Configure tax rates:
-  - US sales tax (state-specific)
-  - EU VAT (if EU region created)
+  - Tax provider: Default (manual rates)
+  - Payment providers: Stripe (assign after creation)
+  - Fulfillment providers: Manual
+- [ ] Configure tax rates (optional):
+  - US sales tax: 0% (can add state-specific later)
 
 **Validation**:
 ```bash
 curl -H "x-publishable-api-key: $PUBKEY" \
-  https://api.optic.works/store/regions | jq '.regions | length'
-# Expected: 1 or 2 (depending on EU region)
+  https://api.optic.works/store/regions | jq '.regions'
+# Expected: Array with at least 1 region
 ```
 
-**Documentation**: Update `docs/MEDUSA_CONFIGURATION.md` with region setup steps.
+**Files**: None (admin dashboard only)
+
+**Why This Blocks Everything**: Cart creation requires `region_id` parameter. No regions = no carts = no checkout.
 
 ---
 
-#### 1.2 Configure Payment Providers
+#### 1.2 Assign Stripe Payment Provider to Region
 
-**Task**: Integrate Stripe payment provider in Medusa.
+**Task**: Link Stripe payment provider to US region.
 
 **Actions**:
-- [ ] Add Stripe payment provider to US region
-- [ ] Configure Stripe test mode keys:
-  - `STRIPE_API_KEY` (secret key) - already in Infisical
-  - Test mode enabled
-- [ ] Configure Stripe payment methods:
-  - Card payments (Visa, Mastercard, Amex)
-  - Apple Pay / Google Pay (optional)
-- [ ] Test payment provider connection
+- [ ] In Medusa Admin, edit US region
+- [ ] Add payment provider: Select "Stripe" from dropdown
+- [ ] Save region configuration
 
 **Validation**:
 ```bash
-# Check payment providers
-curl -H "Authorization: Basic $MEDUSA_SECRET_KEY" \
-  https://api.optic.works/admin/regions/<region-id> \
+curl -H "x-publishable-api-key: $PUBKEY" \
+  https://api.optic.works/store/regions/<region-id> \
   | jq '.region.payment_providers'
+# Expected: [{"id": "stripe", ...}]
 ```
 
-**Documentation**: Update `docs/STRIPE_INTEGRATION.md` with Medusa payment provider setup.
+**Files**: None (admin dashboard only)
 
 ---
 
-#### 1.3 Configure Shipping Providers
+#### 1.3 Configure Shipping Options (Optional)
 
-**Task**: Set up fulfillment/shipping options.
+**Task**: Set up basic shipping for checkout.
 
 **Actions**:
 - [ ] Create shipping profiles:
-  - **Standard Shipping**: 5-7 business days ($9.99)
-  - **Express Shipping**: 2-3 business days ($19.99)
-  - **Free Shipping**: Orders over $100
-- [ ] Assign shipping profiles to products
-- [ ] Configure shipping zones (US states)
+  - **Standard Shipping**: $9.99 flat rate
+  - **Free Shipping**: $0.00 (orders > $100 threshold)
+- [ ] Assign shipping profiles to US region
+- [ ] Assign products to shipping profiles
 
 **Validation**:
 ```bash
-# Check shipping options
 curl -H "x-publishable-api-key: $PUBKEY" \
   https://api.optic.works/store/shipping-options \
-  | jq '.shipping_options'
+  | jq '.shipping_options | length'
+# Expected: 1 or more
 ```
 
-**Documentation**: Create `docs/SHIPPING_CONFIGURATION.md`.
+**Files**: None (admin dashboard only)
+
+**Note**: Can start with manual fulfillment and add shipping calculations later.
 
 ---
 
-#### 1.4 Complete Product Seeding
+### Track 2: Products API Integration
 
-**Task**: Ensure all 7 products have complete metadata, variants, and images.
+**Duration**: 1-2 hours
+**Dependencies**: Track 1.1 complete
+
+#### 2.1 Fix Products API Authentication
+
+**Task**: Fix auth header bug per RFD-007.
+
+**Issue**: Code uses wrong env var and wrong header format.
+
+**Current Code** (`src/lib/api/medusa.ts:18, 119`):
+```typescript
+// WRONG
+const medusaApiToken = readEnv("MEDUSA_API_TOKEN")  // ← Wrong env var
+headers: { 'Authorization': `Bearer ${medusaApiToken}` }  // ← Wrong header
+```
+
+**Fixed Code**:
+```typescript
+// CORRECT
+const medusaPublishableKey = readEnv("MEDUSA_PUBLISHABLE_KEY")  // ← Correct var
+headers: { 'x-publishable-api-key': medusaPublishableKey }  // ← Correct header
+```
 
 **Actions**:
-- [ ] Audit existing 7 products for completeness:
-  - Title, description, handle
-  - Variants (size, color, etc.)
-  - Prices (USD, future: EUR)
-  - Images (product photos)
-  - Metadata (technical specs, compatibility)
-  - Inventory levels
-- [ ] Upload product images to Cloudflare R2 or Medusa media storage
-- [ ] Update product descriptions with marketing copy
-- [ ] Ensure all products associated with correct sales channel
+- [ ] Update `src/lib/api/medusa.ts`:
+  - Line 18: Change `MEDUSA_API_TOKEN` → `MEDUSA_PUBLISHABLE_KEY`
+  - Line 22: Add `medusaPublishableKey` to `medusaEnv` interface
+  - Line 119: Change `Authorization: Bearer` → `x-publishable-api-key`
+- [ ] Remove `MEDUSA_API_TOKEN` from type definitions
 
-**Products to Validate**:
-1. bed-presence-sensor
-2. presence-duo-pack
-3. adjustable-base-developer-firmware
-4. spare-sensor
-5. development-dashboard
-6. enclosure-integrator-kit
-7. lab-subscription
+**Files**:
+- `src/lib/api/medusa.ts` (lines 18, 22, 119)
 
 **Validation**:
 ```bash
-# Verify all products have images and variants
-pnpm exec tsx scripts/verify-catalog.ts --full
+# Test products endpoint
+curl -H "x-publishable-api-key: $PUBKEY" \
+  https://api.optic.works/store/products | jq '.products | length'
+# Expected: 7 (or number of products in catalog)
 ```
 
-**Documentation**: Update `docs/PRODUCT_CATALOG.md`.
-
 ---
 
-### Track 2: Cart & Checkout Integration
+#### 2.2 Enable Medusa Products Mode
 
-**Owner**: Full-stack
-**Duration**: ~3-4 implementation sessions
-**Dependencies**: Track 1.1 (regions must exist)
-
-#### 2.1 Cart Functionality (Storefront)
-
-**Task**: Implement full cart management in Next.js storefront.
+**Task**: Enable Medusa integration in environment config.
 
 **Actions**:
-- [ ] Update `useCart` Zustand store to use Medusa Cart API
-- [ ] Implement cart session management:
-  - Create cart on first add-to-cart
-  - Persist cart ID in localStorage
-  - Restore cart on page reload
-- [ ] Implement cart operations:
-  - Add item to cart
-  - Update item quantity
-  - Remove item from cart
-  - Clear cart
-- [ ] Display cart totals (subtotal, shipping, tax, total)
-- [ ] Handle cart errors (out of stock, price changes)
-
-**Files**:
-- `src/hooks/useCart.ts` - Cart state management
-- `src/lib/api/medusa.ts` - Cart API calls
-- `src/components/store/CartPage.tsx` - Cart UI
-- `src/components/ui/AddToCartButton.tsx` - Add to cart action
+- [ ] Update Infisical environment variables:
+  - `NEXT_PUBLIC_MEDUSA_ENABLED=true`
+  - `NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works`
+  - `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_xxx` (get from Admin → API Keys)
+- [ ] Pull secrets: `pnpm run secrets:pull`
+- [ ] Rebuild storefront: `pnpm run build`
+- [ ] Restart dev server: `pnpm run dev`
 
 **Validation**:
-- [ ] Can create cart
-- [ ] Can add product to cart
-- [ ] Cart persists across page reloads
-- [ ] Can update quantities
-- [ ] Can remove items
-- [ ] Totals calculate correctly
+- [ ] Visit `http://localhost:3000/store`
+- [ ] Open browser console
+- [ ] Look for `[medusa]` log messages indicating API calls
+- [ ] Verify products load from Medusa (check Network tab)
 
-**Documentation**: Update `docs/INTEGRATION_GUIDE.md` with cart integration details.
+**Files**:
+- `.env.local` (updated via Infisical)
 
 ---
 
-#### 2.2 Checkout Flow (Storefront)
+#### 2.3 Verify Product Data Completeness
 
-**Task**: Complete checkout flow from cart → payment → order confirmation.
+**Task**: Ensure all 7 products have required metadata.
 
 **Actions**:
-- [ ] Update checkout state management (`useCheckoutState`)
-- [ ] Implement checkout steps:
-  1. **Shipping Address** - collect customer address
-  2. **Shipping Method** - select shipping option
-  3. **Payment** - Stripe Elements integration
-  4. **Review** - confirm order details
-- [ ] Integrate Stripe Checkout Sessions API (with `ui_mode: 'custom'`)
-  - Provides automatic tax calculation via Stripe Tax
-  - Provides automatic shipping rate calculation
-  - Provides line item tracking
-- [ ] Handle payment success/failure
-- [ ] Complete order and redirect to confirmation
-- [ ] Send order confirmation email (via Resend)
+- [ ] Run catalog verification script:
+  ```bash
+  cd services/medusa
+  pnpm exec tsx scripts/verify-catalog.ts --full
+  ```
+- [ ] Fix any missing fields:
+  - Product handle (URL slug)
+  - At least 1 variant per product
+  - USD price on each variant
+  - Inventory levels
+
+**Validation**: Script should report all products valid.
 
 **Files**:
-- `src/hooks/useCheckoutState.ts` - Checkout state
-- `src/app/checkout/page.tsx` - Checkout page (future, currently cart page handles checkout)
-- `src/components/checkout/CheckoutWrapper.tsx` - Checkout initialization
-- `src/components/checkout/CheckoutForm.tsx` - Stripe Elements with Checkout Sessions
-- `src/app/api/stripe/create-checkout-session/route.ts` - Checkout session API (✅ already implemented)
-
-**Validation**:
-- [ ] Can navigate through all checkout steps
-- [ ] Can complete purchase with Stripe test card (4242 4242 4242 4242)
-- [ ] Order created in Medusa
-- [ ] Confirmation email sent
-- [ ] Inventory decremented
-
-**Documentation**: Update `docs/STRIPE_INTEGRATION.md` with checkout flow.
+- `services/medusa/scripts/verify-catalog.ts` (already exists)
 
 ---
 
-#### 2.3 Order Management
+### Track 3: Cart API Integration
 
-**Task**: Order confirmation, tracking, and history.
+**Duration**: 6-8 hours
+**Dependencies**: Track 1.1 complete (regions exist)
+
+#### 3.1 Add Medusa Cart API Functions
+
+**Task**: Implement cart API functions in `src/lib/api/medusa.ts`.
+
+**New Functions**:
+```typescript
+// Create new cart with region
+export async function createCart(regionId: string): Promise<{ id: string }> {
+  const response = await medusaFetch<{ cart: { id: string } }>(
+    "/store/carts",
+    { method: "POST", body: JSON.stringify({ region_id: regionId }) }
+  )
+  return response.cart
+}
+
+// Add item to cart
+export async function addLineItem(
+  cartId: string,
+  variantId: string,
+  quantity: number
+): Promise<Cart> {
+  const response = await medusaFetch<{ cart: Cart }>(
+    `/store/carts/${cartId}/line-items`,
+    { method: "POST", body: JSON.stringify({ variant_id: variantId, quantity }) }
+  )
+  return response.cart
+}
+
+// Update line item quantity
+export async function updateLineItem(
+  cartId: string,
+  lineItemId: string,
+  quantity: number
+): Promise<Cart> {
+  const response = await medusaFetch<{ cart: Cart }>(
+    `/store/carts/${cartId}/line-items/${lineItemId}`,
+    { method: "POST", body: JSON.stringify({ quantity }) }
+  )
+  return response.cart
+}
+
+// Remove line item
+export async function removeLineItem(
+  cartId: string,
+  lineItemId: string
+): Promise<Cart> {
+  const response = await medusaFetch<{ cart: Cart }>(
+    `/store/carts/${cartId}/line-items/${lineItemId}`,
+    { method: "DELETE" }
+  )
+  return response.cart
+}
+
+// Retrieve cart
+export async function getCart(cartId: string): Promise<Cart> {
+  const response = await medusaFetch<{ cart: Cart }>(`/store/carts/${cartId}`)
+  return response.cart
+}
+```
 
 **Actions**:
-- [ ] Create order confirmation page (`/orders/[id]/confirmation`)
-- [ ] Display order details:
-  - Order number
-  - Items purchased
-  - Shipping address
-  - Payment method
-  - Total paid
-- [ ] Implement order status tracking
-- [ ] Email notifications (order placed, shipped, delivered)
+- [ ] Define `Cart` TypeScript interface (based on Medusa response)
+- [ ] Add above functions to `src/lib/api/medusa.ts`
+- [ ] Add error handling for 404 (cart not found)
 
 **Files**:
-- `src/app/orders/[id]/confirmation/page.tsx`
-- `src/app/orders/[id]/page.tsx` - Order detail view
-- `src/lib/api/orders.ts` - Order API calls
+- `src/lib/api/medusa.ts` (new functions)
 
-**Validation**:
-- [ ] Order confirmation displays after checkout
-- [ ] Can view order details
-- [ ] Email notifications sent
-
-**Documentation**: Create `docs/ORDER_MANAGEMENT.md`.
+**Validation**: Unit tests (optional) or manual testing with curl.
 
 ---
 
-### Track 3: Hookdeck Webhook Infrastructure
+#### 3.2 Update useCart to Hybrid Approach
 
-**Owner**: Backend/DevOps
-**Duration**: ~1-2 implementation sessions
-**Dependencies**: Track 1.2 (Stripe payment provider)
+**Task**: Migrate `src/hooks/useCart.ts` to use Medusa Cart API with optimistic updates.
 
-#### 3.1 Hookdeck Setup
+**Strategy**: Hybrid approach (STATE_MANAGEMENT.md:14-24)
+- Zustand for instant UI updates (optimistic)
+- Medusa API for persistence (server-side sessions)
+- localStorage for cart ID persistence
 
-**Task**: Configure Hookdeck as webhook gateway for Stripe → Medusa.
+**Updated Store**:
+```typescript
+interface CartStore {
+  // State
+  cartId: string | null
+  items: CartItem[]
+  region: string | null
+
+  // Actions
+  initializeCart: () => Promise<void>
+  addToCart: (product: Product) => Promise<void>
+  updateQuantity: (lineItemId: string, quantity: number) => Promise<void>
+  removeFromCart: (lineItemId: string) => Promise<void>
+  clearCart: () => Promise<void>
+}
+
+export const useCart = create<CartStore>()(
+  persist(
+    (set, get) => ({
+      cartId: null,
+      items: [],
+      region: null,
+
+      initializeCart: async () => {
+        const { cartId } = get()
+
+        // Try to restore cart from server
+        if (cartId) {
+          try {
+            const cart = await getCart(cartId)
+            set({ items: cart.items, region: cart.region_id })
+            return
+          } catch (error) {
+            console.warn('[cart] Failed to restore cart, creating new one')
+          }
+        }
+
+        // Create new cart
+        const newCart = await createCart(DEFAULT_REGION_ID)
+        set({ cartId: newCart.id, items: [], region: DEFAULT_REGION_ID })
+      },
+
+      addToCart: async (product) => {
+        const { cartId, items } = get()
+
+        // Optimistic update (instant UI)
+        set({ items: [...items, { product, quantity: 1 }] })
+
+        try {
+          // Ensure cart exists
+          if (!cartId) {
+            await get().initializeCart()
+          }
+
+          // Add to Medusa cart
+          const cart = await addLineItem(
+            get().cartId!,
+            product.variants[0].id,
+            1
+          )
+
+          // Sync server response
+          set({ items: cart.items })
+        } catch (error) {
+          console.error('[cart] Failed to add item:', error)
+          // Revert optimistic update
+          set({ items })
+        }
+      },
+
+      // Similar for updateQuantity, removeFromCart, clearCart
+    }),
+    { name: 'cart-storage', partialize: (state) => ({ cartId: state.cartId }) }
+  )
+)
+```
+
+**Actions**:
+- [ ] Refactor `useCart` to above structure
+- [ ] Add `DEFAULT_REGION_ID` constant (get from env or hardcode US region ID)
+- [ ] Implement optimistic updates with rollback on error
+- [ ] Persist only `cartId` to localStorage (not full items array)
+
+**Files**:
+- `src/hooks/useCart.ts` (major refactor)
+
+**Validation**:
+- [ ] Can add item to cart (persists in Medusa)
+- [ ] Cart survives page reload (hydrates from Medusa)
+- [ ] Can update quantity
+- [ ] Can remove item
+- [ ] Optimistic updates feel instant
+
+---
+
+#### 3.3 Update Cart UI Components
+
+**Task**: Update cart components to use new cart structure.
+
+**Components to Update**:
+- `src/components/store/ProductGrid.tsx` - Use `addToCart` with Product object
+- `src/components/store/CartPage.tsx` - Display cart items with line_item IDs
+- `src/components/ui/AddToCartButton.tsx` - Handle async addToCart
+
+**Key Changes**:
+- Cart items now have `line_item.id` (Medusa ID) instead of just `product.id`
+- Need to pass `line_item.id` to `updateQuantity` and `removeFromCart`
+- Handle loading states for async operations
+
+**Actions**:
+- [ ] Update `ProductGrid` to use new `addToCart`
+- [ ] Update `CartPage` to use `line_item.id` for operations
+- [ ] Add loading spinners for cart operations
+- [ ] Handle error states (item out of stock, cart expired, etc.)
+
+**Files**:
+- `src/components/store/ProductGrid.tsx`
+- `src/components/store/CartPage.tsx`
+- `src/components/ui/AddToCartButton.tsx`
+
+**Validation**:
+- [ ] Can add product from store page
+- [ ] Cart page displays correctly
+- [ ] Can update quantities from cart page
+- [ ] Loading states appear during operations
+
+---
+
+### Track 4: Checkout Flow Migration
+
+**Duration**: 4-6 hours
+**Dependencies**: Track 3 complete (cart working)
+
+#### 4.1 Implement Medusa Payment Session Creation
+
+**Task**: Replace direct Stripe integration with Medusa payment sessions.
+
+**Current Flow** (`src/lib/api/medusa.ts:180-229`):
+```typescript
+// INCOMPLETE - falls back to direct Stripe
+export async function createPaymentSession(items: CheckoutLineItem[]) {
+  // TODO: Implement properly
+  return { sessionId, clientSecret, provider: "stripe" }
+}
+```
+
+**New Implementation**:
+```typescript
+export async function createPaymentSession(cartId: string): Promise<PaymentSessionResult> {
+  try {
+    // 1. Initialize payment sessions on cart
+    const initResponse = await medusaFetch<{ cart: Cart }>(
+      `/store/carts/${cartId}/payment-sessions`,
+      { method: "POST" }
+    )
+
+    // 2. Select Stripe payment provider
+    const selectResponse = await medusaFetch<{ cart: Cart }>(
+      `/store/carts/${cartId}/payment-session`,
+      {
+        method: "POST",
+        body: JSON.stringify({ provider_id: "stripe" })
+      }
+    )
+
+    // 3. Extract client_secret from Stripe session
+    const stripeSession = selectResponse.cart.payment_session
+
+    return {
+      sessionId: stripeSession.id,
+      clientSecret: stripeSession.data.client_secret,  // Stripe PaymentIntent client_secret
+      provider: "medusa-stripe",
+    }
+  } catch (error) {
+    console.error('[medusa] Payment session creation failed:', error)
+    throw error
+  }
+}
+```
+
+**Actions**:
+- [ ] Replace stub in `src/lib/api/medusa.ts` with above implementation
+- [ ] Remove fallback to direct Stripe (force Medusa path)
+- [ ] Add proper error handling
+
+**Files**:
+- `src/lib/api/medusa.ts` (lines 180-229 replacement)
+
+**Validation**:
+```bash
+# Test payment session creation
+curl -X POST -H "x-publishable-api-key: $PUBKEY" \
+  https://api.optic.works/store/carts/{cartId}/payment-sessions | jq
+# Expected: cart with payment_session array
+```
+
+---
+
+#### 4.2 Update CheckoutWrapper Component
+
+**Task**: Refactor checkout to use Medusa payment sessions.
+
+**Current Flow** (`src/components/checkout/CheckoutWrapper.tsx`):
+```typescript
+// Calls /api/stripe/create-checkout-session (direct Stripe)
+const { clientSecret } = await fetch("/api/stripe/create-checkout-session", {...})
+```
+
+**New Flow**:
+```typescript
+// Use Medusa payment session
+import { createPaymentSession } from '@/lib/api/medusa'
+
+const { cartId } = useCart()
+const { clientSecret } = await createPaymentSession(cartId!)
+```
+
+**Actions**:
+- [ ] Update `CheckoutWrapper` to call `createPaymentSession` instead of fetch
+- [ ] Pass `cartId` from `useCart` instead of items array
+- [ ] Update Stripe Elements to use PaymentIntent client_secret (not Checkout Session)
+- [ ] Handle payment confirmation via Stripe confirmPayment API
+
+**Files**:
+- `src/components/checkout/CheckoutWrapper.tsx`
+- `src/components/checkout/CheckoutForm.tsx` (Stripe Elements integration)
+
+**Note**: Medusa Stripe provider uses **Payment Intents API**, not Checkout Sessions API. Need to update Stripe Elements integration accordingly.
+
+**Validation**:
+- [ ] Checkout page loads without errors
+- [ ] Stripe Elements render correctly
+- [ ] Payment form accepts test card (4242 4242 4242 4242)
+
+---
+
+#### 4.3 Complete Order on Payment Success
+
+**Task**: Complete Medusa order after successful payment.
+
+**Flow**:
+1. Customer submits payment via Stripe Elements
+2. Stripe confirms PaymentIntent
+3. Frontend calls Medusa to complete order
+4. Medusa creates order record
+5. Redirect to order confirmation
+
+**New Function**:
+```typescript
+export async function completeCart(cartId: string): Promise<Order> {
+  const response = await medusaFetch<{ order: Order }>(
+    `/store/carts/${cartId}/complete`,
+    { method: "POST" }
+  )
+  return response.order
+}
+```
+
+**Integration**:
+```typescript
+// In CheckoutForm after confirmPayment success
+const order = await completeCart(cartId)
+router.push(`/orders/${order.id}/confirmation`)
+```
+
+**Actions**:
+- [ ] Add `completeCart` function to `src/lib/api/medusa.ts`
+- [ ] Update `CheckoutForm` to call `completeCart` after payment confirmation
+- [ ] Create order confirmation page at `/orders/[id]/confirmation`
+
+**Files**:
+- `src/lib/api/medusa.ts` (new function)
+- `src/components/checkout/CheckoutForm.tsx` (update payment success handler)
+- `src/app/orders/[id]/confirmation/page.tsx` (new page)
+
+**Validation**:
+- [ ] Can complete checkout with test card
+- [ ] Order created in Medusa (visible in Admin dashboard)
+- [ ] Redirects to confirmation page
+- [ ] Confirmation page displays order details
+
+---
+
+### Track 5: Webhook Migration
+
+**Duration**: 2-3 hours
+**Dependencies**: Track 4 complete (checkout working)
+
+#### 5.1 Configure Hookdeck
+
+**Task**: Set up Hookdeck as webhook gateway.
 
 **Actions**:
 - [ ] Create Hookdeck account: https://hookdeck.com
-- [ ] Create Hookdeck connection:
+- [ ] Create connection:
   - **Source**: Stripe
-  - **Destination**: Medusa (`https://api.optic.works/webhooks/stripe`)
+  - **Destination**: `https://api.optic.works/webhooks/stripe`
   - **Transformations**: None (pass-through)
-  - **Rate limiting**: 100 requests/minute
-  - **Retry policy**: Exponential backoff (3 retries)
-- [ ] Configure Hookdeck webhook endpoint
-- [ ] Add Hookdeck endpoint to Stripe webhooks
-- [ ] Configure webhook events (Checkout Sessions API):
-  - **Primary**: `checkout.session.completed` - Order completion
-  - **Optional**: `checkout.session.expired` - Abandoned checkouts
-  - **Optional**: `charge.refunded` - Refund processing
-  - Note: NOT using `payment_intent.*` events (those are for Payment Intents API)
-- [ ] Store Hookdeck webhook signing secret in Infisical
+  - **Retry policy**: Exponential backoff, 3 retries
+- [ ] Configure webhook events:
+  - `payment_intent.succeeded` (Medusa uses Payment Intents, not Checkout Sessions)
+  - `payment_intent.payment_failed`
+  - `charge.refunded` (optional)
+- [ ] Get Hookdeck webhook URL
+- [ ] Add Hookdeck endpoint to Stripe dashboard (replace direct webhook)
 
 **Validation**:
-```bash
-# Trigger test webhook from Stripe dashboard
-# Verify appears in Hookdeck logs
-# Verify delivered to Medusa
+- [ ] Trigger test webhook from Stripe dashboard
+- [ ] Verify appears in Hookdeck logs
+- [ ] Verify delivered to Medusa backend
+
+**Files**: None (external service setup)
+
+**Documentation**: Create `docs/HOOKDECK_SETUP.md` with setup steps.
+
+---
+
+#### 5.2 Verify Medusa Webhook Handler
+
+**Task**: Ensure Medusa backend processes Stripe webhooks.
+
+**Note**: Medusa v2 has built-in webhook handlers for Stripe payment provider. Should work automatically once Stripe provider is configured.
+
+**Actions**:
+- [ ] Check Medusa logs for webhook processing:
+  ```bash
+  ssh hetzner-node
+  pm2 logs medusa-dev | grep webhook
+  ```
+- [ ] Trigger test payment and verify webhook processed
+- [ ] Check order created in Medusa admin dashboard
+
+**Validation**:
+- [ ] Webhook received by Medusa
+- [ ] Order status updated to "completed"
+- [ ] Inventory decremented (if configured)
+
+**Files**: None (Medusa handles internally)
+
+**If Not Working**: May need to create custom webhook subscriber in `services/medusa/src/subscribers/stripe-webhook.ts` (refer to Medusa v2 docs).
+
+---
+
+#### 5.3 Deprecate Storefront Webhook Handler
+
+**Task**: Remove or disable storefront webhook handler.
+
+**Actions**:
+- [ ] Rename `src/app/api/stripe/webhook/route.ts` → `route.ts.deprecated`
+- [ ] Or keep for backward compatibility but update to log only (no order processing)
+- [ ] Remove Supabase order insertion code
+- [ ] Update Stripe dashboard to point webhooks at Hookdeck URL (not storefront)
+
+**Files**:
+- `src/app/api/stripe/webhook/route.ts` (deprecate or remove)
+
+**Validation**:
+- [ ] Webhooks no longer hit storefront endpoint
+- [ ] Orders only created in Medusa (not Supabase)
+
+---
+
+### Track 6: Customer Authentication
+
+**Duration**: 8-12 hours
+**Dependencies**: None (can work in parallel)
+
+#### 6.1 Implement Authentication Pages
+
+**Task**: Create login and registration pages using Medusa Customer API.
+
+**Pages to Create**:
+
+**Registration** (`src/app/auth/register/page.tsx`):
+```typescript
+const handleRegister = async (email: string, password: string, firstName: string, lastName: string) => {
+  const response = await fetch('/api/auth/register', {
+    method: 'POST',
+    body: JSON.stringify({ email, password, first_name: firstName, last_name: lastName })
+  })
+
+  if (response.ok) {
+    router.push('/auth/login?registered=true')
+  }
+}
 ```
 
-**Documentation**: Create `docs/HOOKDECK_SETUP.md`.
+**Login** (`src/app/auth/login/page.tsx`):
+```typescript
+const handleLogin = async (email: string, password: string) => {
+  const response = await fetch('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email, password })
+  })
 
----
+  if (response.ok) {
+    router.push('/account')
+  }
+}
+```
 
-#### 3.2 Medusa Webhook Handler
-
-**Task**: Implement Stripe webhook processing in Medusa.
+**API Routes** (`src/app/api/auth/`):
+- `register/route.ts` - POST to `/store/auth/customer`
+- `login/route.ts` - POST to `/store/auth`
+- `logout/route.ts` - DELETE to `/store/auth`
 
 **Actions**:
-- [ ] Create webhook endpoint: `src/api/webhooks/stripe/route.ts` (or verify existing in storefront)
-- [ ] Verify Stripe/Hookdeck signature
-- [ ] Process webhook events (Checkout Sessions API):
-  - **Primary**: `checkout.session.completed` → Complete order, send confirmation email
-  - **Optional**: `checkout.session.expired` → Handle abandoned checkout cleanup
-  - **Optional**: `charge.refunded` → Process refund, update order status
-- [ ] Log all webhook events to database
-- [ ] Handle idempotency (duplicate webhook protection)
+- [ ] Create registration page with form
+- [ ] Create login page with form
+- [ ] Create password reset page (optional)
+- [ ] Create auth API routes
+- [ ] Implement session management (httpOnly cookies)
+- [ ] Add `useAuth` hook for client state
 
 **Files**:
-- `src/app/api/stripe/webhook/route.ts` - Storefront webhook handler (✅ already implemented)
-- `services/medusa/src/api/webhooks/stripe/route.ts` - Backend webhook handler (if needed)
-- `services/medusa/src/subscribers/stripe-webhook.ts` - Webhook subscribers (if needed)
-
-**Validation**:
-- [ ] Webhook signature verification works
-- [ ] `checkout.session.completed` triggers order completion
-- [ ] Abandoned sessions handled (if implementing)
-- [ ] Refunds processed correctly
-- [ ] Duplicate webhooks handled gracefully
-
-**Documentation**: Update `docs/HOOKDECK_SETUP.md` with handler implementation.
-
----
-
-#### 3.3 Webhook Monitoring
-
-**Task**: Set up monitoring and alerting for webhook processing.
-
-**Actions**:
-- [ ] Configure Hookdeck alerts:
-  - Failed deliveries (> 3 retries)
-  - High latency (> 5 seconds)
-  - Rate limit exceeded
-- [ ] Set up notification channels (email, Discord)
-- [ ] Create webhook dashboard for monitoring
-- [ ] Document troubleshooting procedures
-
-**Validation**:
-- [ ] Alerts trigger on failed webhooks
-- [ ] Dashboard shows webhook status
-- [ ] Can replay failed webhooks
-
-**Documentation**: Update `docs/HOOKDECK_SETUP.md` with monitoring section.
-
----
-
-### Track 4: Customer Authentication (Medusa CIAM)
-
-**Owner**: Full-stack
-**Duration**: ~3-4 implementation sessions
-**Dependencies**: None (can start immediately)
-
-#### 4.1 Customer Registration & Login
-
-**Task**: Implement customer authentication using Medusa Customer API.
-
-**Actions**:
-- [ ] Create customer registration page (`/auth/register`)
-  - Email, password, name
-  - Email verification (optional)
-  - Privacy policy consent
-- [ ] Create customer login page (`/auth/login`)
-  - Email/password authentication
-  - "Remember me" functionality
-  - Password reset link
-- [ ] Implement session management:
-  - Store JWT token in httpOnly cookie
-  - Refresh token handling
-  - Auto-logout on expiration
-- [ ] Create protected route wrapper (`withAuth` HOC)
-- [ ] Implement password reset flow
-
-**Files**:
-- `src/app/auth/register/page.tsx`
-- `src/app/auth/login/page.tsx`
-- `src/app/auth/reset-password/page.tsx`
-- `src/lib/auth/session.ts` - Session management
-- `src/middleware.ts` - Protected route middleware
+- `src/app/auth/register/page.tsx` (new)
+- `src/app/auth/login/page.tsx` (new)
+- `src/app/api/auth/register/route.ts` (new)
+- `src/app/api/auth/login/route.ts` (new)
+- `src/hooks/useAuth.ts` (new)
 
 **Validation**:
 - [ ] Can register new customer
-- [ ] Can log in with email/password
+- [ ] Can login with email/password
 - [ ] Session persists across page reloads
-- [ ] Can log out
-- [ ] Can reset password
-
-**Documentation**: Create `docs/AUTHENTICATION_GUIDE.md`.
+- [ ] Can logout
 
 ---
 
-#### 4.2 Customer Portal - Order History
+#### 6.2 Create Customer Portal
 
-**Task**: Customer dashboard showing past orders.
+**Task**: Build customer account dashboard.
 
-**Actions**:
-- [ ] Create customer portal layout (`/account`)
-- [ ] Implement order history page (`/account/orders`)
-  - List all customer orders
-  - Order status (pending, processing, shipped, delivered)
-  - Order totals
-  - Link to order details
-- [ ] Implement order detail view (`/account/orders/[id]`)
-  - Items purchased
-  - Shipping address
-  - Tracking number
-  - Invoice download (PDF)
+**Pages to Create**:
 
-**Files**:
-- `src/app/account/layout.tsx` - Portal layout
-- `src/app/account/orders/page.tsx` - Order history
-- `src/app/account/orders/[id]/page.tsx` - Order details
+**Account Layout** (`src/app/account/layout.tsx`):
+- Protected route wrapper (redirect to login if not authenticated)
+- Navigation sidebar (Orders, Profile, Settings, Logout)
 
-**Validation**:
-- [ ] Customer can view all orders
-- [ ] Order details display correctly
-- [ ] Order statuses update in real-time
+**Order History** (`src/app/account/orders/page.tsx`):
+```typescript
+const { data: orders } = await fetch('/api/customer/orders')
 
-**Documentation**: Create `docs/CUSTOMER_PORTAL_GUIDE.md`.
+return (
+  <div>
+    <h1>Order History</h1>
+    {orders.map(order => (
+      <OrderCard key={order.id} order={order} />
+    ))}
+  </div>
+)
+```
 
----
+**Order Details** (`src/app/account/orders/[id]/page.tsx`):
+- Order items, totals, shipping address, tracking (future)
 
-#### 4.3 Customer Portal - Warranty Claims
-
-**Task**: Allow customers to submit warranty claims for products.
+**Profile Settings** (`src/app/account/settings/page.tsx`):
+- Update name, email, password
+- Manage addresses
 
 **Actions**:
-- [ ] Create warranty claim submission form (`/account/warranty`)
-  - Select product from order
-  - Upload photos of issue
-  - Describe problem
-  - Contact information
-- [ ] Implement warranty claim tracking
-  - View claim status
-  - Communication with support
-- [ ] Admin view for warranty claims (Medusa admin)
+- [ ] Create account layout with protected route check
+- [ ] Create order history page
+- [ ] Create order details page
+- [ ] Create profile settings page
+- [ ] Add API route for customer orders (`/api/customer/orders/route.ts`)
 
 **Files**:
-- `src/app/account/warranty/page.tsx`
-- `src/app/account/warranty/new/page.tsx`
-- `src/lib/api/warranty.ts`
+- `src/app/account/layout.tsx` (new)
+- `src/app/account/orders/page.tsx` (new)
+- `src/app/account/orders/[id]/page.tsx` (new)
+- `src/app/account/settings/page.tsx` (new)
+- `src/app/api/customer/orders/route.ts` (new)
 
 **Validation**:
-- [ ] Customer can submit warranty claim
-- [ ] Can upload photos
-- [ ] Can track claim status
-- [ ] Admin can view and respond to claims
-
-**Documentation**: Update `docs/CUSTOMER_PORTAL_GUIDE.md` with warranty section.
-
----
-
-#### 4.4 Customer Portal - Account Settings
-
-**Task**: Customer profile and settings management.
-
-**Actions**:
-- [ ] Create account settings page (`/account/settings`)
-  - Update profile (name, email)
-  - Change password
-  - Manage addresses (shipping, billing)
-  - Email preferences (marketing, transactional)
-  - Delete account (GDPR compliance)
-- [ ] Implement address book
-  - Add/edit/delete addresses
-  - Set default shipping/billing address
-
-**Files**:
-- `src/app/account/settings/page.tsx`
-- `src/app/account/addresses/page.tsx`
-
-**Validation**:
+- [ ] Customer can view order history
+- [ ] Can click order to see details
 - [ ] Can update profile information
-- [ ] Can change password
-- [ ] Can manage addresses
-- [ ] Can update email preferences
-
-**Documentation**: Update `docs/CUSTOMER_PORTAL_GUIDE.md` with settings section.
+- [ ] Unauthenticated users redirected to login
 
 ---
 
-### Track 5: Discord Integration
+### Track 7: E2E Testing
 
-**Owner**: Community/DevOps
-**Duration**: ~2 implementation sessions
-**Dependencies**: None (can start immediately)
+**Duration**: 4-6 hours
+**Dependencies**: Tracks 2-6 complete (full flow working)
 
-#### 5.1 Discord Server Setup
+#### 7.1 Setup Playwright
 
-**Task**: Create and configure OpticWorks Discord community.
-
-**Actions**:
-- [ ] Create Discord server: "OpticWorks Community"
-- [ ] Configure server settings:
-  - Verification level: Medium
-  - Content filter: Medium
-  - 2FA requirement for moderators
-- [ ] Create channels:
-  - **#general** - General discussion
-  - **#support** - Customer support
-  - **#announcements** - Product updates, releases
-  - **#development** - Developer community
-  - **#showcase** - Customer installations
-  - **#feedback** - Product feedback
-- [ ] Create roles:
-  - **Customer** - Verified customers
-  - **Developer** - Developer program members
-  - **Moderator** - Community moderators
-  - **Team** - OpticWorks team
-- [ ] Set up moderation:
-  - AutoMod rules (spam, profanity)
-  - Moderation log channel
-  - Community guidelines
-
-**Validation**:
-- [ ] Server accessible via invite link
-- [ ] Channels organized and functional
-- [ ] Roles assigned correctly
-
-**Documentation**: Create `docs/DISCORD_INTEGRATION.md`.
-
----
-
-#### 5.2 Discord Bot Development
-
-**Task**: Create Discord bot for notifications and automation.
-
-**Actions**:
-- [ ] Create Discord application: https://discord.com/developers
-- [ ] Set up bot workspace: `services/discord-bot/`
-  - Discord.js v14
-  - TypeScript
-  - Environment configuration
-- [ ] Implement bot features:
-  - **Order notifications** - New order → #team channel
-  - **Support tickets** - Create ticket threads in #support
-  - **Deployment notifications** - GitHub Actions → #announcements
-  - **Role verification** - Verify customer email → assign Customer role
-- [ ] Deploy bot to Hetzner (PM2 process)
-
-**Files**:
-- `services/discord-bot/src/index.ts` - Bot entry point
-- `services/discord-bot/src/commands/` - Bot commands
-- `services/discord-bot/src/webhooks/` - Webhook listeners
-
-**Validation**:
-- [ ] Bot online and responding
-- [ ] Order notifications working
-- [ ] Support tickets created correctly
-- [ ] Deployment notifications sent
-
-**Documentation**: Update `docs/DISCORD_INTEGRATION.md` with bot setup.
-
----
-
-### Track 6: Hugo Documentation Site
-
-**Owner**: Documentation/DevOps
-**Duration**: ~2-3 implementation sessions
-**Dependencies**: None (can start immediately)
-
-#### 6.1 Hugo Site Configuration
-
-**Task**: Configure and deploy Hugo documentation site.
-
-**Actions**:
-- [ ] Complete Hugo configuration (`platform/docs-site/hugo.toml`)
-- [ ] Set up Geekdoc theme:
-  ```bash
-  cd platform/docs-site
-  git submodule add https://github.com/thegeeklab/hugo-geekdoc.git themes/geekdoc
-  ```
-- [ ] Configure site structure:
-  - Getting Started
-  - Installation Guides
-  - API Documentation
-  - Product Specifications
-  - Troubleshooting
-  - Developer Docs
-- [ ] Configure search (Algolia or built-in)
-- [ ] Configure versioning (future: v2.0, v2.1, etc.)
-
-**Files**:
-- `platform/docs-site/hugo.toml`
-- `platform/docs-site/content/` - Documentation content
-
-**Validation**:
-- [ ] Hugo builds successfully: `hugo`
-- [ ] Site renders correctly: `hugo server`
-- [ ] Search works
-- [ ] Navigation functional
-
-**Documentation**: Create `docs/HUGO_DOCS_DEPLOYMENT.md`.
-
----
-
-#### 6.2 Content Migration
-
-**Task**: Migrate documentation from `/docs` to Hugo content directory.
-
-**Actions**:
-- [ ] Map existing docs to Hugo structure:
-  - `/docs/DEPLOYMENT_GUIDE.md` → `content/guides/deployment.md`
-  - `/docs/KEY_MANAGEMENT.md` → `content/guides/secrets.md`
-  - `/docs/INTEGRATION_GUIDE.md` → `content/guides/integration.md`
-  - Install guides → `content/installation/`
-- [ ] Convert markdown to Hugo format (front matter, shortcodes)
-- [ ] Add images and diagrams
-- [ ] Create API reference pages (auto-generated)
-
-**Validation**:
-- [ ] All docs migrated
-- [ ] Links work correctly
-- [ ] Images render
-- [ ] Code blocks syntax-highlighted
-
-**Documentation**: Update `docs/HUGO_DOCS_DEPLOYMENT.md` with content structure.
-
----
-
-#### 6.3 Deploy to Cloudflare Pages
-
-**Task**: Deploy Hugo site to production.
-
-**Actions**:
-- [ ] Create Cloudflare Pages project
-- [ ] Configure build settings:
-  - Build command: `hugo --minify`
-  - Build output directory: `public`
-  - Environment variables: `HUGO_VERSION=0.140.0` (Extended version)
-- [ ] Configure custom domain: `docs.optic.works`
-- [ ] Set up automatic deployments from GitHub
-- [ ] Configure redirects and 404 page
-
-**Validation**:
-- [ ] Site deployed at https://docs.optic.works
-- [ ] Auto-deploys on git push
-- [ ] Custom domain works
-- [ ] HTTPS enabled
-
-**Documentation**: Update `docs/HUGO_DOCS_DEPLOYMENT.md` with deployment steps.
-
----
-
-### Track 7: CI/CD Hardening
-
-**Owner**: DevOps
-**Duration**: ~2 implementation sessions
-**Dependencies**: Track 2 (cart/checkout must be implemented)
-
-#### 7.1 Automated E2E Testing
-
-**Task**: Set up Playwright E2E tests in CI/CD pipeline.
+**Task**: Install and configure Playwright for E2E testing.
 
 **Actions**:
 - [ ] Install Playwright: `pnpm add -D @playwright/test`
-- [ ] Create E2E test suite:
-  - Browse products
-  - Add to cart
-  - Complete checkout with Stripe test card
-  - Verify order created
-  - Customer registration/login
-  - View order history
-- [ ] Configure GitHub Actions workflow:
-  - Run E2E tests on PR
-  - Use Stripe test mode
-  - Seed test data before tests
-  - Clean up after tests
-- [ ] Create test reports (HTML, JSON)
+- [ ] Initialize config: `pnpm exec playwright install`
+- [ ] Create `playwright.config.ts` with base URL, test mode settings
+- [ ] Create `tests/e2e/` directory
 
 **Files**:
-- `tests/e2e/checkout.spec.ts`
-- `tests/e2e/auth.spec.ts`
-- `.github/workflows/e2e-tests.yml`
+- `playwright.config.ts` (new)
+- `package.json` (add test scripts)
 
 **Validation**:
-- [ ] E2E tests pass locally
-- [ ] Tests run in CI on PR
-- [ ] Test reports generated
-
-**Documentation**: Update `docs/E2E_TEST_GUIDE.md` with Playwright tests.
+```bash
+pnpm exec playwright test --ui
+# Should open Playwright UI with no tests yet
+```
 
 ---
 
-#### 7.2 Deployment Automation
+#### 7.2 Write Checkout E2E Test
 
-**Task**: Automate deployments for storefront and backend.
+**Task**: Create complete purchase flow test.
+
+**Test Scenario** (`tests/e2e/checkout.spec.ts`):
+```typescript
+test('complete purchase flow', async ({ page }) => {
+  // 1. Browse products
+  await page.goto('/store')
+  await expect(page.locator('h2:has-text("Products")')).toBeVisible()
+
+  // 2. Add to cart
+  await page.click('[data-testid="add-to-cart-bed-presence-sensor"]')
+  await expect(page.locator('[data-testid="cart-count"]')).toHaveText('1')
+
+  // 3. View cart
+  await page.click('[data-testid="cart-icon"]')
+  await expect(page).toHaveURL('/store/cart')
+
+  // 4. Proceed to checkout
+  await page.click('[data-testid="checkout-button"]')
+
+  // 5. Fill shipping info
+  await page.fill('[name="email"]', 'test@example.com')
+  await page.fill('[name="name"]', 'Test Customer')
+  await page.fill('[name="address"]', '123 Main St')
+  await page.fill('[name="city"]', 'San Francisco')
+  await page.fill('[name="state"]', 'CA')
+  await page.fill('[name="zip"]', '94102')
+
+  // 6. Enter payment info (Stripe test card)
+  const stripeFrame = page.frameLocator('iframe[name^="__privateStripeFrame"]')
+  await stripeFrame.locator('[name="cardnumber"]').fill('4242424242424242')
+  await stripeFrame.locator('[name="exp-date"]').fill('12/34')
+  await stripeFrame.locator('[name="cvc"]').fill('123')
+
+  // 7. Submit payment
+  await page.click('[data-testid="submit-payment"]')
+
+  // 8. Verify order confirmation
+  await expect(page).toHaveURL(/\/orders\/.*\/confirmation/)
+  await expect(page.locator('h1:has-text("Order Confirmed")')).toBeVisible()
+})
+```
 
 **Actions**:
-- [ ] **Storefront deployment** (Cloudflare Pages):
-  - Auto-deploy on push to `main`
-  - Preview deployments for PRs
-  - Environment-specific builds (staging, production)
-- [ ] **Backend deployment** (Hetzner via Ansible):
-  - GitHub Actions workflow triggers Ansible
-  - Deploy on merge to `main`
-  - Run migrations before deployment
-  - Health checks after deployment
-- [ ] **Rollback strategy**:
-  - Tag deployments
-  - Ability to rollback to previous version
-  - Database backup before migrations
+- [ ] Write checkout flow test
+- [ ] Add test data-testid attributes to components
+- [ ] Configure test environment (Stripe test mode)
+- [ ] Seed test products if needed
 
 **Files**:
-- `.github/workflows/deploy-storefront.yml`
-- `.github/workflows/deploy-backend.yml`
+- `tests/e2e/checkout.spec.ts` (new)
 
 **Validation**:
-- [ ] Storefront deploys automatically
-- [ ] Backend deploys via Ansible
-- [ ] Rollback works
-- [ ] Health checks pass
-
-**Documentation**: Update `docs/CI.md` with deployment automation.
+```bash
+pnpm exec playwright test tests/e2e/checkout.spec.ts
+# Should pass with green checkmark
+```
 
 ---
 
-#### 7.3 Monitoring & Observability
+#### 7.3 Write Authentication E2E Test
 
-**Task**: Set up error tracking and performance monitoring.
+**Task**: Test customer registration and login flow.
+
+**Test Scenario** (`tests/e2e/auth.spec.ts`):
+```typescript
+test('customer registration and login', async ({ page }) => {
+  const testEmail = `test-${Date.now()}@example.com`
+
+  // 1. Register
+  await page.goto('/auth/register')
+  await page.fill('[name="email"]', testEmail)
+  await page.fill('[name="password"]', 'Password123!')
+  await page.fill('[name="firstName"]', 'Test')
+  await page.fill('[name="lastName"]', 'User')
+  await page.click('[data-testid="register-button"]')
+
+  // 2. Should redirect to login
+  await expect(page).toHaveURL('/auth/login?registered=true')
+
+  // 3. Login
+  await page.fill('[name="email"]', testEmail)
+  await page.fill('[name="password"]', 'Password123!')
+  await page.click('[data-testid="login-button"]')
+
+  // 4. Should redirect to account
+  await expect(page).toHaveURL('/account')
+  await expect(page.locator('h1:has-text("My Account")')).toBeVisible()
+})
+```
 
 **Actions**:
-- [ ] Set up error tracking (Sentry or similar):
-  - Frontend errors
-  - Backend errors
-  - Webhook failures
-- [ ] Configure performance monitoring:
-  - Core Web Vitals (Cloudflare Analytics)
-  - API response times
-  - Database query performance
-- [ ] Set up uptime monitoring:
-  - Health endpoint checks (every 1 min)
-  - Alert on downtime
-- [ ] Create monitoring dashboard
+- [ ] Write auth flow test
+- [ ] Test password reset flow (optional)
+- [ ] Test protected route redirect
+
+**Files**:
+- `tests/e2e/auth.spec.ts` (new)
 
 **Validation**:
-- [ ] Errors tracked and reported
-- [ ] Performance metrics collected
-- [ ] Uptime alerts working
-
-**Documentation**: Create `docs/MONITORING.md`.
+```bash
+pnpm exec playwright test tests/e2e/auth.spec.ts
+```
 
 ---
 
 ## Success Criteria
 
-Phase 3 is complete when ALL of the following criteria are met:
+Phase 3 is complete when **ALL** of the following are verified:
 
-### E-Commerce Functionality ✅
+### Products ✅
+- [ ] Products load from Medusa Store API (not static files)
+- [ ] Product detail pages render Medusa data
+- [ ] Product images display correctly
+- [ ] Inventory levels shown (if configured)
 
-- [ ] Customer can browse 7 products
-- [ ] Customer can add products to cart
-- [ ] Cart persists across sessions
-- [ ] Customer can complete checkout with Stripe test card
-- [ ] Order is created in Medusa
-- [ ] Confirmation email sent
-- [ ] Order appears in customer portal
+### Cart ✅
+- [ ] Can add product to cart
+- [ ] Cart persists in Medusa (not just localStorage)
+- [ ] Cart survives page reload
+- [ ] Can update item quantities
+- [ ] Can remove items from cart
+- [ ] Cart totals calculate correctly (subtotal, tax, shipping)
 
-### Customer Authentication ✅
+### Checkout ✅
+- [ ] Can proceed to checkout from cart
+- [ ] Shipping address form works
+- [ ] Stripe Elements render via Medusa payment session
+- [ ] Can complete payment with test card (4242 4242 4242 4242)
+- [ ] Order created in Medusa (visible in Admin dashboard)
+- [ ] Inventory decremented after purchase
 
-- [ ] Customer can register account
-- [ ] Customer can log in/out
-- [ ] Customer can view order history
-- [ ] Customer can submit warranty claims
-- [ ] Customer can update profile/addresses
-
-### Webhook Infrastructure ✅
-
+### Webhooks ✅
 - [ ] Stripe webhooks route through Hookdeck
-- [ ] Webhooks buffered and retried on failure
-- [ ] All webhook events logged
-- [ ] `checkout.session.completed` event triggers order completion
-- [ ] Checkout session failures handled appropriately
+- [ ] Webhooks delivered to Medusa backend
+- [ ] `payment_intent.succeeded` creates order
+- [ ] Order confirmation email sent (optional)
 
-### Community & Documentation ✅
+### Authentication ✅
+- [ ] Customer can register account
+- [ ] Customer can login with email/password
+- [ ] Session persists across page reloads
+- [ ] Can logout
 
-- [ ] Discord server active with channels and roles
-- [ ] Discord bot sending order notifications
-- [ ] Hugo docs site deployed at docs.optic.works
-- [ ] All documentation migrated and current
+### Customer Portal ✅
+- [ ] Customer can view order history
+- [ ] Can view individual order details
+- [ ] Can update profile information
+- [ ] Protected routes redirect to login if not authenticated
 
-### CI/CD ✅
+### Testing ✅
+- [ ] E2E checkout test passes
+- [ ] E2E auth test passes
+- [ ] Manual QA of complete flow successful
 
-- [ ] E2E tests run on every PR
-- [ ] Storefront auto-deploys to Cloudflare Pages
-- [ ] Backend deploys via Ansible on merge to main
-- [ ] Error tracking and monitoring active
+---
+
+## Timeline
+
+**Estimated Total Effort**: 25-30 hours (8-10 implementation sessions)
+
+### Critical Path
+
+```
+Track 1 (Backend Config) → Track 2 (Products) → Track 3 (Cart) → Track 4 (Checkout) → Track 7 (Testing)
+```
+
+**Can Work in Parallel**:
+- Track 5 (Webhooks) - anytime after Track 4
+- Track 6 (Auth) - anytime (independent)
+
+### Week-by-Week Breakdown
+
+**Week 1**: Backend + Products
+- Day 1: Configure Medusa regions (Track 1)
+- Day 2: Fix and enable Products API (Track 2)
+
+**Week 2**: Cart Implementation
+- Days 3-5: Implement Medusa Cart API integration (Track 3)
+
+**Week 3**: Checkout Migration
+- Days 6-8: Migrate checkout to Medusa Stripe provider (Track 4)
+
+**Week 4**: Webhooks + Auth
+- Day 9: Configure Hookdeck webhooks (Track 5)
+- Days 10-12: Implement customer authentication (Track 6)
+
+**Week 5**: Testing + Polish
+- Days 13-14: E2E testing (Track 7)
+- Day 15: Bug fixes and polish
+
+**Completion Target**: ~3-4 weeks with consistent progress
 
 ---
 
 ## Dependencies
 
-### External Services Required
+### External Services
 
 | Service | Purpose | Cost | Setup Required |
 |---------|---------|------|----------------|
-| **Hookdeck** | Webhook gateway | Free tier (100k events/month) | Account + connection |
-| **Cloudflare Pages** | Docs/storefront hosting | Free tier | Project setup |
-| **Discord** | Community platform | Free | Server + bot app |
-| **GitHub Actions** | CI/CD | Free (public repo) | Workflow files |
-| **Sentry** (optional) | Error tracking | Free tier | Account + integration |
+| **Hookdeck** | Webhook gateway | Free tier (100k events/month) | Account + connection config |
+| **Stripe** | Payment processing | Test mode (free) | Already configured |
+| **Medusa Admin** | Backend configuration | Free | Already accessible |
+| **Infisical** | Secrets management | Free tier | Already configured |
 
 ### Internal Prerequisites
 
-| Prerequisite | Status | Notes |
-|-------------|--------|-------|
-| Medusa regions configured | ⏳ Pending | Blocks cart/checkout |
-| Stripe test mode enabled | ✅ Complete | Already configured |
-| Infisical secrets | ✅ Complete | All backend secrets ready |
-| Hetzner backend | ✅ Complete | api.optic.works operational |
+| Prerequisite | Status | Blocking |
+|-------------|--------|----------|
+| Medusa backend operational | ✅ Complete | None |
+| Stripe provider configured | ✅ Complete | None |
+| **Medusa regions created** | ❌ **BLOCKER** | Tracks 3, 4 |
+| Products in catalog | ✅ Complete (7 products) | None |
+| Infisical secrets | ✅ Complete | None |
 
 ---
 
@@ -929,82 +1143,45 @@ Phase 3 is complete when ALL of the following criteria are met:
 
 ### Development Testing
 
-**Local Development**:
 ```bash
 # Storefront
 pnpm run dev              # http://localhost:3000
 pnpm run build            # Production build test
 pnpm run test             # Unit tests (Vitest)
 
-# Backend (Medusa)
-cd services/medusa
-pnpm run dev              # http://localhost:9000
-pnpm run test:smoke       # Smoke tests
-pnpm run test:e2e         # Full E2E validation
-
-# E2E Tests (Playwright)
+# E2E Tests
 pnpm run test:e2e         # Full checkout flow
 pnpm run test:e2e --ui    # Interactive test runner
+
+# Backend verification
+ssh hetzner-node
+pm2 logs medusa-dev       # Check for errors
+curl https://api.optic.works/health  # Health check
 ```
 
-### Staging Testing
-
-**Staging Environment** (future):
-- Deploy to staging Cloudflare Pages + staging Medusa instance
-- Run full E2E suite against staging
-- Manual QA of complete user flows
-
-### Production Testing
+### Manual QA Checklist
 
 **Pre-Launch Checklist**:
-- [ ] All E2E tests passing
-- [ ] Smoke tests passing
-- [ ] Stripe test purchases complete successfully
-- [ ] Webhooks processed correctly
-- [ ] Customer can complete full purchase flow
-- [ ] Admin dashboard functional
-- [ ] Documentation complete and deployed
-
-**Post-Launch Monitoring**:
-- Monitor error rates (< 1%)
-- Monitor checkout conversion (track funnel)
-- Monitor webhook success rate (> 99%)
-- Monitor uptime (target: 99.9%)
-
----
-
-## Timeline Considerations
-
-This plan does NOT include specific dates - implementation will proceed based on available resources and priorities. However, rough effort estimates:
-
-| Track | Estimated Sessions | Complexity |
-|-------|-------------------|------------|
-| **Track 1**: Medusa Configuration | 2-3 sessions | Medium |
-| **Track 2**: Cart/Checkout | 3-4 sessions | High |
-| **Track 3**: Hookdeck Webhooks | 1-2 sessions | Low |
-| **Track 4**: Customer Auth/Portal | 3-4 sessions | High |
-| **Track 5**: Discord | 2 sessions | Low |
-| **Track 6**: Hugo Docs | 2-3 sessions | Medium |
-| **Track 7**: CI/CD | 2 sessions | Medium |
-
-**Total Estimated Effort**: ~15-20 implementation sessions
-
-**Parallelization**: Tracks 1, 4, 5, 6 can all start immediately. Track 2 depends on Track 1.1. Track 3 depends on Track 1.2. Track 7 depends on Track 2.
-
-**Critical Path**: Track 1 → Track 2 (cart/checkout is the longest pole)
+- [ ] Products load from Medusa
+- [ ] Can complete full purchase with test card
+- [ ] Order appears in Medusa Admin dashboard
+- [ ] Webhook processed successfully (check Hookdeck logs)
+- [ ] Customer can register and login
+- [ ] Customer can view order in portal
+- [ ] Cart persists across devices (if logged in)
 
 ---
 
 ## Next Steps
 
 1. ✅ Review and approve this plan
-2. ⏳ Create GitHub project board with all tasks
-3. ⏳ Begin Track 1.1 (Configure Medusa regions)
-4. ⏳ Begin Track 5.1 (Discord server setup) - can proceed in parallel
-5. ⏳ Begin Track 6.1 (Hugo configuration) - can proceed in parallel
+2. ⏳ **START HERE**: Configure Medusa regions (Track 1.1) - **BLOCKER**
+3. ⏳ Fix Products API auth header (Track 2.1)
+4. ⏳ Enable Medusa products mode (Track 2.2)
+5. ⏳ Implement Cart API integration (Track 3)
 
 ---
 
 **Phase 3 Plan Status**: ✅ Ready for Implementation
-**Last Updated**: 2025-11-20
-**Next Review**: After Track 1 completion
+**Last Updated**: 2025-12-01
+**Next Review**: After Track 1 completion (regions configured)
