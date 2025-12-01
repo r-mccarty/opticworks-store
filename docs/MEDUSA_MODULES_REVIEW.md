@@ -645,13 +645,14 @@ const modulesConfig: Array<Record<string, unknown>> = [
    - Required for order confirmations
    - Required for password reset
    - All secrets already in Infisical
-   - Add as **Track 1.4** in Phase 3 plan
+   - Added as **Track 1.4** in Phase 3 plan
 
-2. **Cache Module (Redis)** 🟢 RECOMMENDED
+2. **Cache Module (Redis)** 🟢 INCLUDED
    - Performance optimization
-   - Infrastructure already exists
-   - Low risk, high reward
-   - Add as **optional Track 1.5**
+   - Infrastructure already exists (Redis deployed in Phase 2)
+   - Low risk, high reward (5 minutes to configure)
+   - Added as **Track 1.5** in Phase 3 plan
+   - Decision: **YES, include in Phase 3** - quick win for performance
 
 ### ⏳ DEFER TO PHASE 4:
 
@@ -674,20 +675,30 @@ const modulesConfig: Array<Record<string, unknown>> = [
 
 ## Action Items
 
+### ✅ COMPLETED (Documentation):
+
+- [x] **Update `PHASE3_PLAN.md`** to add Track 1.4 (Notification Module)
+- [x] **Update `PHASE3_PLAN.md`** to add Track 1.5 (Cache Module)
+- [x] **Update `PHASE3_PLAN.md`** to add Track 7.3 (Email Testing with Mailosaur)
+- [x] **Create `MAILOSAUR_SETUP.md`** with E2E email testing guide
+- [x] **Update `KEY_MANAGEMENT.md`** to add Mailosaur secrets
+
 ### Immediate (Before Phase 3 Track 4):
 
-- [ ] **Update `PHASE3_PLAN.md`** to add Track 1.4 (Notification Module)
 - [ ] **Install Resend notification provider** in Medusa
 - [ ] **Add `FROM_EMAIL` to Infisical** (if missing)
 - [ ] **Verify Resend domain** in Resend dashboard
+- [ ] **Configure cache module** in medusa-config.ts
 - [ ] **Deploy updated configuration** via Ansible
 - [ ] **Test order confirmation email** flow
 
-### Optional (Phase 3):
+### Email Testing (Track 7.3):
 
-- [ ] Install Redis cache module
-- [ ] Benchmark performance improvement
-- [ ] Document cache invalidation strategy
+- [ ] Create Mailosaur account
+- [ ] Add Mailosaur secrets to Infisical
+- [ ] Install mailosaur package
+- [ ] Implement email test helpers
+- [ ] Update E2E tests to validate email delivery
 
 ### Phase 4 Planning:
 

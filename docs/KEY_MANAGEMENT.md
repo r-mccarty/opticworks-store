@@ -99,6 +99,16 @@ This document defines the strategy for managing API keys, credentials, and secre
 | `CONTEXT7_API_URL` | URL | Never | ⚠️ | API endpoint |
 | `GEMINI_API_KEY` | API Key | Quarterly | ⚠️ | Google Gemini API |
 
+#### Testing & Development Tools
+| Variable | Type | Rotation | Critical | Notes |
+|----------|------|----------|----------|-------|
+| `MAILOSAUR_API_KEY` | API Key | Quarterly | ⚠️ | E2E email testing (Phase 3 Track 7.3) |
+| `MAILOSAUR_SERVER_ID` | Server ID | Never | ⚠️ | Mailosaur test server ID |
+
+**Usage**: Used in Playwright E2E tests to verify email delivery (order confirmations, registration emails, password resets). See `docs/MAILOSAUR_SETUP.md` for setup instructions.
+
+**Cost**: Free tier (100 emails/month) - sufficient for Phase 3 testing.
+
 #### Hetzner Development Access (Development Only)
 | Variable | Type | Rotation | Critical | Notes |
 |----------|------|----------|----------|-------|

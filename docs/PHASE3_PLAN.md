@@ -232,6 +232,118 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
+#### 1.4 Configure Notification Module (Resend)
+
+**Task**: Add email notification module for order confirmations and customer communications.
+
+**Priority**: 🔴 CRITICAL - Required for Track 4.3 (Order Completion)
+
+**Actions**:
+- [ ] Install Resend notification provider:
+  ```bash
+  cd services/medusa
+  pnpm add @medusajs/medusa-notification-resend
+  ```
+- [ ] Update `services/medusa/medusa-config.ts`:
+  ```typescript
+  // Add after File module configuration (line 70)
+  modulesConfig.push({
+    key: Modules.NOTIFICATION,
+    options: {
+      providers: [
+        {
+          id: "resend",
+          resolve: "@medusajs/medusa-notification-resend",
+          options: {
+            api_key: ensure("RESEND_API_KEY"),
+            from: process.env.FROM_EMAIL ?? "orders@optic.works"
+          }
+        }
+      ]
+    }
+  })
+  ```
+- [ ] Add `FROM_EMAIL` to Infisical (if not already present):
+  - Variable: `FROM_EMAIL`
+  - Value: `orders@optic.works`
+- [ ] Verify Resend domain at https://resend.com/domains
+  - Ensure `optic.works` domain is verified
+  - Or use Resend sandbox for testing
+- [ ] Deploy configuration:
+  ```bash
+  cd infrastructure/ansible
+  bash scripts/generate-secrets-from-infisical.sh
+  ansible-playbook playbooks/medusa-deploy.yml
+  ```
+
+**Validation**:
+```bash
+ssh hetzner-node
+pm2 logs medusa-dev | grep notification
+# Expected: "Notification module loaded: resend"
+
+# Test email sending (after Track 4.3)
+# Complete test order and verify email delivery in Resend dashboard
+```
+
+**Files**:
+- `services/medusa/medusa-config.ts` (add notification module)
+- `services/medusa/package.json` (new dependency)
+
+**Email Templates Needed**:
+- Order confirmation (`order.placed` event)
+- Customer registration (`customer.created` event)
+- Password reset (handled by Medusa auth)
+
+**Note**: This is a **BLOCKER** for Track 4.3. Order completion requires email confirmations.
+
+---
+
+#### 1.5 Configure Cache Module (Redis)
+
+**Task**: Add Redis cache module for API performance optimization.
+
+**Priority**: 🟢 RECOMMENDED - Performance enhancement (not blocking)
+
+**Actions**:
+- [ ] Update `services/medusa/medusa-config.ts`:
+  ```typescript
+  // Add after Notification module configuration
+  modulesConfig.push({
+    key: Modules.CACHE,
+    resolve: "@medusajs/medusa/cache-redis",
+    options: {
+      redisUrl: process.env.REDIS_URL ?? "redis://localhost:6379",
+      ttl: 300, // 5 minutes default TTL
+      namespace: "medusa-cache"
+    }
+  })
+  ```
+- [ ] Deploy configuration (same Ansible playbook as Track 1.4)
+
+**Validation**:
+```bash
+ssh hetzner-node
+pm2 logs medusa-dev | grep cache
+# Expected: "Cache module loaded: redis"
+
+# Check Redis for cache keys
+redis-cli KEYS "medusa-cache:*"
+# Expected: Keys created on first API requests
+```
+
+**Files**:
+- `services/medusa/medusa-config.ts` (add cache module)
+
+**Benefits**:
+- Faster product catalog API responses
+- Reduced PostgreSQL query load
+- Improved checkout performance under load
+
+**Note**: Leverages existing Redis infrastructure (no new deployment needed). Zero risk, quick win.
+
+---
+
 ### Track 2: Products API Integration
 
 **Duration**: 1-2 hours
@@ -981,7 +1093,132 @@ pnpm exec playwright test tests/e2e/checkout.spec.ts
 
 ---
 
-#### 7.3 Write Authentication E2E Test
+#### 7.3 Email Delivery Testing (Mailosaur)
+
+**Task**: Implement E2E testing for email notifications using Mailosaur.
+
+**Priority**: 🔴 CRITICAL - Validates production email delivery
+
+**Actions**:
+- [ ] Create Mailosaur account at https://mailosaur.com
+- [ ] Create test server (e.g., "opticworks-test")
+- [ ] Add secrets to Infisical:
+  - `MAILOSAUR_API_KEY`: API key from Mailosaur dashboard
+  - `MAILOSAUR_SERVER_ID`: Server ID from Mailosaur dashboard
+- [ ] Pull secrets: `pnpm run secrets:pull`
+- [ ] Install Mailosaur package:
+  ```bash
+  pnpm add -D mailosaur
+  ```
+- [ ] Create email test helper (`tests/helpers/email.ts`):
+  ```typescript
+  import MailosaurClient from 'mailosaur'
+
+  const mailosaur = new MailosaurClient(process.env.MAILOSAUR_API_KEY!)
+  const serverId = process.env.MAILOSAUR_SERVER_ID!
+
+  export async function getTestEmail() {
+    return `test-${Date.now()}@${serverId}.mailosaur.net`
+  }
+
+  export async function waitForEmail(sentTo: string, timeout = 30000) {
+    return await mailosaur.messages.get(serverId, {
+      sentTo,
+      timeout
+    })
+  }
+
+  export function verifyEmailContent(email: any, expectations: {
+    subject?: string
+    bodyContains?: string[]
+    linksContain?: string[]
+  }) {
+    if (expectations.subject) {
+      expect(email.subject).toContain(expectations.subject)
+    }
+
+    if (expectations.bodyContains) {
+      expectations.bodyContains.forEach(text => {
+        expect(email.html.body).toContain(text)
+      })
+    }
+
+    if (expectations.linksContain) {
+      expectations.linksContain.forEach(href => {
+        const hasLink = email.html.links.some(link => link.href.includes(href))
+        expect(hasLink).toBe(true)
+      })
+    }
+  }
+  ```
+- [ ] Update `tests/e2e/checkout.spec.ts` to include email verification:
+  ```typescript
+  import { getTestEmail, waitForEmail, verifyEmailContent } from '../helpers/email'
+
+  test('complete purchase flow with email confirmation', async ({ page }) => {
+    const testEmail = await getTestEmail()
+
+    // Complete checkout (existing flow, use testEmail for customer email)
+    await completeCheckout(page, testEmail)
+
+    // Verify order confirmation page
+    await expect(page).toHaveURL(/\/orders\/.*\/confirmation/)
+
+    // Wait for confirmation email
+    const email = await waitForEmail(testEmail)
+
+    // Verify email content
+    verifyEmailContent(email, {
+      subject: 'Order Confirmation',
+      bodyContains: [
+        'Thank you for your order',
+        'OpticWorks',
+        '$199.99' // Or actual order total
+      ],
+      linksContain: [
+        '/orders/',
+        '/account/orders'
+      ]
+    })
+  })
+  ```
+
+**Test Coverage**:
+- [ ] **Order Confirmation**: Email sent on successful purchase
+- [ ] **Customer Registration**: Welcome email sent on account creation
+- [ ] **Password Reset**: Reset link email sent (optional)
+- [ ] **Email Template Rendering**: HTML/plain text rendering correct
+- [ ] **Links Validation**: All CTAs link to correct URLs
+
+**Files**:
+- `tests/helpers/email.ts` (new)
+- `tests/e2e/checkout.spec.ts` (update)
+- `tests/e2e/registration-email.spec.ts` (new)
+- `playwright.config.ts` (add Mailosaur env vars)
+- `package.json` (new dependency)
+
+**Validation**:
+```bash
+pnpm exec playwright test tests/e2e/checkout.spec.ts
+# Should pass with email verification included
+
+# Check Mailosaur dashboard for captured emails
+# https://mailosaur.com/app/servers/<server-id>/messages
+```
+
+**Cost**: Free tier (100 emails/month) - sufficient for E2E testing
+
+**Benefits**:
+- Real email delivery testing (not mocked)
+- Verify template rendering in actual email clients
+- Catch broken links, missing variables, formatting issues
+- Production-like validation before launch
+
+**Note**: See `docs/MAILOSAUR_SETUP.md` for detailed setup instructions.
+
+---
+
+#### 7.4 Write Authentication E2E Test
 
 **Task**: Test customer registration and login flow.
 
