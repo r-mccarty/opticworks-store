@@ -1,6 +1,6 @@
 # OpticWorks Platform - Agent Context
 
-**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (infrastructure operational), Phase 3 ready to implement (Medusa e-commerce migration; docs site + Discord deferred to Phase 4).
+**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (storefront-backend integration), Phase 3 ready to implement (Medusa e-commerce migration; docs site + Discord deferred to Phase 4).
 
 **Live Endpoints**: `api.optic.works` (backend), `api.optic.works/app` (admin), `api.optic.works/health` (status)
 
@@ -142,12 +142,19 @@ curl https://api.optic.works/health  # Health check
 
 ## Project Status
 
-### ✅ Phase 2 Complete (2025-11-20)
-- Backend operational at `api.optic.works` (PostgreSQL 17, Redis 7.x, Medusa v2.11.3)
-- Ansible IaC preventing drift
-- Store API serving 7 products
-- Admin dashboard accessible
-- Next.js storefront builds (46 pages)
+### ✅ Phase 1 Complete (2025-11-18): Backend Infrastructure Deployment
+- Hetzner backend deployed at `api.optic.works` (PostgreSQL 17, Redis 7.x, Medusa v2.11.3)
+- Cloudflare Tunnel configured and routing traffic
+- Admin dashboard accessible, product catalog API operational (7 products)
+- Ansible IaC created for reproducible deployments
+- **Note**: Infrastructure deployed manually first, then automated with Ansible
+
+### ✅ Phase 2 Complete (2025-11-20): Storefront-Backend Integration
+- Next.js storefront integrated with Medusa Store API
+- Products loading dynamically (replaced static catalog)
+- Build optimized (46 pages, 2-3min build time)
+- Infisical CLI integration for secret management
+- E2E validation suite created and passing
 
 **Not in Phase 2**: Full e-commerce config (cart/checkout, regions, payments) → Phase 3
 

@@ -17,7 +17,7 @@ This monorepo powers the complete OpticWorks commercial presence:
 - ✅ Health Check: `https://api.optic.works/health` (✅ LIVE)
 - 📦 Store API: `https://api.optic.works/store/*` (✅ 7 PRODUCTS)
 
-**Current Status**: Phase 2 infrastructure deployment complete. Phase 3 Medusa e-commerce migration ready for implementation (docs site + Discord deferred to Phase 4).
+**Current Status**: Phase 2 storefront-backend integration complete. Phase 3 Medusa e-commerce migration ready for implementation (docs site + Discord deferred to Phase 4).
 
 ## Quick Start
 
@@ -58,24 +58,39 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 
 ## Project Status & Roadmap
 
-### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - 2025-11-20)
+### ✅ Phase 1: Backend Infrastructure Deployment (COMPLETE - 2025-11-18)
 
-**Infrastructure operational and validated** - backend deployed, accessible via API, ready for e-commerce configuration.
+**Backend infrastructure deployed and operational** - Medusa v2 backend live on Hetzner with Ansible automation.
 
 **Delivered:**
-- ✅ Backend at `https://api.optic.works` (Hetzner + Cloudflare Tunnel)
-- ✅ PostgreSQL 17 + Redis 7.x operational (proven via API)
-- ✅ Medusa v2.11.3 serving Store/Admin APIs (7 products queryable)
-- ✅ Admin dashboard accessible with authentication
+- ✅ Hetzner Cloud server provisioned (3 vCPU, 4GB RAM)
+- ✅ PostgreSQL 17 + Redis 7.x installed and configured
+- ✅ Node.js 22 runtime and PM2 process manager
+- ✅ Medusa v2.11.3 deployed at `https://api.optic.works`
 - ✅ Cloudflare Tunnel configured and routing traffic
-- ✅ Infisical secret management integrated
-- ✅ Ansible automation preventing infrastructure drift
-- ✅ Next.js storefront builds successfully (46 pages)
-- ✅ Infrastructure validation suite created
+- ✅ Admin dashboard accessible at `https://api.optic.works/app`
+- ✅ Product catalog API operational (7 products)
+- ✅ Ansible Infrastructure-as-Code created for reproducible deployments
+
+**Note**: Infrastructure initially deployed manually (Nov 16-17), then automated with Ansible playbooks (Nov 18) to prevent drift and enable reproducible deployments.
+
+### ✅ Phase 2: Storefront-Backend Integration (COMPLETE - 2025-11-20)
+
+**Storefront integrated with Medusa backend** - Next.js loading dynamic products from API, build optimized, validated.
+
+**Delivered:**
+- ✅ Medusa Store API authentication configured
+- ✅ Next.js storefront integrated with Medusa backend
+- ✅ Products loading dynamically from API (replaced static catalog)
+- ✅ Next.js production build optimized (46 pages, 2-3min build time)
+- ✅ Infisical CLI integration for secret management
+- ✅ Supabase made optional (no longer blocks builds)
+- ✅ E2E validation suite created and passing
+- ✅ Infrastructure operational validation complete
 
 **Validation**: See `docs/PHASE2_VALIDATION_REPORT.md` for complete test results.
 
-**What's Deferred to Phase 3**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - infrastructure is ready, configuration is next.
+**What's Deferred to Phase 3**: Medusa e-commerce configuration (regions, cart API, checkout flow, customer auth). Phase 2 proved infrastructure works; Phase 3 will complete the e-commerce migration.
 
 ### 📋 Phase 3: Complete E-Commerce Integration (READY TO IMPLEMENT)
 
@@ -525,26 +540,29 @@ pnpm run lint
 
 ## Roadmap
 
-### ✅ Phase 1: Backend Infrastructure (COMPLETE - 2025-11-18)
-- ✅ Ansible Infrastructure-as-Code
-- ✅ Hetzner backend provisioned
-- ✅ PostgreSQL 17 + Redis operational
-- ✅ Medusa v2 serving at `api.optic.works`
-- ✅ Admin dashboard accessible
-- ✅ Product catalog synced (7 products)
+### ✅ Phase 1: Backend Infrastructure Deployment (COMPLETE - 2025-11-18)
+- ✅ Hetzner Cloud server provisioned (3 vCPU, 4GB RAM)
+- ✅ PostgreSQL 17 + Redis 7.x installed and configured
+- ✅ Node.js 22 runtime and PM2 process manager
+- ✅ Medusa v2.11.3 deployed at `https://api.optic.works`
+- ✅ Cloudflare Tunnel configured and routing traffic
+- ✅ Admin dashboard accessible at `/app`
+- ✅ Product catalog API operational (7 products)
+- ✅ Ansible Infrastructure-as-Code created for automation
 
-### ✅ Phase 2: Infrastructure & Backend Deployment (COMPLETE - 2025-11-20)
-- ✅ Backend deployed and accessible at `api.optic.works`
-- ✅ Database operational (proven via API queries)
-- ✅ Medusa Store API serving products
-- ✅ Admin API authenticated and working
-- ✅ Cloudflare Tunnel routing traffic
-- ✅ Infisical secret management integrated
-- ✅ Ansible automation preventing drift
-- ✅ Next.js storefront builds successfully
-- ✅ E2E validation suite created
+**Note**: Infrastructure initially deployed manually (Nov 16-17), then automated with Ansible playbooks (Nov 18) to prevent drift and enable reproducible deployments.
 
-**Note**: Phase 2 focused on infrastructure deployment and operational readiness. E-commerce configuration (cart/checkout, regions, payments) is Phase 3 scope.
+### ✅ Phase 2: Storefront-Backend Integration (COMPLETE - 2025-11-20)
+- ✅ Medusa Store API authentication configured
+- ✅ Next.js storefront integrated with Medusa backend
+- ✅ Products loading dynamically from API (replaced static catalog)
+- ✅ Next.js production build optimized (46 pages)
+- ✅ Infisical CLI integration for secret management
+- ✅ Supabase made optional (no longer blocks builds)
+- ✅ E2E validation suite created and passing
+- ✅ Infrastructure operational validation complete
+
+**Note**: Phase 2 focused on storefront-backend integration and build optimization. E-commerce configuration (cart/checkout, regions, payments) is Phase 3 scope.
 
 ### 📋 Phase 3: Complete E-Commerce Integration (READY TO IMPLEMENT)
 **Core Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
