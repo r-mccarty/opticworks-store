@@ -521,6 +521,7 @@ export async function getCart(cartId: string): Promise<Cart> {
 - Zustand for instant UI updates (optimistic)
 - Medusa API for persistence (server-side sessions)
 - localStorage for cart ID persistence
+- Logged-in customers sync cart server-side for cross-device continuity
 
 **Updated Store**:
 ```typescript
@@ -636,6 +637,9 @@ export const useCart = create<CartStore>()(
 - [ ] Update `CartPage` to use `line_item.id` for operations
 - [ ] Add loading spinners for cart operations
 - [ ] Handle error states (item out of stock, cart expired, etc.)
+- [ ] After customer login/registration, attach cart to Medusa customer (update cart with `customer_id` + `email`)
+- [ ] Persist cart ID to customer metadata so new devices can restore server cart on login
+- [ ] On login, if no local cart exists, fetch cart ID from customer metadata and hydrate from Medusa
 
 **Files**:
 - `src/components/store/ProductGrid.tsx`
@@ -1278,6 +1282,7 @@ Phase 3 is complete when **ALL** of the following are verified:
 - [ ] Can add product to cart
 - [ ] Cart persists in Medusa (not just localStorage)
 - [ ] Cart survives page reload
+- [ ] Logged-in customer cart restores on new device/session (server cart linked to account)
 - [ ] Can update item quantities
 - [ ] Can remove items from cart
 - [ ] Cart totals calculate correctly (subtotal, tax, shipping)

@@ -22,6 +22,7 @@ This provides both instant UX (optimistic updates) and reliable persistence (ser
 - **Hybrid approach**: Zustand for UI state, Medusa for persistent data
 - **Use case**: Authenticated users with multi-device cart sync, order history
 - **Implementation**: Server-side cart sessions via Medusa Cart API + Redis
+- **Login behavior**: Cart links to Medusa customer so the same cart can follow the user across devices
 
 ## Persistence Architecture
 
@@ -237,6 +238,18 @@ addToCart: async (product) => {
 - **Phase 3**: Medusa Customer API (`/store/auth`, `/store/customers/me`)
 - **Sessions**: Stored in Redis via Medusa (httpOnly cookies)
 - **Order history**: PostgreSQL via Medusa Orders API
+
+## Auth-Linked Cart Persistence (Phase 3)
+
+To make the cart follow a logged-in customer across browsers/devices, persist the cart server-side and bind it to the Medusa customer record:
+
+1. **On login/registration**: If a cart already exists locally, call the Medusa Cart API to set `customer_id` and `email` on that cart so Medusa stores it against the account.
+2. **Persist cart reference**: Save the active `cart_id` into customer metadata via the Store API after linking. This enables lookups without relying on a previous cookie.
+3. **Hydrate on authenticated load**: When an authenticated session is detected but no local cart is present, read the cart ID from customer metadata and fetch it via `GET /store/carts/{id}`. Fall back to creating a new cart if none is stored.
+4. **Merge logic**: If both a local anonymous cart and a customer-linked cart exist, merge line items server-side (prefer the server cart to avoid duplicate carts) and update metadata to the merged cart.
+5. **Logout**: Keep anonymous cart data local-only; do not keep the customer linkage once the session ends.
+
+This flow preserves anonymous browsing while guaranteeing cross-device continuity for authenticated customers.
 
 ### State Ownership Matrix
 
