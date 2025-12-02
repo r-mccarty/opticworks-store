@@ -66,7 +66,8 @@ MEDUSA_ADMIN_PASSWORD=$(get_secret "MEDUSA_ADMIN_PASSWORD" "true")
 MEDUSA_SECRET_KEY=$(get_secret "MEDUSA_SECRET_KEY" "false")
 
 # Optional: Payment (Stripe)
-STRIPE_API_KEY=$(get_secret "STRIPE_API_KEY" "false")
+# Note: Infisical uses STRIPE_SECRET_KEY, Medusa expects STRIPE_API_KEY
+STRIPE_API_KEY=$(get_secret "STRIPE_SECRET_KEY" "false")
 STRIPE_WEBHOOK_SECRET=$(get_secret "STRIPE_WEBHOOK_SECRET" "false")
 
 # Optional: Notifications (Resend)
