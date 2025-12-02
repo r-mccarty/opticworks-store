@@ -1,9 +1,6 @@
-// Email service API for React Email + Resend integration
-import React from 'react';
-import { Resend } from 'resend';
-import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
-import PaymentFailed from '@/lib/email/templates/PaymentFailed';
-import SupportRequest from '@/lib/email/templates/SupportRequest';
+// Email service API - Stubbed for Phase 3
+// React Email templates removed due to Next.js 15.5.0 SSG conflict (RFD-009).
+// Emails will be handled by Medusa notification system in Phase 4.
 
 export interface EmailTemplate {
   to: string;
@@ -18,119 +15,20 @@ export interface EmailResult {
   error?: string;
 }
 
-// Lazily initialize Resend client to avoid build errors
-let resend: Resend | null = null;
-
-function getResendClient(): Resend {
-  if (!resend) {
-    if (!process.env.RESEND_API_KEY) {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('RESEND_API_KEY is not set in production environment');
-      }
-      console.error('❌ RESEND_API_KEY environment variable is not set');
-      // In non-production, we can return a mock or throw. For build, let's throw.
-      throw new Error('RESEND_API_KEY is not set.');
-    }
-    resend = new Resend(process.env.RESEND_API_KEY);
-  }
-  return resend;
-}
-
-// Email template mapping
-const templates = {
-  'order-confirmation': OrderConfirmation,
-  'payment-failed': PaymentFailed,
-  'support-request': SupportRequest,
-  // Add more templates as they're created
-  'shipping-notification': OrderConfirmation, // Placeholder
-  'support-response': OrderConfirmation, // Placeholder
-  'warranty-claim': OrderConfirmation, // Placeholder
-};
-
 /**
- * Send email using React Email templates and Resend
+ * Send email - STUBBED
+ * Logs the email request and returns success.
+ * Actual email sending will be implemented via Medusa notifications in Phase 4.
  */
 export async function sendEmail(email: EmailTemplate): Promise<EmailResult> {
-  console.log(`📧 Attempting to send ${email.template} email to ${email.to}`);
-  
-  try {
-    // Validate required environment variables
-    if (!process.env.RESEND_API_KEY) {
-      const errorMsg = 'RESEND_API_KEY environment variable is not configured';
-      console.error(`❌ ${errorMsg}`);
-      return {
-        success: false,
-        error: errorMsg
-      };
-    }
+  console.log(`📧 Email (stubbed): ${email.template} to ${email.to}`);
+  console.log('📧 Email data keys:', Object.keys(email.data));
 
-    if (!process.env.NEXT_PUBLIC_FROM_EMAIL) {
-      const errorMsg = 'NEXT_PUBLIC_FROM_EMAIL environment variable is not configured';
-      console.error(`❌ ${errorMsg}`);
-      return {
-        success: false,
-        error: errorMsg
-      };
-    }
-
-    // In development, also log email details for debugging
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📧 Email details:', {
-        to: email.to,
-        subject: email.subject,
-        template: email.template,
-        dataKeys: Object.keys(email.data),
-        from: process.env.NEXT_PUBLIC_FROM_EMAIL
-      });
-    }
-
-    // Get the template component
-    const TemplateComponent = templates[email.template];
-    if (!TemplateComponent) {
-      const errorMsg = `Template '${email.template}' not found`;
-      console.error(`❌ ${errorMsg}`);
-      return {
-        success: false,
-        error: errorMsg
-      };
-    }
-
-    // Create React element and render it
-    console.log(`🔧 Rendering ${email.template} template...`);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const element = React.createElement(TemplateComponent as any, email.data);
-
-    // Send email via Resend
-    console.log(`📤 Calling Resend API to send email to ${email.to}...`);
-    const client = getResendClient();
-    const { data, error } = await client.emails.send({
-      from: process.env.NEXT_PUBLIC_FROM_EMAIL!,
-      to: email.to,
-      subject: email.subject,
-      react: element,
-    });
-
-    if (error) {
-      console.error('❌ Resend API error:', error);
-      return {
-        success: false,
-        error: `Resend API error: ${JSON.stringify(error)}`
-      };
-    }
-
-    console.log('✅ Email sent successfully via Resend, messageId:', data?.id);
-    return {
-      success: true,
-      messageId: data?.id
-    };
-
-  } catch (error) {
-    console.error('❌ Email service exception:', error);
-    return {
-      success: false,
-      error: `Email service exception: ${error instanceof Error ? error.message : 'Unknown error'}`
-    };
-  }
+  // Return success with stub message ID
+  return {
+    success: true,
+    messageId: `stub_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
+  };
 }
 
 /**

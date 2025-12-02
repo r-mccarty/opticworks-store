@@ -10,11 +10,13 @@
 
 ### Must Follow
 - **Package Manager**: pnpm only (no npm/yarn)
-- **Pre-Commit**: `pnpm run lint && pnpm run test && pnpm run build` (all must pass)
+- **Pre-Commit**: `pnpm run lint && pnpm run test && unset NODE_ENV && pnpm run build` (all must pass)
+- **Build Command**: `unset NODE_ENV && pnpm run build` (NODE_ENV must be unset in Codespaces)
 - **Build Timeout**: Next.js builds take 2-3 min, use 240s timeout
 - **TypeScript**: Strict mode, no `any` types
 - **Secrets**: Never commit `.env.local`, `backend/.env`, or `infrastructure/ansible/group_vars/secrets.yml`
 - **Infrastructure**: All backend changes via Ansible playbooks (prevent drift)
+- **Workarounds**: See `docs/DEVELOPMENT.md` for build quirks and known issues
 
 ### Deployment
 - **Backend**: Ansible only (`infrastructure/ansible/playbooks/medusa-deploy.yml`)
@@ -158,16 +160,26 @@ curl https://api.optic.works/health  # Health check
 
 **Not in Phase 2**: Full e-commerce config (cart/checkout, regions, payments) → Phase 3
 
-### 📋 Phase 3 Ready (Medusa E-Commerce Migration)
-- Medusa regions, Stripe payments, shipping
-- Full cart/checkout flow
-- Customer authentication (Medusa CIAM)
-- Hookdeck webhook infrastructure
-- E2E testing + CI/CD for checkout flows
+### 🚧 Phase 3 In Progress (Medusa E-Commerce Migration)
 
-**Deferred to Phase 4:** Discord community + bot, Hugo docs site, CI/CD hardening, internationalization.
+**Completed Tracks (2025-12-02):**
+- ✅ Track 1: US Region Setup (Stripe payment provider configured)
+- ✅ Track 2: Products API Integration (dynamic loading with fallback)
+- ✅ Track 3: Cart API Integration (hybrid local + Medusa sync)
+- ✅ Track 4: Checkout Flow Migration (Medusa payment sessions)
 
-See `docs/PHASE3_PLAN.md` for details (7 tracks, ~15-20 sessions).
+**Pending Tracks:**
+- 📋 Track 5: Hookdeck Documentation (configured, needs docs)
+- 📋 Track 6: Customer Authentication (RFD-008 drafted)
+- 📋 Track 7: E2E Testing (blocked on Track 6)
+
+**Known Issues:**
+- Email system stubbed due to @react-email build conflict (RFD-009)
+- Will migrate to Medusa notifications in Phase 4
+
+**Deferred to Phase 4:** Discord community + bot, Hugo docs site, CI/CD hardening, internationalization, email system.
+
+See `docs/PHASE3_PLAN.md` for details.
 
 ---
 
@@ -179,7 +191,7 @@ See `docs/PHASE3_PLAN.md` for details (7 tracks, ~15-20 sessions).
 pnpm run dev                    # Start storefront
 pnpm run lint                   # Linting (required)
 pnpm run test                   # Tests (required)
-pnpm run build                  # Production build (required, 240s timeout)
+unset NODE_ENV && pnpm run build  # Production build (required, 240s timeout)
 
 # Secrets
 pnpm run secrets:pull           # Pull from Infisical
@@ -201,12 +213,12 @@ ansible-playbook playbooks/medusa-deploy.yml
 - `docs/PHASE3_PLAN.md` - Next implementation phase
 
 ### Documentation Priority
-1. **Start Here**: `README.md` (this file mirrors it)
-2. **Phase Context**: `docs/PHASE3_PLAN.md`
-3. **Dev Setup**: `docs/CONTRIBUTORS.md`
-4. **Secrets**: `docs/KEY_MANAGEMENT.md`
-5. **Deployment**: `docs/DEPLOYMENT_GUIDE.md`
-6. **Integration**: `docs/INTEGRATION_GUIDE.md`
+1. **Start Here**: `README.md` (project overview)
+2. **Development**: `docs/DEVELOPMENT.md` (build quirks, workarounds)
+3. **Phase Context**: `docs/PHASE3_PLAN.md`
+4. **Dev Setup**: `docs/CONTRIBUTORS.md`
+5. **Secrets**: `docs/KEY_MANAGEMENT.md`
+6. **Deployment**: `docs/DEPLOYMENT_GUIDE.md`
 7. **Ignore**: `docs/archived/*` (deprecated)
 
 ---
@@ -229,7 +241,7 @@ ansible-playbook playbooks/medusa-deploy.yml
 - **Backend**: Medusa v2.11.3, PostgreSQL 17, Redis 7.x, Node.js 22
 - **State**: Zustand (localStorage persistence)
 - **Payments**: Stripe (Elements + API)
-- **Email**: Resend
+- **Email**: Stubbed (Medusa notifications planned for Phase 4)
 - **Infrastructure**: Hetzner Cloud, Ansible IaC, Cloudflare Tunnel
 - **Secrets**: Infisical
 - **Dev Env**: GitHub Codespaces (recommended)

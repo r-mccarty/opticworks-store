@@ -1,6 +1,6 @@
 # OpticWorks Platform - Agent Context
 
-**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (infrastructure operational), Phase 3 ready to implement (Medusa e-commerce migration; docs site + Discord deferred to Phase 4).
+**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (storefront-backend integration), Phase 3 ready to implement (Medusa e-commerce migration; docs site + Discord deferred to Phase 4).
 
 **Live Endpoints**: `api.optic.works` (backend), `api.optic.works/app` (admin), `api.optic.works/health` (status)
 
@@ -10,11 +10,13 @@
 
 ### Must Follow
 - **Package Manager**: pnpm only (no npm/yarn)
-- **Pre-Commit**: `pnpm run lint && pnpm run test && pnpm run build` (all must pass)
+- **Pre-Commit**: `pnpm run lint && pnpm run test && unset NODE_ENV && pnpm run build` (all must pass)
+- **Build Command**: `unset NODE_ENV && pnpm run build` (NODE_ENV must be unset in Codespaces)
 - **Build Timeout**: Next.js builds take 2-3 min, use 240s timeout
 - **TypeScript**: Strict mode, no `any` types
-- **Secrets**: Never commit `.env.local`, `services/medusa/.env`, or `infrastructure/ansible/group_vars/secrets.yml`
+- **Secrets**: Never commit `.env.local`, `backend/.env`, or `infrastructure/ansible/group_vars/secrets.yml`
 - **Infrastructure**: All backend changes via Ansible playbooks (prevent drift)
+- **Workarounds**: See `docs/DEVELOPMENT.md` for build quirks and known issues
 
 ### Deployment
 - **Backend**: Ansible only (`infrastructure/ansible/playbooks/medusa-deploy.yml`)
@@ -47,8 +49,8 @@
 │       ├── api/medusa.ts         # Medusa backend integration
 │       └── cart/utils.test.ts    # Cart tests (Vitest)
 │
-├── services/medusa/              # Medusa v2 backend
-│   ├── scripts/                  # Automation (health-check, import-products, etc.)
+├── backend/                      # Medusa v2 backend (standalone, not workspace package)
+│   ├── src/scripts/              # Automation (seed, health-check, e2e-validation, etc.)
 │   ├── medusa-config.ts          # Medusa configuration
 │   └── ecosystem.config.js       # PM2 process management
 │
@@ -136,31 +138,48 @@ curl https://api.optic.works/health  # Health check
 - **Source of Truth**: Infisical (see `docs/KEY_MANAGEMENT.md` for all ~50 variables)
 - **Storefront**: `pnpm run secrets:pull` → `.env.local`
 - **Backend**: `generate-secrets-from-infisical.sh` → `group_vars/secrets.yml`
-- **Never commit**: `.env.local`, `services/medusa/.env`, `group_vars/secrets.yml`
+- **Never commit**: `.env.local`, `backend/.env`, `group_vars/secrets.yml`
 
 ---
 
 ## Project Status
 
-### ✅ Phase 2 Complete (2025-11-20)
-- Backend operational at `api.optic.works` (PostgreSQL 17, Redis 7.x, Medusa v2.11.3)
-- Ansible IaC preventing drift
-- Store API serving 7 products
-- Admin dashboard accessible
-- Next.js storefront builds (46 pages)
+### ✅ Phase 1 Complete (2025-11-18): Backend Infrastructure Deployment
+- Hetzner backend deployed at `api.optic.works` (PostgreSQL 17, Redis 7.x, Medusa v2.11.3)
+- Cloudflare Tunnel configured and routing traffic
+- Admin dashboard accessible, product catalog API operational (7 products)
+- Ansible IaC created for reproducible deployments
+- **Note**: Infrastructure deployed manually first, then automated with Ansible
+
+### ✅ Phase 2 Complete (2025-11-20): Storefront-Backend Integration
+- Next.js storefront integrated with Medusa Store API
+- Products loading dynamically (replaced static catalog)
+- Build optimized (46 pages, 2-3min build time)
+- Infisical CLI integration for secret management
+- E2E validation suite created and passing
 
 **Not in Phase 2**: Full e-commerce config (cart/checkout, regions, payments) → Phase 3
 
-### 📋 Phase 3 Ready (Medusa E-Commerce Migration)
-- Medusa regions, Stripe payments, shipping
-- Full cart/checkout flow
-- Customer authentication (Medusa CIAM)
-- Hookdeck webhook infrastructure
-- E2E testing + CI/CD for checkout flows
+### 🚧 Phase 3 In Progress (Medusa E-Commerce Migration)
 
-**Deferred to Phase 4:** Discord community + bot, Hugo docs site, CI/CD hardening, internationalization.
+**Completed Tracks (2025-12-02):**
+- ✅ Track 1: US Region Setup (Stripe payment provider configured)
+- ✅ Track 2: Products API Integration (dynamic loading with fallback)
+- ✅ Track 3: Cart API Integration (hybrid local + Medusa sync)
+- ✅ Track 4: Checkout Flow Migration (Medusa payment sessions)
 
-See `docs/PHASE3_PLAN.md` for details (7 tracks, ~15-20 sessions).
+**Pending Tracks:**
+- 📋 Track 5: Hookdeck Documentation (configured, needs docs)
+- 📋 Track 6: Customer Authentication (RFD-008 drafted)
+- 📋 Track 7: E2E Testing (blocked on Track 6)
+
+**Known Issues:**
+- Email system stubbed due to @react-email build conflict (RFD-009)
+- Will migrate to Medusa notifications in Phase 4
+
+**Deferred to Phase 4:** Discord community + bot, Hugo docs site, CI/CD hardening, internationalization, email system.
+
+See `docs/PHASE3_PLAN.md` for details.
 
 ---
 
@@ -172,7 +191,7 @@ See `docs/PHASE3_PLAN.md` for details (7 tracks, ~15-20 sessions).
 pnpm run dev                    # Start storefront
 pnpm run lint                   # Linting (required)
 pnpm run test                   # Tests (required)
-pnpm run build                  # Production build (required, 240s timeout)
+unset NODE_ENV && pnpm run build  # Production build (required, 240s timeout)
 
 # Secrets
 pnpm run secrets:pull           # Pull from Infisical
@@ -189,17 +208,17 @@ ansible-playbook playbooks/medusa-deploy.yml
 ### Key Files
 - `src/app/siteConfig.ts` - Site configuration
 - `src/lib/api/medusa.ts` - Medusa integration
-- `services/medusa/medusa-config.ts` - Backend config
+- `backend/medusa-config.ts` - Backend config
 - `docs/KEY_MANAGEMENT.md` - All secrets inventory
 - `docs/PHASE3_PLAN.md` - Next implementation phase
 
 ### Documentation Priority
-1. **Start Here**: `README.md` (this file mirrors it)
-2. **Phase Context**: `docs/PHASE3_PLAN.md`
-3. **Dev Setup**: `docs/CONTRIBUTORS.md`
-4. **Secrets**: `docs/KEY_MANAGEMENT.md`
-5. **Deployment**: `docs/DEPLOYMENT_GUIDE.md`
-6. **Integration**: `docs/INTEGRATION_GUIDE.md`
+1. **Start Here**: `README.md` (project overview)
+2. **Development**: `docs/DEVELOPMENT.md` (build quirks, workarounds)
+3. **Phase Context**: `docs/PHASE3_PLAN.md`
+4. **Dev Setup**: `docs/CONTRIBUTORS.md`
+5. **Secrets**: `docs/KEY_MANAGEMENT.md`
+6. **Deployment**: `docs/DEPLOYMENT_GUIDE.md`
 7. **Ignore**: `docs/archived/*` (deprecated)
 
 ---
@@ -222,7 +241,7 @@ ansible-playbook playbooks/medusa-deploy.yml
 - **Backend**: Medusa v2.11.3, PostgreSQL 17, Redis 7.x, Node.js 22
 - **State**: Zustand (localStorage persistence)
 - **Payments**: Stripe (Elements + API)
-- **Email**: Resend
+- **Email**: Stubbed (Medusa notifications planned for Phase 4)
 - **Infrastructure**: Hetzner Cloud, Ansible IaC, Cloudflare Tunnel
 - **Secrets**: Infisical
 - **Dev Env**: GitHub Codespaces (recommended)

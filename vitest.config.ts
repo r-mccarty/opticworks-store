@@ -5,6 +5,8 @@ export default defineConfig({
   plugins: [tsconfigPaths()],
   test: {
     environment: "node",
+    include: ["src/**/*.test.ts", "src/**/*.spec.ts"],
+    exclude: ["node_modules", "backend", "docs", "infrastructure", "platform"],
     coverage: {
       provider: "v8",
       reporter: ["text", "lcov"],

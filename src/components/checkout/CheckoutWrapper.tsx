@@ -6,7 +6,11 @@ import type { Stripe } from '@stripe/stripe-js';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
-import { createPaymentSession } from '@/lib/api/medusa';
+import {
+  medusaConfig,
+  createPaymentSession,
+  createMedusaPaymentSession,
+} from '@/lib/api/medusa';
 import type { StripeCheckoutInstance, StripeWithCheckout } from '@/types/stripe-checkout';
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -21,7 +25,7 @@ export default function CheckoutWrapper({
   onSuccess,
   onError
 }: CheckoutWrapperProps) {
-  const { items } = useCart();
+  const { items, getCartId, initializeCart } = useCart();
   const [checkout, setCheckout] = useState<StripeCheckoutInstance | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +48,33 @@ export default function CheckoutWrapper({
 
     console.log('Creating checkout session with items:', items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity })));
 
-    // Convert cart items to checkout session format
+    // Try Medusa cart-based payment session first
+    if (medusaConfig.enabled) {
+      let cartId = getCartId();
+
+      // Initialize cart if needed
+      if (!cartId) {
+        await initializeCart();
+        cartId = getCartId();
+      }
+
+      if (cartId) {
+        try {
+          console.log('[checkout] Using Medusa cart payment session for cart:', cartId);
+          const session = await createMedusaPaymentSession(cartId);
+
+          if (session.clientSecret) {
+            console.log(`[checkout] Received ${session.provider} client secret`);
+            return session.clientSecret;
+          }
+        } catch (error) {
+          console.warn('[checkout] Medusa payment session failed, falling back to direct Stripe:', error);
+        }
+      }
+    }
+
+    // Fallback to direct Stripe checkout (legacy path)
+    console.log('[checkout] Using legacy Stripe checkout session');
     const paymentItems = items.map(item => ({
       id: item.id,
       name: item.name,
@@ -61,7 +91,7 @@ export default function CheckoutWrapper({
     console.log(`Received ${session.provider} client secret:`, session.clientSecret.substring(0, 10) + '...');
 
     return session.clientSecret;
-  }, [items]);
+  }, [items, getCartId, initializeCart]);
 
   useEffect(() => {
     const initializeCheckout = async () => {

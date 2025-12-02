@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
-import { sendOrderConfirmation, sendPaymentFailed } from '@/lib/api/email';
+
+// Email sending stubbed for Phase 3 - will use Medusa notifications in Phase 4
+// See RFD-009 for details on @react-email build conflict
 
 let stripe: Stripe | null = null;
 const getStripe = () => {
@@ -167,7 +169,6 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     }>;
     const subtotal = parseFloat(paymentIntent.metadata.subtotal || '0');
     const shipping = parseFloat(paymentIntent.metadata.shipping || '0');
-    const tax = 0; // TODO: Implement tax calculation when API supports it
     const total = paymentIntent.amount / 100;
 
     console.log('🔍 DEBUG: Extracted metadata:');
@@ -253,44 +254,11 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent) {
     console.log('🔍 DEBUG: Shipping address:', shippingAddress);
     
     if (shippingAddress) {
-      console.log(`📧 DEBUG: Attempting to send order confirmation email for ${orderNumber} to ${customerEmail}`);
-      
-      try {
-        const emailResult = await sendOrderConfirmation({
-          customerEmail,
-          customerName,
-          orderNumber,
-          items: items.map((item) => ({
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-          subtotal,
-          tax,
-          shipping,
-          total,
-          shippingAddress: {
-            name: shippingAddress.line1 ? customerName : 'No address provided',
-            address1: shippingAddress.line1 || 'Address not provided',
-            address2: shippingAddress.line2 || undefined,
-            city: shippingAddress.city || 'City not provided',
-            state: shippingAddress.state || 'State not provided',
-            zipCode: shippingAddress.postal_code || 'Zip not provided',
-          },
-        });
-
-        console.log('🔍 DEBUG: Email result:', emailResult);
-
-        if (emailResult.success) {
-          console.log(`✅ DEBUG: Order confirmation email sent successfully to ${customerEmail}, messageId: ${emailResult.messageId}`);
-        } else {
-          console.error(`❌ DEBUG: Failed to send order confirmation email to ${customerEmail}: ${emailResult.error}`);
-        }
-      } catch (emailError) {
-        console.error('❌ DEBUG: Exception while sending order confirmation email:', emailError);
-      }
+      // Email sending stubbed for Phase 3 - will use Medusa notifications in Phase 4
+      console.log(`📧 DEBUG: Order confirmation email STUBBED for ${orderNumber} to ${customerEmail}`);
+      console.log('📧 DEBUG: Email sending will be implemented via Medusa notifications');
     } else {
-      console.warn(`⚠️ DEBUG: No shipping address found for payment ${paymentIntent.id}, skipping order confirmation email`);
+      console.warn(`⚠️ DEBUG: No shipping address found for payment ${paymentIntent.id}`);
     }
 
     console.log(`✅ DEBUG: Order ${orderNumber} processing complete for ${customerEmail}`);
@@ -343,44 +311,13 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent) {
       }
     }
 
-    // Get customer name from shipping info first, then customer object, then fallback
-    let customerName = paymentIntent.shipping?.name || 'Customer';
-    
-    try {
-      if (paymentIntent.customer) {
-        const customer = await getStripe().customers.retrieve(paymentIntent.customer as string) as Stripe.Customer;
-        customerName = customer.name || paymentIntent.shipping?.name || 'Customer';
-      }
-    } catch (error) {
-      console.warn('⚠️ Could not retrieve customer details for failed payment:', error);
-      // Use shipping name as fallback
-    }
-
     // Generate retry URL (would link back to checkout page)
     const retryUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'https://optic.works'}/store/cart?retry=${paymentIntent.id}`;
 
-    console.log(`📧 Sending payment failed notification to ${customerEmail}`);
-
-    // Send payment failed notification
-    try {
-      const emailResult = await sendPaymentFailed({
-        customerEmail,
-        customerName,
-        orderNumber: `PI-${paymentIntent.id.slice(-8).toUpperCase()}`,
-        amount: paymentIntent.amount / 100,
-        retryUrl,
-      });
-
-      if (emailResult.success) {
-        console.log(`✅ Payment failed notification sent successfully to ${customerEmail}, messageId: ${emailResult.messageId}`);
-      } else {
-        console.error(`❌ Failed to send payment failed notification to ${customerEmail}: ${emailResult.error}`);
-        // Don't throw - this is a best-effort notification
-      }
-    } catch (emailError) {
-      console.error('❌ Exception while sending payment failed notification:', emailError);
-      // Don't throw - this is a best-effort notification
-    }
+    // Email sending stubbed for Phase 3 - will use Medusa notifications in Phase 4
+    console.log(`📧 Payment failed notification STUBBED for ${customerEmail}`);
+    console.log(`📧 Order: PI-${paymentIntent.id.slice(-8).toUpperCase()}, Amount: $${paymentIntent.amount / 100}, Retry URL: ${retryUrl}`);
+    console.log('📧 Email sending will be implemented via Medusa notifications');
 
   } catch (error) {
     console.error('❌ Error processing failed payment:', error);
@@ -406,7 +343,7 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
   try {
     // Extract customer information from session
     const customerEmail = session.customer_details?.email || session.metadata?.customer_email;
-    const customerName = session.customer_details?.name || session.metadata?.customer_name;
+    const _customerName = session.customer_details?.name || session.metadata?.customer_name; // Used when email is restored
     
     if (!customerEmail) {
       console.error('❌ No customer email found in checkout session');
@@ -477,40 +414,12 @@ async function handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) 
       console.log('⚠️ Supabase not configured, skipping database insert');
     }
 
-    // Send order confirmation email  
+    // Email sending stubbed for Phase 3 - will use Medusa notifications in Phase 4
     if (session.customer_details?.address) {
-      console.log(`📧 Sending order confirmation email for ${orderNumber} to ${customerEmail}`);
-      
-      try {
-        const emailResult = await sendOrderConfirmation({
-          customerEmail,
-          customerName: customerName || 'Customer',
-          orderNumber,
-          items: orderItems,
-          subtotal,
-          tax: taxAmount,
-          shipping: shippingCost,
-          total: totalAmount,
-          shippingAddress: {
-            name: customerName || 'Customer',
-            address1: session.customer_details?.address?.line1 || '',
-            address2: session.customer_details?.address?.line2 || undefined,
-            city: session.customer_details?.address?.city || '',
-            state: session.customer_details?.address?.state || '',
-            zipCode: session.customer_details?.address?.postal_code || '',
-          },
-        });
-
-        if (emailResult.success) {
-          console.log(`✅ Order confirmation email sent successfully to ${customerEmail}, messageId: ${emailResult.messageId}`);
-        } else {
-          console.error(`❌ Failed to send order confirmation email: ${emailResult.error}`);
-        }
-      } catch (emailError) {
-        console.error('❌ Exception while sending order confirmation email:', emailError);
-      }
+      console.log(`📧 Order confirmation email STUBBED for ${orderNumber} to ${customerEmail}`);
+      console.log('📧 Email sending will be implemented via Medusa notifications');
     } else {
-      console.warn(`⚠️ No shipping address found for session ${session.id}, skipping order confirmation email`);
+      console.warn(`⚠️ No shipping address found for session ${session.id}`);
     }
 
     console.log(`✅ Checkout session ${session.id} processing complete for ${customerEmail}`);

@@ -48,6 +48,10 @@ google-cloud-sdk/
 
 # typescript
 *.tsbuildinfo
+
+# Compiled JS from TS sources (should not be committed)
+src/**/*.js
+!src/**/*.config.js
 next-env.d.ts
 
 # aws cli

@@ -1,22 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-import React from 'react';
-import { render } from '@react-email/render';
-import { Resend } from 'resend';
 import { type EmailTemplate } from '@/lib/api/email';
-import OrderConfirmation from '@/lib/email/templates/OrderConfirmation';
-import PaymentFailed from '@/lib/email/templates/PaymentFailed';
-import SupportRequest from '@/lib/email/templates/SupportRequest';
 
-// Email template mapping
-const templates = {
-  'order-confirmation': OrderConfirmation,
-  'payment-failed': PaymentFailed,
-  'support-request': SupportRequest,
-  // Add more templates as they're created
-  'shipping-notification': OrderConfirmation, // Placeholder
-  'support-response': OrderConfirmation, // Placeholder
-  'warranty-claim': OrderConfirmation, // Placeholder
-};
+// Email API Route - Stubbed for Phase 3
+// React Email templates removed due to Next.js 15.5.0 SSG conflict (RFD-009).
+// Emails will be handled by Medusa notification system in Phase 4.
+
+const VALID_TEMPLATES = [
+  'order-confirmation',
+  'shipping-notification',
+  'payment-failed',
+  'support-response',
+  'warranty-claim',
+  'support-request',
+];
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,71 +27,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate email template exists
-    if (!templates[template]) {
+    // Validate template name
+    if (!VALID_TEMPLATES.includes(template)) {
       return NextResponse.json(
         { error: `Template '${template}' not found` },
         { status: 400 }
       );
     }
 
-    // In development, just log and return success
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📧 Email API called:', {
-        to,
-        subject,
-        template,
-        dataKeys: Object.keys(data)
-      });
-
-      // Render template to verify it works
-      try {
-        const TemplateComponent = templates[template];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const element = React.createElement(TemplateComponent as any, data);
-        const htmlContent = await render(element);
-        console.log('✅ Email template rendered successfully');
-        
-        return NextResponse.json({
-          success: true,
-          messageId: `dev_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
-          preview: htmlContent.substring(0, 200) + '...'
-        });
-      } catch (renderError) {
-        console.error('❌ Email template render error:', renderError);
-        return NextResponse.json(
-          { error: 'Failed to render email template' },
-          { status: 500 }
-        );
-      }
-    }
-
-    // Production email sending with Resend
-    const resend = new Resend(process.env.RESEND_API_KEY);
-    const TemplateComponent = templates[template];
-    
-    // Create React element and render it
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const element = React.createElement(TemplateComponent as any, data);
-    
-    const { data: emailData, error } = await resend.emails.send({
-      from: process.env.NEXT_PUBLIC_FROM_EMAIL!,
+    // Log email request (stubbed - no actual sending)
+    console.log('📧 Email API (stubbed):', {
       to,
       subject,
-      react: element,
+      template,
+      dataKeys: Object.keys(data)
     });
 
-    if (error) {
-      console.error('Resend error:', error);
-      return NextResponse.json(
-        { error: 'Failed to send email' },
-        { status: 500 }
-      );
-    }
-
+    // Return success with mock message ID
+    // Actual email sending will be implemented via Medusa notifications
     return NextResponse.json({
       success: true,
-      messageId: emailData?.id
+      messageId: `stub_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
+      note: 'Email stubbed - Medusa notifications pending'
     });
 
   } catch (error) {

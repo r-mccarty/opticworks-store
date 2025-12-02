@@ -49,16 +49,16 @@ pnpm run dev  # http://localhost:3000
 ### Required Commands
 
 ```bash
-pnpm run lint   # ✅ REQUIRED pre-commit
-pnpm run test   # ✅ REQUIRED pre-commit (cart coverage)
-pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
+pnpm run lint                     # ✅ REQUIRED pre-commit
+pnpm run test                     # ✅ REQUIRED pre-commit
+unset NODE_ENV && pnpm run build  # ✅ REQUIRED pre-commit (2-3 min)
 ```
 
-**Note:** Next.js builds can take 2-3 minutes. Increase CLI timeout if needed.
+**Note:** The `unset NODE_ENV` is required in Codespaces. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for build quirks and workarounds.
 
 ## Roadmap (Phases 0-4)
 
-**Current Status**: Phases 0-2 are complete. We are pre-Phase 3 implementation, focusing on documentation cleanup and refactors to unblock the Medusa migration.
+**Current Status**: Phase 3 in progress. Tracks 1-4 complete (regions, products, cart, checkout). Tracks 5-7 pending (webhooks docs, auth, testing).
 
 ### ✅ Phase 0: Storefront Foundation (COMPLETE - 2025-11-15)
 - Next.js 15 storefront with App Router and cinematic marketing pages
@@ -78,15 +78,20 @@ pnpm run build  # ✅ REQUIRED pre-commit (240s timeout recommended)
 - Infisical CLI workflow for secrets; Supabase made optional
 - Infrastructure validation and E2E coverage for the integrated stack
 
-### 🚧 Phase 3: Complete E-Commerce Migration (PRE-IMPLEMENTATION)
-Preparing to execute the multi-track migration defined in `docs/PHASE3_PLAN.md`:
-- **Track 1: Backend Configuration** – Medusa regions, currencies, payment/shipping providers, cache module
-- **Track 2: Products API Integration** – Align product variants/options with Medusa catalog services
-- **Track 3: Cart API Integration** – Replace local cart state with Medusa cart sessions and pricing
-- **Track 4: Checkout Flow Migration** – Stripe via Medusa provider, address/fulfillment flows, email confirmations
-- **Track 5: Webhook Migration** – Hookdeck routing for Stripe events into Medusa
-- **Track 6: Customer Authentication** – Medusa customer accounts, portal, and auth flows
-- **Track 7: E2E Testing** – Playwright coverage across checkout, auth, and notifications
+### 🚧 Phase 3: Complete E-Commerce Migration (IN PROGRESS)
+
+**Completed (2025-12-02):**
+- ✅ **Track 1: Backend Configuration** – US region with Stripe payment provider
+- ✅ **Track 2: Products API Integration** – Dynamic products with static fallback
+- ✅ **Track 3: Cart API Integration** – Hybrid local + Medusa cart sync
+- ✅ **Track 4: Checkout Flow Migration** – Medusa payment sessions, cart completion
+
+**Pending:**
+- 📋 **Track 5: Webhook Documentation** – Hookdeck configured, needs documentation
+- 📋 **Track 6: Customer Authentication** – RFD-008 drafted, implementation pending
+- 📋 **Track 7: E2E Testing** – Blocked on Track 6
+
+**Known Issues:** Email system stubbed due to @react-email/Next.js conflict ([RFD-009](docs/RFD-009-nextjs-build-ssg-error.md)). Will restore via Medusa notifications in Phase 4.
 
 ### 📋 Phase 4: Platform & Production Optimization (PLANNED)
 - Discord community + bot, Hugo docs site

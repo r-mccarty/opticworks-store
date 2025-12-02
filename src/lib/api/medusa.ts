@@ -54,7 +54,74 @@ export interface CheckoutLineItem {
 export interface PaymentSessionResult {
   sessionId: string
   clientSecret: string | null
-  provider: "medusa" | "stripe"
+  provider: "medusa" | "stripe" | "medusa-stripe"
+}
+
+// Cart API types for Medusa v2
+export interface MedusaLineItem {
+  id: string
+  cart_id: string
+  title: string
+  description?: string
+  thumbnail?: string
+  quantity: number
+  variant_id: string
+  product_id: string
+  unit_price: number
+  subtotal: number
+  total: number
+  original_total: number
+  discount_total: number
+  tax_total: number
+}
+
+export interface MedusaCart {
+  id: string
+  region_id: string
+  email?: string
+  customer_id?: string
+  shipping_address?: MedusaAddress
+  billing_address?: MedusaAddress
+  items: MedusaLineItem[]
+  subtotal: number
+  total: number
+  tax_total: number
+  discount_total: number
+  shipping_total: number
+  payment_session?: {
+    id: string
+    provider_id: string
+    data: {
+      client_secret?: string
+    }
+  }
+  payment_sessions?: Array<{
+    id: string
+    provider_id: string
+    data: {
+      client_secret?: string
+    }
+  }>
+}
+
+export interface MedusaAddress {
+  first_name?: string
+  last_name?: string
+  address_1?: string
+  address_2?: string
+  city?: string
+  province?: string
+  postal_code?: string
+  country_code?: string
+  phone?: string
+}
+
+export interface MedusaRegion {
+  id: string
+  name: string
+  currency_code: string
+  countries: Array<{ iso_2: string; name: string }>
+  payment_providers: Array<{ id: string }>
 }
 
 const fallbackProductMap = new Map(fallbackProducts.map((product) => [product.id, product]))
@@ -226,4 +293,225 @@ export async function createPaymentSession(items: CheckoutLineItem[]): Promise<P
     clientSecret: data.clientSecret ?? null,
     provider: "stripe",
   }
+}
+
+// =============================================================================
+// Cart API Functions (Track 3)
+// =============================================================================
+
+/**
+ * Fetch available regions. Returns the first region's ID for cart creation.
+ */
+export async function getRegions(): Promise<MedusaRegion[]> {
+  const response = await medusaFetch<{ regions: MedusaRegion[] }>("/store/regions")
+  return response.regions
+}
+
+/**
+ * Get the default region ID (US region or first available).
+ */
+export async function getDefaultRegionId(): Promise<string> {
+  const regions = await getRegions()
+  // Prefer US region if available
+  const usRegion = regions.find((r) =>
+    r.countries.some((c) => c.iso_2.toLowerCase() === "us")
+  )
+  const defaultRegion = usRegion ?? regions[0]
+  if (!defaultRegion) {
+    throw new Error("No regions configured in Medusa. Please configure at least one region.")
+  }
+  return defaultRegion.id
+}
+
+/**
+ * Create a new cart with the specified region.
+ */
+export async function createCart(regionId: string): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>("/store/carts", {
+    method: "POST",
+    body: JSON.stringify({ region_id: regionId }),
+  })
+  return response.cart
+}
+
+/**
+ * Retrieve an existing cart by ID.
+ */
+export async function getCart(cartId: string): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(`/store/carts/${cartId}`)
+  return response.cart
+}
+
+/**
+ * Add a line item to the cart.
+ */
+export async function addLineItem(
+  cartId: string,
+  variantId: string,
+  quantity: number
+): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}/line-items`,
+    {
+      method: "POST",
+      body: JSON.stringify({ variant_id: variantId, quantity }),
+    }
+  )
+  return response.cart
+}
+
+/**
+ * Update a line item's quantity.
+ */
+export async function updateLineItem(
+  cartId: string,
+  lineItemId: string,
+  quantity: number
+): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}/line-items/${lineItemId}`,
+    {
+      method: "POST",
+      body: JSON.stringify({ quantity }),
+    }
+  )
+  return response.cart
+}
+
+/**
+ * Remove a line item from the cart.
+ */
+export async function removeLineItem(
+  cartId: string,
+  lineItemId: string
+): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}/line-items/${lineItemId}`,
+    {
+      method: "DELETE",
+    }
+  )
+  return response.cart
+}
+
+/**
+ * Update cart with customer email and/or addresses.
+ */
+export async function updateCart(
+  cartId: string,
+  data: {
+    email?: string
+    shipping_address?: MedusaAddress
+    billing_address?: MedusaAddress
+    customer_id?: string
+  }
+): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(`/store/carts/${cartId}`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  })
+  return response.cart
+}
+
+// =============================================================================
+// Payment Session Functions (Track 4)
+// =============================================================================
+
+/**
+ * Initialize payment sessions on the cart.
+ * This prepares the cart for payment by creating sessions with all available providers.
+ */
+export async function initializePaymentSessions(cartId: string): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}/payment-sessions`,
+    { method: "POST" }
+  )
+  return response.cart
+}
+
+/**
+ * Select a specific payment provider for the cart.
+ */
+export async function selectPaymentSession(
+  cartId: string,
+  providerId: string
+): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}/payment-session`,
+    {
+      method: "POST",
+      body: JSON.stringify({ provider_id: providerId }),
+    }
+  )
+  return response.cart
+}
+
+/**
+ * Create a payment session via Medusa's Stripe provider.
+ * Returns the Stripe client_secret for use with Stripe Elements.
+ */
+export async function createMedusaPaymentSession(cartId: string): Promise<PaymentSessionResult> {
+  try {
+    // 1. Initialize payment sessions
+    await initializePaymentSessions(cartId)
+
+    // 2. Select Stripe as the payment provider
+    const cartWithStripe = await selectPaymentSession(cartId, "pp_stripe_stripe")
+
+    // 3. Extract client_secret from the selected payment session
+    const stripeSession = cartWithStripe.payment_session
+    if (!stripeSession?.data?.client_secret) {
+      throw new Error("Stripe payment session did not return a client_secret")
+    }
+
+    return {
+      sessionId: stripeSession.id,
+      clientSecret: stripeSession.data.client_secret,
+      provider: "medusa-stripe",
+    }
+  } catch (error) {
+    console.error("[medusa] Payment session creation failed:", error)
+    throw error
+  }
+}
+
+/**
+ * Complete the cart and create an order after payment succeeds.
+ */
+export async function completeCart(cartId: string): Promise<{ order: { id: string; display_id: number } }> {
+  const response = await medusaFetch<{
+    type: string
+    order: { id: string; display_id: number }
+  }>(`/store/carts/${cartId}/complete`, {
+    method: "POST",
+  })
+  return { order: response.order }
+}
+
+/**
+ * Retrieve an order by ID.
+ */
+export async function getOrder(orderId: string): Promise<{
+  id: string
+  display_id: number
+  email: string
+  items: MedusaLineItem[]
+  subtotal: number
+  total: number
+  tax_total: number
+  shipping_total: number
+  status: string
+}> {
+  const response = await medusaFetch<{ order: {
+    id: string
+    display_id: number
+    email: string
+    items: MedusaLineItem[]
+    subtotal: number
+    total: number
+    tax_total: number
+    shipping_total: number
+    status: string
+  } }>(`/store/orders/${orderId}`)
+  return response.order
 }
