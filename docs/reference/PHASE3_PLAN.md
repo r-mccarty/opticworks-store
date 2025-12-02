@@ -11,6 +11,7 @@
 |-------|--------|-------------|
 | 1 | ✅ Complete | Backend config (US region, Stripe provider) |
 | 2 | ✅ Complete | Products API integration with fallback |
+| 2.5 | ✅ Complete | Product catalog sync to Medusa |
 | 3 | ✅ Complete | Cart API (hybrid local + Medusa) |
 | 4 | ✅ Complete | Checkout flow (Medusa payment sessions) |
 | 5 | 📋 Pending | Webhook documentation (Hookdeck configured) |
@@ -92,6 +93,42 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 **Key file**: `src/lib/api/medusa.ts`
 
 **Fallback behavior**: During builds or when API key missing, falls back to `src/lib/products.ts`
+
+---
+
+### Track 2.5: Product Catalog Sync ✅ COMPLETE
+
+**Problem**: Medusa had generic template products, storefront has real OpticWorks products.
+
+**Solution**: Seed script syncs catalog to Medusa via Medusa workflows.
+
+**What was done**:
+- Created `backend/src/scripts/seed-opticworks-products.ts`
+- Created `backend/src/scripts/cleanup-template-products.ts`
+- Ran seed on api.optic.works - 7 products created
+- Deleted 4 template products (T-Shirt, Sweatpants, etc.)
+
+**Products in Medusa**:
+1. Bed Presence Sensor Kit (3 variants: Single $239, Duo $449, Studio $525)
+2. Presence Sensor Duo Pack ($449)
+3. Presence Engine Developer Edition ($329)
+4. Home Assistant Dashboard Pack ($59)
+5. Magnetic Enclosure + Mount Pack ($79)
+6. Spare mmWave Sensor Module ($119)
+7. Reliability Lab Subscription ($19/mo)
+
+**Run seed** (if needed):
+```bash
+ssh hetzner-node
+cd /opt/opticworks/medusa-backend
+pnpm medusa exec ./src/scripts/seed-opticworks-products.ts
+```
+
+**Verify**:
+```bash
+curl -H "x-publishable-api-key: $PUBKEY" \
+  https://api.optic.works/store/products | jq '.products[].title'
+```
 
 ---
 

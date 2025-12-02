@@ -1,7 +1,13 @@
 /**
- * Product data for Medusa backend
- * TODO: This is a temporary stub. Products will be managed via Medusa's native product system.
- * Use the import-products.ts script to import these into the database.
+ * OpticWorks Product Catalog for Medusa Import
+ *
+ * This is the source of truth for product data. Run the import script to sync to Medusa:
+ *   cd backend && pnpm run import:products
+ *
+ * Products are imported with:
+ * - Title, description, handle (URL slug)
+ * - Variants with USD prices
+ * - Metadata for category, badges, specs, etc.
  */
 
 export interface ProductSpecification {
@@ -15,7 +21,6 @@ export interface ProductVariant {
   price: number
   description: string
   badge?: string
-  vlt?: string
 }
 
 export interface Product {
@@ -47,6 +52,194 @@ export interface Product {
   installGuide?: string
 }
 
-// TODO: Import actual product data from storefront or database
-// For now, this is a placeholder to allow scripts to compile
-export const products: Product[] = []
+export const products: Product[] = [
+  {
+    id: "bed-presence-sensor-kit",
+    name: "Bed Presence Sensor Kit",
+    description:
+      "Complete mmWave hardware + presence engine stack tuned for Home Assistant. Ships flashed, calibrated, and ready for dependable automations.",
+    price: 239,
+    originalPrice: 259,
+    image: "/products/presence-kit.jpg",
+    category: "sensor",
+    badge: "Flagship",
+    heroIntro: {
+      headline: "Stop detecting motion. Start understanding presence.",
+      subheading:
+        "The Bed Presence Sensor kit combines a 60GHz mmWave module, ESP32 gateway, and our 4-state statistical presence engine so lights never shut off while you're sleeping.",
+    },
+    keyBenefits: [
+      {
+        title: "4-State Presence Engine",
+        description:
+          "Temporal filtering plus hysteresis ensures the binary sensor only toggles when presence is deliberate.",
+      },
+      {
+        title: "Absolute Clear Delay",
+        description:
+          "Remembers the last high-confidence reading for 30 seconds so perfectly still sleepers stay counted.",
+      },
+      {
+        title: "Privacy-First Hardware",
+        description:
+          "mmWave detects that someone is there, not who. Processing happens locally on the ESP32.",
+      },
+      {
+        title: "Live Tuning Dashboard",
+        description:
+          "Expose every threshold, debounce, and debug string directly in Home Assistant.",
+      },
+    ],
+    specifications: [
+      { label: "Sensor Suite", value: "60GHz mmWave (still energy focus)" },
+      { label: "Processor", value: "ESP32-S3 w/ Wi-Fi + BLE" },
+      { label: "Detection Zone", value: "Up to 3.2m w/ focused bed cone" },
+      { label: "Presence Engine", value: "4-state FSM + z-score analysis" },
+      { label: "Absolute Clear Delay", value: "30s default (tunable)" },
+      { label: "Power", value: "USB-C 5V (cable included)" },
+      { label: "Warranty", value: "2 years hardware / Oops Protection" },
+    ],
+    variants: [
+      {
+        id: "bed-presence-sensor-kit-single",
+        name: "Single Bed Kit",
+        price: 239,
+        description: "Everything you need for one bed zone.",
+        badge: "Most popular",
+      },
+      {
+        id: "bed-presence-sensor-kit-duo",
+        name: "Dual Bed Pack",
+        price: 449,
+        description: "Two synchronized sensors for primary + guest rooms.",
+      },
+      {
+        id: "bed-presence-sensor-kit-studio",
+        name: "Studio + Dev Pack",
+        price: 525,
+        description: "Adds a breakout board, USB-UART dev cable, and beta firmware access.",
+      },
+    ],
+    reviews: {
+      rating: 4.97,
+      count: 312,
+    },
+    installGuide: "/install-guides/bed-presence-sensor",
+    inStock: true,
+    featured: true,
+  },
+  {
+    id: "presence-sensor-duo-pack",
+    name: "Presence Sensor Duo Pack",
+    description:
+      "Two Bed Presence Sensors plus synchronized automations for multi-room deployments. Ships with offset mounting jig for bunk or split beds.",
+    price: 449,
+    originalPrice: 478,
+    image: "/products/presence-duo.jpg",
+    category: "bundle",
+    badge: "Bundle",
+    specifications: [
+      { label: "Contents", value: "2x sensors + 2x enclosures + 2x USB-C cables" },
+      { label: "Sync Engine", value: "Shared HA blueprint for multi-bed logic" },
+      { label: "Detection Mode", value: "Coordinated still-energy analysis" },
+      { label: "Lead Time", value: "Ships in 3 business days" },
+    ],
+    highlights: [
+      "Perfect for master + guest rooms",
+      "Pre-calibrated to avoid crosstalk",
+      "Includes automation blueprint",
+    ],
+    inStock: true,
+    featured: true,
+  },
+  {
+    id: "presence-developer-edition",
+    name: "Presence Engine Developer Edition",
+    description:
+      "For tinkerers who want deeper insight. Breakout headers, serial console, and beta firmware channel for experimenting with new detection ideas.",
+    price: 329,
+    image: "/products/presence-dev.jpg",
+    category: "sensor",
+    badge: "Developer",
+    specifications: [
+      { label: "Debug Outputs", value: "UART + USB-C + logic analyzer pads" },
+      { label: "Firmware Access", value: "Weekly beta builds + OTA toggles" },
+      { label: "Included Sensors", value: "Bed Presence Sensor + sandbox module" },
+      { label: "Support", value: "Private Discord lab channel" },
+    ],
+    inStock: true,
+  },
+  {
+    id: "presence-dashboard-pack",
+    name: "Home Assistant Dashboard Pack",
+    description:
+      "Pre-built Lovelace dashboards, helper templates, and automations that expose state reasons, z-score charts, and tuning controls.",
+    price: 59,
+    image: "/products/presence-dashboard.jpg",
+    category: "software",
+    specifications: [
+      { label: "Format", value: "YAML + dashboard JSON" },
+      { label: "Requirements", value: "Home Assistant 2024.12+" },
+      { label: "Delivery", value: "Instant download" },
+      { label: "License", value: "Household / lab unlimited" },
+    ],
+    highlights: [
+      "Live chart of z_still vs thresholds",
+      "Number sliders for debounce + delays",
+      "Template sensors for automations",
+    ],
+    inStock: true,
+  },
+  {
+    id: "presence-enclosure-pack",
+    name: "Magnetic Enclosure + Mount Pack",
+    description:
+      "3D-printed magnetic enclosure with adjustable tilt bracket, bed-rail clips, and adhesive pads for stealth installs.",
+    price: 79,
+    image: "/products/presence-enclosure.jpg",
+    category: "accessory",
+    specifications: [
+      { label: "Materials", value: "Matte black PETG + TPU feet" },
+      { label: "Mount Options", value: "Magnetic, clip, adhesive" },
+      { label: "Cable Management", value: "Integrated USB-C path" },
+      { label: "Compatibility", value: "All Bed Presence Sensor SKUs" },
+    ],
+    inStock: true,
+  },
+  {
+    id: "presence-spare-sensor",
+    name: "Spare mmWave Sensor Module",
+    description:
+      "Individual still-energy mmWave module for labs, redundancy, or advanced automations outside of the bedroom.",
+    price: 119,
+    image: "/products/presence-spare.jpg",
+    category: "sensor",
+    specifications: [
+      { label: "Sensor", value: "60GHz FMCW w/ still-energy focus" },
+      { label: "Interface", value: "UART / I2C breakouts" },
+      { label: "Firmware", value: "Ships flashed w/ presence engine" },
+      { label: "Use Cases", value: "Office chairs, nurseries, occupancy cues" },
+    ],
+    inStock: true,
+  },
+  {
+    id: "presence-lab-support",
+    name: "Reliability Lab Subscription",
+    description:
+      "Join our Reliability Lab to get monthly firmware drops, guided tuning sessions, and early access to experimental engine features.",
+    price: 19,
+    image: "/products/presence-lab.jpg",
+    category: "software",
+    specifications: [
+      { label: "Format", value: "Monthly subscription" },
+      { label: "Includes", value: "Beta firmware, office hours, Discord" },
+      { label: "Cancel Anytime", value: "Self-service via portal" },
+    ],
+    highlights: [
+      "Ask engineers about your automations",
+      "Stress test new state-machine ideas",
+      "Share dashboards with the community",
+    ],
+    inStock: true,
+  },
+]
