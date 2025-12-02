@@ -1,6 +1,6 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6 Complete, 5, 7 Pending)
+**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6 Complete, 5, 7, 8 Pending)
 **Updated**: 2025-12-02
 
 ---
@@ -17,6 +17,7 @@
 | 5 | 📋 Pending | Webhook documentation (Hookdeck configured) |
 | 6 | ✅ Complete | Customer authentication |
 | 7 | 📋 Pending | E2E testing |
+| 8 | 📋 Pending | Cloudflare Workers deployment (OpenNext) |
 
 **Blockers Resolved**:
 - ✅ Email system stubbed (react-email/Next.js 15 conflict)
@@ -232,6 +233,51 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 **Test scenarios**:
 1. Browse → Add to cart → Checkout → Payment → Confirmation
 2. Register → Login → View orders → Logout
+
+---
+
+### Track 8: Cloudflare Workers Deployment 📋 PENDING
+
+**Goal**: Deploy Next.js storefront to Cloudflare Workers using OpenNext adapter, replacing Vercel deployment. This provides:
+- Direct connectivity to Hetzner/Medusa backend (no Vercel cold starts)
+- R2 for static assets
+- Better edge performance
+- Backend-for-frontend pattern with Workers
+
+**Architecture**:
+```
+┌──────────────────────┐
+│  Cloudflare Workers  │ → storefront (Next.js via OpenNext)
+│  + R2 Storage        │ → static assets
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│  Hetzner VPS         │ → api.optic.works (Medusa v2)
+│  + PostgreSQL/Redis  │
+└──────────────────────┘
+```
+
+**Needs**:
+- [ ] Install @opennextjs/cloudflare adapter
+- [ ] Configure wrangler.toml for Workers deployment
+- [ ] Set up R2 bucket binding for static assets
+- [ ] Configure environment variables in Workers
+- [ ] Update DNS (move from Vercel to Cloudflare)
+- [ ] Test Medusa API connectivity from Workers
+- [ ] Verify Stripe webhooks work with new domain
+
+**Reference**: https://opennext.js.org/cloudflare
+
+**Environment Variables** (already in Infisical):
+- `CLOUDFLARE_API_BASE_URL` - Cloudflare API endpoint
+- `CLOUDFLARE_EMAIL` - Account email
+- `CLOUDFLARE_GLOBAL_API_KEY` - API key for deployments
+- `R2_ACCESS_KEY_ID` - R2 bucket access
+- `R2_SECRET_ACCESS_KEY` - R2 bucket secret
+- `R2_BUCKET_NAME` - `opticworks-public`
+- `R2_ENDPOINT_URL` - R2 S3-compatible endpoint
+- `R2_PUBLIC_URL` - Public R2 URL
 
 ---
 

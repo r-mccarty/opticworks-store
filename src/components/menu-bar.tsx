@@ -2,10 +2,11 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, Package, Store, Headphones, BookOpen, ShoppingCart, Menu, X } from "lucide-react"
+import { Home, Package, Store, Headphones, BookOpen, ShoppingCart, Menu, X, UserCircle } from "lucide-react"
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
+import { useAuth } from "@/hooks/useAuth"
 import { SolarLogo } from "../../public/SolarLogo"
 
 interface MenuItem {
@@ -81,6 +82,7 @@ export const MenuBar = React.memo(function MenuBar() {
   const totalItems = useCart(
     (state) => state.items.reduce((total, item) => total + item.quantity, 0)
   )
+  const { isAuthenticated, customer } = useAuth()
   const [mounted, setMounted] = React.useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const scrolled = useScroll(15)
@@ -205,6 +207,31 @@ export const MenuBar = React.memo(function MenuBar() {
               )}
             </motion.button>
 
+            {/* User Account */}
+            <motion.div
+              className="relative"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            >
+              <Link
+                href={mounted && isAuthenticated ? "/account" : "/auth/login"}
+                title={mounted && isAuthenticated ? (customer?.first_name || "Account") : "Sign In"}
+                className={cx(
+                  "flex items-center justify-center w-10 h-10 rounded-xl transition-colors duration-300",
+                  scrolled || isLightPage
+                    ? "bg-gray-100 hover:bg-gray-200"
+                    : "bg-white/10 hover:bg-white/20",
+                )}
+              >
+                <UserCircle
+                  className={cx(
+                    "w-5 h-5 transition-colors duration-300",
+                    scrolled || isLightPage ? "text-gray-700" : "text-white",
+                  )}
+                />
+              </Link>
+            </motion.div>
+
             {/* Shopping Cart */}
             <motion.div
               className="relative"
@@ -277,6 +304,18 @@ export const MenuBar = React.memo(function MenuBar() {
                   {item.label}
                 </Link>
               ))}
+              <Link
+                href={mounted && isAuthenticated ? "/account" : "/auth/login"}
+                onClick={() => setMobileMenuOpen(false)}
+                className={cx(
+                  "px-4 py-2 rounded-xl text-sm font-medium transition-colors",
+                  scrolled || isLightPage
+                    ? "text-gray-700 hover:bg-gray-100"
+                    : "text-white hover:bg-white/10",
+                )}
+              >
+                {mounted && isAuthenticated ? "My Account" : "Sign In"}
+              </Link>
             </motion.div>
           )}
         </AnimatePresence>
