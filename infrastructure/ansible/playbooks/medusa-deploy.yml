@@ -34,9 +34,49 @@
       become_user: "{{ app_user }}"
       register: build_output
 
-    - name: Restart Medusa with PM2
+    - name: Check current PM2 processes
       ansible.builtin.command:
-        cmd: pm2 restart medusa-prod
+        cmd: pm2 jlist
+      become: yes
+      become_user: "{{ app_user }}"
+      register: pm2_current
+      changed_when: false
+      failed_when: false
+
+    - name: Parse PM2 process list
+      ansible.builtin.set_fact:
+        pm2_processes: "{{ pm2_current.stdout | default('[]') | from_json }}"
+
+    - name: Verify expected process is running
+      ansible.builtin.assert:
+        that:
+          - pm2_processes | selectattr('name', 'equalto', pm2_app_name) | list | length > 0
+        fail_msg: |
+          ERROR: Expected PM2 process '{{ pm2_app_name }}' not found!
+          Running processes: {{ pm2_processes | map(attribute='name') | list }}
+          This indicates drift. Run medusa-provision.yml to fix.
+        success_msg: "Found process '{{ pm2_app_name }}' - proceeding with restart"
+
+    - name: Stop existing process cleanly
+      ansible.builtin.command:
+        cmd: "pm2 delete {{ pm2_app_name }}"
+      become: yes
+      become_user: "{{ app_user }}"
+      changed_when: true
+
+    - name: Start fresh from ecosystem config
+      ansible.builtin.command:
+        cmd: pm2 start ecosystem.config.js --env production
+        chdir: "{{ medusa_service_dir }}"
+      environment:
+        PM2_TARGET: "production"
+      become: yes
+      become_user: "{{ app_user }}"
+      changed_when: true
+
+    - name: Save PM2 process list
+      ansible.builtin.command:
+        cmd: pm2 save
       become: yes
       become_user: "{{ app_user }}"
       changed_when: false

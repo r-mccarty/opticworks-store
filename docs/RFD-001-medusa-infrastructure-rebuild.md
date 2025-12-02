@@ -1,6 +1,6 @@
 # RFD-001: Medusa Infrastructure Rebuild & Standardization
 
-**Status**: Draft
+**Status**: ✅ IMPLEMENTED (2025-12-02)
 **Created**: 2025-12-01
 **Author**: System Analysis
 **Discussion**: https://github.com/r-mccarty/solar-saas-template/issues/XXX
@@ -364,8 +364,83 @@ Migration is complete when:
 
 ---
 
+## Ansible Drift Issues Identified (2025-12-02)
+
+During investigation into why old Medusa instances persisted on the server, the following drift risks were identified and fixed in the Ansible automation:
+
+### Issues Found
+
+| Issue | Location | Severity | Status |
+|-------|----------|----------|--------|
+| Hardcoded process name | `medusa-deploy.yml:39` | Critical | ✅ Fixed |
+| No drift verification | `roles/medusa/tasks/main.yml` | High | ✅ Fixed |
+| PM2 state not cleared on destroy | `medusa-destroy.yml` | Medium | ✅ Fixed |
+| No pre-cleanup in deploy | `medusa-deploy.yml` | Medium | ✅ Fixed |
+
+### Root Cause: Hardcoded Process Name
+
+The deploy playbook used `pm2 restart medusa-prod` instead of the variable `{{ pm2_app_name }}`. This meant:
+- If ecosystem.config.js or group_vars changed, the playbook would silently fail to restart the correct process
+- Old instances could persist while new ones start with different names
+- No warning when drift occurred
+
+### Fixes Applied
+
+**1. medusa-deploy.yml** (Critical Fix)
+- Replaced hardcoded `pm2 restart medusa-prod` with variable-based approach
+- Added drift verification before restart (fails fast if process doesn't match)
+- Changed from `restart` to `delete + start` for clean deployments
+- Added PM2 save after restart
+
+**2. roles/medusa/tasks/main.yml** (Drift Detection)
+- Added post-start verification that process name matches `pm2_app_name`
+- Added warning if unexpected processes are detected
+- Fails provision if expected process isn't running
+
+**3. medusa-destroy.yml** (Complete Cleanup)
+- Added `pm2 save --force` after delete (clears dump.pm2)
+- Added `pm2 unstartup systemd` to remove boot service
+- Added PM2 log cleanup
+
+### Testing Recommendation
+
+After these fixes, the recommended workflow for clean rebuilds:
+```bash
+# 1. Full teardown
+ansible-playbook playbooks/medusa-destroy.yml
+
+# 2. Verify clean state
+ssh hetzner-node "pm2 list"  # Should show no processes
+
+# 3. Fresh provision
+ansible-playbook playbooks/medusa-provision.yml
+```
+
+---
+
 ## Decision
 
-**Pending discussion and approval.**
+**Option 1 COMPLETE (2025-12-02).**
 
-Once approved, create tracking issue and begin Phase 1 implementation.
+The standalone backend structure in `/backend/` with isolated pnpm install (`--ignore-workspace`) resolves the CLI installation issue. Ansible playbooks have been updated to prevent drift.
+
+### Implementation Summary (2025-12-02)
+
+**Completed:**
+1. ✅ Full server cleanup (killed legacy processes from Nov 18)
+2. ✅ Ansible provision with fixed playbooks
+3. ✅ Medusa build + production start working
+4. ✅ Database seeded with products (4 products via seed script)
+5. ✅ Health endpoint verified: `https://api.optic.works/health` → OK
+6. ✅ Products API working with publishable key header
+7. ✅ Admin dashboard accessible at `https://api.optic.works/app`
+8. ✅ Ansible role updated with symlink fix for admin build
+
+**Key Fixes Applied:**
+- Added `public/admin` symlink to `.medusa/server/public/admin` (Medusa runtime looks in wrong location)
+- Fixed DATABASE_URL encoding (special characters in password)
+- Fixed Infisical environment names (`dev`/`staging`/`prod`, not `development`/`production`)
+- Added CLOUDFLARE_TUNNEL_CREDENTIALS to Infisical
+- Archived `services/medusa-legacy/` to `docs/archived/`
+
+**Phase 2 Baseline Restored. Ready for Phase 3.**

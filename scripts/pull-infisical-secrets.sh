@@ -14,15 +14,15 @@ if [ -z "${INFISICAL_SERVICE_TOKEN:-}" ]; then
   exit 1
 fi
 
-INFISICAL_ENVIRONMENT_VALUE="${INFISICAL_ENVIRONMENT:-development}"
-INFISICAL_SECRETS_PATH_VALUE="${INFISICAL_SECRETS_PATH:-/}"
+# NOTE: Infisical environments are 'dev', 'staging', 'prod' (not 'development', 'staging', 'production')
+# All secrets are at root path '/' - no subpaths needed
+INFISICAL_ENVIRONMENT_VALUE="${INFISICAL_ENVIRONMENT:-dev}"
 INFISICAL_OUTPUT_FILE_VALUE="${INFISICAL_OUTPUT_FILE:-.env.local}"
 
 # Use service token to export secrets directly (no login needed)
 infisical export \
   --token="$INFISICAL_SERVICE_TOKEN" \
   --env="$INFISICAL_ENVIRONMENT_VALUE" \
-  --path="$INFISICAL_SECRETS_PATH_VALUE" \
   --format=dotenv > "$INFISICAL_OUTPUT_FILE_VALUE"
 
-echo "Infisical secrets synced to $INFISICAL_OUTPUT_FILE_VALUE"
+echo "Infisical secrets synced to $INFISICAL_OUTPUT_FILE_VALUE (env: $INFISICAL_ENVIRONMENT_VALUE)"

@@ -37,6 +37,28 @@
       failed_when: false
       changed_when: false
 
+    - name: Clear PM2 saved process list (prevent respawn on boot)
+      ansible.builtin.command:
+        cmd: pm2 save --force
+      become: yes
+      become_user: "{{ app_user }}"
+      failed_when: false
+      changed_when: false
+
+    - name: Remove PM2 startup service
+      ansible.builtin.command:
+        cmd: pm2 unstartup systemd
+      become: yes
+      failed_when: false
+      changed_when: false
+
+    - name: Clean PM2 log files
+      ansible.builtin.file:
+        path: "/home/{{ app_user }}/.pm2/logs"
+        state: absent
+      become: yes
+      failed_when: false
+
     - name: Stop Cloudflare Tunnel
       become: yes
       ansible.builtin.systemd:

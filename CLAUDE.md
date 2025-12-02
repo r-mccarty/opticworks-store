@@ -13,7 +13,7 @@
 - **Pre-Commit**: `pnpm run lint && pnpm run test && pnpm run build` (all must pass)
 - **Build Timeout**: Next.js builds take 2-3 min, use 240s timeout
 - **TypeScript**: Strict mode, no `any` types
-- **Secrets**: Never commit `.env.local`, `services/medusa/.env`, or `infrastructure/ansible/group_vars/secrets.yml`
+- **Secrets**: Never commit `.env.local`, `backend/.env`, or `infrastructure/ansible/group_vars/secrets.yml`
 - **Infrastructure**: All backend changes via Ansible playbooks (prevent drift)
 
 ### Deployment
@@ -47,8 +47,8 @@
 │       ├── api/medusa.ts         # Medusa backend integration
 │       └── cart/utils.test.ts    # Cart tests (Vitest)
 │
-├── services/medusa/              # Medusa v2 backend
-│   ├── scripts/                  # Automation (health-check, import-products, etc.)
+├── backend/                      # Medusa v2 backend (standalone, not workspace package)
+│   ├── src/scripts/              # Automation (seed, health-check, e2e-validation, etc.)
 │   ├── medusa-config.ts          # Medusa configuration
 │   └── ecosystem.config.js       # PM2 process management
 │
@@ -136,7 +136,7 @@ curl https://api.optic.works/health  # Health check
 - **Source of Truth**: Infisical (see `docs/KEY_MANAGEMENT.md` for all ~50 variables)
 - **Storefront**: `pnpm run secrets:pull` → `.env.local`
 - **Backend**: `generate-secrets-from-infisical.sh` → `group_vars/secrets.yml`
-- **Never commit**: `.env.local`, `services/medusa/.env`, `group_vars/secrets.yml`
+- **Never commit**: `.env.local`, `backend/.env`, `group_vars/secrets.yml`
 
 ---
 
@@ -196,7 +196,7 @@ ansible-playbook playbooks/medusa-deploy.yml
 ### Key Files
 - `src/app/siteConfig.ts` - Site configuration
 - `src/lib/api/medusa.ts` - Medusa integration
-- `services/medusa/medusa-config.ts` - Backend config
+- `backend/medusa-config.ts` - Backend config
 - `docs/KEY_MANAGEMENT.md` - All secrets inventory
 - `docs/PHASE3_PLAN.md` - Next implementation phase
 

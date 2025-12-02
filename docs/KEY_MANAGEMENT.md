@@ -24,8 +24,8 @@ This document defines the strategy for managing API keys, credentials, and secre
 
 **Infisical Location:**
 - Project: `OpticWorks`
-- Environment: `development` | `staging` | `production`
-- Path: `/`
+- Environment: `dev` | `staging` | `prod` (NOTE: short names, NOT `development`/`production`)
+- Path: `/` (all secrets at root level)
 
 **Variables:**
 
@@ -138,8 +138,8 @@ pnpm run secrets:pull
 
 **Infisical Location:**
 - Project: `OpticWorks`
-- Environment: `production` | `staging`
-- Path: `/medusa`
+- Environment: `prod` | `staging` (NOTE: `prod`, NOT `production`)
+- Path: `/` (all secrets at root level, no subpaths)
 
 **Variables:**
 
@@ -161,9 +161,9 @@ pnpm run secrets:pull
 # NEVER edit infrastructure/ansible/group_vars/secrets.yml manually
 
 # 1. Ensure secrets exist in Infisical (one-time setup)
-cd services/medusa
+cd backend
 pnpm run generate:secrets  # Generate locally
-# → Manually add to Infisical web UI (paths: /infrastructure, /medusa)
+# → Manually add to Infisical web UI (environment: prod, all at root path '/')
 
 # 2. Sync from Infisical to Ansible (before every deployment)
 cd infrastructure/ansible
@@ -180,8 +180,8 @@ ansible-playbook playbooks/medusa-provision.yml
 
 **Infisical Location:**
 - Project: `OpticWorks`
-- Environment: `production`
-- Path: `/infrastructure`
+- Environment: `prod` (NOTE: `prod`, NOT `production`)
+- Path: `/` (all secrets at root level, same as other categories)
 
 **Variables:**
 
@@ -229,8 +229,8 @@ pnpm run generate:secrets
 
 # ✅ DO: Immediately copy to Infisical web UI
 # - Project: OpticWorks
-# - Environment: production
-# - Paths: /infrastructure (POSTGRES_PASSWORD), /medusa (JWT_SECRET, COOKIE_SECRET, etc.)
+# - Environment: prod (NOTE: short name, not 'production')
+# - All secrets at root path '/' (no subpaths like /infrastructure or /medusa)
 
 # ❌ DON'T: Save to local files or use directly in deployment
 ```
@@ -507,22 +507,25 @@ When adding a new environment variable:
 ### Infrastructure
 - [x] `POSTGRES_PASSWORD` (in Ansible secrets.yml)
 - [x] `CLOUDFLARE_TUNNEL_ID`
-- [ ] `CLOUDFLARE_TUNNEL_CREDENTIALS` (TODO: add to Infisical)
-- [ ] `HETZNER_API_TOKEN` (TODO: add to Infisical)
+- [x] `CLOUDFLARE_TUNNEL_CREDENTIALS` (added 2025-12-02)
+- [ ] `HETZNER_API_TOKEN` (optional, for future automation)
 
 **Outstanding Tasks:**
-1. Add Cloudflare Tunnel credentials to Infisical (infrastructure path) - if not already present
-2. Add Hetzner API token to Infisical (infrastructure path) - if not already present
+1. ~~Add Cloudflare Tunnel credentials to Infisical~~ - ✅ Done 2025-12-02
+2. Add Hetzner API token to Infisical (optional, for future automation)
 3. ~~Encrypt Ansible `secrets.yml` with Ansible Vault~~ - Optional, file is auto-generated from Infisical
 4. Set up monthly rotation reminders for critical secrets
 5. Document emergency backup procedure
 6. Audit optional service variables (R2, Analytics, etc.) and add if needed
+7. Add `MEDUSA_PUBLISHABLE_KEY` to Infisical dev/prod environments (currently `pk_db1d0b19...`)
 
 **Completed:**
 - ✅ Implemented Infisical-first workflow for backend/infrastructure secrets
 - ✅ Removed fallback secret generation from Ansible
 - ✅ Updated documentation to reflect Infisical as source of truth
 - ✅ Created strict sync script that fails if secrets are missing
+- ✅ Fixed Infisical environment names: `dev`, `staging`, `prod` (not `development`, `production`)
+- ✅ Fixed path-based references: all secrets at root `/` (no `/medusa`, `/infrastructure` subpaths)
 
 ---
 
@@ -535,11 +538,12 @@ When adding a new environment variable:
 
 ---
 
-**Last Updated**: 2025-11-19
+**Last Updated**: 2025-12-02
 **Next Review**: Monthly (align with rotation schedule)
 
 ---
 
 **Change Log:**
+- **2025-12-02**: Fixed Infisical structure documentation - environments are `dev`/`staging`/`prod` (not `development`/`production`), all secrets at root path `/` (no `/medusa` or `/infrastructure` subpaths). Added CLOUDFLARE_TUNNEL_CREDENTIALS. Changed backend path from `services/medusa` to `backend`.
 - **2025-11-19**: Expanded storefront secrets with complete variable inventory (~50 variables), corrected variable names to match codebase (e.g., `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`), added categorization by service
 - **2025-11-18**: Initial version with core secrets inventory
