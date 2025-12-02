@@ -236,19 +236,20 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-### Track 8: Cloudflare Workers Deployment 📋 PENDING
+### Track 8: Cloudflare Workers Deployment 🚧 IN PROGRESS
 
 **Goal**: Deploy Next.js storefront to Cloudflare Workers using OpenNext adapter, replacing Vercel deployment. This provides:
 - Direct connectivity to Hetzner/Medusa backend (no Vercel cold starts)
-- R2 for static assets
+- R2 for incremental cache (ISR/SSG)
 - Better edge performance
 - Backend-for-frontend pattern with Workers
+- GitOps deployment on push to main
 
 **Architecture**:
 ```
 ┌──────────────────────┐
 │  Cloudflare Workers  │ → storefront (Next.js via OpenNext)
-│  + R2 Storage        │ → static assets
+│  + R2 Storage        │ → incremental cache (ISR/SSG)
 └──────────┬───────────┘
            │
            ▼
@@ -258,26 +259,95 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 └──────────────────────┘
 ```
 
-**Needs**:
-- [ ] Install @opennextjs/cloudflare adapter
-- [ ] Configure wrangler.toml for Workers deployment
-- [ ] Set up R2 bucket binding for static assets
-- [ ] Configure environment variables in Workers
+**Implementation Status**:
+- [x] Install @opennextjs/cloudflare adapter
+- [x] Configure wrangler.jsonc for Workers deployment
+- [x] Set up R2 bucket binding for incremental cache
+- [x] Create GitHub Actions workflow for GitOps deployment
+- [ ] Create R2 cache bucket in Cloudflare dashboard
+- [ ] Set up GitHub secrets and variables
+- [ ] Configure Workers secrets in Cloudflare dashboard
 - [ ] Update DNS (move from Vercel to Cloudflare)
 - [ ] Test Medusa API connectivity from Workers
 - [ ] Verify Stripe webhooks work with new domain
 
 **Reference**: https://opennext.js.org/cloudflare
 
-**Environment Variables** (already in Infisical):
+**Key Files**:
+- `wrangler.jsonc` - Wrangler configuration
+- `open-next.config.ts` - OpenNext configuration with R2 cache
+- `.github/workflows/deploy-cloudflare.yml` - GitOps deployment
+- `public/_headers` - Static asset cache headers
+
+**npm Scripts**:
+```bash
+pnpm run cf:build      # Build for Cloudflare
+pnpm run cf:preview    # Build and preview locally
+pnpm run cf:deploy     # Deploy to default env
+pnpm run cf:deploy:production  # Deploy to production
+```
+
+## Setup Instructions
+
+### 1. Create R2 Cache Bucket
+```bash
+# Create the incremental cache bucket
+npx wrangler r2 bucket create opticworks-cache
+```
+
+### 2. GitHub Repository Secrets
+Add these secrets in GitHub repo settings → Secrets → Actions:
+
+| Secret | Description |
+|--------|-------------|
+| `CLOUDFLARE_API_TOKEN` | API token with Workers/R2/DNS permissions |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+
+### 3. GitHub Repository Variables
+Add these variables in GitHub repo settings → Variables → Actions:
+
+| Variable | Value |
+|----------|-------|
+| `NEXT_PUBLIC_MEDUSA_BASE_URL` | `https://api.optic.works` |
+| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | (from Infisical) |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | (from Infisical) |
+| `NEXT_PUBLIC_APP_URL` | `https://optic.works` |
+| `NEXT_PUBLIC_MEDUSA_ENABLED` | `true` |
+
+### 4. Cloudflare Worker Secrets
+Set via Cloudflare dashboard (Workers → opticworks-store → Settings → Variables):
+
+| Secret | Description |
+|--------|-------------|
+| `STRIPE_SECRET_KEY` | Stripe API secret key |
+| `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+| `RESEND_API_KEY` | Resend email API key |
+| `MEDUSA_SECRET_KEY` | Medusa backend secret |
+
+### 5. DNS Configuration
+Since optic.works already uses Cloudflare DNS:
+1. Remove Vercel CNAME/A records
+2. Worker routes in wrangler.jsonc will handle `optic.works` and `www.optic.works`
+
+### 6. Stripe Webhook Update
+Update Stripe webhook endpoint from Vercel URL to:
+- `https://optic.works/api/stripe/webhook`
+
+**Environment Variables** (in Infisical):
 - `CLOUDFLARE_API_BASE_URL` - Cloudflare API endpoint
 - `CLOUDFLARE_EMAIL` - Account email
-- `CLOUDFLARE_GLOBAL_API_KEY` - API key for deployments
+- `CLOUDFLARE_GLOBAL_API_KEY` - API key (use API Token instead for GitHub Actions)
 - `R2_ACCESS_KEY_ID` - R2 bucket access
 - `R2_SECRET_ACCESS_KEY` - R2 bucket secret
 - `R2_BUCKET_NAME` - `opticworks-public`
 - `R2_ENDPOINT_URL` - R2 S3-compatible endpoint
 - `R2_PUBLIC_URL` - Public R2 URL
+
+**Caching Notes** (per https://opennext.js.org/cloudflare/caching):
+- Uses R2 for incremental cache (ISR/SSG pages)
+- Workers KV is NOT used (eventually consistent, not recommended)
+- Static assets served via Workers Assets binding
+- `public/_headers` file controls static asset caching
 
 ---
 

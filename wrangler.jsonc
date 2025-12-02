@@ -1,0 +1,51 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "opticworks-store",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2024-12-30",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Worker assets configuration
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+
+  // R2 bucket for incremental cache (ISR/SSG)
+  "r2_buckets": [
+    {
+      "binding": "NEXT_INC_CACHE_R2_BUCKET",
+      "bucket_name": "opticworks-cache"
+    }
+  ],
+
+  // Self-reference for cache revalidation
+  "services": [
+    {
+      "binding": "WORKER_SELF_REFERENCE",
+      "service": "opticworks-store"
+    }
+  ],
+
+  // Environment variables (secrets set via wrangler secret or dashboard)
+  "vars": {
+    "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
+  },
+
+  // Production environment overrides
+  "env": {
+    "production": {
+      "name": "opticworks-store",
+      "routes": [
+        {
+          "pattern": "optic.works",
+          "custom_domain": true
+        },
+        {
+          "pattern": "www.optic.works",
+          "custom_domain": true
+        }
+      ]
+    }
+  }
+}
