@@ -58,6 +58,7 @@
   become: yes
   become_user: "{{ app_user }}"
   register: medusa_build
+  failed_when: "'Backend build completed successfully' not in medusa_build.stdout"
   changed_when: "'Backend build completed successfully' in medusa_build.stdout"
 
 - name: Install PM2 globally
