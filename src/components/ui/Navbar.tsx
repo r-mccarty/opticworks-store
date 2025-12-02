@@ -4,12 +4,13 @@ import { siteConfig } from "@/app/siteConfig"
 import useScroll from "@/lib/useScroll"
 import { cx } from "@/lib/utils"
 import { RiCloseFill, RiMenuFill } from "@remixicon/react"
-import { ShoppingCartIcon } from "@heroicons/react/24/outline"
+import { ShoppingCartIcon, UserCircleIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import React from "react"
 import { SolarLogo } from "../../../public/SolarLogo"
 import { Button } from "../Button"
 import { useCart } from "@/hooks/useCart"
+import { useAuth } from "@/hooks/useAuth"
 
 export function NavBar() {
   const [open, setOpen] = React.useState(false)
@@ -18,6 +19,7 @@ export function NavBar() {
   const totalItems = useCart(
     (state) => state.items.reduce((total, item) => total + item.quantity, 0)
   )
+  const { isAuthenticated, customer } = useAuth()
 
   React.useEffect(() => {
     setMounted(true)
@@ -71,6 +73,16 @@ export function NavBar() {
             </Button>
             <Button
               asChild
+              variant="ghost"
+              className="p-2"
+              title={mounted && isAuthenticated ? (customer?.first_name || "Account") : "Sign In"}
+            >
+              <Link href={mounted && isAuthenticated ? "/account" : "/auth/login"}>
+                <UserCircleIcon className="w-5 h-5" />
+              </Link>
+            </Button>
+            <Button
+              asChild
               variant="secondary"
               className="h-10 font-medium"
             >
@@ -114,6 +126,14 @@ export function NavBar() {
             </li>
             <li onClick={() => setOpen(false)}>
               <Link href="/install-guides" className="hover:text-orange-600 transition-colors">Install Guides</Link>
+            </li>
+            <li onClick={() => setOpen(false)}>
+              <Link
+                href={mounted && isAuthenticated ? "/account" : "/auth/login"}
+                className="hover:text-orange-600 transition-colors"
+              >
+                {mounted && isAuthenticated ? "My Account" : "Sign In"}
+              </Link>
             </li>
           </ul>
           <Button asChild variant="secondary" className="text-lg">

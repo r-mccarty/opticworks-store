@@ -1,6 +1,6 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-4 Complete, 5-7 Pending)
+**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6 Complete, 5, 7 Pending)
 **Updated**: 2025-12-02
 
 ---
@@ -15,7 +15,7 @@
 | 3 | ✅ Complete | Cart API (hybrid local + Medusa) |
 | 4 | ✅ Complete | Checkout flow (Medusa payment sessions) |
 | 5 | 📋 Pending | Webhook documentation (Hookdeck configured) |
-| 6 | 📋 Pending | Customer authentication |
+| 6 | ✅ Complete | Customer authentication |
 | 7 | 📋 Pending | E2E testing |
 
 **Blockers Resolved**:
@@ -185,19 +185,38 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-### Track 6: Customer Authentication 📋 PENDING
+### Track 6: Customer Authentication ✅ COMPLETE
 
-**Needs**:
-- [ ] Registration page (`/auth/register`)
-- [ ] Login page (`/auth/login`)
-- [ ] Auth API routes (proxy to Medusa)
-- [ ] useAuth hook for client state
-- [ ] Session management (httpOnly cookies)
+**What was done**:
+- [x] Registration page (`/auth/register`)
+- [x] Login page (`/auth/login`)
+- [x] Auth API routes (proxy to Medusa with httpOnly cookies)
+- [x] useAuth Zustand hook for client state
+- [x] Session management (httpOnly cookies, 7-day expiry)
+- [x] Account dashboard page (`/account`)
+- [x] Navbar integration (user icon, mobile menu)
 
-**Medusa endpoints**:
-- POST `/store/auth/customer` - Register
-- POST `/store/auth` - Login
-- DELETE `/store/auth` - Logout
+**Key files**:
+- `src/hooks/useAuth.ts` - Zustand auth store
+- `src/app/api/auth/register/route.ts` - Registration with auto-login
+- `src/app/api/auth/login/route.ts` - Login with cookie creation
+- `src/app/api/auth/logout/route.ts` - Cookie deletion
+- `src/app/api/auth/me/route.ts` - Current customer fetch
+- `src/app/auth/register/page.tsx` - Registration UI
+- `src/app/auth/login/page.tsx` - Login UI (with Suspense for searchParams)
+- `src/app/account/page.tsx` - Account dashboard
+- `src/components/ui/Navbar.tsx` - Auth state integration
+
+**Auth flow**:
+1. User registers/logs in via form
+2. API route calls Medusa auth endpoint
+3. JWT stored in httpOnly cookie (7 days)
+4. Client state updated via Zustand
+5. Subsequent requests include cookie automatically
+
+**Medusa endpoints used**:
+- POST `/store/customers` - Register customer
+- POST `/store/auth/customer/emailpass` - Login
 - GET `/store/customers/me` - Current customer
 
 ---

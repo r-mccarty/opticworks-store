@@ -515,3 +515,134 @@ export async function getOrder(orderId: string): Promise<{
   } }>(`/store/orders/${orderId}`)
   return response.order
 }
+
+// =============================================================================
+// Authentication API Functions (Track 6)
+// =============================================================================
+
+export interface MedusaCustomer {
+  id: string
+  email: string
+  first_name: string | null
+  last_name: string | null
+  phone: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface AuthResponse {
+  token: string
+}
+
+export interface CustomerResponse {
+  customer: MedusaCustomer
+}
+
+/**
+ * Register a new customer with email and password.
+ * Returns a JWT token for authentication.
+ */
+export async function registerCustomer(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const response = await medusaFetch<AuthResponse>(
+    "/auth/customer/emailpass/register",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }
+  )
+  return response
+}
+
+/**
+ * Authenticate a customer with email and password.
+ * Returns a JWT token for authentication.
+ */
+export async function loginCustomer(
+  email: string,
+  password: string
+): Promise<AuthResponse> {
+  const response = await medusaFetch<AuthResponse>(
+    "/auth/customer/emailpass",
+    {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }
+  )
+  return response
+}
+
+/**
+ * Create a customer profile after registration.
+ * Requires JWT token from registration.
+ */
+export async function createCustomerProfile(
+  token: string,
+  data: {
+    email: string
+    first_name?: string
+    last_name?: string
+    phone?: string
+  }
+): Promise<CustomerResponse> {
+  const response = await medusaFetch<CustomerResponse>("/store/customers", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  return response
+}
+
+/**
+ * Get the currently authenticated customer.
+ * Requires JWT token.
+ */
+export async function getCurrentCustomer(
+  token: string
+): Promise<CustomerResponse> {
+  const response = await medusaFetch<CustomerResponse>("/store/customers/me", {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return response
+}
+
+/**
+ * Update customer profile.
+ * Requires JWT token.
+ */
+export async function updateCustomerProfile(
+  token: string,
+  data: {
+    first_name?: string
+    last_name?: string
+    phone?: string
+  }
+): Promise<CustomerResponse> {
+  const response = await medusaFetch<CustomerResponse>("/store/customers/me", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  })
+  return response
+}
+
+/**
+ * Refresh an authentication token.
+ */
+export async function refreshAuthToken(token: string): Promise<AuthResponse> {
+  const response = await medusaFetch<AuthResponse>("/auth/token/refresh", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+  return response
+}
