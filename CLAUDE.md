@@ -1,251 +1,35 @@
-# OpticWorks Platform - Agent Context
+# Agent Context
 
-**Quick Context**: Production e-commerce platform for mmWave presence sensors. Next.js 15 storefront + Medusa v2 backend on Hetzner (Ansible-managed). Phase 2 complete (storefront-backend integration), Phase 3 ready to implement (Medusa e-commerce migration; docs site + Discord deferred to Phase 4).
+E-commerce store: Next.js 15 + Medusa v2 + Stripe.
 
-**Live Endpoints**: `api.optic.works` (backend), `api.optic.works/app` (admin), `api.optic.works/health` (status)
+## Commands
 
----
-
-## Critical Constraints
-
-### Must Follow
-- **Package Manager**: pnpm only (no npm/yarn)
-- **Pre-Commit**: `pnpm run lint && pnpm run test && unset NODE_ENV && pnpm run build` (all must pass)
-- **Build Command**: `unset NODE_ENV && pnpm run build` (NODE_ENV must be unset in Codespaces)
-- **Build Timeout**: Next.js builds take 2-3 min, use 240s timeout
-- **TypeScript**: Strict mode, no `any` types
-- **Secrets**: Never commit `.env.local`, `backend/.env`, or `infrastructure/ansible/group_vars/secrets.yml`
-- **Infrastructure**: All backend changes via Ansible playbooks (prevent drift)
-- **Workarounds**: See `docs/DEVELOPMENT.md` for build quirks and known issues
-
-### Deployment
-- **Backend**: Ansible only (`infrastructure/ansible/playbooks/medusa-deploy.yml`)
-- **Secrets**: Infisical is source of truth (see `docs/KEY_MANAGEMENT.md`)
-- **SSH**: Available via GitHub Codespaces (`ssh hetzner-node`)
-
----
-
-## Repository Map
-
-```
-/
-├── src/                          # Next.js 15 storefront
-│   ├── app/                      # App Router (pages + API routes)
-│   │   ├── api/                  # Backend integration (stripe, email, analytics)
-│   │   ├── products/             # Product catalog pages
-│   │   ├── store/cart/           # Shopping cart
-│   │   └── support/              # Customer support flows
-│   ├── components/
-│   │   ├── ui/                   # Tier 1: Shadcn + marketing (use cn() helper)
-│   │   ├── products/             # Tier 2: Product marketing (use cx() helper)
-│   │   ├── checkout/             # Stripe Elements
-│   │   └── 3d/                   # Three.js visualizations
-│   ├── hooks/                    # Zustand stores
-│   │   ├── useCart.ts            # Cart state (persisted)
-│   │   ├── useCheckoutState.ts   # Checkout flow (ephemeral)
-│   │   └── useSupportStore.ts    # Support forms (persisted)
-│   └── lib/
-│       ├── utils.ts              # cn/cx helpers
-│       ├── api/medusa.ts         # Medusa backend integration
-│       └── cart/utils.test.ts    # Cart tests (Vitest)
-│
-├── backend/                      # Medusa v2 backend (standalone, not workspace package)
-│   ├── src/scripts/              # Automation (seed, health-check, e2e-validation, etc.)
-│   ├── medusa-config.ts          # Medusa configuration
-│   └── ecosystem.config.js       # PM2 process management
-│
-├── infrastructure/ansible/       # IaC for Hetzner deployment
-│   ├── playbooks/
-│   │   ├── medusa-provision.yml  # Full infrastructure setup
-│   │   ├── medusa-deploy.yml     # Code updates (run after Medusa changes)
-│   │   └── medusa-destroy.yml    # Teardown
-│   └── scripts/generate-secrets-from-infisical.sh  # Sync secrets before deploy
-│
-├── docs/                         # Documentation (source of truth)
-│   ├── DEPLOYMENT_GUIDE.md       # ⭐ Ansible provisioning
-│   ├── KEY_MANAGEMENT.md         # ⭐ Infisical secrets (~50 vars)
-│   ├── CONTRIBUTORS.md           # ⭐ Dev setup, SSH access
-│   ├── PHASE3_PLAN.md            # ⭐ Next implementation phase
-│   ├── INTEGRATION_GUIDE.md      # Storefront-Backend integration
-│   ├── STATE_MANAGEMENT.md       # Zustand patterns
-│   └── archived/                 # Deprecated docs (ignore these)
-│
-└── platform/
-    ├── docs-site/                # Hugo docs (Phase 4)
-    └── forum/                    # Discourse (deprecated, using Discord)
-```
-
----
-
-## Development Patterns
-
-### Component Styling
-```tsx
-// Tier 1 (Shadcn primitives)
-import { cn } from "@/lib/utils"
-<Button className={cn("bg-primary", className)} />
-
-// Tier 2 (Marketing/premium)
-import { cx } from "@/lib/utils"
-<div className={cx("glass-gradient cinematic-reveal", className)} />
-```
-
-### State Management (Zustand)
-- `useCart` - Cart items, persisted to localStorage
-- `useCheckoutState` - Stripe session, ephemeral
-- `useSupportStore` - Warranty forms, persisted
-
-See `docs/STATE_MANAGEMENT.md` for patterns.
-
-### API Integration Modes
-**Current: Medusa Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=true`) - Active since Phase 2
-- ✅ Dynamic products from Medusa API
-- ✅ Cart sessions via Medusa
-- ✅ Stripe integration via Medusa backend
-
-**Legacy Mode** (`NEXT_PUBLIC_MEDUSA_ENABLED=false`) - *Deprecated* (reference only)
-- Static products, direct Stripe checkout
-
----
-
-## Common Workflows
-
-### Local Development
 ```bash
-pnpm install
-pnpm run secrets:pull           # Pull from Infisical (Codespaces auto-syncs)
-pnpm run dev                    # localhost:3000
-pnpm run lint && pnpm run test && pnpm run build  # Pre-commit checks
+pnpm run dev                        # Dev server
+pnpm run lint && pnpm run test      # Pre-commit
+unset NODE_ENV && pnpm run build    # Build (unset required in Codespaces)
 ```
 
-### Backend Deployment (After Medusa Code Changes)
-```bash
-cd infrastructure/ansible
-bash scripts/generate-secrets-from-infisical.sh  # Sync secrets
-ansible-playbook playbooks/medusa-deploy.yml     # Deploy changes
+## Structure
+
+```
+src/app/           # Pages + API routes
+src/components/    # React components
+src/hooks/         # Zustand stores (useCart, useCheckoutState)
+src/lib/api/       # Backend integration (medusa.ts)
+backend/           # Medusa v2 (separate package)
+infrastructure/ansible/  # Deployment
 ```
 
-### SSH to Hetzner (from Codespaces)
-```bash
-ssh hetzner-node
-pm2 status                      # Check service
-pm2 logs medusa-dev             # View logs
-pm2 restart medusa-dev          # Restart
-curl https://api.optic.works/health  # Health check
-```
+## Constraints
 
-### Secret Management
-- **Source of Truth**: Infisical (see `docs/KEY_MANAGEMENT.md` for all ~50 variables)
-- **Storefront**: `pnpm run secrets:pull` → `.env.local`
-- **Backend**: `generate-secrets-from-infisical.sh` → `group_vars/secrets.yml`
-- **Never commit**: `.env.local`, `backend/.env`, `group_vars/secrets.yml`
+- pnpm only (no npm/yarn)
+- No `any` types
+- Never commit .env.local
+- Deploy backend via Ansible only
 
----
+## Current State
 
-## Project Status
-
-### ✅ Phase 1 Complete (2025-11-18): Backend Infrastructure Deployment
-- Hetzner backend deployed at `api.optic.works` (PostgreSQL 17, Redis 7.x, Medusa v2.11.3)
-- Cloudflare Tunnel configured and routing traffic
-- Admin dashboard accessible, product catalog API operational (7 products)
-- Ansible IaC created for reproducible deployments
-- **Note**: Infrastructure deployed manually first, then automated with Ansible
-
-### ✅ Phase 2 Complete (2025-11-20): Storefront-Backend Integration
-- Next.js storefront integrated with Medusa Store API
-- Products loading dynamically (replaced static catalog)
-- Build optimized (46 pages, 2-3min build time)
-- Infisical CLI integration for secret management
-- E2E validation suite created and passing
-
-**Not in Phase 2**: Full e-commerce config (cart/checkout, regions, payments) → Phase 3
-
-### 🚧 Phase 3 In Progress (Medusa E-Commerce Migration)
-
-**Completed Tracks (2025-12-02):**
-- ✅ Track 1: US Region Setup (Stripe payment provider configured)
-- ✅ Track 2: Products API Integration (dynamic loading with fallback)
-- ✅ Track 3: Cart API Integration (hybrid local + Medusa sync)
-- ✅ Track 4: Checkout Flow Migration (Medusa payment sessions)
-
-**Pending Tracks:**
-- 📋 Track 5: Hookdeck Documentation (configured, needs docs)
-- 📋 Track 6: Customer Authentication (RFD-008 drafted)
-- 📋 Track 7: E2E Testing (blocked on Track 6)
-
-**Known Issues:**
-- Email system stubbed due to @react-email build conflict (RFD-009)
-- Will migrate to Medusa notifications in Phase 4
-
-**Deferred to Phase 4:** Discord community + bot, Hugo docs site, CI/CD hardening, internationalization, email system.
-
-See `docs/PHASE3_PLAN.md` for details.
-
----
-
-## Quick Reference
-
-### Key Commands
-```bash
-# Development
-pnpm run dev                    # Start storefront
-pnpm run lint                   # Linting (required)
-pnpm run test                   # Tests (required)
-unset NODE_ENV && pnpm run build  # Production build (required, 240s timeout)
-
-# Secrets
-pnpm run secrets:pull           # Pull from Infisical
-
-# Backend (SSH)
-ssh hetzner-node                # Access Hetzner
-pm2 status                      # Service status
-
-# Deployment
-cd infrastructure/ansible
-ansible-playbook playbooks/medusa-deploy.yml
-```
-
-### Key Files
-- `src/app/siteConfig.ts` - Site configuration
-- `src/lib/api/medusa.ts` - Medusa integration
-- `backend/medusa-config.ts` - Backend config
-- `docs/KEY_MANAGEMENT.md` - All secrets inventory
-- `docs/PHASE3_PLAN.md` - Next implementation phase
-
-### Documentation Priority
-1. **Start Here**: `README.md` (project overview)
-2. **Development**: `docs/DEVELOPMENT.md` (build quirks, workarounds)
-3. **Phase Context**: `docs/PHASE3_PLAN.md`
-4. **Dev Setup**: `docs/CONTRIBUTORS.md`
-5. **Secrets**: `docs/KEY_MANAGEMENT.md`
-6. **Deployment**: `docs/DEPLOYMENT_GUIDE.md`
-7. **Ignore**: `docs/archived/*` (deprecated)
-
----
-
-## Anti-Patterns (Avoid)
-
-❌ Manual backend changes (use Ansible playbooks)
-❌ Committing `.env.local` or secret files
-❌ Using npm/yarn (pnpm required)
-❌ Bypassing `lint + test + build` pre-commit
-❌ Using `any` in TypeScript
-❌ Following guides in `docs/archived/`
-❌ Editing secrets directly (use Infisical UI)
-
----
-
-## Stack Summary
-
-- **Frontend**: Next.js 15 (App Router, React 19), Tailwind 4, Shadcn UI, Framer Motion, Three.js
-- **Backend**: Medusa v2.11.3, PostgreSQL 17, Redis 7.x, Node.js 22
-- **State**: Zustand (localStorage persistence)
-- **Payments**: Stripe (Elements + API)
-- **Email**: Stubbed (Medusa notifications planned for Phase 4)
-- **Infrastructure**: Hetzner Cloud, Ansible IaC, Cloudflare Tunnel
-- **Secrets**: Infisical
-- **Dev Env**: GitHub Codespaces (recommended)
-
----
-
-**Note**: `AGENTS.md` mirrors this file. Update both or recreate hard link: `ln -f CLAUDE.md AGENTS.md`
+- Medusa backend live at api.optic.works
+- Email stubbed (react-email conflict)
+- Product pages force-dynamic (no SSG)
