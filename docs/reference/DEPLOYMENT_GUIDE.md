@@ -1,7 +1,7 @@
 # OpticWorks Platform Deployment Guide
 
-**Version**: 1.0
-**Last Updated**: 2025-11-18
+**Version**: 1.1
+**Last Updated**: 2025-12-02
 **Deployment Method**: Ansible Infrastructure-as-Code
 **Architecture**: Next.js Storefront + Medusa Backend + Cloudflare Services
 
@@ -69,7 +69,7 @@ This guide documents the OpticWorks production architecture and deployment workf
 
 ### Prerequisites
 
-1. **SSH Access**: Configure Hetzner node access (see `docs/CONTRIBUTORS.md`)
+1. **SSH Access**: Configure Hetzner node access (pre-configured in Codespaces as `ssh hetzner-node`)
 2. **Ansible**: Install locally (`pip install ansible` or `apt install ansible`)
 3. **Infisical**: Ensure all secrets are stored in Infisical **before** deployment
    - Project: `OpticWorks`
@@ -208,7 +208,7 @@ cloudflare_tunnel_credentials: |
 
 **Managed via**: Infisical (production/team)
 
-**Complete Variable Inventory**: See `docs/KEY_MANAGEMENT.md` for all ~50 variables, Infisical paths, and rotation schedules.
+**Complete Variable Inventory**: See `docs/reference/KEY_MANAGEMENT.md` for all variables.
 
 **Key variables** (example):
 ```bash
@@ -218,7 +218,7 @@ NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 STRIPE_SECRET_KEY=sk_test_...
 RESEND_API_KEY=re_...
-# See KEY_MANAGEMENT.md for complete list
+# See docs/reference/KEY_MANAGEMENT.md for complete list
 ```
 
 ---

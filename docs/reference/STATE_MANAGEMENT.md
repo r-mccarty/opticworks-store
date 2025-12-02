@@ -1,6 +1,8 @@
 # State Management
 
-This document explains how state management works in the OpticWorks Presence Intelligence Platform.
+**Updated**: 2025-12-02
+
+This document explains how state management works in the OpticWorks storefront.
 
 ## Architecture Overview
 
@@ -11,18 +13,22 @@ The application uses a **hybrid state management approach**:
 
 This provides both instant UX (optimistic updates) and reliable persistence (server-side sessions).
 
-## Phase 2 vs Phase 3 Architecture
+## Current Architecture (Phase 3)
 
-### Phase 2 (Current - Anonymous Shopping)
-- **Zustand + localStorage**: All state stored client-side
-- **Use case**: Anonymous users browsing and adding to cart
-- **Limitation**: Single-device only, no multi-device sync
+**Hybrid Cart** (implemented):
+- **Zustand**: Optimistic UI updates (instant feedback)
+- **Medusa Cart API**: Server-side persistence (survives across sessions)
+- **localStorage**: Cart ID persistence (reconnects to server cart)
 
-### Phase 3 (Planned - Authenticated E-Commerce)
-- **Hybrid approach**: Zustand for UI state, Medusa for persistent data
-- **Use case**: Authenticated users with multi-device cart sync, order history
-- **Implementation**: Server-side cart sessions via Medusa Cart API + Redis
-- **Login behavior**: Cart links to Medusa customer so the same cart can follow the user across devices
+**Flow**:
+1. User adds item → Zustand updates immediately (optimistic)
+2. Background: Medusa Cart API called
+3. On success: Zustand syncs with server response
+4. On error: Zustand rolls back optimistic update
+
+**Future** (pending Track 6):
+- Authenticated users get cart linked to customer account
+- Multi-device sync via Medusa customer cart
 
 ## Persistence Architecture
 

@@ -1,8 +1,10 @@
 # OpticWorks Key Management Strategy
 
-**Version**: 1.0
-**Last Updated**: 2025-11-19
+**Version**: 1.1
+**Last Updated**: 2025-12-02
 **Maintainer**: Platform Engineering
+
+> **Quick Start**: See `docs/SECRETS.md` for day-to-day usage. This document is the complete reference.
 
 ---
 

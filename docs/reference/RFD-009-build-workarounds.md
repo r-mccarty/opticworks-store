@@ -203,4 +203,4 @@ Email functionality will be restored via Medusa notification system in Phase 4.
 
 - Next.js Error Docs: https://nextjs.org/docs/messages/no-document-import-in-page
 - Next.js Prerender Error: https://nextjs.org/docs/messages/prerender-error
-- Related: PHASE3_PLAN.md Track 2-4
+- Related: docs/reference/PHASE3_PLAN.md Track 2-4

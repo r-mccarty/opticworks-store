@@ -1,6 +1,44 @@
 # Stripe Integration Documentation
 
-## Overview
+**Updated**: 2025-12-02
+
+> **Phase 3 Update**: Checkout now uses **Medusa Payment Sessions** instead of direct Stripe.
+> Medusa creates Payment Intents via its Stripe provider, and we use Stripe Elements to collect payment.
+> This document describes both the legacy direct integration and the current Medusa-based flow.
+
+## Current Flow (Phase 3 - Medusa)
+
+```
+Cart → createPaymentSession(cartId) → Medusa creates PaymentIntent
+     → Stripe Elements with client_secret
+     → User submits payment
+     → completeCart(cartId) → Medusa creates Order
+```
+
+**Key files**:
+- `src/lib/api/medusa.ts` - createPaymentSession, completeCart
+- `src/components/checkout/CheckoutForm.tsx` - Stripe Elements
+- `src/hooks/useCart.ts` - Cart state with Medusa sync
+
+**Lazy Stripe initialization** (build fix):
+```typescript
+// Required pattern - Stripe SDK throws at build time if key missing
+let stripe: Stripe | null = null;
+const getStripe = () => {
+  if (!stripe) {
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+  }
+  return stripe;
+};
+```
+
+---
+
+## Legacy Flow (Pre-Phase 3 Reference)
+
+This section documents the original direct Stripe integration for reference.
+
+### Overview
 
 This codebase implements **Option B: The Integrated Model** from our Payment Architecture design - a modern, streamlined approach using **Elements with Checkout Sessions API** (`ui_mode: 'custom'`). This architecture delegates complex state management to Stripe while maintaining full control over the UI through custom Elements integration.
 
