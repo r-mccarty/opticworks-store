@@ -31,6 +31,7 @@
     "dotenv-cli": "^7.4.2"
   },
   "devDependencies": {
+    "@medusajs/admin-shared": "2.12.0",
     "@medusajs/test-utils": "2.12.0",
     "@swc/core": "^1.7.28",
     "@swc/jest": "^0.2.36",

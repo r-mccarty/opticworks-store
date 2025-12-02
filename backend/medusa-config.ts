@@ -121,29 +121,31 @@ module.exports = defineConfig({
     },
 
     // ===== Notification Module (Local/Resend) =====
-    // NOTE: Using local provider for now. Resend integration can be added via custom module
-    // See: https://docs.medusajs.com/resources/architectural-modules/notification
-    {
-      key: Modules.NOTIFICATION,
-      resolve: "@medusajs/medusa/notification-local",
-      options: {
-        channels: ["email"],
-        config: {
-          email: {
-            from: process.env.EMAIL_FROM ?? "noreply@optic.works",
-          },
-        },
-      },
-    },
+    // NOTE: Temporarily disabled - module path needs fixing
+    // TODO: Re-enable with correct notification provider
+    // {
+    //   key: Modules.NOTIFICATION,
+    //   resolve: "@medusajs/medusa/notification-local",
+    //   options: {
+    //     channels: ["email"],
+    //     config: {
+    //       email: {
+    //         from: process.env.EMAIL_FROM ?? "noreply@optic.works",
+    //       },
+    //     },
+    //   },
+    // },
 
     // ===== File Module (Local for now, will switch to R2 later) =====
-    {
-      key: Modules.FILE,
-      resolve: "@medusajs/medusa/file-local",
-      options: {
-        upload_dir: "uploads",
-        backend_url: process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000",
-      },
-    },
+    // NOTE: Temporarily disabled - module path needs fixing
+    // TODO: Re-enable with correct file storage provider
+    // {
+    //   key: Modules.FILE,
+    //   resolve: "@medusajs/medusa/file-local",
+    //   options: {
+    //     upload_dir: "uploads",
+    //     backend_url: process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000",
+    //   },
+    // },
   ],
 })

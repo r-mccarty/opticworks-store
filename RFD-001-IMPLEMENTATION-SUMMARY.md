@@ -1,14 +1,14 @@
 # RFD-001 Implementation Summary: Standard Medusa Setup (Option A)
 
 **Date**: December 2, 2025
-**Status**: ✅ COMPLETED
+**Status**: 🔄 IN PROGRESS - Deployment Architecture Fix Required
 **Approach**: Option A - Migrate to Standard Medusa Structure
 
 ---
 
 ## Summary
 
-Successfully rebuilt the Medusa backend infrastructure to follow official Medusa v2 standards, moving from a problematic pnpm workspace setup to a standalone project structure. This resolves build failures and aligns with Medusa best practices.
+Rebuilt the Medusa backend infrastructure to follow official Medusa v2 standards, moving from a problematic pnpm workspace setup to a standalone project structure. Local builds succeed, database migrations complete, but deployment requires architecture fix to properly isolate `/backend` from monorepo workspace.
 
 ---
 
@@ -94,11 +94,230 @@ Medusa CLI version: 2.12.0
 Medusa version: 2.12.0
 ```
 
-**Known Issue**: Admin frontend build fails with dependency resolution error. This is a dev environment issue and may not affect production deployment. Can be addressed in follow-up if needed.
+**Admin Build**: ✅ FIXED (Dec 2, 2025)
+- Issue: Missing `@medusajs/admin-shared` dependency
+- Fix: Added `@medusajs/admin-shared@2.12.0` to devDependencies
+- Result: Both backend and frontend build successfully
 
 ---
 
-## Deployment Readiness
+## Deployment Progress (Dec 2, 2025)
+
+### ✅ Successfully Completed
+
+1. **Database Infrastructure**
+   - PostgreSQL 17 running and accessible
+   - Database `medusa_db` and user `medusa_user` created
+   - Schema permissions granted (`GRANT ALL ON SCHEMA public`)
+   - ✅ All migrations completed successfully (100+ migrations across 20+ modules)
+
+2. **Environment Configuration**
+   - DATABASE_URL properly encoded (forward slashes as `%2F`)
+   - Redis connections established (cache, events, workflow engine)
+   - dotenv-cli added for reliable environment loading in PM2
+   - `.env` file templated via Ansible with proper URL encoding
+
+3. **Build System**
+   - Backend builds successfully (`medusa build` - backend: 4.2s)
+   - Admin panel builds successfully (frontend: 23.2s)
+   - Both `.medusa/server` and `.medusa/client` directories created
+   - Medusa CLI functional and verified
+
+4. **Code Fixes Applied**
+   - Added `@medusajs/admin-shared` to package.json devDependencies
+   - Updated `package.json` to use `dotenv-cli` in start script
+   - Temporarily disabled Notification and File modules (incorrect import paths)
+   - Fixed Ansible template to properly encode DATABASE_URL passwords
+
+### ❌ Deployment Blocker Discovered
+
+**Issue**: Monorepo Workspace Conflict
+
+**Problem**:
+- Ansible clones entire monorepo to `/opt/opticworks/medusa-backend/`
+- This creates workspace `node_modules` at `/opt/opticworks/medusa-backend/node_modules`
+- When Medusa runs from `/opt/opticworks/medusa-backend/backend/`, pnpm resolves modules from parent workspace
+- Admin panel looks for build in `/opt/opticworks/medusa-backend/.medusa/admin/` (doesn't exist)
+- Actual admin build is at `/opt/opticworks/medusa-backend/backend/.medusa/client/`
+
+**Root Cause**:
+The `/backend` directory is designed to be a **standalone Medusa project**, not a workspace package. Deploying it within the monorepo creates module resolution conflicts that break the runtime.
+
+**Impact**:
+- Medusa server fails to start: `Could not find index.html in the admin build directory`
+- Module paths reference wrong `node_modules` directory
+- Cannot serve admin panel or API endpoints
+
+---
+
+## Plan: Deploy-Only-Backend Architecture (Option 1)
+
+### Objective
+Modify Ansible deployment to clone and deploy **only** the `/backend` directory as a standalone application, completely isolated from the monorepo workspace.
+
+### Implementation Steps
+
+#### 1. Update Ansible Clone Strategy
+
+**Current** (`roles/medusa/tasks/main.yml`):
+```yaml
+- name: Clone or update repository
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "{{ app_root }}"        # Clones entire monorepo
+    version: "{{ repo_branch }}"
+```
+
+**Proposed**:
+```yaml
+- name: Clone repository with sparse checkout (backend only)
+  block:
+    - name: Initialize git repository
+      ansible.builtin.command:
+        cmd: git init
+        chdir: "{{ app_root }}"
+      args:
+        creates: "{{ app_root }}/.git"
+
+    - name: Configure sparse checkout
+      ansible.builtin.command:
+        cmd: git sparse-checkout set backend
+        chdir: "{{ app_root }}"
+
+    - name: Add remote origin
+      ansible.builtin.command:
+        cmd: git remote add origin {{ repo_url }}
+        chdir: "{{ app_root }}"
+      ignore_errors: yes  # May already exist
+
+    - name: Pull backend directory only
+      ansible.builtin.command:
+        cmd: git pull origin {{ repo_branch }}
+        chdir: "{{ app_root }}"
+
+    - name: Move backend contents to app root
+      ansible.builtin.command:
+        cmd: rsync -a backend/ . && rm -rf backend/
+        chdir: "{{ app_root }}"
+```
+
+**Alternative (simpler)**:
+```yaml
+- name: Clone full repository to temp location
+  ansible.builtin.git:
+    repo: "{{ repo_url }}"
+    dest: "/tmp/medusa-clone"
+    version: "{{ repo_branch }}"
+    force: yes
+
+- name: Sync backend directory to app root
+  ansible.builtin.synchronize:
+    src: "/tmp/medusa-clone/backend/"
+    dest: "{{ app_root }}/"
+    delete: yes
+  delegate_to: "{{ inventory_hostname }}"
+
+- name: Clean up temp clone
+  ansible.builtin.file:
+    path: "/tmp/medusa-clone"
+    state: absent
+```
+
+#### 2. Update Ansible Variables
+
+**Change** (`infrastructure/ansible/group_vars/all.yml`):
+```yaml
+# Before:
+medusa_service_dir: "{{ app_root }}/backend"
+
+# After:
+medusa_service_dir: "{{ app_root }}"  # app_root IS the backend now
+```
+
+#### 3. Update PM2 Ecosystem Config
+
+**No changes needed** - `cwd: __dirname` already correct since `/backend` will be deployed as root
+
+#### 4. Update Deployment Tasks
+
+**Modify** (`roles/medusa/tasks/main.yml`):
+```yaml
+# Remove redundant backend subdirectory references
+- name: Install Medusa dependencies (standalone, not workspace)
+  ansible.builtin.command:
+    cmd: pnpm install --ignore-workspace
+    chdir: "{{ app_root }}"  # Not {{ app_root }}/backend
+
+- name: Create Medusa .env file
+  ansible.builtin.template:
+    src: medusa.env.j2
+    dest: "{{ app_root }}/.env"  # Not {{ medusa_service_dir }}/.env
+```
+
+#### 5. Verification Steps Post-Deployment
+
+```bash
+# 1. Verify no workspace artifacts
+ssh hetzner-node "ls -la /opt/opticworks/medusa-backend/ | grep -E 'pnpm-workspace|package.json'"
+# Should ONLY show backend's package.json, no pnpm-workspace.yaml
+
+# 2. Verify module resolution
+ssh hetzner-node "cd /opt/opticworks/medusa-backend && pnpm exec medusa --version"
+# Should use /opt/opticworks/medusa-backend/node_modules
+
+# 3. Verify admin build location
+ssh hetzner-node "ls -la /opt/opticworks/medusa-backend/.medusa/client/index.html"
+# Should exist
+
+# 4. Start Medusa and check health
+ssh hetzner-node "pm2 restart medusa-prod"
+curl https://api.optic.works/health
+# Should return {"status": "ok"}
+
+# 5. Verify admin panel accessible
+curl -I https://api.optic.works/app
+# Should return 200 OK
+```
+
+### Expected Outcome
+
+After implementing Option 1:
+- ✅ `/opt/opticworks/medusa-backend/` contains ONLY backend code (no monorepo artifacts)
+- ✅ Module resolution works correctly (no workspace conflicts)
+- ✅ Admin panel accessible at `https://api.optic.works/app`
+- ✅ API endpoints respond at `https://api.optic.works/health`, `/store/*`, etc.
+- ✅ PM2 runs Medusa successfully without crashes
+
+### Files Requiring Updates
+
+1. `infrastructure/ansible/roles/medusa/tasks/main.yml` - Clone strategy
+2. `infrastructure/ansible/group_vars/all.yml` - Variable paths
+3. `backend/package.json` - Add `@medusajs/admin-shared` (already done locally)
+4. Ansible environment template - Ensure DATABASE_URL encoding (already fixed)
+
+---
+
+## Current Deployment State
+
+**Deployed but Not Running**:
+- ✅ PostgreSQL 17 + Redis 7.x operational
+- ✅ Database migrations completed (all 100+ migrations successful)
+- ✅ Backend code deployed to `/opt/opticworks/medusa-backend/backend/`
+- ✅ Admin and server builds exist
+- ❌ Medusa fails to start due to workspace conflict
+- ❌ Health endpoint not accessible
+
+**Next Actions**:
+1. Implement Option 1 deployment architecture changes (Ansible updates)
+2. Commit all fixes to repository (`@medusajs/admin-shared`, `dotenv-cli`, medusa-config changes)
+3. Redeploy using updated Ansible playbook
+4. Verify Medusa starts successfully
+5. Import product catalog (7 products)
+6. Complete E2E validation
+
+---
+
+## Deployment Readiness (Updated)
 
 ### Prerequisites Checklist
 
@@ -221,20 +440,35 @@ Continue with Medusa e-commerce migration tasks (cart/checkout, regions, etc.)
 
 ---
 
-## Success Metrics
+## Success Metrics (Updated Dec 2, 2025)
 
-✅ All RFD-001 Option A success criteria met:
-1. ✅ `pnpm exec medusa build` completes without errors (backend)
+### Phase 1: Build & Infrastructure (✅ COMPLETE)
+1. ✅ `pnpm exec medusa build` completes without errors (backend + admin)
 2. ✅ Medusa CLI binary created in `node_modules/.bin/`
-3. ✅ `pnpm start` ready to run in production mode
-4. ✅ Ansible provision workflow updated end-to-end
-5. ⏳ E2E validation tests (pending deployment)
-6. ⏳ Health endpoint stable (pending deployment)
-7. ⏳ Admin dashboard accessible (pending deployment)
-8. ⏳ Product catalog API returns all products (pending import)
+3. ✅ `pnpm start` script configured with dotenv-cli
+4. ✅ Database migrations complete (100+ migrations successful)
+5. ✅ PostgreSQL permissions configured correctly
+6. ✅ Redis connections operational (cache, events, workflow)
 
-**Estimated Effort**: 4-6 hours → **Actual**: ~3 hours
-**Status**: ✅ READY FOR DEPLOYMENT
+### Phase 2: Deployment Architecture (🔄 IN PROGRESS)
+1. ⏳ Ansible updated to deploy backend-only (Option 1 implementation)
+2. ⏳ Module resolution working (no workspace conflicts)
+3. ⏳ Health endpoint accessible
+4. ⏳ Admin dashboard accessible
+5. ⏳ API endpoints functional
+6. ⏳ PM2 running stably without crashes
+
+### Phase 3: Validation (⏸️ BLOCKED)
+1. ⏳ E2E validation tests passing
+2. ⏳ Product catalog imported (7 products)
+3. ⏳ Product API returns all products
+4. ⏳ Admin login functional with Infisical credentials
+5. ⏳ Store API endpoints responding
+
+**Estimated Effort**: 4-6 hours
+**Actual Time Spent**: ~8 hours (including debugging workspace conflicts)
+**Status**: 🔄 IN PROGRESS - Deployment architecture fix required (Option 1)
+**Blocker**: Monorepo workspace conflict - requires Ansible refactoring to deploy backend-only
 
 ---
 
