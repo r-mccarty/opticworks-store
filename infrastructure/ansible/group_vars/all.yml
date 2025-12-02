@@ -8,7 +8,7 @@ app_name: opticworks
 app_user: ryan
 app_group: ryan
 app_root: /opt/opticworks/medusa-backend
-medusa_service_dir: "{{ app_root }}/backend"  # Standard Medusa structure (not a workspace)
+medusa_service_dir: "{{ app_root }}"  # app_root IS the backend (deployed standalone)
 
 # Repository
 repo_url: https://github.com/r-mccarty/opticworks-store.git

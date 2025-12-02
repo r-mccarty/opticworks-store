@@ -16,14 +16,33 @@
     group: "{{ app_group }}"
     mode: '0755'
 
-- name: Clone or update repository
+- name: Clone repository to temp location
   ansible.builtin.git:
     repo: "{{ repo_url }}"
-    dest: "{{ app_root }}"
+    dest: "/tmp/medusa-clone"
     version: "{{ repo_branch }}"
     force: yes
   become: yes
   become_user: "{{ app_user }}"
+
+- name: Sync backend directory to app root
+  ansible.posix.synchronize:
+    src: "/tmp/medusa-clone/backend/"
+    dest: "{{ app_root }}/"
+    delete: yes
+    rsync_opts:
+      - "--exclude=node_modules"
+      - "--exclude=.medusa"
+      - "--exclude=logs"
+  delegate_to: "{{ inventory_hostname }}"
+  become: yes
+  become_user: "{{ app_user }}"
+
+- name: Clean up temp clone
+  ansible.builtin.file:
+    path: "/tmp/medusa-clone"
+    state: absent
+  become: yes
 
 - name: Create Medusa .env file
   ansible.builtin.template:
