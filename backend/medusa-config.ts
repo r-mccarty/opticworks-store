@@ -120,21 +120,24 @@ module.exports = defineConfig({
       },
     },
 
-    // ===== Notification Module (Local/Resend) =====
-    // NOTE: Temporarily disabled - module path needs fixing
-    // TODO: Re-enable with correct notification provider
-    // {
-    //   key: Modules.NOTIFICATION,
-    //   resolve: "@medusajs/medusa/notification-local",
-    //   options: {
-    //     channels: ["email"],
-    //     config: {
-    //       email: {
-    //         from: process.env.EMAIL_FROM ?? "noreply@optic.works",
-    //       },
-    //     },
-    //   },
-    // },
+    // ===== Notification Module (Resend) =====
+    {
+      key: Modules.NOTIFICATION,
+      resolve: "@medusajs/medusa/notification",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/resend",
+            id: "resend",
+            options: {
+              channels: ["email"],
+              api_key: resendApiKey,
+              from: process.env.RESEND_FROM_EMAIL ?? "OpticWorks <notifications@optic.works>",
+            },
+          },
+        ],
+      },
+    },
 
     // ===== File Module (Local for now, will switch to R2 later) =====
     // NOTE: Temporarily disabled - module path needs fixing

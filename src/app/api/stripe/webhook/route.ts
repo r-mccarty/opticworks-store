@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
 
-// Email sending stubbed for Phase 3 - will use Medusa notifications in Phase 4
-// See RFD-009 for details on @react-email build conflict
+// Transactional emails handled by Medusa backend via Resend
 
 let stripe: Stripe | null = null;
 const getStripe = () => {

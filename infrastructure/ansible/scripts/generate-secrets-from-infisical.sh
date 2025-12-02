@@ -65,8 +65,18 @@ MEDUSA_ADMIN_EMAIL=$(get_secret "MEDUSA_ADMIN_EMAIL" "false")
 MEDUSA_ADMIN_PASSWORD=$(get_secret "MEDUSA_ADMIN_PASSWORD" "true")
 MEDUSA_SECRET_KEY=$(get_secret "MEDUSA_SECRET_KEY" "false")
 
+# Payment (Stripe)
+STRIPE_API_KEY=$(get_secret "STRIPE_SECRET_KEY" "false")
+STRIPE_WEBHOOK_SECRET=$(get_secret "STRIPE_WEBHOOK_SECRET" "false")
+
+# Notifications (Resend)
+RESEND_API_KEY=$(get_secret "RESEND_API_KEY" "false")
+RESEND_FROM_EMAIL=$(get_secret "RESEND_FROM_EMAIL" "false")
+
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
+# Default from email if not set
+RESEND_FROM_EMAIL="${RESEND_FROM_EMAIL:-OpticWorks <notifications@optic.works>}"
 
 # Validate critical secrets are not empty
 if [ -z "$POSTGRES_PASSWORD" ] || [ -z "$JWT_SECRET" ] || [ -z "$COOKIE_SECRET" ] || [ -z "$MEDUSA_ADMIN_PASSWORD" ]; then
@@ -102,6 +112,14 @@ medusa_secret_key: "$MEDUSA_SECRET_KEY"
 cloudflare_tunnel_id: "$CF_TUNNEL_ID"
 cloudflare_tunnel_credentials: |
   $CF_TUNNEL_CREDS
+
+# Stripe Payment
+stripe_api_key: "$STRIPE_API_KEY"
+stripe_webhook_secret: "$STRIPE_WEBHOOK_SECRET"
+
+# Resend Email
+resend_api_key: "$RESEND_API_KEY"
+resend_from_email: "$RESEND_FROM_EMAIL"
 EOF
 
 echo "✅ Secrets file synced: $SECRETS_FILE"

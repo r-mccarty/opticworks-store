@@ -49,9 +49,8 @@ infrastructure/ansible/ # Deployment playbooks (provision, deploy, destroy)
 These are known issues with documented fixes:
 
 1. **`unset NODE_ENV`** - Codespaces sets NODE_ENV=development, breaks Next.js build
-2. **Email stubbed** - react-email conflicts with Next.js 15 SSG, emails log only
-3. **`force-dynamic` on products** - SSG fails without Medusa API at build time
-4. **Lazy Stripe init** - Stripe SDK throws at build if key missing, use getStripe() pattern
+2. **`force-dynamic` on products** - SSG fails without Medusa API at build time
+3. **Lazy Stripe init** - Stripe SDK throws at build if key missing, use getStripe() pattern
 
 ## Key Files
 
@@ -67,7 +66,7 @@ These are known issues with documented fixes:
 
 - **Backend**: Live at api.optic.works (Medusa v2, PostgreSQL, Redis)
 - **Phase 3**: Cart/checkout code complete, needs runtime testing
-- **Email**: Stubbed (will restore via Medusa notifications)
+- **Email**: Handled by Medusa backend via Resend (storefront stubs remain for non-transactional)
 - **SSG**: Disabled for product pages (force-dynamic)
 
 ## Deployment
@@ -105,4 +104,3 @@ For detailed context, see `docs/reference/`:
 | KEY_MANAGEMENT.md | Full secrets inventory (~50 vars) |
 | STATE_MANAGEMENT.md | Modifying Zustand stores |
 | STRIPE_INTEGRATION.md | Payment flow debugging |
-| RFD-009-build-workarounds.md | Build issue root causes |

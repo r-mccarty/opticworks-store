@@ -218,16 +218,25 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ## Known Issues
 
-### Email System Stubbed
+### Email System - RESTORED via Medusa
 
-**Issue**: @react-email conflicts with Next.js 15 SSG
-**Workaround**: Email functions log and return success (no actual sending)
-**Plan**: Restore via Medusa notification module in Phase 4
+**Original Issue**: Incorrectly attributed to @react-email conflict (actual root cause: NODE_ENV not unset in Codespaces)
 
-**Files affected**:
-- `src/lib/api/email.ts` - Stubbed
+**Solution Implemented**: Email functionality restored via Medusa notification system using Resend
+
+**Backend files added**:
+- `backend/src/modules/resend/` - Custom Resend notification provider
+- `backend/src/modules/resend/emails/` - React Email templates (order-placed, order-shipped, password-reset)
+- `backend/src/subscribers/order-placed.ts` - Event subscriber for order confirmations
+- Updated `backend/medusa-config.ts` - Resend provider configuration
+
+**Storefront files** (still stubbed, handled by Medusa backend now):
+- `src/lib/api/email.ts` - Stubbed (transactional emails go through Medusa)
 - `src/app/api/email/send/route.ts` - Stubbed
-- `src/lib/email/templates/*.tsx.disabled` - Disabled
+
+**Environment Variables Required**:
+- `RESEND_API_KEY` - Resend API key
+- `RESEND_FROM_EMAIL` - Sender email address (e.g., "OpticWorks <notifications@optic.works>")
 
 ### Build Workarounds
 

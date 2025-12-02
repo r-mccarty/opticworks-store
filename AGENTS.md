@@ -105,4 +105,3 @@ For detailed context, see `docs/reference/`:
 | KEY_MANAGEMENT.md | Full secrets inventory (~50 vars) |
 | STATE_MANAGEMENT.md | Modifying Zustand stores |
 | STRIPE_INTEGRATION.md | Payment flow debugging |
-| RFD-009-build-workarounds.md | Build issue root causes |

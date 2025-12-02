@@ -7,21 +7,51 @@
   gather_facts: yes
   vars_files:
     - ../group_vars/all.yml
+    - ../group_vars/secrets.yml
 
   tasks:
-    - name: Pull latest code from Git
+    - name: Clone repository to temp location
       ansible.builtin.git:
         repo: "{{ repo_url }}"
-        dest: "{{ app_root }}"
+        dest: "/tmp/medusa-deploy"
         version: "{{ repo_branch }}"
         force: yes
       become: yes
       become_user: "{{ app_user }}"
 
+    - name: Sync backend directory to app root
+      ansible.posix.synchronize:
+        src: "/tmp/medusa-deploy/backend/"
+        dest: "{{ app_root }}/"
+        delete: yes
+        rsync_opts:
+          - "--exclude=node_modules"
+          - "--exclude=.medusa"
+          - "--exclude=logs"
+          - "--exclude=.env"
+      delegate_to: "{{ inventory_hostname }}"
+      become: yes
+      become_user: "{{ app_user }}"
+
+    - name: Clean up temp clone
+      ansible.builtin.file:
+        path: "/tmp/medusa-deploy"
+        state: absent
+      become: yes
+
+    - name: Update .env file from template
+      ansible.builtin.template:
+        src: ../roles/medusa/templates/medusa.env.j2
+        dest: "{{ medusa_service_dir }}/.env"
+        owner: "{{ app_user }}"
+        group: "{{ app_group }}"
+        mode: '0600'
+      become: yes
+
     - name: Install/update pnpm dependencies
       ansible.builtin.command:
-        cmd: pnpm install
-        chdir: "{{ app_root }}"
+        cmd: pnpm install --ignore-workspace
+        chdir: "{{ medusa_service_dir }}"
       become: yes
       become_user: "{{ app_user }}"
       changed_when: false

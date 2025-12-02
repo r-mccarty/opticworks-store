@@ -14,7 +14,6 @@ Detailed documentation for deep dives. **Start with the main docs first** - only
 | [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Full Infisical variable inventory |
 | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand patterns, store architecture |
 | [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow (Medusa + legacy) |
-| [RFD-009-build-workarounds.md](RFD-009-build-workarounds.md) | Build issue investigation, root cause |
 
 ## When to Reference
 
@@ -24,7 +23,6 @@ Detailed documentation for deep dives. **Start with the main docs first** - only
 - **KEY_MANAGEMENT.md** - Adding new secrets, understanding variable groups
 - **STATE_MANAGEMENT.md** - Modifying cart/checkout stores
 - **STRIPE_INTEGRATION.md** - Debugging payment flows
-- **RFD-009** - Build failures, understanding workarounds
 
 ## Note
 

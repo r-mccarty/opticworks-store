@@ -4,8 +4,7 @@ import { notFound } from "next/navigation"
 import { ProductDetailView } from "@/components/products/ProductDetailView"
 import { getProductById } from "@/lib/api/medusa"
 
-// Force dynamic rendering to avoid SSG build errors when Medusa API
-// is unavailable at build time. See RFD-009 for details.
+// Force dynamic rendering - Medusa API unavailable at build time
 export const dynamic = 'force-dynamic'
 
 interface ProductPageProps {
@@ -14,15 +13,10 @@ interface ProductPageProps {
   }>
 }
 
-// Commented out: SSG causes build failures when Medusa API key isn't
-// available at build time. The error cascades to 404 page generation
-// with a misleading "<Html> import" error. See RFD-009.
-//
+// SSG disabled - Medusa API requires publishable key unavailable at build time
 // export async function generateStaticParams() {
 //   const catalog = await listProducts()
-//   return catalog.map((product) => ({
-//     slug: product.id,
-//   }))
+//   return catalog.map((product) => ({ slug: product.id }))
 // }
 
 export async function generateMetadata({ params }: ProductPageProps): Promise<Metadata> {

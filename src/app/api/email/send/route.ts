@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { type EmailTemplate } from '@/lib/api/email';
 
-// Email API Route - Stubbed for Phase 3
-// React Email templates removed due to Next.js 15.5.0 SSG conflict (RFD-009).
-// Emails will be handled by Medusa notification system in Phase 4.
+// Email API Route - Storefront stub
+// Transactional emails handled by Medusa backend via Resend.
+// This stub remains for non-transactional emails if needed.
 
 const VALID_TEMPLATES = [
   'order-confirmation',
