@@ -28,6 +28,7 @@
     "@medusajs/draft-order": "^2.12.0",
     "@medusajs/framework": "2.12.0",
     "@medusajs/medusa": "2.12.0",
+    "dotenv": "^16.4.7",
     "dotenv-cli": "^7.4.2"
   },
   "devDependencies": {
