@@ -93,3 +93,16 @@ Key variables:
 - `STRIPE_WEBHOOK_SECRET` - Webhook verification
 
 See `docs/SECRETS.md` for full list.
+
+## Reference Docs (Deep Dives)
+
+For detailed context, see `docs/reference/`:
+
+| Document | Use When |
+|----------|----------|
+| PHASE3_PLAN.md | Understanding implementation tracks |
+| DEPLOYMENT_GUIDE.md | Debugging Ansible, full provisioning |
+| KEY_MANAGEMENT.md | Full secrets inventory (~50 vars) |
+| STATE_MANAGEMENT.md | Modifying Zustand stores |
+| STRIPE_INTEGRATION.md | Payment flow debugging |
+| RFD-009-build-workarounds.md | Build issue root causes |

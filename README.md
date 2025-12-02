@@ -97,6 +97,15 @@ Never commit `.env.local` or `backend/.env`.
 - **Infra**: Hetzner Cloud, Cloudflare Tunnel, Ansible
 - **Secrets**: Infisical
 
+## Reference Docs
+
+For deep dives, see [docs/reference/](docs/reference/):
+- Phase 3 implementation plan
+- Full Ansible deployment guide
+- Complete secrets inventory
+- Zustand state patterns
+- Stripe integration details
+
 ## License
 
 Proprietary - OpticWorks, Inc.
