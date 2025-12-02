@@ -8,5 +8,6 @@
     "esModuleInterop": true,
     "types": ["node"]
   },
-  "include": ["scripts", "src"]
+  "include": ["scripts", "src"],
+  "exclude": ["node_modules", ".medusa"]
 }

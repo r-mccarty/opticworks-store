@@ -20,6 +20,7 @@
     "health:check": "tsx scripts/health-check.ts",
     "health:wait": "tsx scripts/health-check.ts --wait",
     "setup:keys": "tsx scripts/setup-publishable-key.ts",
+    "setup:currencies": "tsx scripts/seed-currencies.ts",
     "validate:build": "tsx scripts/validate-build.ts",
     "catalog:import": "tsx scripts/import-products.ts",
     "catalog:verify": "tsx scripts/verify-catalog.ts",

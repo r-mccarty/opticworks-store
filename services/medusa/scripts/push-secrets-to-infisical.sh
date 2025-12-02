@@ -13,6 +13,10 @@ NC='\033[0m'
 
 echo -e "${BLUE}=== Push Medusa Backend Secrets to Infisical ===${NC}\n"
 
+# Default Infisical scope (prod environment, root path)
+INFISICAL_ENV_SLUG="${INFISICAL_ENV:-prod}"
+INFISICAL_PATH="${INFISICAL_PATH:-/}"
+
 # Check Infisical CLI
 if ! command -v infisical &> /dev/null; then
     echo -e "${RED}❌ Infisical CLI not found${NC}"
@@ -55,7 +59,7 @@ fi
 DATABASE_URL="postgresql://medusa_user:${POSTGRES_PASSWORD}@localhost:5432/medusa_db"
 
 echo -e "${GREEN}✅ Extracted secrets from Ansible${NC}"
-echo -e "${BLUE}Preview of secrets to push:${NC}"
+echo -e "${BLUE}Preview of secrets to push (env=${INFISICAL_ENV_SLUG}, path=${INFISICAL_PATH}):${NC}"
 echo "  - DATABASE_URL (with password)"
 echo "  - REDIS_URL"
 echo "  - MEDUSA_ADMIN_EMAIL: $MEDUSA_ADMIN_EMAIL"
@@ -91,12 +95,13 @@ infisical secrets set \
     "MEDUSA_ADMIN_CORS=http://localhost:7000,http://localhost:8000,https://api.optic.works" \
     "CLOUDFLARE_TUNNEL_ID=${CLOUDFLARE_TUNNEL_ID}" \
     "NODE_ENV=production" \
-    --env=development \
+    --env="${INFISICAL_ENV_SLUG}" \
+    --path="${INFISICAL_PATH}" \
     --token="$INFISICAL_SERVICE_TOKEN"
 
 if [ $? -eq 0 ]; then
     echo -e "\n${GREEN}✅ SUCCESS! Backend secrets pushed to Infisical${NC}"
-    echo -e "${BLUE}Location:${NC} OpticWorks → development environment"
+    echo -e "${BLUE}Location:${NC} OpticWorks → ${INFISICAL_ENV_SLUG} environment (${INFISICAL_PATH})"
     echo ""
     echo -e "${YELLOW}Next steps:${NC}"
     echo "  1. Verify in Infisical web UI: https://app.infisical.com"

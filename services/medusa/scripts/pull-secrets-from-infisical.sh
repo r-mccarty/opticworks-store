@@ -13,6 +13,12 @@ NC='\033[0m'
 
 echo -e "${BLUE}=== Pull Medusa Backend Secrets from Infisical ===${NC}\n"
 
+# Defaults align with current Infisical structure:
+# - Environment slug: "prod"
+# - Secrets stored at the root path "/"
+INFISICAL_ENV_SLUG="${INFISICAL_ENV:-prod}"
+INFISICAL_PATH="${INFISICAL_PATH:-/}"
+
 # Check Infisical CLI
 if ! command -v infisical &> /dev/null; then
     echo -e "${RED}❌ Infisical CLI not found${NC}"
@@ -46,8 +52,8 @@ fi
 
 # Pull from Infisical
 echo -e "${YELLOW}📥 Pulling secrets from Infisical...${NC}"
-echo -e "${BLUE}Path:${NC} /medusa"
-echo -e "${BLUE}Environment:${NC} production"
+echo -e "${BLUE}Environment:${NC} ${INFISICAL_ENV_SLUG}"
+echo -e "${BLUE}Path:${NC} ${INFISICAL_PATH}"
 echo ""
 
 # Use infisical export to get secrets
@@ -55,8 +61,8 @@ echo ""
 PROJECT_ID="42e9e77c-88fa-4cbb-925b-5064c8e3b18c"
 
 infisical export \
-    --env=production \
-    --path=/medusa \
+    --env="${INFISICAL_ENV_SLUG}" \
+    --path="${INFISICAL_PATH}" \
     --projectId="$PROJECT_ID" \
     --format=dotenv \
     --token="$INFISICAL_SERVICE_TOKEN" \

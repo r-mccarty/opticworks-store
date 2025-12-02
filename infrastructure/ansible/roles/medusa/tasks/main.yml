@@ -42,14 +42,16 @@
     mode: '0600'
   become: yes
 
-- name: Build Medusa admin dashboard
+- name: Install Medusa service dependencies
   ansible.builtin.command:
-    cmd: pnpm run build
+    cmd: pnpm install
     chdir: "{{ medusa_service_dir }}"
   become: yes
   become_user: "{{ app_user }}"
-  register: build_output
-  changed_when: "'Build completed successfully' in build_output.stdout"
+  changed_when: false
+
+# Build step skipped - Medusa v2 builds automatically in development mode
+# For production builds, run manually: pnpm exec medusa build
 
 - name: Install PM2 globally
   become: yes
