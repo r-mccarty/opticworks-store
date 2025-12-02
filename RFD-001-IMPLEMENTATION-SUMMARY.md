@@ -1,14 +1,14 @@
 # RFD-001 Implementation Summary: Standard Medusa Setup (Option A)
 
-**Date**: December 2, 2025
-**Status**: 🔄 IN PROGRESS - Deployment Architecture Fix Required
-**Approach**: Option A - Migrate to Standard Medusa Structure
+**Date**: December 2, 2025 (Updated 02:02 UTC)
+**Status**: 🔄 IN PROGRESS - Process Cleanup Required
+**Approach**: Option A - Migrate to Standard Medusa Structure (Option 1 Implemented)
 
 ---
 
 ## Summary
 
-Rebuilt the Medusa backend infrastructure to follow official Medusa v2 standards, moving from a problematic pnpm workspace setup to a standalone project structure. Local builds succeed, database migrations complete, but deployment requires architecture fix to properly isolate `/backend` from monorepo workspace.
+Rebuilt the Medusa backend infrastructure to follow official Medusa v2 standards, moving from a problematic pnpm workspace setup to a standalone project structure. **Option 1 deployment architecture successfully implemented** - backend deploys as standalone app at `/opt/opticworks/medusa-backend/` (no monorepo conflicts). Local and production builds succeed, database migrations complete, but deployment blocked by legacy Medusa process from Nov 18 holding port 9000.
 
 ---
 
@@ -59,7 +59,9 @@ All operational scripts moved to `/backend/src/scripts/`:
 
 **Updated Variables** (`infrastructure/ansible/group_vars/all.yml`):
 ```yaml
-medusa_service_dir: "{{ app_root }}/backend"  # Changed from /services/medusa
+# Before: medusa_service_dir: "{{ app_root }}/backend"
+# After (Option 1):
+medusa_service_dir: "{{ app_root }}"  # app_root IS the backend (standalone deployment)
 ```
 
 **Rewritten Medusa Role** (`roles/medusa/tasks/main.yml`):
@@ -124,29 +126,54 @@ Medusa version: 2.12.0
    - Medusa CLI functional and verified
 
 4. **Code Fixes Applied**
-   - Added `@medusajs/admin-shared` to package.json devDependencies
-   - Updated `package.json` to use `dotenv-cli` in start script
+   - Added `@medusajs/admin-shared@2.12.0` to devDependencies (fixes admin build)
+   - Added `dotenv@^16.4.7` to dependencies (fixes script imports)
+   - Simplified start script to `medusa start` (Medusa loads .env automatically via loadEnv())
    - Temporarily disabled Notification and File modules (incorrect import paths)
    - Fixed Ansible template to properly encode DATABASE_URL passwords
 
-### ❌ Deployment Blocker Discovered
+5. **Option 1 Deployment Architecture Implemented**
+   - ✅ Ansible updated to clone repo to `/tmp`, sync only `/backend` to app_root
+   - ✅ Backend deployed as standalone app at `/opt/opticworks/medusa-backend/`
+   - ✅ No monorepo workspace artifacts in deployment directory
+   - ✅ Correct module resolution (uses `/opt/opticworks/medusa-backend/node_modules`)
+   - ✅ Admin build in correct location (`.medusa/client/`)
 
-**Issue**: Monorepo Workspace Conflict
+### ❌ Current Deployment Blocker (Dec 2, 02:00 UTC)
+
+**Issue**: Legacy Medusa Process Blocking Port 9000
 
 **Problem**:
-- Ansible clones entire monorepo to `/opt/opticworks/medusa-backend/`
-- This creates workspace `node_modules` at `/opt/opticworks/medusa-backend/node_modules`
-- When Medusa runs from `/opt/opticworks/medusa-backend/backend/`, pnpm resolves modules from parent workspace
-- Admin panel looks for build in `/opt/opticworks/medusa-backend/.medusa/admin/` (doesn't exist)
-- Actual admin build is at `/opt/opticworks/medusa-backend/backend/.medusa/client/`
+- Old Medusa process from Nov 18 (PID 4486) still running on server
+- Process is bound to port 9000, preventing new deployment from starting
+- Multiple orphaned Medusa processes accumulating from deployment attempts
+- PM2 process starts successfully but cannot bind to port
 
 **Root Cause**:
-The `/backend` directory is designed to be a **standalone Medusa project**, not a workspace package. Deploying it within the monorepo creates module resolution conflicts that break the runtime.
+Legacy process from previous deployment was not properly terminated before implementing Option 1 architecture.
 
 **Impact**:
-- Medusa server fails to start: `Could not find index.html in the admin build directory`
-- Module paths reference wrong `node_modules` directory
-- Cannot serve admin panel or API endpoints
+- New Medusa deployment cannot bind to port 9000
+- Health endpoint not accessible (connection refused)
+- PM2 shows process as "online" but server not responding
+
+**Resolution Required**:
+1. Kill all legacy Medusa processes (pkill -f 'medusa start')
+2. Verify port 9000 is free (netstat/ss check)
+3. Restart PM2 with clean slate
+4. Verify health endpoint responds
+
+---
+
+### ✅ Resolved: Monorepo Workspace Conflict (Dec 2, 01:45 UTC)
+
+**Previous Issue**: Deploying entire monorepo created workspace conflicts
+
+**Solution Implemented**: Option 1 - Backend-Only Deployment
+- Ansible now clones repo to `/tmp`, syncs only `/backend` to `/opt/opticworks/medusa-backend/`
+- Backend deploys as standalone app (no parent workspace)
+- Module resolution works correctly
+- Admin build in correct location
 
 ---
 
@@ -421,17 +448,24 @@ If deployment fails:
 
 ## Next Steps
 
-### Immediate
-1. Sync secrets from Infisical
-2. Execute `ansible-playbook playbooks/medusa-provision.yml`
-3. Verify deployment health
-4. Re-import product catalog
+### Immediate (Blocker Resolution)
+1. ⏳ Kill all legacy Medusa processes on server (`pkill -9 -f 'medusa start'`)
+2. ⏳ Verify port 9000 is free (`ss -tlnp | grep :9000`)
+3. ⏳ Clear PM2 process list (`pm2 delete all`)
+4. ⏳ Start fresh Medusa with PM2 (`pm2 start ecosystem.config.js --env production`)
+5. ⏳ Verify health endpoint responds (`curl http://localhost:9000/health`)
 
-### Follow-Up (Optional)
-1. Resolve admin frontend build issue (dependency resolution)
+### Follow-Up (Post-Startup)
+1. Import product catalog (7 products via `src/scripts/import-products.ts`)
+2. Run E2E validation tests
+3. Test admin login with Infisical credentials
+4. Verify external access via Cloudflare Tunnel (`https://api.optic.works/health`)
+
+### Optional Improvements
+1. ✅ ~~Resolve admin frontend build issue~~ (fixed with @medusajs/admin-shared)
 2. Update `CLAUDE.md` and `README.md` to reflect new structure
-3. Update `docs/DEPLOYMENT_GUIDE.md` with new paths
-4. Archive `services/medusa/` → `services/medusa-legacy/`
+3. Update `docs/DEPLOYMENT_GUIDE.md` with Option 1 deployment process
+4. ✅ ~~Archive `services/medusa/`~~ (moved to `services/medusa-legacy/`)
 5. Add Resend custom notification module (replace local provider)
 6. Migrate file storage from local to Cloudflare R2
 
@@ -450,15 +484,24 @@ Continue with Medusa e-commerce migration tasks (cart/checkout, regions, etc.)
 5. ✅ PostgreSQL permissions configured correctly
 6. ✅ Redis connections operational (cache, events, workflow)
 
-### Phase 2: Deployment Architecture (🔄 IN PROGRESS)
-1. ⏳ Ansible updated to deploy backend-only (Option 1 implementation)
-2. ⏳ Module resolution working (no workspace conflicts)
-3. ⏳ Health endpoint accessible
-4. ⏳ Admin dashboard accessible
-5. ⏳ API endpoints functional
-6. ⏳ PM2 running stably without crashes
+### Phase 2: Deployment Architecture (✅ COMPLETE - Dec 2, 02:00 UTC)
+1. ✅ Ansible updated to deploy backend-only (Option 1 implemented)
+2. ✅ Module resolution working (no workspace conflicts)
+3. ✅ Backend deploys as standalone app at `/opt/opticworks/medusa-backend/`
+4. ✅ Admin build in correct location (`.medusa/client/`)
+5. ✅ Production builds succeed (backend: 4.2s, admin: 23.2s)
+6. ⏳ Health endpoint accessible (blocked by legacy process on port 9000)
+7. ⏳ Admin dashboard accessible (blocked by startup issue)
+8. ⏳ API endpoints functional (blocked by startup issue)
 
-### Phase 3: Validation (⏸️ BLOCKED)
+### Phase 3: Server Startup (🔄 IN PROGRESS - Blocker: Legacy Process)
+1. ⏳ Kill legacy Medusa processes
+2. ⏳ Clear PM2 process list
+3. ⏳ Start fresh Medusa instance
+4. ⏳ Verify health endpoint responds
+5. ⏳ PM2 running stably without crashes
+
+### Phase 4: Validation (⏸️ PENDING)
 1. ⏳ E2E validation tests passing
 2. ⏳ Product catalog imported (7 products)
 3. ⏳ Product API returns all products
@@ -466,9 +509,10 @@ Continue with Medusa e-commerce migration tasks (cart/checkout, regions, etc.)
 5. ⏳ Store API endpoints responding
 
 **Estimated Effort**: 4-6 hours
-**Actual Time Spent**: ~8 hours (including debugging workspace conflicts)
-**Status**: 🔄 IN PROGRESS - Deployment architecture fix required (Option 1)
-**Blocker**: Monorepo workspace conflict - requires Ansible refactoring to deploy backend-only
+**Actual Time Spent**: ~10 hours (including debugging workspace conflicts, implementing Option 1, troubleshooting startup)
+**Status**: 🔄 IN PROGRESS - Process cleanup required
+**Current Blocker**: Legacy Medusa process from Nov 18 holding port 9000
+**Previous Blocker (Resolved)**: ✅ Monorepo workspace conflict - fixed via Option 1 deployment architecture
 
 ---
 
