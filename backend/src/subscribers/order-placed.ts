@@ -65,8 +65,9 @@ export default async function orderPlacedHandler({
         shipping_total: order.shipping_total,
         tax_total: order.tax_total,
         total: order.total,
-        items: order.items?.map((item: Record<string, unknown>) => {
-          const variant = item.variant as Record<string, unknown> | undefined
+        items: order.items?.map((item) => {
+          if (!item) return null
+          const variant = (item as Record<string, unknown>).variant as Record<string, unknown> | undefined
           const product = variant?.product as Record<string, unknown> | undefined
           return {
             id: item.id,
@@ -77,7 +78,7 @@ export default async function orderPlacedHandler({
             unit_price: item.unit_price,
             total: item.total,
           }
-        }),
+        }).filter(Boolean),
         shipping_address: order.shipping_address,
         customer: order.customer,
       },
