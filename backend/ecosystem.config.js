@@ -25,6 +25,7 @@ const devProcess = {
   autorestart: true,
   watch: false,
   max_memory_restart: '1G',
+  env_file: '.env',
   env: {
     NODE_ENV: 'development',
   },
@@ -53,6 +54,7 @@ const prodProcess = {
   autorestart: true,
   watch: false,
   max_memory_restart: '2G',
+  env_file: '.env',
   env: {
     NODE_ENV: 'production',
   },
