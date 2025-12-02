@@ -28,6 +28,7 @@
           - "--exclude=node_modules"
           - "--exclude=.medusa"
           - "--exclude=logs"
+          - "--exclude=public"
           - "--exclude=.env"
       delegate_to: "{{ inventory_hostname }}"
       become: yes
