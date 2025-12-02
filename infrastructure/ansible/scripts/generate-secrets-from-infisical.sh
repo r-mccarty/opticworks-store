@@ -65,6 +65,13 @@ MEDUSA_ADMIN_EMAIL=$(get_secret "MEDUSA_ADMIN_EMAIL" "false")
 MEDUSA_ADMIN_PASSWORD=$(get_secret "MEDUSA_ADMIN_PASSWORD" "true")
 MEDUSA_SECRET_KEY=$(get_secret "MEDUSA_SECRET_KEY" "false")
 
+# Optional: Payment (Stripe)
+STRIPE_API_KEY=$(get_secret "STRIPE_API_KEY" "false")
+STRIPE_WEBHOOK_SECRET=$(get_secret "STRIPE_WEBHOOK_SECRET" "false")
+
+# Optional: Notifications (Resend)
+RESEND_API_KEY=$(get_secret "RESEND_API_KEY" "false")
+
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
 
@@ -104,8 +111,45 @@ cloudflare_tunnel_credentials: |
   $CF_TUNNEL_CREDS
 EOF
 
+# Append optional secrets only if they exist
+if [ -n "$STRIPE_API_KEY" ]; then
+    echo "" >> "$SECRETS_FILE"
+    echo "# Stripe Payment" >> "$SECRETS_FILE"
+    echo "stripe_api_key: \"$STRIPE_API_KEY\"" >> "$SECRETS_FILE"
+fi
+
+if [ -n "$STRIPE_WEBHOOK_SECRET" ]; then
+    echo "stripe_webhook_secret: \"$STRIPE_WEBHOOK_SECRET\"" >> "$SECRETS_FILE"
+fi
+
+if [ -n "$RESEND_API_KEY" ]; then
+    echo "" >> "$SECRETS_FILE"
+    echo "# Resend Notifications" >> "$SECRETS_FILE"
+    echo "resend_api_key: \"$RESEND_API_KEY\"" >> "$SECRETS_FILE"
+fi
+
 echo "✅ Secrets file synced: $SECRETS_FILE"
 echo ""
+
+# Show optional secrets status
+echo "📋 Optional secrets status:"
+if [ -n "$STRIPE_API_KEY" ]; then
+    echo "   ✅ STRIPE_API_KEY: configured"
+else
+    echo "   ⚠️  STRIPE_API_KEY: missing (payments will not work)"
+fi
+if [ -n "$STRIPE_WEBHOOK_SECRET" ]; then
+    echo "   ✅ STRIPE_WEBHOOK_SECRET: configured"
+else
+    echo "   ⚠️  STRIPE_WEBHOOK_SECRET: missing (webhooks will fail)"
+fi
+if [ -n "$RESEND_API_KEY" ]; then
+    echo "   ✅ RESEND_API_KEY: configured"
+else
+    echo "   ⚠️  RESEND_API_KEY: missing (emails will not send)"
+fi
+echo ""
+
 echo "Next steps:"
 echo "  1. Review secrets: cat $SECRETS_FILE"
 echo "  2. (Optional) Encrypt with Ansible Vault: ansible-vault encrypt $SECRETS_FILE"
