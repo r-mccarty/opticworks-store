@@ -25,14 +25,6 @@
   become: yes
   become_user: "{{ app_user }}"
 
-- name: Install pnpm dependencies (root)
-  ansible.builtin.command:
-    cmd: pnpm install
-    chdir: "{{ app_root }}"
-  become: yes
-  become_user: "{{ app_user }}"
-  changed_when: false
-
 - name: Create Medusa .env file
   ansible.builtin.template:
     src: medusa.env.j2
@@ -42,16 +34,31 @@
     mode: '0600'
   become: yes
 
-- name: Install Medusa service dependencies
+- name: Install Medusa dependencies (standalone, not workspace)
   ansible.builtin.command:
-    cmd: pnpm install
+    cmd: pnpm install --ignore-workspace
     chdir: "{{ medusa_service_dir }}"
   become: yes
   become_user: "{{ app_user }}"
   changed_when: false
 
-# Build step skipped - Medusa v2 builds automatically in development mode
-# For production builds, run manually: pnpm exec medusa build
+- name: Verify Medusa CLI is available
+  ansible.builtin.command:
+    cmd: pnpm exec medusa --version
+    chdir: "{{ medusa_service_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  register: medusa_version
+  changed_when: false
+
+- name: Build Medusa backend for production
+  ansible.builtin.command:
+    cmd: pnpm exec medusa build
+    chdir: "{{ medusa_service_dir }}"
+  become: yes
+  become_user: "{{ app_user }}"
+  register: medusa_build
+  changed_when: "'Backend build completed successfully' in medusa_build.stdout"
 
 - name: Install PM2 globally
   become: yes
@@ -68,14 +75,16 @@
   failed_when: false
   changed_when: false
 
-- name: Start Medusa with PM2
+- name: Start Medusa with PM2 (production mode)
   ansible.builtin.command:
-    cmd: pnpm run start:pm2
+    cmd: "pm2 start ecosystem.config.js --env production"
     chdir: "{{ medusa_service_dir }}"
+  environment:
+    PM2_TARGET: "production"
   become: yes
   become_user: "{{ app_user }}"
   register: pm2_start
-  changed_when: "'launched' in pm2_start.stdout"
+  changed_when: "'launched' in pm2_start.stdout or 'online' in pm2_start.stdout"
 
 - name: Save PM2 process list
   ansible.builtin.command:
