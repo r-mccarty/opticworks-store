@@ -237,61 +237,69 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-### Track 9: Medusa Order Integration 📋 PENDING
+### Track 9: Medusa-Only Checkout Flow 📋 PENDING
 
-**Problem**: Orders are not being created in Medusa because products are added to cart without variant IDs.
+**Goal**: Remove direct Stripe fallback and establish Medusa as the single source of truth for e-commerce operations. This simplifies the codebase and ensures all orders flow through Medusa.
 
-**Root Cause Analysis**:
-```
-addToCart(product) → No variantId
-                   → "[cart] No variant ID available for product, skipping Medusa sync"
-                   → Medusa cart is empty
-                   → createMedusaPaymentSession fails (empty cart)
-                   → Falls back to direct Stripe checkout
-                   → completeCart() never called
-                   → No Medusa order created
-```
+**Problem**: Orders are not being created in Medusa because:
+1. Products are added to cart without variant IDs
+2. Cart sync is skipped, Medusa cart stays empty
+3. Checkout falls back to direct Stripe (bypassing Medusa entirely)
+4. `completeCart()` is never called, no Medusa order created
 
-**Current Flow** (broken):
+**Current Flow** (broken with hidden fallback):
 ```
-Product Page → addToCart(product) → Local cart only
-            → Checkout → Direct Stripe (fallback)
+Product Page → addToCart(product) → Local cart only (no variant ID)
+            → Checkout → Medusa fails → Falls back to direct Stripe
             → Webhook → Supabase only (no Medusa order)
 ```
 
-**Target Flow** (fixed):
+**Target Flow** (Medusa-only):
 ```
-Product Page → addToCart(product, variantId) → Local cart + Medusa cart
-            → Checkout → Medusa payment session
+Product Page → addToCart(product) → Product includes variantId
+            → Medusa cart sync → Cart has items
+            → Checkout → Medusa payment session (Stripe via Medusa)
             → Payment success → completeCart(cartId)
             → Medusa order created ✅
+            → Medusa triggers order notifications
 ```
 
 **Implementation Tasks**:
-- [ ] Include variant IDs in product data from Medusa API
-- [ ] Pass variant IDs to `addToCart()` from all product components:
-  - `src/components/products/FinalCTA.tsx`
-  - `src/components/products/BentoProductShowcase.tsx`
-  - `src/components/products/ProductHero.tsx`
-  - `src/components/store/ProductGrid.tsx`
-- [ ] Verify Medusa cart sync works with variant IDs
-- [ ] Test `completeCart()` creates order after payment
-- [ ] Verify order appears in Medusa dashboard
 
-**Key Files**:
-- `src/lib/api/medusa.ts` - Product API (needs to return variant IDs)
-- `src/hooks/useCart.ts` - Cart store (line 244-248 requires variant ID)
-- `src/components/checkout/CheckoutForm.tsx` - Calls `completeCart()`
+1. **Product Data**:
+   - [ ] Include `variantId` in Product type
+   - [ ] Return first variant ID from Medusa API response
+   - [ ] Update `transformMedusaProduct()` to include variant ID
 
-**Related Code** (useCart.ts:244-248):
-```typescript
-const productVariantId = variantId ?? (product as unknown as { variantId?: string }).variantId
+2. **Cart Integration**:
+   - [ ] Remove "no variant ID" skip logic - throw error instead
+   - [ ] Ensure all `addToCart()` calls have variant IDs available
+   - [ ] Update product components to use product.variantId
 
-if (!productVariantId) {
-  console.warn("[cart] No variant ID available for product, skipping Medusa sync")
-  return
-}
-```
+3. **Checkout Simplification**:
+   - [ ] Remove direct Stripe checkout fallback from `CheckoutWrapper.tsx`
+   - [ ] Remove `createPaymentSession()` fallback path
+   - [ ] Remove `/api/stripe/create-checkout-session` route (or keep for legacy)
+   - [ ] Make Medusa cart required for checkout
+
+4. **Testing**:
+   - [ ] Test add to cart creates Medusa line item
+   - [ ] Test checkout uses Medusa payment session
+   - [ ] Test `completeCart()` creates order
+   - [ ] Verify order in Medusa dashboard
+
+**Key Files to Modify**:
+- `src/lib/products.ts` - Add variantId to Product type
+- `src/lib/api/medusa.ts` - Include variant ID in product transform
+- `src/hooks/useCart.ts` - Remove skip logic, require variant ID
+- `src/components/checkout/CheckoutWrapper.tsx` - Remove Stripe fallback
+- `src/components/products/*.tsx` - Use product.variantId in addToCart
+
+**Benefits of Medusa-Only Approach**:
+- Single source of truth for orders
+- Medusa handles inventory, notifications, fulfillment
+- Clearer error messages (no silent fallbacks)
+- Simpler codebase to maintain
 
 ---
 

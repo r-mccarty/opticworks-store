@@ -192,6 +192,18 @@ export const useCart = create<CartStore>()(
       },
 
       addToCart: async (product, variantId) => {
+        // Get variant ID from parameter or product (Medusa products include variantId)
+        const productVariantId = variantId ?? product.variantId
+
+        // Require variant ID for Medusa integration
+        if (!productVariantId) {
+          console.error("[cart] No variant ID available for product:", product.id)
+          toast.error("Unable to add to cart", {
+            description: "This product is missing required data. Please refresh the page.",
+          })
+          return
+        }
+
         const items = get().items
         const existingItem = items.find(item => item.id === product.id)
 
@@ -209,7 +221,7 @@ export const useCart = create<CartStore>()(
           })
         } else {
           const newItem = normalizeCartItem(product)
-          newItem.variantId = variantId
+          newItem.variantId = productVariantId
           set({
             items: [...items.map(normalizeCartItem), newItem]
           })
@@ -225,37 +237,28 @@ export const useCart = create<CartStore>()(
           },
         })
 
-        // Sync with Medusa if enabled
-        if (medusaConfig.enabled) {
-          try {
-            let { cartId, regionId } = get()
+        // Sync with Medusa (required for checkout)
+        try {
+          let { cartId, regionId } = get()
 
-            // Initialize cart if needed
-            if (!cartId) {
-              if (!regionId) {
-                regionId = await getDefaultRegionId()
-              }
-              const newCart = await medusaCreateCart(regionId)
-              cartId = newCart.id
-              set({ cartId, regionId })
+          // Initialize cart if needed
+          if (!cartId) {
+            if (!regionId) {
+              regionId = await getDefaultRegionId()
             }
-
-            // Use the provided variantId or try to get from product metadata
-            const productVariantId = variantId ?? (product as unknown as { variantId?: string }).variantId
-
-            if (!productVariantId) {
-              console.warn("[cart] No variant ID available for product, skipping Medusa sync")
-              return
-            }
-
-            // Add to Medusa cart
-            const updatedCart = await medusaAddLineItem(cartId, productVariantId, 1)
-            const syncedItems = updatedCart.items.map((item) => transformMedusaLineItem(item, productCache))
-            set({ items: syncedItems, syncStatus: "synced" })
-          } catch (error) {
-            console.error("[cart] Failed to add item to Medusa cart:", error)
-            // Keep optimistic update, don't revert
+            const newCart = await medusaCreateCart(regionId)
+            cartId = newCart.id
+            set({ cartId, regionId })
           }
+
+          // Add to Medusa cart
+          const updatedCart = await medusaAddLineItem(cartId, productVariantId, 1)
+          const syncedItems = updatedCart.items.map((item) => transformMedusaLineItem(item, productCache))
+          set({ items: syncedItems, syncStatus: "synced" })
+        } catch (error) {
+          console.error("[cart] Failed to add item to Medusa cart:", error)
+          // Keep optimistic update but mark sync as failed
+          set({ syncStatus: "error", syncError: "Failed to sync cart with server" })
         }
       },
 

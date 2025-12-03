@@ -44,17 +44,10 @@ type MedusaProductResponse = {
   metadata?: Record<string, unknown>
 }
 
-export interface CheckoutLineItem {
-  id: string
-  name: string
-  price: number
-  quantity: number
-}
-
 export interface PaymentSessionResult {
   sessionId: string
   clientSecret: string | null
-  provider: "medusa" | "stripe" | "medusa-stripe"
+  provider: "medusa" | "medusa-stripe"
 }
 
 // Cart API types for Medusa v2
@@ -172,6 +165,8 @@ const transformMedusaProduct = (raw: MedusaProductResponse): Product => {
         return (variant.inventory_quantity ?? 0) > 0
       })) ?? fallback?.inStock ?? true,
     featured: fallback?.featured,
+    // Include first variant ID for Medusa cart integration
+    variantId: firstVariant?.id,
   }
 
   return normalized
@@ -246,56 +241,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   }
 }
 
-export async function createPaymentSession(items: CheckoutLineItem[]): Promise<PaymentSessionResult> {
-  if (!items.length) {
-    throw new Error("Cannot create payment session without items")
-  }
-
-  if (medusaConfig.enabled) {
-    try {
-      const response = await medusaFetch<{
-        cart: { id: string }
-        payment_session?: { id: string; client_secret?: string }
-      }>("/store/carts", {
-        method: "POST",
-        body: JSON.stringify({
-          items: items.map((item) => ({
-            quantity: item.quantity,
-            variant_id: item.id,
-          })),
-        }),
-      })
-
-      return {
-        sessionId: response.payment_session?.id ?? response.cart.id,
-        clientSecret: response.payment_session?.client_secret ?? null,
-        provider: "medusa",
-      }
-    } catch (error) {
-      console.warn("[medusa] Checkout session failed, falling back to Stripe:", error)
-    }
-  }
-
-  const stripeResponse = await fetch("/api/stripe/create-checkout-session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ items }),
-  })
-
-  if (!stripeResponse.ok) {
-    const errorData = await stripeResponse.json().catch(() => ({}))
-    throw new Error(errorData.error ?? "Failed to create checkout session")
-  }
-
-  const data = await stripeResponse.json()
-  return {
-    sessionId: data.sessionId,
-    clientSecret: data.clientSecret ?? null,
-    provider: "stripe",
-  }
-}
+// Legacy createPaymentSession removed - use createMedusaPaymentSession instead
 
 // =============================================================================
 // Cart API Functions (Track 3)

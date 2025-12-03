@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useCheckoutState } from '@/hooks/useCheckoutState';
-import { medusaConfig, completeCart, updateCart } from '@/lib/api/medusa';
+import { completeCart, updateCart } from '@/lib/api/medusa';
 import type {
   StripeCheckoutInstance,
   StripeCheckoutPaymentElement,
@@ -208,37 +208,22 @@ export default function CheckoutForm({ checkout, onSuccess, onError }: CheckoutF
         console.log('✅ Payment confirmed successfully');
 
         // Complete the Medusa cart to create the order
-        if (medusaConfig.enabled) {
-          const cartId = getCartId();
-          if (cartId) {
-            try {
-              console.log('🔄 Completing Medusa cart:', cartId);
-
-              // Update cart with email before completing
-              await updateCart(cartId, { email });
-
-              // Complete the cart to create the order
-              const { order } = await completeCart(cartId);
-              console.log('✅ Order created:', order.id, 'Display ID:', order.display_id);
-
-              // Use order ID for success redirect
-              onSuccess(order.id);
-              return;
-            } catch (completeError) {
-              console.error('❌ Failed to complete Medusa cart:', completeError);
-              // Continue with session-based success if cart completion fails
-            }
-          }
+        const cartId = getCartId();
+        if (!cartId) {
+          throw new Error('Cart ID not found. Unable to complete order.');
         }
 
-        // Fallback to session-based success
-        if (result.session) {
-          console.log('🎯 Session ID:', result.session.id);
-          onSuccess(result.session.id);
-        } else {
-          console.log('🔄 Payment processing, redirect may occur...');
-          setMessage('Payment is being processed...');
-        }
+        console.log('🔄 Completing Medusa cart:', cartId);
+
+        // Update cart with email before completing
+        await updateCart(cartId, { email });
+
+        // Complete the cart to create the order
+        const { order } = await completeCart(cartId);
+        console.log('✅ Order created:', order.id, 'Display ID:', order.display_id);
+
+        // Use order ID for success redirect
+        onSuccess(order.id);
       }
     } catch (error) {
       console.error('❌ Payment error:', error);

@@ -6,11 +6,7 @@ import type { Stripe } from '@stripe/stripe-js';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
-import {
-  medusaConfig,
-  createPaymentSession,
-  createMedusaPaymentSession,
-} from '@/lib/api/medusa';
+import { createMedusaPaymentSession } from '@/lib/api/medusa';
 import type { StripeCheckoutInstance, StripeWithCheckout } from '@/types/stripe-checkout';
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
@@ -46,50 +42,30 @@ export default function CheckoutWrapper({
       throw new Error('Your cart is empty');
     }
 
-    console.log('Creating checkout session with items:', items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity })));
+    console.log('[checkout] Creating Medusa payment session for items:', items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity })));
 
-    // Try Medusa cart-based payment session first
-    if (medusaConfig.enabled) {
-      let cartId = getCartId();
-
-      // Initialize cart if needed
-      if (!cartId) {
-        await initializeCart();
-        cartId = getCartId();
-      }
-
-      if (cartId) {
-        try {
-          console.log('[checkout] Using Medusa cart payment session for cart:', cartId);
-          const session = await createMedusaPaymentSession(cartId);
-
-          if (session.clientSecret) {
-            console.log(`[checkout] Received ${session.provider} client secret`);
-            return session.clientSecret;
-          }
-        } catch (error) {
-          console.warn('[checkout] Medusa payment session failed, falling back to direct Stripe:', error);
-        }
-      }
+    // Get or initialize Medusa cart
+    let cartId = getCartId();
+    if (!cartId) {
+      console.log('[checkout] No cart ID found, initializing cart...');
+      await initializeCart();
+      cartId = getCartId();
     }
 
-    // Fallback to direct Stripe checkout (legacy path)
-    console.log('[checkout] Using legacy Stripe checkout session');
-    const paymentItems = items.map(item => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-    }));
+    if (!cartId) {
+      throw new Error('Failed to initialize cart. Please try again.');
+    }
 
-    const session = await createPaymentSession(paymentItems);
+    console.log('[checkout] Using Medusa cart:', cartId);
+
+    // Create payment session via Medusa (Stripe provider)
+    const session = await createMedusaPaymentSession(cartId);
 
     if (!session.clientSecret) {
-      throw new Error(`Payment session from ${session.provider} did not return a client secret`);
+      throw new Error('Payment session did not return a client secret. Please try again.');
     }
 
-    console.log(`Received ${session.provider} client secret:`, session.clientSecret.substring(0, 10) + '...');
-
+    console.log(`[checkout] Received ${session.provider} client secret`);
     return session.clientSecret;
   }, [items, getCartId, initializeCart]);
 

@@ -47,6 +47,8 @@ export interface Product {
     count: number
   }
   installGuide?: string
+  // Medusa variant ID for cart integration
+  variantId?: string
 }
 
 export const products: Product[] = [
