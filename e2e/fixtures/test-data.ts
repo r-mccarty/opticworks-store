@@ -26,6 +26,21 @@ export const testCustomer = {
   lastName: 'Test',
 };
 
+/**
+ * Test user credentials for authentication tests.
+ * Note: These accounts need to be pre-created in Medusa for login tests.
+ * For registration tests, use generateTestEmail() to create unique accounts.
+ */
+export const testAuthCredentials = {
+  // Password used for all test accounts
+  password: 'TestPassword123!',
+  // Weak password for validation tests
+  weakPassword: '123',
+  // Invalid credentials for error testing
+  invalidEmail: 'nonexistent@optic.works',
+  invalidPassword: 'wrongpassword',
+};
+
 export const testAddress = {
   name: 'E2E Test Customer',
   line1: '123 Test Street',

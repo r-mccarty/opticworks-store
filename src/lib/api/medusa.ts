@@ -154,12 +154,14 @@ const normalizePrice = (amount?: number) => {
 }
 
 const transformMedusaProduct = (raw: MedusaProductResponse): Product => {
-  const fallback = fallbackProductMap.get(raw.id)
+  // Use handle (slug) for product ID - this is what URLs use and what getProductById() queries by
+  const productId = raw.handle || raw.id
+  const fallback = fallbackProductMap.get(productId)
   const template: Product =
     fallback ??
     fallbackProducts[0] ?? {
-      id: raw.id,
-      name: raw.title ?? raw.id,
+      id: productId,
+      name: raw.title ?? productId,
       description: raw.description ?? "",
       price: 0,
       image: raw.thumbnail ?? "",
@@ -192,8 +194,8 @@ const transformMedusaProduct = (raw: MedusaProductResponse): Product => {
 
   const normalized: Product = {
     ...template,
-    id: raw.id,
-    name: raw.title ?? fallback?.name ?? raw.id,
+    id: productId,
+    name: raw.title ?? fallback?.name ?? productId,
     description: raw.description ?? fallback?.description ?? "",
     price: normalizePrice(firstPrice?.amount) ?? fallback?.price ?? 0,
     originalPrice: fallback?.originalPrice,
@@ -769,4 +771,33 @@ export async function refreshAuthToken(token: string): Promise<AuthResponse> {
     },
   })
   return response
+}
+
+/**
+ * Request a password reset email.
+ * Always returns success to prevent email enumeration.
+ */
+export async function requestPasswordReset(email: string): Promise<void> {
+  await medusaFetch<void>("/auth/customer/emailpass/reset-password", {
+    method: "POST",
+    body: JSON.stringify({ identifier: email }),
+  })
+}
+
+/**
+ * Reset password using a reset token.
+ * The token is obtained from the reset email link.
+ */
+export async function resetPassword(
+  token: string,
+  email: string,
+  password: string
+): Promise<void> {
+  await medusaFetch<void>("/auth/customer/emailpass/update", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ email, password }),
+  })
 }

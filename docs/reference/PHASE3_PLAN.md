@@ -224,13 +224,13 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-### Track 7: E2E Testing ✅ COMPLETE
+### Track 7: E2E Testing ✅ COMPLETE (Extended 2025-12-03)
 
 **Infrastructure** (commit 96dca2a):
 - [x] Playwright installed and configured
-- [x] Page object models created (ProductPage, CartPage, CheckoutPage)
+- [x] Page object models created (ProductPage, CartPage, CheckoutPage, AuthPages, StorePage)
 - [x] Test helpers for console capture, network logging, storage inspection
-- [x] Test data fixtures with products, addresses, test cards
+- [x] Test data fixtures with products, addresses, test cards, auth credentials
 
 **Test Files**:
 
@@ -238,6 +238,9 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 |------|---------|
 | `e2e/tests/checkout-flow.spec.ts` | Full checkout E2E with Stripe |
 | `e2e/tests/add-to-cart.spec.ts` | Add to cart functionality |
+| `e2e/tests/auth-flow.spec.ts` | Registration, login, password reset |
+| `e2e/tests/store-navigation.spec.ts` | Store listing and product navigation |
+| `e2e/tests/full-journey.spec.ts` | Complete user journey tests |
 
 **Page Objects** (`e2e/fixtures/page-objects/`):
 
@@ -246,6 +249,8 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 | `product-page.ts` | Product detail page, variant selection, add to cart |
 | `cart-page.ts` | Cart view, quantity updates, proceed to checkout |
 | `checkout-page.ts` | Shipping address, Stripe Elements, payment submission |
+| `auth-page.ts` | Login, register, forgot password, account pages |
+| `store-page.ts` | Store listing, product navigation |
 
 **Helper Utilities** (`e2e/helpers/`):
 
@@ -261,6 +266,7 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 - Stripe test cards (success, decline, auth required)
 - Test shipping addresses
 - Email generator for unique test runs
+- Auth test credentials (password, invalid credentials)
 
 **Run Tests**:
 ```bash
@@ -275,6 +281,9 @@ pnpm exec playwright test --ui
 
 # Run specific test file
 pnpm exec playwright test checkout-flow
+pnpm exec playwright test auth-flow
+pnpm exec playwright test store-navigation
+pnpm exec playwright test full-journey
 
 # Run with headed browser (watch execution)
 pnpm exec playwright test --headed
@@ -287,11 +296,23 @@ pnpm exec playwright test checkout-flow --debug
 1. ✅ Browse → Add to cart → Checkout → Payment → Confirmation
 2. ✅ Declined card shows error (not redirected to success)
 3. ✅ Debug test captures full initialization state
+4. ✅ User registration creates new account
+5. ✅ User login with valid/invalid credentials
+6. ✅ Forgot password page accepts email
+7. ✅ Store page displays products with correct links
+8. ✅ Product navigation (store → product → cart)
+9. ✅ Cart persistence across navigation
+10. ✅ Full user journey (register → browse → cart → checkout)
+
+**Bugs Fixed During Testing** (2025-12-03):
+- Product links using Medusa UUID instead of handle (caused 404s)
+- Missing forgot password page (404)
+- Missing reset password page (404)
 
 **Future Enhancements** (not blocking):
-- [ ] Authentication flow test (login/register)
 - [ ] Email delivery verification (Mailosaur per RFD-010)
 - [ ] CI/CD integration (GitHub Actions)
+- [ ] Password reset with token (requires email access)
 
 ---
 
