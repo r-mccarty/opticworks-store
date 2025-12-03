@@ -396,6 +396,41 @@ ansible-playbook playbooks/medusa-deploy.yml --tags sync
 ssh hetzner-node "cd /opt/opticworks/medusa-backend && pnpm run build && pm2 restart medusa-dev"
 ```
 
+### No Git Repository on Server
+
+**Problem**: The `/opt/opticworks/medusa-backend` directory on the server is NOT a git repository. Running `git` commands there fails:
+```
+fatal: not a git repository (or any of the parent directories): .git
+```
+
+**Why**: The `medusa-deploy.yml` playbook:
+1. Clones the repo to `/tmp/medusa-deploy`
+2. Rsyncs the `backend/` directory to the app root
+3. Deletes the temp clone
+
+This means the deployed directory has no `.git` folder.
+
+**Implications**:
+- Cannot run `git pull` on the server
+- Cannot check `git log` or `git status` on the server
+- Must use Ansible or manual rsync for all deployments
+
+**Workaround for Quick Fixes**: If you need to make a quick change on the server:
+```bash
+# Edit directly (discouraged - causes drift)
+ssh hetzner-node
+vim /opt/opticworks/medusa-backend/src/scripts/some-file.ts
+
+# Then document and replicate in the repo!
+```
+
+**Proper Fix**: Always deploy through Ansible or manual rsync:
+```bash
+# Manual rsync from local (when Ansible is problematic)
+rsync -avz --exclude node_modules --exclude .medusa --exclude .env \
+  backend/ hetzner-node:/opt/opticworks/medusa-backend/
+```
+
 ### Rsync Delete Errors
 
 **Problem**: The rsync task may show warnings about non-empty directories it cannot delete:
