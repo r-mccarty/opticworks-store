@@ -5,6 +5,15 @@
   "compatibility_date": "2024-12-30",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Observability - enable Workers logs
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true
+    }
+  },
+
   // Worker assets configuration
   "assets": {
     "directory": ".open-next/assets",
@@ -48,6 +57,14 @@
       ],
       // Override existing DNS records (Vercel)
       "override_existing_dns_record": true,
+      // Observability
+      "observability": {
+        "logs": {
+          "enabled": true,
+          "head_sampling_rate": 1,
+          "invocation_logs": true
+        }
+      },
       // Inherit these in production env
       "r2_buckets": [
         {
