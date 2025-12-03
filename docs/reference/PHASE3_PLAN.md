@@ -428,9 +428,9 @@ Product Page → addToCart(product) → Product includes variantId
 **Solution**: Use `medusa.optic.works` (internal Cloudflare Tunnel hostname) for SSR requests:
 - The `opticworks-api-cors` worker already uses this successfully
 - Same tunnel, just accessed directly without going through the public proxy
-- Client-side requests continue using `api.optic.works` (need CORS headers from the proxy worker)
+- Client-side requests continue using `api.optic.works` (Medusa handles CORS directly)
 
-**Architecture**:
+**Architecture** (Simplified 2025-12-03):
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
 │                        Cloudflare Edge                                   │
@@ -443,24 +443,42 @@ Product Page → addToCart(product) → Product includes variantId
 │  │  (direct tunnel, no proxy)      │            │                       │
 │  └─────────────────────────────────┘            │                       │
 │                                                 │  Cloudflare Tunnel    │
-│  ┌─────────────────────────────────┐            │  (medusa.optic.works) │
-│  │  opticworks-api-cors            │            │                       │
-│  │  Routes: api.optic.works/*      │            │                       │
-│  │                                 │            │                       │
-│  │  Proxy: medusa.optic.works ─────┼────────────┤                       │
-│  │  (adds CORS headers)            │            │                       │
-│  └─────────────────────────────────┘            │                       │
+│  Browser → api.optic.works ─────────────────────┤  (both hostnames)     │
+│            (direct to tunnel)                   │                       │
 │                                                 │                       │
-│  Browser → api.optic.works ─────────────────────┘                       │
-│            (needs CORS worker)                                          │
+│  Note: CORS worker removed from request path    │                       │
+│  Medusa handles CORS via medusa-config.ts       │                       │
 └─────────────────────────────────────────────────────────────────────────┘
                                                   │
                                                   ▼
                                         ┌─────────────────┐
                                         │  Hetzner VPS    │
                                         │  Medusa :9000   │
+                                        │  (handles CORS) │
                                         └─────────────────┘
 ```
+
+**CORS Simplification** (2025-12-03):
+
+The CORS worker (`opticworks-api-cors`) has been removed from the request path. Medusa v2 natively supports CORS configuration via `storeCors`, `adminCors`, and `authCors` in `backend/medusa-config.ts`. Both `api.optic.works` and `medusa.optic.works` now route directly to the Cloudflare Tunnel.
+
+Server `.env` on Hetzner:
+```bash
+STORE_CORS=http://localhost:3000,https://optic.works,https://www.optic.works
+AUTH_CORS=http://localhost:7000,http://localhost:8000,https://api.optic.works
+```
+
+Tunnel config (`/etc/cloudflared/config.yml`):
+```yaml
+ingress:
+  - hostname: api.optic.works
+    service: http://localhost:9000
+  - hostname: medusa.optic.works
+    service: http://localhost:9000
+  - service: http_status:404
+```
+
+The CORS worker is kept in the repo (`infrastructure/workers/api-cors/`) for backwards compatibility but has no routes assigned.
 
 **Implementation**:
 
@@ -492,15 +510,15 @@ const getBaseUrl = () => {
 **Why This Works**:
 - `medusa.optic.works` is a Cloudflare Tunnel hostname pointing directly to the origin
 - No Cloudflare proxy in the middle = no hairpin issue
-- Client requests still go through `api.optic.works` for CORS handling
-- Both workers already trust this tunnel (CORS worker uses it)
+- Client requests still go through `api.optic.works` (Medusa handles CORS directly)
 
 **Tasks** (Completed 2025-12-03):
 - [x] Add `MEDUSA_SSR_BASE_URL` to `wrangler.jsonc`
 - [x] Update `src/lib/api/medusa.ts` to use SSR base URL server-side
 - [x] Deploy to Cloudflare Workers
 - [x] Test SSR product fetching works (200 OK from medusa.optic.works)
-- [x] Verify client-side cart/checkout still works (api.optic.works via CORS worker)
+- [x] Verify client-side cart/checkout still works (api.optic.works direct to Medusa)
+- [x] Remove CORS worker from request path (Medusa handles CORS natively)
 
 **Verification** (from Cloudflare Worker logs):
 ```
@@ -511,7 +529,7 @@ const getBaseUrl = () => {
 
 **Related**:
 - Archived: `docs/reference/archived/RFD-011-cloudflare-ssr-workaround.md`
-- `infrastructure/workers/api-cors/` - CORS worker that already uses the tunnel
+- `infrastructure/workers/api-cors/` - CORS worker (routes removed, kept for backwards compatibility)
 
 ---
 
