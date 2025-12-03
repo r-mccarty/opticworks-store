@@ -1,6 +1,6 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6-9 Complete, Track 5 Pending, Track 10 In Progress)
+**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6-10 Complete, Track 5 Pending)
 **Updated**: 2025-12-03
 
 ---
@@ -19,7 +19,7 @@
 | 7 | ✅ Complete | E2E testing (Playwright with page objects) |
 | 8 | ✅ Complete | Cloudflare Workers deployment (OpenNext) |
 | 9 | ✅ Complete | Medusa order integration (admin price display bug documented) |
-| 10 | 🚧 In Progress | SSR direct tunnel routing (bypass Cloudflare hairpin) |
+| 10 | ✅ Complete | SSR direct tunnel routing (bypass Cloudflare hairpin) |
 
 **Blockers Resolved**:
 - ✅ Email system stubbed (react-email/Next.js 15 conflict)
@@ -417,7 +417,7 @@ Product Page → addToCart(product) → Product includes variantId
 
 ---
 
-### Track 10: SSR Direct Tunnel Routing 🚧 IN PROGRESS
+### Track 10: SSR Direct Tunnel Routing ✅ COMPLETE
 
 **Goal**: Fix Cloudflare Workers → Medusa API 404 errors by routing SSR requests directly through the Cloudflare Tunnel, bypassing the public proxy.
 
@@ -495,12 +495,19 @@ const getBaseUrl = () => {
 - Client requests still go through `api.optic.works` for CORS handling
 - Both workers already trust this tunnel (CORS worker uses it)
 
-**Tasks**:
-- [ ] Add `MEDUSA_SSR_BASE_URL` to `wrangler.jsonc`
-- [ ] Update `src/lib/api/medusa.ts` to use SSR base URL server-side
-- [ ] Deploy to Cloudflare Workers
-- [ ] Test SSR product fetching works
-- [ ] Verify client-side cart/checkout still works
+**Tasks** (Completed 2025-12-03):
+- [x] Add `MEDUSA_SSR_BASE_URL` to `wrangler.jsonc`
+- [x] Update `src/lib/api/medusa.ts` to use SSR base URL server-side
+- [x] Deploy to Cloudflare Workers
+- [x] Test SSR product fetching works (200 OK from medusa.optic.works)
+- [x] Verify client-side cart/checkout still works (api.optic.works via CORS worker)
+
+**Verification** (from Cloudflare Worker logs):
+```
+[medusa] Server config: { ssrBaseUrl: 'SET', usingUrl: 'SET' }
+[medusa] GET https://medusa.optic.works/store/products?handle=bed-presence-sensor-kit
+[medusa] Response: 200 OK
+```
 
 **Related**:
 - Archived: `docs/reference/archived/RFD-011-cloudflare-ssr-workaround.md`
