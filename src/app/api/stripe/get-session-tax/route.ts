@@ -7,11 +7,13 @@ interface TaxBreakdownItem {
   tax_amount?: number;
 }
 
+// Cloudflare Workers compatible Stripe initialization
+// Uses FetchHttpClient instead of Node's http module
 let stripe: Stripe | null = null;
 const getStripe = () => {
   if (!stripe) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2025-11-17.clover',
+      apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
       httpClient: Stripe.createFetchHttpClient(),
     });
   }

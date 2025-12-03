@@ -4,11 +4,15 @@ import { createClient } from '@supabase/supabase-js';
 
 // Transactional emails handled by Medusa backend via Resend
 
+// Cloudflare Workers compatible Stripe initialization
+// Uses FetchHttpClient instead of Node's http module
+// Uses SubtleCryptoProvider for webhook signature verification (Web Crypto API)
 let stripe: Stripe | null = null;
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const getStripe = () => {
   if (!stripe) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2025-11-17.clover',
+      apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
       httpClient: Stripe.createFetchHttpClient(),
     });
   }
@@ -54,7 +58,7 @@ export async function POST(request: NextRequest) {
       event = JSON.parse(body) as Stripe.Event;
       console.log(`✅ Hookdeck event processed: ${event.type} (ID: ${event.id})`);
     } else {
-      // Direct from Stripe - verify signature normally
+      // Direct from Stripe - verify signature using async method with Web Crypto API
       const webhookSecret = process.env.NODE_ENV === 'development'
         ? process.env.STRIPE_WEBHOOK_SECRET_DEV // From Stripe CLI
         : process.env.STRIPE_WEBHOOK_SECRET; // From Stripe Dashboard
@@ -64,7 +68,14 @@ export async function POST(request: NextRequest) {
         throw new Error('Webhook secret not configured');
       }
 
-      event = getStripe().webhooks.constructEvent(body, signature, webhookSecret);
+      // Use async constructEventAsync with SubtleCryptoProvider for Cloudflare Workers
+      event = await getStripe().webhooks.constructEventAsync(
+        body,
+        signature,
+        webhookSecret,
+        undefined,
+        cryptoProvider
+      );
       console.log(`✅ Webhook signature verified for event: ${event.type} (ID: ${event.id})`);
     }
   } catch (err) {

@@ -9,6 +9,8 @@ interface OrderData {
   total: number;
 }
 
+// Cloudflare Workers compatible Stripe initialization
+// Uses FetchHttpClient instead of Node's http module
 // Lazy initialize Stripe to avoid build-time errors when env var isn't set
 const getStripe = () => {
   const secretKey = process.env.STRIPE_SECRET_KEY;
@@ -16,7 +18,7 @@ const getStripe = () => {
     throw new Error('STRIPE_SECRET_KEY is not configured');
   }
   return new Stripe(secretKey, {
-    apiVersion: '2025-11-17.clover',
+    apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
     httpClient: Stripe.createFetchHttpClient(),
   });
 };

@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
+// Cloudflare Workers compatible Stripe initialization
+// Uses FetchHttpClient instead of Node's http module
+// API version 2025-03-31.basil required for ui_mode: custom
 let stripe: Stripe | null = null;
 const getStripe = () => {
   if (!stripe) {
     stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-      apiVersion: '2025-11-17.clover',
+      apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
       httpClient: Stripe.createFetchHttpClient(),
     });
   }
