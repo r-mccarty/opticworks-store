@@ -69,16 +69,17 @@ This document defines the strategy for managing API keys, credentials, and secre
 #### Cloudflare Services
 | Variable | Type | Rotation | Critical | Notes |
 |----------|------|----------|----------|-------|
+| `CLOUDFLARE_API_TOKEN` | API Token | Quarterly | ✅ | Scoped API token for Workers/R2/DNS (GitHub Actions) |
+| `CLOUDFLARE_ACCOUNT_ID` | ID | Never | ⚠️ | Account identifier |
+| `CLOUDFLARE_EMAIL` | Email | Never | ⚠️ | Account email |
+| `CLOUDFLARE_GLOBAL_API_KEY` | API Key | Quarterly | ✅ | Global API access (legacy, prefer API Token) |
+| `CLOUDFLARE_API_BASE_URL` | URL | Never | ⚠️ | API base endpoint |
 | `R2_ACCESS_KEY_ID` | Access Key | Quarterly | ⚠️ | R2 storage access |
 | `R2_SECRET_ACCESS_KEY` | Secret Key | Quarterly | ✅ | R2 storage secret |
 | `R2_BUCKET_NAME` | String | Never | ⚠️ | R2 bucket name |
 | `R2_ENDPOINT_URL` | URL | Never | ⚠️ | R2 API endpoint |
 | `R2_PUBLIC_URL` | URL | Never | ⚠️ | R2 public CDN URL |
 | `CLOUDFLARE_IMAGES_TOKEN` | API Token | Quarterly | ⚠️ | Images API access |
-| `CLOUDFLARE_ACCOUNT_ID` | ID | Never | ⚠️ | Account identifier |
-| `CLOUDFLARE_EMAIL` | Email | Never | ⚠️ | Account email |
-| `CLOUDFLARE_GLOBAL_API_KEY` | API Key | Quarterly | ✅ | Global API access |
-| `CLOUDFLARE_API_BASE_URL` | URL | Never | ⚠️ | API base endpoint |
 
 #### Logistics & Shipping
 | Variable | Type | Rotation | Critical | Notes |

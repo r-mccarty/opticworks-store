@@ -52,13 +52,12 @@ cat .env.local | head -5
 
 ```
 Project: OpticWorks
-├── development/     # Local dev secrets
-│   └── /            # Storefront variables
-├── production/
-│   ├── /            # Storefront variables
-│   ├── /medusa      # Backend variables
-│   └── /infrastructure  # Ansible variables
+├── dev/             # Local dev secrets (all at root path /)
+├── staging/         # Staging secrets (all at root path /)
+└── prod/            # Production secrets (all at root path /)
 ```
+
+**Note:** All secrets are stored at the root path `/` - there are no subpaths like `/medusa` or `/infrastructure`. Environment names are short: `dev`, `staging`, `prod` (not `development`, `production`).
 
 ## Backend Secrets (Ansible)
 
