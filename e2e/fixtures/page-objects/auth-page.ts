@@ -18,8 +18,9 @@ export class LoginPage {
     this.passwordInput = page.locator('input[name="password"]')
     this.submitButton = page.locator('button[type="submit"]')
     this.errorMessage = page.locator(".bg-red-500\\/10")
-    this.forgotPasswordLink = page.locator('a[href="/auth/forgot-password"]')
-    this.registerLink = page.locator('a[href="/auth/register"]')
+    // Use the link in the form area, not the navbar
+    this.forgotPasswordLink = page.locator('form a[href="/auth/forgot-password"]')
+    this.registerLink = page.locator('form ~ p a[href="/auth/register"], p:has-text("Don\'t have") a[href="/auth/register"]').first()
   }
 
   async goto(): Promise<void> {
@@ -85,7 +86,8 @@ export class RegisterPage {
     this.lastNameInput = page.locator('input[name="lastName"]')
     this.submitButton = page.locator('button[type="submit"]')
     this.errorMessage = page.locator(".bg-red-500\\/10")
-    this.loginLink = page.locator('a[href="/auth/login"]')
+    // Use the link in the form area (the "Sign in" link), not the navbar
+    this.loginLink = page.locator('p:has-text("Already have") a[href="/auth/login"]').first()
   }
 
   async goto(): Promise<void> {

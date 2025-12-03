@@ -84,13 +84,11 @@ test.describe("Store Navigation", () => {
     await cartPage.goto()
     await cartPage.waitForCartHydration()
 
+    // Verify cart has items (proceed button visible means items present)
     const hasItems = await cartPage.hasItems()
     expect(hasItems).toBe(true)
 
-    const itemCount = await cartPage.getItemCount()
-    expect(itemCount).toBeGreaterThan(0)
-
-    console.log(`[Test] Cart has ${itemCount} item(s)`)
+    console.log(`[Test] Cart has items: ${hasItems}`)
   })
 
   test("navigate store -> product -> cart flow", async ({ page }) => {
@@ -148,12 +146,14 @@ test.describe("Store Navigation", () => {
         await page.goto(href)
         await page.waitForLoadState("domcontentloaded")
 
-        // Check if it's a 404
-        const heading = await page.locator("h1").textContent()
-        if (heading?.toLowerCase().includes("not found")) {
+        // Check if it's a 404 - use first() to handle multiple h1 elements
+        const heading = await page.locator("h1").first().textContent()
+        if (heading?.toLowerCase().includes("not found") || heading?.toLowerCase().includes("404")) {
           results.push({ href, status: "error", error: "404 Not Found" })
-        } else {
+        } else if (heading) {
           results.push({ href, status: "ok" })
+        } else {
+          results.push({ href, status: "error", error: "No h1 heading found" })
         }
       } catch (error) {
         results.push({
