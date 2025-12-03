@@ -222,7 +222,8 @@ export async function listProducts(): Promise<Product[]> {
   }
 
   try {
-    const response = await medusaFetch<MedusaListResponse>("/store/products")
+    // Include variant prices in the response
+    const response = await medusaFetch<MedusaListResponse>("/store/products?fields=*variants.prices")
     return response.products.map(transformMedusaProduct)
   } catch (error) {
     console.warn("[medusa] Falling back to static products:", error)
@@ -236,7 +237,8 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   }
 
   try {
-    const product = await medusaFetch<{ product: MedusaProductResponse }>(`/store/products/${id}`)
+    // Include variant prices in the response
+    const product = await medusaFetch<{ product: MedusaProductResponse }>(`/store/products/${id}?fields=*variants.prices`)
     return transformMedusaProduct(product.product)
   } catch (error) {
     console.warn(`[medusa] Failed to fetch product ${id}, falling back to static data`, error)
