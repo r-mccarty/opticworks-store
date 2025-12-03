@@ -15,7 +15,10 @@ const getStripe = () => {
   if (!secretKey) {
     throw new Error('STRIPE_SECRET_KEY is not configured');
   }
-  return new Stripe(secretKey, { typescript: true });
+  return new Stripe(secretKey, {
+    apiVersion: '2024-12-18.acacia',
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 };
 
 export async function GET(request: NextRequest) {
