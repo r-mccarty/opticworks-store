@@ -2,18 +2,18 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
-import type { Stripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+import type { Stripe, StripeElementsOptions } from '@stripe/stripe-js';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
 import { createMedusaPaymentSession } from '@/lib/api/medusa';
-import type { StripeCheckoutInstance, StripeWithCheckout } from '@/types/stripe-checkout';
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise: Promise<Stripe | null> = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
 
 interface CheckoutWrapperProps {
-  onSuccess: (sessionId: string) => void;
+  onSuccess: (orderId: string) => void;
   onError: (error: string) => void;
 }
 
@@ -22,123 +22,82 @@ export default function CheckoutWrapper({
   onError
 }: CheckoutWrapperProps) {
   const { items, getCartId, initializeCart } = useCart();
-  const [checkout, setCheckout] = useState<StripeCheckoutInstance | null>(null);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const initializePayment = useCallback(async () => {
+    console.log('[checkout] initializePayment called');
+
+    if (items.length === 0) {
+      setError('Your cart is empty');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      // Get or initialize Medusa cart
+      let cartId = getCartId();
+      console.log('[checkout] Current cart ID:', cartId);
+
+      if (!cartId) {
+        console.log('[checkout] No cart ID found, initializing cart...');
+        await initializeCart();
+        cartId = getCartId();
+        console.log('[checkout] After initializeCart, cart ID:', cartId);
+      }
+
+      if (!cartId) {
+        throw new Error('Failed to initialize cart. Please try again.');
+      }
+
+      console.log('[checkout] Using Medusa cart:', cartId);
+
+      // Create payment session via Medusa (Stripe provider)
+      console.log('[checkout] Creating Medusa payment session...');
+      const session = await createMedusaPaymentSession(cartId);
+      console.log('[checkout] Payment session result:', {
+        sessionId: session.sessionId,
+        provider: session.provider,
+        hasClientSecret: !!session.clientSecret
+      });
+
+      if (!session.clientSecret) {
+        throw new Error('Payment session did not return a client secret.');
+      }
+
+      setClientSecret(session.clientSecret);
+      setIsLoading(false);
+    } catch (err) {
+      console.error('[checkout] Error initializing payment:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
+      setError(errorMessage);
+      setIsLoading(false);
+      onError(errorMessage);
+    }
+  }, [items, getCartId, initializeCart, onError]);
 
   // Validate environment variables
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
-      const envError = 'Stripe publishable key not configured. Please check your environment variables.';
+      const envError = 'Stripe publishable key not configured.';
       setError(envError);
       setIsLoading(false);
       onError(envError);
       return;
     }
-  }, [onError]);
 
-  const fetchClientSecret = useCallback(async (): Promise<string> => {
-    if (items.length === 0) {
-      throw new Error('Your cart is empty');
+    if (items.length > 0 && !clientSecret) {
+      void initializePayment();
     }
-
-    console.log('[checkout] Creating Medusa payment session for items:', items.map(item => ({ id: item.id, name: item.name, quantity: item.quantity })));
-
-    // Get or initialize Medusa cart
-    let cartId = getCartId();
-    if (!cartId) {
-      console.log('[checkout] No cart ID found, initializing cart...');
-      await initializeCart();
-      cartId = getCartId();
-    }
-
-    if (!cartId) {
-      throw new Error('Failed to initialize cart. Please try again.');
-    }
-
-    console.log('[checkout] Using Medusa cart:', cartId);
-
-    // Create payment session via Medusa (Stripe provider)
-    const session = await createMedusaPaymentSession(cartId);
-
-    if (!session.clientSecret) {
-      throw new Error('Payment session did not return a client secret. Please try again.');
-    }
-
-    console.log(`[checkout] Received ${session.provider} client secret`);
-    return session.clientSecret;
-  }, [items, getCartId, initializeCart]);
-
-  useEffect(() => {
-    const initializeCheckout = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const stripe = await stripePromise;
-        if (!stripe) {
-          throw new Error('Failed to load Stripe');
-        }
-
-        const stripeWithCheckout = stripe as StripeWithCheckout;
-        if (typeof stripeWithCheckout.initCheckout !== 'function') {
-          throw new Error(
-            'stripe.initCheckout is not available. Ensure Stripe.js is updated with Custom Checkout support.'
-          );
-        }
-
-        const checkoutInstance = await stripeWithCheckout.initCheckout({
-          fetchClientSecret,
-          elementsOptions: {
-            fonts: [
-              {
-                family: 'Colfax',
-                src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2)',
-                weight: '400',
-                style: 'normal',
-                display: 'swap',
-              },
-              {
-                family: 'Colfax',
-                src: 'url(https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2)',
-                weight: '500',
-                style: 'normal',
-                display: 'swap',
-              }
-            ],
-            appearance: {
-              theme: 'stripe',
-              variables: {
-                fontFamily: '"Colfax",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji"',
-              },
-            },
-          }
-        });
-
-        setCheckout(checkoutInstance);
-        setIsLoading(false);
-
-      } catch (err) {
-        console.error('Checkout initialization error:', err);
-        const errorMessage = err instanceof Error ? err.message : 'Failed to initialize checkout';
-        setError(errorMessage);
-        setIsLoading(false);
-        onError(errorMessage);
-      }
-    };
-
-    // Only initialize if we have items, environment is configured, and checkout is not already initialized
-    if (items.length > 0 && process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY && !checkout) {
-      void initializeCheckout();
-    }
-  }, [items, fetchClientSecret, onError, checkout]);
+  }, [items, clientSecret, initializePayment, onError]);
 
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin mb-4" />
         <p className="text-lg">Preparing your checkout...</p>
-        <p className="text-sm text-gray-500 mt-2">Loading Stripe checkout components...</p>
+        <p className="text-sm text-gray-500 mt-2">Creating secure payment session...</p>
       </div>
     );
   }
@@ -166,11 +125,11 @@ export default function CheckoutWrapper({
     );
   }
 
-  if (!checkout) {
+  if (!clientSecret) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
         <p className="text-yellow-800">
-          Unable to initialize payment. This usually means there&apos;s a configuration issue.
+          Unable to initialize payment. Please try again.
         </p>
         <button
           onClick={() => window.location.reload()}
@@ -182,11 +141,24 @@ export default function CheckoutWrapper({
     );
   }
 
+  const elementsOptions: StripeElementsOptions = {
+    clientSecret,
+    appearance: {
+      theme: 'stripe',
+      variables: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        colorPrimary: '#16a34a',
+      },
+    },
+  };
+
   return (
-    <CheckoutForm 
-      checkout={checkout}
-      onSuccess={onSuccess}
-      onError={onError}
-    />
+    <Elements stripe={stripePromise} options={elementsOptions}>
+      <CheckoutForm
+        clientSecret={clientSecret}
+        onSuccess={onSuccess}
+        onError={onError}
+      />
+    </Elements>
   );
 }

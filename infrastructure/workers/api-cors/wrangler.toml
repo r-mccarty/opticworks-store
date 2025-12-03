@@ -1,0 +1,27 @@
+name = "opticworks-api-cors"
+main = "src/index.ts"
+compatibility_date = "2024-12-30"
+compatibility_flags = ["nodejs_compat"]
+
+# Observability - enable Workers logs
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+invocation_logs = true
+
+# Development variables (pointing to medusa backend via tunnel)
+[vars]
+MEDUSA_ORIGIN = "https://medusa.optic.works"
+ALLOWED_ORIGINS = "https://optic.works,https://www.optic.works,http://localhost:3000"
+
+# Production environment with route to api.optic.works
+[env.production]
+name = "opticworks-api-cors"
+routes = [
+  { pattern = "api.optic.works/*", zone_name = "optic.works" }
+]
+
+[env.production.vars]
+# Medusa is now accessible via internal hostname through Cloudflare Tunnel
+MEDUSA_ORIGIN = "https://medusa.optic.works"
+ALLOWED_ORIGINS = "https://optic.works,https://www.optic.works"

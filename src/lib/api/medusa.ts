@@ -1,21 +1,12 @@
 import { products as fallbackProducts, type Product } from "@/lib/products"
 
-type EnvKey = "MEDUSA_ENABLED" | "MEDUSA_BASE_URL" | "MEDUSA_PUBLISHABLE_KEY"
-
-const isBrowser = typeof window !== "undefined"
-
-const readEnv = (key: EnvKey): string | undefined => {
-  const publicKey = `NEXT_PUBLIC_${key}` as keyof NodeJS.ProcessEnv
-  if (isBrowser) {
-    return process.env[publicKey]
-  }
-  return process.env[key] ?? process.env[publicKey]
-}
-
+// NOTE: Environment variables must be accessed directly as process.env.NEXT_PUBLIC_*
+// for Next.js to inline them at build time. Dynamic access like process.env[key]
+// will not be replaced and will be undefined in the browser.
 const medusaEnv = {
-  enabled: readEnv("MEDUSA_ENABLED") === "true",
-  baseUrl: readEnv("MEDUSA_BASE_URL"),
-  publishableKey: readEnv("MEDUSA_PUBLISHABLE_KEY"),
+  enabled: process.env.NEXT_PUBLIC_MEDUSA_ENABLED === "true",
+  baseUrl: process.env.NEXT_PUBLIC_MEDUSA_BASE_URL,
+  publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
 }
 
 type MedusaListResponse = {
@@ -190,6 +181,8 @@ const medusaFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
   }
 
   const url = `${medusaEnv.baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`
+  console.log(`[medusa] ${init?.method ?? "GET"} ${url}`)
+
   const response = await fetch(url, {
     ...init,
     headers: {
@@ -198,8 +191,11 @@ const medusaFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
     },
   })
 
+  console.log(`[medusa] Response: ${response.status} ${response.statusText}`)
+
   if (!response.ok) {
     const errorBody = await response.text().catch(() => "Unknown error")
+    console.error(`[medusa] Error response body:`, errorBody)
     throw new Error(`Medusa request failed (${response.status}): ${errorBody}`)
   }
 
@@ -362,56 +358,106 @@ export async function updateCart(
 }
 
 // =============================================================================
-// Payment Session Functions (Track 4)
+// Payment Session Functions (Track 4) - Medusa v2 API
 // =============================================================================
 
 /**
- * Initialize payment sessions on the cart.
- * This prepares the cart for payment by creating sessions with all available providers.
+ * Payment collection response from Medusa v2
  */
-export async function initializePaymentSessions(cartId: string): Promise<MedusaCart> {
-  const response = await medusaFetch<{ cart: MedusaCart }>(
-    `/store/carts/${cartId}/payment-sessions`,
-    { method: "POST" }
-  )
-  return response.cart
+interface MedusaPaymentCollection {
+  id: string
+  currency_code: string
+  amount: number
+  payment_sessions: Array<{
+    id: string
+    currency_code: string
+    provider_id: string
+    amount: number
+    status: string
+    data: {
+      id?: string
+      client_secret?: string
+      [key: string]: unknown
+    }
+  }>
 }
 
 /**
- * Select a specific payment provider for the cart.
+ * Create a payment collection for the cart.
+ * In Medusa v2, payment collections are separate from carts.
  */
-export async function selectPaymentSession(
-  cartId: string,
+export async function createPaymentCollection(cartId: string): Promise<MedusaPaymentCollection> {
+  console.log("[medusa] Creating payment collection for cart:", cartId)
+  const response = await medusaFetch<{ payment_collection: MedusaPaymentCollection }>(
+    "/store/payment-collections",
+    {
+      method: "POST",
+      body: JSON.stringify({ cart_id: cartId }),
+    }
+  )
+  console.log("[medusa] Payment collection created:", response.payment_collection.id)
+  return response.payment_collection
+}
+
+/**
+ * Create a payment session on a payment collection with a specific provider.
+ * In Medusa v2, this is how you initialize Stripe payments.
+ */
+export async function createPaymentSession(
+  paymentCollectionId: string,
   providerId: string
-): Promise<MedusaCart> {
-  const response = await medusaFetch<{ cart: MedusaCart }>(
-    `/store/carts/${cartId}/payment-session`,
+): Promise<MedusaPaymentCollection> {
+  console.log("[medusa] Creating payment session with provider:", providerId)
+  const response = await medusaFetch<{ payment_collection: MedusaPaymentCollection }>(
+    `/store/payment-collections/${paymentCollectionId}/payment-sessions`,
     {
       method: "POST",
       body: JSON.stringify({ provider_id: providerId }),
     }
   )
-  return response.cart
+  console.log("[medusa] Payment session created. Sessions:", response.payment_collection.payment_sessions.length)
+  return response.payment_collection
 }
 
 /**
  * Create a payment session via Medusa's Stripe provider.
  * Returns the Stripe client_secret for use with Stripe Elements.
+ *
+ * Medusa v2 flow:
+ * 1. Create payment collection for the cart
+ * 2. Create payment session with Stripe provider on the collection
+ * 3. Extract client_secret from the payment session data
  */
 export async function createMedusaPaymentSession(cartId: string): Promise<PaymentSessionResult> {
+  console.log("[medusa] createMedusaPaymentSession called with cartId:", cartId)
+
   try {
-    // 1. Initialize payment sessions
-    await initializePaymentSessions(cartId)
+    // 1. Create payment collection for the cart
+    console.log("[medusa] Step 1: Creating payment collection...")
+    const paymentCollection = await createPaymentCollection(cartId)
+    console.log("[medusa] Payment collection created:", paymentCollection.id)
 
-    // 2. Select Stripe as the payment provider
-    const cartWithStripe = await selectPaymentSession(cartId, "pp_stripe_stripe")
+    // 2. Create payment session with Stripe provider
+    console.log("[medusa] Step 2: Creating Stripe payment session...")
+    const collectionWithSession = await createPaymentSession(
+      paymentCollection.id,
+      "pp_stripe_stripe"
+    )
 
-    // 3. Extract client_secret from the selected payment session
-    const stripeSession = cartWithStripe.payment_session
+    // 3. Extract client_secret from the Stripe payment session
+    const stripeSession = collectionWithSession.payment_sessions.find(
+      (s) => s.provider_id === "pp_stripe_stripe"
+    )
+    console.log("[medusa] Step 3: Extracting client_secret. Session data keys:",
+      stripeSession?.data ? Object.keys(stripeSession.data) : "no data"
+    )
+
     if (!stripeSession?.data?.client_secret) {
+      console.error("[medusa] No client_secret in session data:", stripeSession?.data)
       throw new Error("Stripe payment session did not return a client_secret")
     }
 
+    console.log("[medusa] Success! Got client_secret (length:", stripeSession.data.client_secret.length, ")")
     return {
       sessionId: stripeSession.id,
       clientSecret: stripeSession.data.client_secret,
