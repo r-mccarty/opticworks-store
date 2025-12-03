@@ -1,9 +1,10 @@
 # RFD-011: Remaining Issues - Medusa API 404 from Cloudflare Workers
 
-**Status**: Draft
+**Status**: Partially Resolved
 **Created**: 2025-12-03
+**Updated**: 2025-12-03
 **Author**: Claude (AI Assistant)
-**Priority**: Medium (workaround in place)
+**Priority**: Low (mitigated with React cache)
 
 ---
 
@@ -81,7 +82,25 @@ When browser (client-side) makes the same request:
 
 ---
 
-## Current Workaround
+## Mitigation Applied (2025-12-03)
+
+**Commit**: `349f5a6` - fix(api): Deduplicate product API calls with React cache
+
+The `getProductById` function is now wrapped with React's `cache()`:
+
+```typescript
+import { cache } from "react"
+
+export const getProductById = cache(async (id: string): Promise<Product | undefined> => {
+  // ... implementation
+})
+```
+
+This ensures that when both `generateMetadata` and the page component request the same product, only **one** API call is made instead of two. This reduces exposure to the Cloudflare→Cloudflare routing issue by 50%.
+
+---
+
+## Fallback Workaround
 
 The codebase gracefully falls back to static product data:
 

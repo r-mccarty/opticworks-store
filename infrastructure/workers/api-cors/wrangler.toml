@@ -24,4 +24,5 @@ routes = [
 [env.production.vars]
 # Medusa is now accessible via internal hostname through Cloudflare Tunnel
 MEDUSA_ORIGIN = "https://medusa.optic.works"
-ALLOWED_ORIGINS = "https://optic.works,https://www.optic.works"
+# Include api.optic.works for admin dashboard (loads assets with Origin header)
+ALLOWED_ORIGINS = "https://optic.works,https://www.optic.works,https://api.optic.works"

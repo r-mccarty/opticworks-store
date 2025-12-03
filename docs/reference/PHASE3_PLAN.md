@@ -1,6 +1,6 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-6, 8 Complete, 5, 7 Pending)
+**Status**: 🚧 IN PROGRESS (Tracks 1-6, 8-9 Complete, 5, 7 Pending)
 **Updated**: 2025-12-03
 
 ---
@@ -16,9 +16,9 @@
 | 4 | ✅ Complete | Checkout flow (Medusa payment sessions) |
 | 5 | 📋 Pending | Webhook documentation (Hookdeck configured) |
 | 6 | ✅ Complete | Customer authentication |
-| 7 | 📋 Pending | E2E testing |
+| 7 | 🚧 In Progress | E2E testing (Playwright setup complete) |
 | 8 | ✅ Complete | Cloudflare Workers deployment (OpenNext) |
-| 9 | 📋 Pending | Medusa order integration (variant IDs, cart sync) |
+| 9 | ✅ Complete | Medusa order integration (E2E checkout verified) |
 
 **Blockers Resolved**:
 - ✅ Email system stubbed (react-email/Next.js 15 conflict)
@@ -223,21 +223,75 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-### Track 7: E2E Testing 📋 PENDING
+### Track 7: E2E Testing 🚧 IN PROGRESS
 
-**Needs**:
-- [ ] Install Playwright
-- [ ] Checkout flow test
+**Infrastructure Set Up** (commit 96dca2a):
+- [x] Playwright installed and configured
+- [x] Page object models created (ProductPage, CartPage, CheckoutPage)
+- [x] Test helpers for console capture, network logging, storage inspection
+- [x] Test data fixtures with products, addresses, test cards
+
+**Test Files**:
+- `e2e/tests/checkout-flow.spec.ts` - Full checkout E2E test
+- `e2e/tests/add-to-cart.spec.ts` - Add to cart functionality
+
+**Page Objects** (`e2e/fixtures/page-objects/`):
+- `product-page.ts` - Product detail page interactions
+- `cart-page.ts` - Cart page with item management
+- `checkout-page.ts` - Full checkout flow with Stripe integration
+
+**Run Tests**:
+```bash
+# Install Playwright browsers
+pnpm exec playwright install
+
+# Run all E2E tests
+pnpm exec playwright test
+
+# Run with UI mode
+pnpm exec playwright test --ui
+
+# Run specific test
+pnpm exec playwright test checkout-flow
+```
+
+**Remaining**:
 - [ ] Authentication flow test
-- [ ] Email delivery test (Mailosaur)
+- [ ] Email delivery test (Mailosaur integration per RFD-010)
+- [ ] CI/CD integration
 
 **Test scenarios**:
-1. Browse → Add to cart → Checkout → Payment → Confirmation
-2. Register → Login → View orders → Logout
+1. Browse → Add to cart → Checkout → Payment → Confirmation ✅
+2. Register → Login → View orders → Logout (pending)
 
 ---
 
-### Track 9: Medusa-Only Checkout Flow 📋 PENDING
+### Track 9: Medusa-Only Checkout Flow ✅ COMPLETE
+
+**Goal**: Remove direct Stripe fallback and establish Medusa as the single source of truth for e-commerce operations.
+
+**What was done**:
+- [x] Include `variantId` in Product type
+- [x] Return first variant ID from Medusa API response
+- [x] Update `transformMedusaProduct()` to include variant ID
+- [x] Hardcode Medusa variant IDs in static product fallback
+- [x] Full checkout flow working: cart → shipping → payment → order
+
+**E2E Test Completed** (2025-12-03):
+- Added product to cart (variant_01KBF0WRDCT61JD4HHH2PGDHAK)
+- Completed checkout with shipping address
+- Payment processed via Stripe Elements (Medusa payment session)
+- Order created in Medusa: `order_01JDZFK38B5PRM0QC22B6VHS06` (display_id: 2)
+- Success page displayed with order confirmation
+
+**Key Fix Applied** (commit 349f5a6):
+- Wrapped `getProductById` with React `cache()` to deduplicate API calls
+- Prevents duplicate Medusa requests when `generateMetadata` and page component both fetch the same product
+- Addresses RFD-011 Cloudflare→Cloudflare routing issue by reducing API call frequency
+
+---
+
+### Track 9 (Legacy): Medusa-Only Checkout Flow 📋 ARCHIVED
 
 **Goal**: Remove direct Stripe fallback and establish Medusa as the single source of truth for e-commerce operations. This simplifies the codebase and ensures all orders flow through Medusa.
 
