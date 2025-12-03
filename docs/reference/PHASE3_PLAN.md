@@ -478,7 +478,7 @@ ingress:
   - service: http_status:404
 ```
 
-The CORS worker is kept in the repo (`infrastructure/workers/api-cors/`) for backwards compatibility but has no routes assigned.
+The CORS worker has been deleted from the repo. Delete it from Cloudflare dashboard if still present.
 
 **Implementation**:
 
@@ -529,7 +529,6 @@ const getBaseUrl = () => {
 
 **Related**:
 - Archived: `docs/reference/archived/RFD-011-cloudflare-ssr-workaround.md`
-- `infrastructure/workers/api-cors/` - CORS worker (routes removed, kept for backwards compatibility)
 
 ---
 
