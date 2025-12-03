@@ -18,6 +18,7 @@
 | 6 | ✅ Complete | Customer authentication |
 | 7 | 📋 Pending | E2E testing |
 | 8 | ✅ Complete | Cloudflare Workers deployment (OpenNext) |
+| 9 | 📋 Pending | Medusa order integration (variant IDs, cart sync) |
 
 **Blockers Resolved**:
 - ✅ Email system stubbed (react-email/Next.js 15 conflict)
@@ -233,6 +234,64 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 **Test scenarios**:
 1. Browse → Add to cart → Checkout → Payment → Confirmation
 2. Register → Login → View orders → Logout
+
+---
+
+### Track 9: Medusa Order Integration 📋 PENDING
+
+**Problem**: Orders are not being created in Medusa because products are added to cart without variant IDs.
+
+**Root Cause Analysis**:
+```
+addToCart(product) → No variantId
+                   → "[cart] No variant ID available for product, skipping Medusa sync"
+                   → Medusa cart is empty
+                   → createMedusaPaymentSession fails (empty cart)
+                   → Falls back to direct Stripe checkout
+                   → completeCart() never called
+                   → No Medusa order created
+```
+
+**Current Flow** (broken):
+```
+Product Page → addToCart(product) → Local cart only
+            → Checkout → Direct Stripe (fallback)
+            → Webhook → Supabase only (no Medusa order)
+```
+
+**Target Flow** (fixed):
+```
+Product Page → addToCart(product, variantId) → Local cart + Medusa cart
+            → Checkout → Medusa payment session
+            → Payment success → completeCart(cartId)
+            → Medusa order created ✅
+```
+
+**Implementation Tasks**:
+- [ ] Include variant IDs in product data from Medusa API
+- [ ] Pass variant IDs to `addToCart()` from all product components:
+  - `src/components/products/FinalCTA.tsx`
+  - `src/components/products/BentoProductShowcase.tsx`
+  - `src/components/products/ProductHero.tsx`
+  - `src/components/store/ProductGrid.tsx`
+- [ ] Verify Medusa cart sync works with variant IDs
+- [ ] Test `completeCart()` creates order after payment
+- [ ] Verify order appears in Medusa dashboard
+
+**Key Files**:
+- `src/lib/api/medusa.ts` - Product API (needs to return variant IDs)
+- `src/hooks/useCart.ts` - Cart store (line 244-248 requires variant ID)
+- `src/components/checkout/CheckoutForm.tsx` - Calls `completeCart()`
+
+**Related Code** (useCart.ts:244-248):
+```typescript
+const productVariantId = variantId ?? (product as unknown as { variantId?: string }).variantId
+
+if (!productVariantId) {
+  console.warn("[cart] No variant ID available for product, skipping Medusa sync")
+  return
+}
+```
 
 ---
 
