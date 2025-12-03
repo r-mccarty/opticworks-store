@@ -10,6 +10,9 @@ export const metadata: Metadata = {
     "Shop Bed Presence Sensor kits, accessories, and dashboards. Everything ships tuned for Home Assistant power users.",
 }
 
+// Revalidate product data every 5 minutes to pick up image/price changes
+export const revalidate = 300
+
 export default async function StorePage() {
   const products = await listProducts()
 
