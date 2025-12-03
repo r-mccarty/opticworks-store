@@ -165,10 +165,11 @@ function verifyProducts(medusaProducts: MedusaProduct[], detailed: boolean): voi
     }
 
     // Check price (for single variant products)
+    // Medusa v2 stores prices in MAJOR units (dollars), not cents
     if (!sourceProduct.variants || sourceProduct.variants.length === 0) {
       const variant = medusaProduct.variants[0]
       const price = variant?.prices.find(p => p.currency_code === 'usd')
-      const expectedAmount = Math.round(sourceProduct.price * 100)
+      const expectedAmount = sourceProduct.price
 
       if (!price || price.amount !== expectedAmount) {
         hasIssues = true
@@ -176,7 +177,7 @@ function verifyProducts(medusaProducts: MedusaProduct[], detailed: boolean): voi
           product: sourceProduct.name,
           field: 'price',
           expected: `$${sourceProduct.price}`,
-          actual: price ? `$${price.amount / 100}` : 'missing',
+          actual: price ? `$${price.amount}` : 'missing',
         })
       }
     }

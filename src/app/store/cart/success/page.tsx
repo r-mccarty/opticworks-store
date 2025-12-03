@@ -176,8 +176,8 @@ function PaymentSuccessContent() {
 
   // If we fetched order data from Medusa, display it
   if (orderData) {
-    // Convert from Medusa cents to dollars
-    const totalDollars = orderData.total / 100;
+    // Medusa v2 stores prices in major units (dollars), no conversion needed
+    const totalDollars = orderData.total;
 
     return (
       <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
@@ -224,7 +224,7 @@ function PaymentSuccessContent() {
                       </div>
                     </div>
                     <p className="font-medium">
-                      ${((item.unit_price * item.quantity) / 100).toFixed(2)}
+                      ${(item.unit_price * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}

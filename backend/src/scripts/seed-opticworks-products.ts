@@ -18,6 +18,8 @@ import {
 } from "@medusajs/medusa/core-flows"
 
 // OpticWorks Product Catalog
+// NOTE: Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents)
+// See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
 const OPTICWORKS_PRODUCTS = [
   {
     title: "Bed Presence Sensor Kit",
@@ -35,21 +37,21 @@ const OPTICWORKS_PRODUCTS = [
         title: "Single Bed Kit",
         sku: "BPS-SINGLE",
         options: { Configuration: "Single Bed Kit" },
-        prices: [{ amount: 23900, currency_code: "usd" }],
+        prices: [{ amount: 239, currency_code: "usd" }],
         manage_inventory: false,
       },
       {
         title: "Dual Bed Pack",
         sku: "BPS-DUO",
         options: { Configuration: "Dual Bed Pack" },
-        prices: [{ amount: 44900, currency_code: "usd" }],
+        prices: [{ amount: 449, currency_code: "usd" }],
         manage_inventory: false,
       },
       {
         title: "Studio + Dev Pack",
         sku: "BPS-STUDIO",
         options: { Configuration: "Studio + Dev Pack" },
-        prices: [{ amount: 52500, currency_code: "usd" }],
+        prices: [{ amount: 525, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],
@@ -75,7 +77,7 @@ const OPTICWORKS_PRODUCTS = [
         title: "Standard",
         sku: "PSP-DUO",
         options: { Configuration: "Standard" },
-        prices: [{ amount: 44900, currency_code: "usd" }],
+        prices: [{ amount: 449, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],
@@ -101,7 +103,7 @@ const OPTICWORKS_PRODUCTS = [
         title: "Standard",
         sku: "PDE-STD",
         options: { Configuration: "Standard" },
-        prices: [{ amount: 32900, currency_code: "usd" }],
+        prices: [{ amount: 329, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],
@@ -126,7 +128,7 @@ const OPTICWORKS_PRODUCTS = [
         title: "Digital Download",
         sku: "HADP-DL",
         options: { Configuration: "Digital Download" },
-        prices: [{ amount: 5900, currency_code: "usd" }],
+        prices: [{ amount: 59, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],
@@ -150,7 +152,7 @@ const OPTICWORKS_PRODUCTS = [
         title: "Standard",
         sku: "ENC-PACK",
         options: { Configuration: "Standard" },
-        prices: [{ amount: 7900, currency_code: "usd" }],
+        prices: [{ amount: 79, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],
@@ -174,7 +176,7 @@ const OPTICWORKS_PRODUCTS = [
         title: "Standard",
         sku: "SPARE-MOD",
         options: { Configuration: "Standard" },
-        prices: [{ amount: 11900, currency_code: "usd" }],
+        prices: [{ amount: 119, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],
@@ -198,7 +200,7 @@ const OPTICWORKS_PRODUCTS = [
         title: "Monthly",
         sku: "LAB-MONTHLY",
         options: { Configuration: "Monthly" },
-        prices: [{ amount: 1900, currency_code: "usd" }],
+        prices: [{ amount: 19, currency_code: "usd" }],
         manage_inventory: false,
       },
     ],

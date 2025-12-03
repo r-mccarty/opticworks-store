@@ -109,6 +109,7 @@ const productToPayload = (
         values: optionValues,
       },
     ],
+    // Medusa v2 stores prices in MAJOR units (dollars), not cents
     variants:
       variantDefinitions.length > 0
         ? variantDefinitions.map((variant) => ({
@@ -116,7 +117,7 @@ const productToPayload = (
             prices: [
               {
                 currency_code: "usd",
-                amount: Math.round(variant.price * 100),
+                amount: variant.price,
               },
             ],
             metadata: {
@@ -133,7 +134,7 @@ const productToPayload = (
               prices: [
                 {
                   currency_code: "usd",
-                  amount: Math.round(product.price * 100),
+                  amount: product.price,
                 },
               ],
               options: {

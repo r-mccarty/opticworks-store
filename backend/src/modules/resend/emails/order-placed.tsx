@@ -50,12 +50,14 @@ interface OrderPlacedEmailProps {
   currency_code?: string
 }
 
+// Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents)
+// See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
 const formatCurrency = (amount: number | undefined, currency: string = "USD") => {
   if (amount === undefined) return "$0.00"
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency.toUpperCase(),
-  }).format(amount / 100) // Medusa stores amounts in cents
+  }).format(amount)
 }
 
 export function OrderPlacedEmail(props: OrderPlacedEmailProps): React.ReactElement {

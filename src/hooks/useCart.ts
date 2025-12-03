@@ -48,13 +48,14 @@ interface CartStore {
 const CART_STORAGE_VERSION = 2 // Bumped for Medusa cart support
 
 // Transform Medusa line item to local CartItem
+// Medusa v2 stores prices in MAJOR units (dollars), not cents
 const transformMedusaLineItem = (item: MedusaLineItem, fallbackProducts: Map<string, Product>): CartItem => {
   const fallback = fallbackProducts.get(item.product_id)
   return {
     id: item.product_id,
     name: item.title,
     description: item.description ?? fallback?.description ?? "",
-    price: item.unit_price / 100, // Medusa stores in cents
+    price: item.unit_price,
     image: item.thumbnail ?? fallback?.image ?? "",
     category: fallback?.category ?? "sensor",
     specifications: fallback?.specifications ?? [],

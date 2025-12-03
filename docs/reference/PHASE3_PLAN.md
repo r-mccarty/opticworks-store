@@ -317,31 +317,34 @@ pnpm exec playwright test checkout-flow --debug
 - Prevents duplicate Medusa requests when `generateMetadata` and page component both fetch the same product
 - Addresses RFD-011 Cloudflare→Cloudflare routing issue by reducing API call frequency
 
-**Known Issue: Medusa Admin Dashboard Price Display**
+**FIXED: Medusa v2 Price Storage (Major Units)**
 
-The Medusa Admin dashboard displays prices incorrectly (e.g., $23,900.00 instead of $239.00). This is a **display bug in the admin UI only** - the storefront and emails display correctly.
+Medusa v2 stores prices in **MAJOR units** (dollars), not minor units (cents). This was a breaking change from v1.
 
-**Root Cause**: Medusa stores all monetary amounts in the smallest currency unit (cents for USD). The admin dashboard is not applying the `/100` conversion when displaying prices.
+**Root Cause**: Our seed scripts were using v1 convention (`amount: 23900` for $239), but Medusa v2 expects `amount: 239`. The storefront was dividing by 100, which accidentally made prices look correct while Stripe was being charged 100x too much.
 
-**What's Correct**:
-- ✅ Product seed script (`backend/src/scripts/seed-opticworks-products.ts`) uses cents: `amount: 23900` = $239.00
-- ✅ Storefront `normalizePrice()` divides by 100 when reading products
-- ✅ Success page divides order totals by 100
-- ✅ Email template `formatCurrency()` divides by 100
-- ✅ Stripe receives correct cent amounts
+**Reference**: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
 
-**Workaround**: Ignore admin dashboard prices for now. Verify correct amounts via:
+**What Was Fixed**:
+- ✅ `backend/src/scripts/seed-opticworks-products.ts` - Now uses `amount: 239` (dollars)
+- ✅ `backend/src/scripts/seed-us-region.ts` - Shipping prices in dollars
+- ✅ `backend/src/scripts/import-products.ts` - No longer multiplies by 100
+- ✅ `backend/src/scripts/verify-catalog.ts` - Expects dollars in price checks
+- ✅ `src/lib/api/medusa.ts` - `normalizePrice()` returns amount directly
+- ✅ `src/hooks/useCart.ts` - Cart items use price directly
+- ✅ `src/app/store/cart/success/page.tsx` - No division for order totals
+- ✅ `backend/src/modules/resend/emails/order-placed.tsx` - No division in email
+
+**Note**: Stripe webhook routes correctly divide by 100 because **Stripe always uses cents**.
+
+**Action Required**: Re-seed products on api.optic.works with correct prices:
 ```bash
-# Check product prices via API (returns cents)
-curl -H "x-publishable-api-key: $PUBKEY" \
-  https://api.optic.works/store/products | jq '.products[0].variants[0].prices'
-
-# Check order totals via API (returns cents)
-curl -H "x-publishable-api-key: $PUBKEY" \
-  https://api.optic.works/store/orders/ORDER_ID | jq '.order.total'
+ssh hetzner-node
+cd /opt/opticworks/medusa-backend
+# Delete existing products and re-seed
+pnpm medusa exec ./src/scripts/cleanup-template-products.ts
+pnpm medusa exec ./src/scripts/seed-opticworks-products.ts
 ```
-
-**Future Fix**: This may require a Medusa version upgrade or custom admin UI configuration. Track at https://github.com/medusajs/medusa/issues
 
 ---
 

@@ -122,9 +122,11 @@ export interface MedusaRegion {
 
 const fallbackProductMap = new Map(fallbackProducts.map((product) => [product.id, product]))
 
+// Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents)
+// See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
 const normalizePrice = (amount?: number) => {
   if (typeof amount !== "number") return undefined
-  return Math.round(amount) / 100
+  return amount
 }
 
 const transformMedusaProduct = (raw: MedusaProductResponse): Product => {

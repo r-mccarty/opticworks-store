@@ -168,6 +168,7 @@ export default async function seedUSRegion({ container }: ExecArgs) {
   });
 
   // Create US shipping options
+  // Medusa v2 stores prices in MAJOR units (dollars), not cents
   logger.info("Creating US shipping options...");
   await createShippingOptionsWorkflow(container).run({
     input: [
@@ -185,11 +186,11 @@ export default async function seedUSRegion({ container }: ExecArgs) {
         prices: [
           {
             currency_code: "usd",
-            amount: 999, // $9.99
+            amount: 9.99,
           },
           {
             region_id: usRegion.id,
-            amount: 999,
+            amount: 9.99,
           },
         ],
         rules: [
@@ -219,11 +220,11 @@ export default async function seedUSRegion({ container }: ExecArgs) {
         prices: [
           {
             currency_code: "usd",
-            amount: 1999, // $19.99
+            amount: 19.99,
           },
           {
             region_id: usRegion.id,
-            amount: 1999,
+            amount: 19.99,
           },
         ],
         rules: [
