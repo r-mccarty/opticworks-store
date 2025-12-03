@@ -3,7 +3,14 @@
   "name": "opticworks-store",
   "main": ".open-next/worker.js",
   "compatibility_date": "2024-12-30",
-  "compatibility_flags": ["nodejs_compat"],
+  // nodejs_compat: Enable Node.js compatibility
+  // nodejs_compat_populate_process_env: Make env vars available via process.env (required for Next.js)
+  // See: https://opennext.js.org/cloudflare/howtos/env-vars
+  "compatibility_flags": ["nodejs_compat", "nodejs_compat_populate_process_env"],
+
+  // Fix for next-themes __name error
+  // See: https://opennext.js.org/cloudflare/howtos/keep_names
+  "keep_names": false,
 
   // Observability - enable Workers logs
   "observability": {
@@ -38,7 +45,11 @@
 
   // Environment variables (secrets set via wrangler secret or dashboard)
   "vars": {
-    "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
+    "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache",
+    // Medusa API configuration (public vars, safe to commit)
+    "NEXT_PUBLIC_MEDUSA_ENABLED": "true",
+    "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
+    "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_db1d0b19fe8e824f1290070dcce30dd51028fd323baf310e7d00cbc89ceb6ece"
   },
 
   // Production environment
@@ -79,7 +90,11 @@
         }
       ],
       "vars": {
-        "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
+        "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache",
+        // Medusa API configuration (public vars, safe to commit)
+        "NEXT_PUBLIC_MEDUSA_ENABLED": "true",
+        "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
+        "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_db1d0b19fe8e824f1290070dcce30dd51028fd323baf310e7d00cbc89ceb6ece"
       }
     }
   }

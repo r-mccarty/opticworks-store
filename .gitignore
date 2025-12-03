@@ -61,3 +61,10 @@ next-env.d.ts
 
 # aws cli
 awscliv2.zip
+
+# Playwright E2E test artifacts
+e2e-report/
+e2e-results/
+e2e-results.json
+playwright-report/
+test-results/

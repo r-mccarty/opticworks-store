@@ -24,18 +24,20 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
 
   const handleAddToCart = async () => {
     setIsAddingToCart(true)
-    
+
     const productToAdd = selectedVariant
       ? {
           ...product,
           id: selectedVariant.id,
           name: `${product.name} - ${selectedVariant.name}`,
           price: selectedVariant.price,
+          // Use the Medusa variant ID if available, fall back to product's default variantId
+          variantId: selectedVariant.medusaVariantId ?? product.variantId,
         }
       : product
-    
+
     addToCart(productToAdd)
-    
+
     setTimeout(() => setIsAddingToCart(false), 500)
   }
 
@@ -103,6 +105,7 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
                     disabled={!product.inStock || isAddingToCart}
                     size="lg"
                     className="bg-white text-orange-600 hover:bg-orange-50 h-14 px-8 text-lg font-semibold"
+                    data-testid="add-to-cart-cta"
                   >
                     <ShoppingCartIcon className="w-6 h-6 mr-3" />
                     {isAddingToCart ? 'Adding to Cart...' : 'ADD TO CART'}

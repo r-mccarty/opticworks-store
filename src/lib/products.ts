@@ -18,6 +18,8 @@ export interface ProductVariant {
   description: string
   badge?: string
   vlt?: string
+  // Medusa variant ID for cart integration (set by transformMedusaProduct)
+  medusaVariantId?: string
 }
 
 export interface Product {
@@ -98,6 +100,8 @@ export const products: Product[] = [
       { label: "Power", value: "USB-C 5V (cable included)" },
       { label: "Warranty", value: "2 years hardware / Oops Protection" },
     ],
+    // Default variant ID for products without variant selection
+    variantId: "variant_01KBF0WRDCT61JD4HHH2PGDHAK", // Single Bed Kit
     variants: [
       {
         id: "bed-presence-sensor-kit-single",
@@ -105,18 +109,21 @@ export const products: Product[] = [
         price: 239,
         description: "Everything you need for one bed zone.",
         badge: "Most popular",
+        medusaVariantId: "variant_01KBF0WRDCT61JD4HHH2PGDHAK",
       },
       {
         id: "bed-presence-sensor-kit-duo",
         name: "Dual Bed Pack",
         price: 449,
         description: "Two synchronized sensors for primary + guest rooms.",
+        medusaVariantId: "variant_01KBF0WRDCFRQ6NSMTKX7TZAF7",
       },
       {
         id: "bed-presence-sensor-kit-studio",
         name: "Studio + Dev Pack",
         price: 525,
         description: "Adds a breakout board, USB-UART dev cable, and beta firmware access.",
+        medusaVariantId: "variant_01KBF0WRDCNYGF0PW9YH9RHZD0",
       },
     ],
     reviews: {
@@ -148,6 +155,7 @@ export const products: Product[] = [
       "Pre-calibrated to avoid crosstalk",
       "Includes automation blueprint",
     ],
+    variantId: "variant_01KBF0WRDDVB0FTPFWRYSEG34H", // Duo Pack Standard
     inStock: true,
     featured: true,
   },
@@ -166,6 +174,7 @@ export const products: Product[] = [
       { label: "Included Sensors", value: "Bed Presence Sensor + sandbox module" },
       { label: "Support", value: "Private Discord lab channel" },
     ],
+    variantId: "variant_01KBF0WRDDHTX28ZQCRET1SCB3", // Developer Edition Standard
     inStock: true,
   },
   {
@@ -187,6 +196,7 @@ export const products: Product[] = [
       "Number sliders for debounce + delays",
       "Template sensors for automations",
     ],
+    variantId: "variant_01KBF0WRDDQVRR03GPYR79Z86P", // Dashboard Pack Standard
     inStock: true,
   },
   {
@@ -203,6 +213,7 @@ export const products: Product[] = [
       { label: "Cable Management", value: "Integrated USB-C path" },
       { label: "Compatibility", value: "All Bed Presence Sensor SKUs" },
     ],
+    variantId: "variant_01KBF0WRDEZ9G74RKE409QA33C", // Enclosure Pack Standard
     inStock: true,
   },
   {
@@ -219,6 +230,7 @@ export const products: Product[] = [
       { label: "Firmware", value: "Ships flashed w/ presence engine" },
       { label: "Use Cases", value: "Office chairs, nurseries, occupancy cues" },
     ],
+    variantId: "variant_01KBF0WRDE69PZG3GJ77EFM9EP", // Spare Sensor Standard
     inStock: true,
   },
   {
@@ -239,6 +251,7 @@ export const products: Product[] = [
       "Stress test new state-machine ideas",
       "Share dashboards with the community",
     ],
+    variantId: "variant_01KBF0WRDE3YM3G8HKEPK07HPV", // Lab Subscription Standard
     inStock: true,
   },
 ]

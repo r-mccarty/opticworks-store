@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
-import { completeCart, updateCart } from '@/lib/api/medusa';
+import { completeCart, updateCart, type MedusaAddress } from '@/lib/api/medusa';
 
 interface CheckoutFormProps {
   clientSecret: string;
@@ -54,9 +54,36 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
     setMessage(null);
 
     try {
-      // Update cart with email before payment
-      console.log('[checkout] Updating cart with email...');
-      await updateCart(cartId, { email });
+      // Get the shipping address from Stripe AddressElement
+      const addressElement = elements.getElement('address');
+      let shippingAddress: MedusaAddress | undefined;
+
+      if (addressElement) {
+        const { complete, value } = await addressElement.getValue();
+        console.log('[checkout] Address element complete:', complete, 'value:', value);
+
+        if (complete && value?.address) {
+          shippingAddress = {
+            first_name: value.firstName || value.name?.split(' ')[0] || 'Customer',
+            last_name: value.lastName || value.name?.split(' ').slice(1).join(' ') || '',
+            address_1: value.address.line1 || '',
+            address_2: value.address.line2 || '',
+            city: value.address.city || '',
+            province: value.address.state || '',
+            postal_code: value.address.postal_code || '',
+            country_code: (value.address.country || 'US').toLowerCase(),
+            phone: value.phone || '',
+          };
+        }
+      }
+
+      // Update cart with email and shipping address
+      console.log('[checkout] Updating cart with email and shipping address...');
+      await updateCart(cartId, { email, shipping_address: shippingAddress });
+
+      // Note: Shipping method is already added in CheckoutWrapper before payment session is created
+      // We just update the shipping address here with the real customer address
+      // This doesn't change the cart total, so the Payment Intent remains valid
 
       // Confirm the payment with Stripe
       console.log('[checkout] Confirming payment with Stripe...');
@@ -117,7 +144,7 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6" data-testid="checkout-form">
       {/* Email Address */}
       <Card>
         <CardHeader>
@@ -133,6 +160,7 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
             onChange={(e) => setEmail(e.target.value)}
             required
             className="mt-1"
+            data-testid="checkout-email-input"
           />
         </CardContent>
       </Card>
@@ -202,11 +230,14 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
 
       {/* Error/Status Message */}
       {message && (
-        <div className={`p-4 rounded-md ${
-          message.includes('successful') || message.includes('processing')
-            ? 'bg-green-50 text-green-800 border border-green-200'
-            : 'bg-red-50 text-red-800 border border-red-200'
-        }`}>
+        <div
+          className={`p-4 rounded-md ${
+            message.includes('successful') || message.includes('processing')
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}
+          data-testid="checkout-message"
+        >
           {message}
         </div>
       )}
@@ -217,6 +248,7 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
         disabled={isProcessing || !stripe || !elements}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 text-xl shadow-lg hover:shadow-xl transition-all duration-200"
         size="lg"
+        data-testid="pay-button"
       >
         {isProcessing ? (
           <>

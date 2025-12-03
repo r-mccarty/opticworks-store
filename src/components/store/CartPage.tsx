@@ -376,11 +376,12 @@ export function CartPage() {
                 <FadeDiv>
                   <Card>
                     <CardContent className="pt-6">
-                      <Button 
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200" 
+                      <Button
+                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
                         size="lg"
                         onClick={handleProceedToPayment}
                         disabled={isCheckingOut}
+                        data-testid="proceed-to-payment-button"
                       >
                         <CreditCardIcon className="w-5 h-5 mr-2" />
                         {isCheckingOut ? 'Preparing Payment...' : 'Proceed to Payment'}

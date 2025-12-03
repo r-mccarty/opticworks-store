@@ -1,0 +1,79 @@
+/**
+ * Test data for E2E checkout flow testing.
+ */
+
+export const testProducts = {
+  flagship: {
+    slug: 'bed-presence-sensor-kit',
+    name: 'Bed Presence Sensor Kit',
+    price: 239,
+  },
+  duo: {
+    slug: 'presence-sensor-duo-pack',
+    name: 'Presence Sensor Duo Pack',
+    price: 449,
+  },
+  prism: {
+    slug: 'optic-1x-prism',
+    name: 'Optic 1x Prism',
+    price: 149,
+  },
+};
+
+export const testCustomer = {
+  email: `e2e-test-${Date.now()}@optic.works`,
+  firstName: 'E2E',
+  lastName: 'Test',
+};
+
+export const testAddress = {
+  name: 'E2E Test Customer',
+  line1: '123 Test Street',
+  line2: 'Suite 100',
+  city: 'San Francisco',
+  state: 'CA',
+  postalCode: '94102',
+  country: 'US',
+};
+
+/**
+ * Stripe test cards.
+ * @see https://docs.stripe.com/testing#cards
+ */
+export const testCards = {
+  // Successful payment
+  success: {
+    number: '4242424242424242',
+    expMonth: '12',
+    expYear: '2030',
+    cvc: '123',
+  },
+  // Card declined
+  decline: {
+    number: '4000000000000002',
+    expMonth: '12',
+    expYear: '2030',
+    cvc: '123',
+  },
+  // Requires authentication (3D Secure)
+  requires3DS: {
+    number: '4000002500003155',
+    expMonth: '12',
+    expYear: '2030',
+    cvc: '123',
+  },
+  // Insufficient funds
+  insufficientFunds: {
+    number: '4000000000009995',
+    expMonth: '12',
+    expYear: '2030',
+    cvc: '123',
+  },
+};
+
+/**
+ * Generate a unique test email for each run.
+ */
+export function generateTestEmail(): string {
+  return `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@optic.works`;
+}

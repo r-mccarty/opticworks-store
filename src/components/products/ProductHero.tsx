@@ -31,11 +31,13 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
           id: selectedVariant.id,
           name: `${product.name} - ${selectedVariant.name}`,
           price: selectedVariant.price,
+          // Use the Medusa variant ID if available, fall back to product's default variantId
+          variantId: selectedVariant.medusaVariantId ?? product.variantId,
         }
       : product
-    
+
     addToCart(productToAdd)
-    
+
     // Brief loading state for UX
     setTimeout(() => setIsAddingToCart(false), 500)
   }
@@ -187,6 +189,8 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
                 disabled={!product.inStock || isAddingToCart}
                 className="w-full h-12 text-lg"
                 size="lg"
+                data-testid="add-to-cart-button"
+                data-product-id={product.id}
               >
                 <ShoppingCartIcon className="w-5 h-5 mr-2" />
                 {isAddingToCart ? 'Adding...' : product.inStock ? 'ADD TO CART' : 'OUT OF STOCK'}

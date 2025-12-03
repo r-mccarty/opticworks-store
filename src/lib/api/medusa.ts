@@ -9,6 +9,17 @@ const medusaEnv = {
   publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
 }
 
+// Debug logging for Medusa configuration (helps diagnose env var issues)
+if (typeof window === "undefined") {
+  // Server-side logging
+  console.log("[medusa] Server config:", {
+    enabled: medusaEnv.enabled,
+    baseUrl: medusaEnv.baseUrl ? "SET" : "NOT SET",
+    publishableKey: medusaEnv.publishableKey ? "SET" : "NOT SET",
+    raw_enabled: process.env.NEXT_PUBLIC_MEDUSA_ENABLED,
+  })
+}
+
 type MedusaListResponse = {
   products: MedusaProductResponse[]
 }
@@ -133,6 +144,25 @@ const transformMedusaProduct = (raw: MedusaProductResponse): Product => {
   const firstPrice = firstVariant?.prices?.find((price) => price.currency_code?.toLowerCase() === "usd")
     ?? firstVariant?.prices?.[0]
 
+  // Map Medusa variants to ProductVariant format, matching by name/title
+  // This preserves static variant metadata (badge, description) while adding Medusa variant IDs
+  const mergedVariants = fallback?.variants?.map((staticVariant) => {
+    // Find matching Medusa variant by title
+    const medusaVariant = raw.variants?.find(
+      (mv) => mv.title?.toLowerCase() === staticVariant.name.toLowerCase()
+    )
+    const variantPrice = medusaVariant?.prices?.find((p) => p.currency_code?.toLowerCase() === "usd")
+      ?? medusaVariant?.prices?.[0]
+
+    return {
+      ...staticVariant,
+      // Use Medusa price if available
+      price: normalizePrice(variantPrice?.amount) ?? staticVariant.price,
+      // Add Medusa variant ID for cart integration
+      medusaVariantId: medusaVariant?.id,
+    }
+  })
+
   const normalized: Product = {
     ...template,
     id: raw.id,
@@ -147,7 +177,7 @@ const transformMedusaProduct = (raw: MedusaProductResponse): Product => {
     keyBenefits: fallback?.keyBenefits,
     heroIntro: fallback?.heroIntro,
     highlights: fallback?.highlights,
-    variants: fallback?.variants,
+    variants: mergedVariants ?? fallback?.variants,
     reviews: fallback?.reviews,
     installGuide: fallback?.installGuide,
     inStock:
@@ -166,10 +196,15 @@ const transformMedusaProduct = (raw: MedusaProductResponse): Product => {
 const medusaHeaders = (): HeadersInit => {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    // Identify requests from the storefront worker
+    "User-Agent": "OpticWorks-Storefront/1.0",
   }
 
   if (medusaEnv.publishableKey) {
     headers["x-publishable-api-key"] = medusaEnv.publishableKey
+    console.log("[medusa] Headers:", JSON.stringify(headers))
+  } else {
+    console.warn("[medusa] No publishable key available!")
   }
 
   return headers
@@ -228,9 +263,14 @@ export async function getProductById(id: string): Promise<Product | undefined> {
   }
 
   try {
-    // Include variant prices in the response
-    const product = await medusaFetch<{ product: MedusaProductResponse }>(`/store/products/${id}?fields=*variants.prices`)
-    return transformMedusaProduct(product.product)
+    // Medusa v2 uses handle for product lookup (id is the URL slug which matches handle)
+    const response = await medusaFetch<MedusaListResponse>(`/store/products?handle=${id}&fields=*variants.prices`)
+    const product = response.products?.[0]
+    if (!product) {
+      console.warn(`[medusa] No product found with handle ${id}, falling back to static data`)
+      return fallbackProductMap.get(id)
+    }
+    return transformMedusaProduct(product)
   } catch (error) {
     console.warn(`[medusa] Failed to fetch product ${id}, falling back to static data`, error)
     return fallbackProductMap.get(id)
@@ -354,6 +394,62 @@ export async function updateCart(
     method: "POST",
     body: JSON.stringify(data),
   })
+  return response.cart
+}
+
+// =============================================================================
+// Shipping Functions - Medusa v2 API
+// =============================================================================
+
+/**
+ * Shipping option from Medusa v2
+ */
+export interface MedusaShippingOption {
+  id: string
+  name: string
+  price_type: string
+  service_zone_id: string
+  shipping_profile_id: string
+  provider_id: string
+  data: Record<string, unknown>
+  type: {
+    id: string
+    label: string
+    description: string
+    code: string
+  }
+  amount: number
+}
+
+/**
+ * Get available shipping options for a cart.
+ * Requires cart to have a shipping address set first.
+ */
+export async function getShippingOptions(cartId: string): Promise<MedusaShippingOption[]> {
+  console.log("[medusa] Getting shipping options for cart:", cartId)
+  const response = await medusaFetch<{ shipping_options: MedusaShippingOption[] }>(
+    `/store/shipping-options?cart_id=${cartId}`
+  )
+  console.log("[medusa] Found", response.shipping_options.length, "shipping options")
+  return response.shipping_options
+}
+
+/**
+ * Add a shipping method to the cart.
+ */
+export async function addShippingMethod(
+  cartId: string,
+  optionId: string
+): Promise<MedusaCart> {
+  console.log("[medusa] Adding shipping method to cart:", cartId, "option:", optionId)
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}/shipping-methods`,
+    {
+      method: "POST",
+      body: JSON.stringify({ option_id: optionId }),
+    }
+  )
+  console.log("[medusa] Shipping method added successfully")
   return response.cart
 }
 
