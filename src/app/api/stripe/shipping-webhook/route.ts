@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    // Check if request is coming from Hookdeck
-    const hookdeckSourceId = request.headers.get('hookdeck-source-id');
-    const hookdeckSignature = request.headers.get('hookdeck-signature');
-    
-    if (hookdeckSourceId || hookdeckSignature) {
+    // Check if request is coming from Hookdeck (headers use X- prefix)
+    const hookdeckSignature = request.headers.get('x-hookdeck-signature');
+    const hookdeckVerified = request.headers.get('x-hookdeck-verified');
+
+    if (hookdeckSignature || hookdeckVerified === 'true') {
       // Request from Hookdeck - skip Stripe signature verification since Hookdeck already validated
       console.log('📡 Shipping webhook from Hookdeck detected, skipping Stripe signature verification');
       event = JSON.parse(body) as Stripe.Event;
