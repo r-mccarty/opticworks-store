@@ -139,16 +139,28 @@ module.exports = defineConfig({
       },
     },
 
-    // ===== File Module (Local for now, will switch to R2 later) =====
-    // NOTE: Temporarily disabled - module path needs fixing
-    // TODO: Re-enable with correct file storage provider
-    // {
-    //   key: Modules.FILE,
-    //   resolve: "@medusajs/medusa/file-local",
-    //   options: {
-    //     upload_dir: "uploads",
-    //     backend_url: process.env.MEDUSA_BACKEND_URL ?? "http://localhost:9000",
-    //   },
-    // },
+    // ===== File Module (Cloudflare R2) =====
+    {
+      resolve: "@medusajs/medusa/file",
+      options: {
+        providers: [
+          {
+            resolve: "@medusajs/medusa/file-s3",
+            id: "s3",
+            options: {
+              file_url: process.env.R2_PUBLIC_URL,
+              access_key_id: process.env.R2_ACCESS_KEY_ID,
+              secret_access_key: process.env.R2_SECRET_ACCESS_KEY,
+              region: "auto",
+              bucket: process.env.R2_BUCKET_NAME,
+              endpoint: process.env.R2_ENDPOINT_URL,
+              additional_client_config: {
+                forcePathStyle: true,
+              },
+            },
+          },
+        ],
+      },
+    },
   ],
 })
