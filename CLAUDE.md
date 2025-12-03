@@ -64,12 +64,26 @@ These are known issues with documented fixes:
 
 ## Current State
 
+- **Storefront**: Live at optic.works (Cloudflare Workers via OpenNext)
 - **Backend**: Live at api.optic.works (Medusa v2, PostgreSQL, Redis)
-- **Phase 3**: Cart/checkout code complete, needs runtime testing
-- **Email**: Handled by Medusa backend via Resend (storefront stubs remain for non-transactional)
-- **SSG**: Disabled for product pages (force-dynamic)
+- **Phase 3**: Cart/checkout complete and tested
+- **Email**: Handled by Medusa backend via Resend
+- **Webhooks**: Stripe → Hookdeck → optic.works/api/stripe/webhook
 
 ## Deployment
+
+### Storefront (Cloudflare Workers)
+
+```bash
+# Build and deploy to production
+unset NODE_ENV && pnpm run cf:build
+pnpm exec wrangler deploy --env production
+
+# Preview deployment (workers.dev)
+unset NODE_ENV && pnpm run cf:deploy
+```
+
+### Backend (Medusa on Hetzner)
 
 ```bash
 # Deploy backend code changes

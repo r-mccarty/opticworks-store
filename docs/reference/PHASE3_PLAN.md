@@ -1,7 +1,7 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6 Complete, 5, 7, 8 Pending)
-**Updated**: 2025-12-02
+**Status**: 🚧 IN PROGRESS (Tracks 1-6, 8 Complete, 5, 7 Pending)
+**Updated**: 2025-12-03
 
 ---
 
@@ -17,7 +17,7 @@
 | 5 | 📋 Pending | Webhook documentation (Hookdeck configured) |
 | 6 | ✅ Complete | Customer authentication |
 | 7 | 📋 Pending | E2E testing |
-| 8 | 📋 Pending | Cloudflare Workers deployment (OpenNext) |
+| 8 | ✅ Complete | Cloudflare Workers deployment (OpenNext) |
 
 **Blockers Resolved**:
 - ✅ Email system stubbed (react-email/Next.js 15 conflict)
@@ -236,20 +236,28 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-### Track 8: Cloudflare Workers Deployment 🚧 IN PROGRESS
+### Track 8: Cloudflare Workers Deployment ✅ COMPLETE
 
-**Goal**: Deploy Next.js storefront to Cloudflare Workers using OpenNext adapter, replacing Vercel deployment. This provides:
+**Goal**: Deploy Next.js storefront to Cloudflare Workers using OpenNext adapter, replacing Vercel deployment.
+
+**Benefits Achieved**:
 - Direct connectivity to Hetzner/Medusa backend (no Vercel cold starts)
 - R2 for incremental cache (ISR/SSG)
 - Better edge performance
 - Backend-for-frontend pattern with Workers
-- GitOps deployment on push to main
+- GitOps deployment via Cloudflare dashboard git integration
 
 **Architecture**:
 ```
 ┌──────────────────────┐
-│  Cloudflare Workers  │ → storefront (Next.js via OpenNext)
+│  Cloudflare Workers  │ → optic.works (Next.js via OpenNext)
 │  + R2 Storage        │ → incremental cache (ISR/SSG)
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐     ┌──────────────────────┐
+│  Hookdeck            │ ←── │  Stripe Webhooks     │
+│  (webhook proxy)     │     └──────────────────────┘
 └──────────┬───────────┘
            │
            ▼
@@ -263,85 +271,85 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 - [x] Install @opennextjs/cloudflare adapter
 - [x] Configure wrangler.jsonc for Workers deployment
 - [x] Set up R2 bucket binding for incremental cache
-- [x] Create GitHub Actions workflow for GitOps deployment
-- [ ] Create R2 cache bucket in Cloudflare dashboard
-- [ ] Set up GitHub secrets and variables
-- [ ] Configure Workers secrets in Cloudflare dashboard
-- [ ] Update DNS (move from Vercel to Cloudflare)
-- [ ] Test Medusa API connectivity from Workers
-- [ ] Verify Stripe webhooks work with new domain
+- [x] Create R2 cache bucket (`opticworks-cache`)
+- [x] Configure Workers secrets in Cloudflare dashboard
+- [x] Update DNS (moved from Vercel to Cloudflare Workers)
+- [x] Test Medusa API connectivity from Workers
+- [x] Stripe checkout working with Cloudflare Workers
+- [x] Hookdeck webhook routing configured and tested
 
 **Reference**: https://opennext.js.org/cloudflare
 
 **Key Files**:
-- `wrangler.jsonc` - Wrangler configuration
-- `open-next.config.ts` - OpenNext configuration with R2 cache
-- `.github/workflows/deploy-cloudflare.yml` - GitOps deployment
+- `wrangler.jsonc` - Wrangler configuration with R2 bindings
+- `open-next.config.ts` - OpenNext configuration with R2 incremental cache
+- `.github/workflows/deploy-cloudflare.yml` - GitHub Actions workflow (optional)
 - `public/_headers` - Static asset cache headers
 
 **npm Scripts**:
 ```bash
 pnpm run cf:build      # Build for Cloudflare
 pnpm run cf:preview    # Build and preview locally
-pnpm run cf:deploy     # Deploy to default env
-pnpm run cf:deploy:production  # Deploy to production
+pnpm run cf:deploy     # Deploy to default env (workers.dev)
 ```
 
-## Setup Instructions
-
-### 1. Create R2 Cache Bucket
+**Manual Production Deploy**:
 ```bash
-# Create the incremental cache bucket
-npx wrangler r2 bucket create opticworks-cache
+unset NODE_ENV && pnpm run cf:build
+pnpm exec wrangler deploy --env production
 ```
 
-### 2. GitHub Repository Secrets
-Add these secrets in GitHub repo settings → Secrets → Actions:
+**Cloudflare Workers Configuration**:
 
-| Secret | Description |
-|--------|-------------|
-| `CLOUDFLARE_API_TOKEN` | API token with Workers/R2/DNS permissions |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+Custom domains configured in `wrangler.jsonc`:
+- `optic.works` (primary)
+- `www.optic.works` (alias)
 
-### 3. GitHub Repository Variables
-Add these variables in GitHub repo settings → Variables → Actions:
-
-| Variable | Value |
-|----------|-------|
-| `NEXT_PUBLIC_MEDUSA_BASE_URL` | `https://api.optic.works` |
-| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | (from Infisical) |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | (from Infisical) |
-| `NEXT_PUBLIC_APP_URL` | `https://optic.works` |
-| `NEXT_PUBLIC_MEDUSA_ENABLED` | `true` |
-
-### 4. Cloudflare Worker Secrets
-Set via Cloudflare dashboard (Workers → opticworks-store → Settings → Variables):
-
+Worker secrets (set in Cloudflare dashboard → Workers → Settings → Variables):
 | Secret | Description |
 |--------|-------------|
 | `STRIPE_SECRET_KEY` | Stripe API secret key |
 | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
 | `RESEND_API_KEY` | Resend email API key |
-| `MEDUSA_SECRET_KEY` | Medusa backend secret |
 
-### 5. DNS Configuration
-Since optic.works already uses Cloudflare DNS:
-1. Remove Vercel CNAME/A records
-2. Worker routes in wrangler.jsonc will handle `optic.works` and `www.optic.works`
+**Stripe SDK Cloudflare Workers Compatibility**:
 
-### 6. Stripe Webhook Update
-Update Stripe webhook endpoint from Vercel URL to:
-- `https://optic.works/api/stripe/webhook`
+The Stripe SDK requires special configuration for Cloudflare Workers:
 
-**Environment Variables** (in Infisical):
-- `CLOUDFLARE_API_BASE_URL` - Cloudflare API endpoint
-- `CLOUDFLARE_EMAIL` - Account email
-- `CLOUDFLARE_GLOBAL_API_KEY` - API key (use API Token instead for GitHub Actions)
-- `R2_ACCESS_KEY_ID` - R2 bucket access
-- `R2_SECRET_ACCESS_KEY` - R2 bucket secret
-- `R2_BUCKET_NAME` - `opticworks-public`
-- `R2_ENDPOINT_URL` - R2 S3-compatible endpoint
-- `R2_PUBLIC_URL` - Public R2 URL
+```typescript
+import Stripe from 'stripe';
+
+// Use FetchHttpClient instead of Node's http module
+// API version 2025-03-31.basil required for ui_mode: custom
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
+  httpClient: Stripe.createFetchHttpClient(),
+});
+
+// For webhook signature verification, use SubtleCryptoProvider (Web Crypto API)
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
+event = await stripe.webhooks.constructEventAsync(
+  body,
+  signature,
+  webhookSecret,
+  undefined,
+  cryptoProvider
+);
+```
+
+Reference: https://opennext.js.org/cloudflare/howtos/stripeAPI
+
+**Hookdeck Webhook Configuration**:
+
+Stripe webhooks are routed through Hookdeck for reliability and observability:
+
+1. Stripe sends webhooks to Hookdeck endpoint
+2. Hookdeck validates and forwards to `https://optic.works/api/stripe/webhook`
+3. Webhook route detects Hookdeck headers and skips Stripe signature verification
+
+Hookdeck detection headers:
+- `X-Hookdeck-Signature` - Hookdeck's signature
+- `X-Hookdeck-Verified: true` - Indicates Hookdeck validated the webhook
 
 **Caching Notes** (per https://opennext.js.org/cloudflare/caching):
 - Uses R2 for incremental cache (ISR/SSG pages)

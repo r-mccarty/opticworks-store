@@ -1,6 +1,6 @@
 # Stripe Integration Documentation
 
-**Updated**: 2025-12-02
+**Updated**: 2025-12-03
 
 > **Phase 3 Update**: Checkout now uses **Medusa Payment Sessions** instead of direct Stripe.
 > Medusa creates Payment Intents via its Stripe provider, and we use Stripe Elements to collect payment.
@@ -20,17 +20,29 @@ Cart → createPaymentSession(cartId) → Medusa creates PaymentIntent
 - `src/components/checkout/CheckoutForm.tsx` - Stripe Elements
 - `src/hooks/useCart.ts` - Cart state with Medusa sync
 
-**Lazy Stripe initialization** (build fix):
+**Cloudflare Workers Stripe Initialization** (required for edge deployment):
 ```typescript
-// Required pattern - Stripe SDK throws at build time if key missing
+import Stripe from 'stripe';
+
+// Cloudflare Workers compatible Stripe initialization
+// Uses FetchHttpClient instead of Node's http module
+// API version 2025-03-31.basil required for ui_mode: custom
 let stripe: Stripe | null = null;
 const getStripe = () => {
   if (!stripe) {
-    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-06-20' });
+    stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+      apiVersion: '2025-03-31.basil' as Stripe.LatestApiVersion,
+      httpClient: Stripe.createFetchHttpClient(),
+    });
   }
   return stripe;
 };
+
+// For webhook signature verification, use SubtleCryptoProvider (Web Crypto API)
+const cryptoProvider = Stripe.createSubtleCryptoProvider();
 ```
+
+Reference: https://opennext.js.org/cloudflare/howtos/stripeAPI
 
 ---
 
@@ -183,6 +195,40 @@ const { error } = await checkout.confirm({
 See `src/components/checkout/CheckoutForm.tsx` for implementation details.
 
 ## Webhook Integration
+
+### Webhook Architecture
+
+Stripe webhooks are routed through **Hookdeck** for reliability and observability:
+
+```
+Stripe → Hookdeck → https://optic.works/api/stripe/webhook
+```
+
+**Hookdeck Benefits**:
+- Automatic retries with exponential backoff
+- Request/response logging for debugging
+- Webhook replay for failed deliveries
+- Dashboard for monitoring delivery status
+
+### Hookdeck Header Detection
+
+When webhooks come through Hookdeck, the signature verification is skipped since Hookdeck already validated the webhook from Stripe:
+
+```typescript
+// Check if request is coming from Hookdeck (headers use X- prefix)
+const hookdeckSignature = request.headers.get('x-hookdeck-signature');
+const hookdeckVerified = request.headers.get('x-hookdeck-verified');
+
+if (hookdeckSignature || hookdeckVerified === 'true') {
+  // Skip Stripe signature verification - Hookdeck already validated
+  event = JSON.parse(body) as Stripe.Event;
+} else {
+  // Direct from Stripe - verify signature with SubtleCryptoProvider
+  event = await stripe.webhooks.constructEventAsync(
+    body, signature, webhookSecret, undefined, cryptoProvider
+  );
+}
+```
 
 ### Primary Webhook Events
 
