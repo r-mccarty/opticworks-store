@@ -32,7 +32,7 @@
     "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
   },
 
-  // Production environment overrides
+  // Production environment
   "env": {
     "production": {
       "name": "opticworks-store",
@@ -45,7 +45,25 @@
           "pattern": "www.optic.works",
           "custom_domain": true
         }
-      ]
+      ],
+      // Override existing DNS records (Vercel)
+      "override_existing_dns_record": true,
+      // Inherit these in production env
+      "r2_buckets": [
+        {
+          "binding": "NEXT_INC_CACHE_R2_BUCKET",
+          "bucket_name": "opticworks-cache"
+        }
+      ],
+      "services": [
+        {
+          "binding": "WORKER_SELF_REFERENCE",
+          "service": "opticworks-store"
+        }
+      ],
+      "vars": {
+        "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
+      }
     }
   }
 }
