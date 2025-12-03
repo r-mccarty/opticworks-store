@@ -1,3 +1,4 @@
+import { cache } from "react"
 import { products as fallbackProducts, type Product } from "@/lib/products"
 
 // NOTE: Environment variables must be accessed directly as process.env.NEXT_PUBLIC_*
@@ -257,7 +258,13 @@ export async function listProducts(): Promise<Product[]> {
   }
 }
 
-export async function getProductById(id: string): Promise<Product | undefined> {
+/**
+ * Fetch a product by ID/handle.
+ * Wrapped with React cache() to deduplicate calls within the same request.
+ * This prevents duplicate API calls when both generateMetadata and the page
+ * component need the same product data.
+ */
+export const getProductById = cache(async (id: string): Promise<Product | undefined> => {
   if (!medusaConfig.enabled) {
     return fallbackProductMap.get(id)
   }
@@ -275,7 +282,7 @@ export async function getProductById(id: string): Promise<Product | undefined> {
     console.warn(`[medusa] Failed to fetch product ${id}, falling back to static data`, error)
     return fallbackProductMap.get(id)
   }
-}
+})
 
 // Legacy createPaymentSession removed - use createMedusaPaymentSession instead
 
