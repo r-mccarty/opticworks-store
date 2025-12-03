@@ -14,15 +14,16 @@ invocation_logs = true
 MEDUSA_ORIGIN = "https://medusa.optic.works"
 ALLOWED_ORIGINS = "https://optic.works,https://www.optic.works,http://localhost:3000"
 
-# Production environment with route to api.optic.works
+# Production environment - ROUTES REMOVED
+# api.optic.works now goes directly to Cloudflare Tunnel (Medusa handles CORS)
+# This worker is kept for backwards compatibility but has no routes
 [env.production]
 name = "opticworks-api-cors"
-routes = [
-  { pattern = "api.optic.works/*", zone_name = "optic.works" }
-]
+# Routes removed - api.optic.works now served by Cloudflare Tunnel directly
+# routes = [
+#   { pattern = "api.optic.works/*", zone_name = "optic.works" }
+# ]
 
 [env.production.vars]
-# Medusa is now accessible via internal hostname through Cloudflare Tunnel
 MEDUSA_ORIGIN = "https://medusa.optic.works"
-# Include api.optic.works for admin dashboard (loads assets with Origin header)
 ALLOWED_ORIGINS = "https://optic.works,https://www.optic.works,https://api.optic.works"
