@@ -2,7 +2,7 @@
 
 Next.js 15 storefront + Medusa v2 backend for mmWave presence sensors.
 
-**Live**: [api.optic.works](https://api.optic.works) | [Admin](https://api.optic.works/app)
+**Live**: [optic.works](https://optic.works) | [API](https://api.optic.works) | [Admin](https://api.optic.works/app)
 
 ## Quick Start
 
@@ -26,19 +26,54 @@ unset NODE_ENV && pnpm run build   # unset required in Codespaces
 src/                    # Next.js 15 storefront
 ├── app/                # Pages + API routes
 ├── components/         # React components (ui/, checkout/, products/)
-├── hooks/              # Zustand stores (useCart, useCheckoutState)
+├── hooks/              # Zustand stores (useCart, useAuth, useCheckoutState)
 └── lib/api/            # Backend integration (medusa.ts)
 
 backend/                # Medusa v2 (standalone, not workspace)
 ├── medusa-config.ts    # Medusa configuration
-└── src/scripts/        # Automation scripts
+└── src/                # Custom modules (resend notifications)
 
 infrastructure/ansible/ # IaC for Hetzner deployment
 ├── playbooks/          # provision, deploy, destroy
 └── inventory/          # production.ini
 ```
 
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  optic.works    │     │ api.optic.works │     │    Hookdeck     │
+│  (Cloudflare    │     │ (Cloudflare     │     │   (Webhooks)    │
+│   Workers)      │     │  Tunnel)        │     │                 │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                       │
+         │  SSR uses             │                       │
+         │  medusa.optic.works   │                       │
+         └───────────────────────┼───────────────────────┘
+                                 │
+                                 ▼
+                    ┌─────────────────────┐
+                    │   Hetzner Cloud     │
+                    │   Medusa + PG + Redis│
+                    └─────────────────────┘
+```
+
+| Hostname | Purpose |
+|----------|---------|
+| `optic.works` | Storefront (Cloudflare Workers + OpenNext) |
+| `api.optic.works` | Medusa API (client-side requests) |
+| `medusa.optic.works` | Medusa API (SSR requests, bypasses hairpin) |
+
 ## Deployment
+
+### Storefront (Cloudflare Workers)
+
+```bash
+unset NODE_ENV && pnpm run cf:build
+pnpm exec wrangler deploy --env production
+```
+
+### Backend (Medusa on Hetzner)
 
 **Backend is immutable** - all changes via Ansible only:
 
@@ -73,38 +108,38 @@ Never commit `.env.local` or `backend/.env`.
 | Issue | Workaround |
 |-------|------------|
 | Codespaces sets NODE_ENV | `unset NODE_ENV && pnpm run build` |
-| react-email breaks SSG | Email system stubbed (logging only) |
 | Medusa API unavailable at build | Products fallback to static data |
 | Product pages SSG fails | `force-dynamic` on product routes |
+| Stripe SDK at build time | Lazy initialization with getStripe() |
 
-## Project Phases
+## Project Status
 
 | Phase | Status | Description |
 |-------|--------|-------------|
 | 0 | ✅ Done | Next.js storefront with static products |
 | 1 | ✅ Done | Medusa backend deployed to Hetzner |
 | 2 | ✅ Done | Storefront integrated with Medusa API |
-| 3 | 🚧 In Progress | Full e-commerce (cart, checkout, payments) |
+| 3 | ✅ Done | Full e-commerce (cart, checkout, payments, auth) |
 | 4 | 📋 Planned | Docs site, Discord, CI/CD hardening |
 
-**Phase 3 Status**: Tracks 1-4 complete (regions, products, cart, checkout code). Needs runtime testing. Email stubbed, will restore via Medusa notifications.
+**Phase 3 Complete**: All tracks done - products, cart, checkout, payments, customer auth, E2E tests, Cloudflare Workers deployment.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15, React 19, Tailwind, Shadcn UI
+- **Frontend**: Next.js 15, React 19, Tailwind CSS 4, Shadcn UI
 - **Backend**: Medusa v2, PostgreSQL 17, Redis 7
-- **Payments**: Stripe
-- **Infra**: Hetzner Cloud, Cloudflare Tunnel, Ansible
-- **Secrets**: Infisical
+- **Payments**: Stripe (via Medusa payment provider)
+- **Email**: Resend (via Medusa notification provider)
+- **Hosting**: Cloudflare Workers (storefront), Hetzner Cloud (backend)
+- **Infra**: Cloudflare Tunnel, Ansible, Infisical
 
 ## Reference Docs
 
 For deep dives, see [docs/reference/](docs/reference/):
-- Phase 3 implementation plan
-- Full Ansible deployment guide
-- Complete secrets inventory
-- Zustand state patterns
-- Stripe integration details
+- [ARCHITECTURE.md](docs/reference/ARCHITECTURE.md) - System architecture
+- [PHASE3_PLAN.md](docs/reference/PHASE3_PLAN.md) - Implementation tracks
+- [DEPLOYMENT_GUIDE.md](docs/reference/DEPLOYMENT_GUIDE.md) - Ansible playbooks
+- [STRIPE_INTEGRATION.md](docs/reference/STRIPE_INTEGRATION.md) - Payment flow
 
 ## License
 
