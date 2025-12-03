@@ -22,13 +22,34 @@ export interface CreateCheckoutSessionRequest {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if Stripe secret key is configured
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('STRIPE_SECRET_KEY is not configured');
+      return NextResponse.json(
+        { error: 'Payment service not configured' },
+        { status: 500 }
+      );
+    }
+
     const body = await request.json() as CreateCheckoutSessionRequest;
     const { items } = body;
+
+    console.log('Checkout request received:', { itemCount: items?.length, items });
 
     // Validate required fields
     if (!items || !items.length) {
       return NextResponse.json(
         { error: 'Missing required fields: items' },
+        { status: 400 }
+      );
+    }
+
+    // Validate item prices
+    const invalidItems = items.filter(item => !item.price || item.price <= 0);
+    if (invalidItems.length > 0) {
+      console.error('Items with invalid prices:', invalidItems);
+      return NextResponse.json(
+        { error: `Invalid price for items: ${invalidItems.map(i => i.name).join(', ')}` },
         { status: 400 }
       );
     }
@@ -113,14 +134,22 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Stripe Checkout Session creation error:', error);
-    
+
     if (error instanceof Stripe.errors.StripeError) {
+      console.error('Stripe error details:', {
+        type: error.type,
+        code: error.code,
+        message: error.message,
+        param: error.param,
+      });
       return NextResponse.json(
-        { error: error.message },
+        { error: error.message, code: error.code },
         { status: 400 }
       );
     }
 
+    // Log unexpected errors
+    console.error('Unexpected error:', error instanceof Error ? error.message : error);
     return NextResponse.json(
       { error: 'Failed to create checkout session' },
       { status: 500 }
