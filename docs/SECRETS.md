@@ -99,3 +99,28 @@ export INFISICAL_SERVICE_TOKEN=st.xxx.xxx
 rm .env.local
 pnpm run secrets:pull
 ```
+
+**Backend: "Pg connection failed" / KnexTimeoutError**
+```bash
+# Likely cause: PASSWORD in DATABASE_URL contains unencoded special chars
+# Passwords with '/' need URL encoding (%2F), '=' needs (%3D)
+
+# Check current value:
+ssh hetzner-node "grep DATABASE_URL /opt/opticworks/medusa-backend/.env"
+
+# If slashes aren't encoded (/), fix with:
+# BAD:  postgresql://user:abc/def=@localhost/db
+# GOOD: postgresql://user:abc%2Fdef%3D@localhost/db
+
+# Ansible template now handles this automatically via:
+# {{ password | regex_replace('/', '%2F') | urlencode }}
+```
+
+**Backend: Shell syntax error with angle brackets**
+```bash
+# Symptom: .env parse error "unexpected token"
+# Cause: Values like "Name <email>" need quotes
+
+# BAD:  FROM_EMAIL=Name <email@x.com>
+# GOOD: FROM_EMAIL="Name <email@x.com>"
+```

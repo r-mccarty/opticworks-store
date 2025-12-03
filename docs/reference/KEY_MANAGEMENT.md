@@ -489,7 +489,7 @@ When adding a new environment variable:
 - [x] `NEXT_PUBLIC_APP_URL`
 
 ### Storefront (Development) - Optional Services
-- [ ] Cloudflare R2 (`R2_*` - 5 variables)
+- [x] Cloudflare R2 (`R2_*` - 5 variables) - ✅ Configured 2025-12-03
 - [ ] Cloudflare Images (`CLOUDFLARE_*` - 5 variables)
 - [ ] EasyPost shipping (`EASYPOST_API_KEY`)
 - [ ] Google Analytics (`GA4_*`, `GOOGLE_*` - 4 variables)
@@ -541,12 +541,13 @@ When adding a new environment variable:
 
 ---
 
-**Last Updated**: 2025-12-02
+**Last Updated**: 2025-12-03
 **Next Review**: Monthly (align with rotation schedule)
 
 ---
 
 **Change Log:**
+- **2025-12-03**: Marked Cloudflare R2 as configured for file storage. Added R2 credentials to Ansible secrets.
 - **2025-12-02**: Fixed Infisical structure documentation - environments are `dev`/`staging`/`prod` (not `development`/`production`), all secrets at root path `/` (no `/medusa` or `/infrastructure` subpaths). Added CLOUDFLARE_TUNNEL_CREDENTIALS. Changed backend path from `services/medusa` to `backend`.
 - **2025-11-19**: Expanded storefront secrets with complete variable inventory (~50 variables), corrected variable names to match codebase (e.g., `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`), added categorization by service
 - **2025-11-18**: Initial version with core secrets inventory

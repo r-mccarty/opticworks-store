@@ -223,6 +223,107 @@ RESEND_API_KEY=re_...
 
 ---
 
+## File Storage (Cloudflare R2)
+
+Medusa uses Cloudflare R2 for file storage (product images, uploads). R2 is S3-compatible.
+
+### Configuration
+
+**Files:**
+- `backend/medusa-config.ts` - File module configuration
+- `infrastructure/ansible/roles/medusa/templates/medusa.env.j2` - Environment variables
+- `infrastructure/ansible/group_vars/secrets.yml` - R2 credentials
+
+**Environment Variables:**
+```bash
+R2_ACCESS_KEY_ID=xxx        # R2 API token access key
+R2_SECRET_ACCESS_KEY=xxx    # R2 API token secret
+R2_BUCKET_NAME=opticworks-public
+R2_ENDPOINT_URL=https://<account-id>.r2.cloudflarestorage.com
+R2_PUBLIC_URL=https://pub-xxx.r2.dev  # Or custom domain
+```
+
+**Medusa Config:**
+```typescript
+// backend/medusa-config.ts
+{
+  resolve: "@medusajs/medusa/file",
+  options: {
+    providers: [
+      {
+        resolve: "@medusajs/medusa/file-s3",
+        id: "s3",
+        options: {
+          file_url: process.env.R2_PUBLIC_URL,
+          access_key_id: process.env.R2_ACCESS_KEY_ID,
+          secret_access_key: process.env.R2_SECRET_ACCESS_KEY,
+          region: "auto",  // R2 uses "auto"
+          bucket: process.env.R2_BUCKET_NAME,
+          endpoint: process.env.R2_ENDPOINT_URL,
+          additional_client_config: {
+            forcePathStyle: true,  // Required for S3-compatible providers
+          },
+        },
+      },
+    ],
+  },
+},
+```
+
+### Setup New R2 Bucket
+
+1. **Create bucket in Cloudflare:**
+   ```bash
+   # Via Cloudflare API
+   curl -X POST "https://api.cloudflare.com/client/v4/accounts/<account-id>/r2/buckets" \
+     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+     -H "Content-Type: application/json" \
+     --data '{"name": "opticworks-public"}'
+   ```
+
+2. **Create R2 API token:**
+   - Go to Cloudflare Dashboard → R2 → Manage R2 API Tokens
+   - Create token with Object Read & Write permissions
+   - Save access key ID and secret
+
+3. **Configure public access:**
+   ```bash
+   # Enable public access via r2.dev domain
+   curl -X PUT "https://api.cloudflare.com/client/v4/accounts/<account-id>/r2/buckets/opticworks-public" \
+     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+     -H "Content-Type: application/json" \
+     --data '{"public_access": {"r2_dev": true}}'
+   ```
+
+4. **Add to Ansible secrets:**
+   ```yaml
+   # infrastructure/ansible/group_vars/secrets.yml
+   r2_access_key_id: "xxx"
+   r2_secret_access_key: "xxx"
+   r2_bucket_name: "opticworks-public"
+   r2_endpoint_url: "https://<account-id>.r2.cloudflarestorage.com"
+   r2_public_url: "https://pub-xxx.r2.dev"
+   ```
+
+5. **Deploy:**
+   ```bash
+   cd infrastructure/ansible
+   ansible-playbook playbooks/medusa-deploy.yml
+   ```
+
+### Troubleshooting
+
+**Upload fails silently:**
+- Check R2 credentials are set in `.env`
+- Verify bucket has public access enabled
+- Check Medusa logs: `pm2 logs medusa-prod`
+
+**Images don't display:**
+- Verify `R2_PUBLIC_URL` is accessible
+- Check CORS settings on the bucket
+
+---
+
 ## Development vs Production
 
 ### Development Environment
@@ -377,6 +478,33 @@ curl http://localhost:9000/health
 # Get secret key from database
 ssh hetzner-node
 psql medusa_db -c "SELECT token FROM api_key WHERE type='secret';"
+```
+
+**Issue**: PostgreSQL connection timeout (KnexTimeoutError)
+```bash
+# Symptom: Medusa logs show "Pg connection failed to connect to the database"
+# Cause: PASSWORD in DATABASE_URL contains special chars not properly URL-encoded
+
+# Check the .env file
+ssh hetzner-node "cat /opt/opticworks/medusa-backend/.env | grep DATABASE_URL"
+
+# If password contains '/' characters that aren't encoded as %2F, fix it:
+# BAD:  ...password:abc/def/xyz=@localhost...
+# GOOD: ...password:abc%2Fdef%2Fxyz%3D@localhost...
+
+# The Ansible template now handles this, but if manually editing:
+# Use Python to properly encode: python3 -c "import urllib.parse; print(urllib.parse.quote('your-password', safe=''))"
+```
+
+**Issue**: .env syntax error with angle brackets
+```bash
+# Symptom: Shell error "syntax error near unexpected token 'newline'"
+# Cause: Values like "Name <email@example.com>" need quotes
+
+# BAD:  RESEND_FROM_EMAIL=OpticWorks <notifications@optic.works>
+# GOOD: RESEND_FROM_EMAIL="OpticWorks <notifications@optic.works>"
+
+# The Ansible template now handles this automatically
 ```
 
 ### Health Checks
@@ -549,5 +677,5 @@ redis-cli
 
 ---
 
-**Last Updated**: 2025-11-20
-**Next Review**: After Phase 3 Track 1 completion
+**Last Updated**: 2025-12-03
+**Next Review**: After Phase 4 implementation
