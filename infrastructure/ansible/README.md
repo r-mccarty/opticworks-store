@@ -344,6 +344,71 @@ infrastructure/ansible/
     └── cloudflared/
 ```
 
+## Known Issues & Workarounds
+
+### World-Writable Directory Warning (Codespaces/Containers)
+
+**Problem**: In GitHub Codespaces or Docker containers, the working directory may be world-writable, causing Ansible to ignore `ansible.cfg`:
+
+```
+[WARNING]: Ansible is being run in a world writable directory (/workspaces/...),
+ignoring it as an ansible.cfg source.
+```
+
+**Solution**: Explicitly set `ANSIBLE_CONFIG` environment variable:
+```bash
+# Instead of:
+ansible-playbook playbooks/medusa-deploy.yml
+
+# Use:
+ANSIBLE_CONFIG=./ansible.cfg ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
+```
+
+### Build Task Hangs or Times Out
+
+**Problem**: The `pnpm run build` task in `medusa-deploy.yml` can take 5-10 minutes and may appear stuck in Ansible output (no progress shown).
+
+**Symptoms**:
+- Ansible shows no output for several minutes during "Rebuild Medusa admin dashboard" task
+- SSH connection may timeout
+
+**Workaround 1**: Manual deployment when Ansible hangs
+```bash
+# SSH directly to server
+ssh hetzner-node
+
+# Navigate to app directory
+cd /opt/opticworks/medusa-backend
+
+# Run build manually (shows progress)
+pnpm run build
+
+# Restart service
+pm2 restart medusa-dev && pm2 save
+```
+
+**Workaround 2**: Deploy code first, then build separately
+```bash
+# Just sync files (quick)
+ansible-playbook playbooks/medusa-deploy.yml --tags sync
+
+# Then SSH and build manually with progress
+ssh hetzner-node "cd /opt/opticworks/medusa-backend && pnpm run build && pm2 restart medusa-dev"
+```
+
+### Rsync Delete Errors
+
+**Problem**: The rsync task may show warnings about non-empty directories it cannot delete:
+```
+cannot delete non-empty directory: archive/aws-cli/dist/...
+```
+
+**Solution**: This is usually harmless - old files that don't affect the build. To force clean sync:
+```bash
+ssh hetzner-node "rm -rf /opt/opticworks/medusa-backend/archive"
+ansible-playbook playbooks/medusa-deploy.yml
+```
+
 ## CI/CD Integration
 
 Add to `.github/workflows/deploy.yml`:

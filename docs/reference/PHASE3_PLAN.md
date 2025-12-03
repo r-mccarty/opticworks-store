@@ -337,12 +337,14 @@ Medusa v2 stores prices in **MAJOR units** (dollars), not minor units (cents). T
 
 **Note**: Stripe webhook routes correctly divide by 100 because **Stripe always uses cents**.
 
-**Action Required**: Re-seed products on api.optic.works with correct prices:
+**Action Completed (2025-12-03)**: Prices fixed via direct database update:
 ```bash
+# Prices were updated directly in PostgreSQL (faster than re-seeding)
 ssh hetzner-node
-cd /opt/opticworks/medusa-backend
-# Delete existing products and re-seed
-pnpm medusa exec ./src/scripts/cleanup-template-products.ts
+sudo -u postgres psql -d medusa_db -c "UPDATE price SET amount = amount / 100 WHERE currency_code = 'usd' AND amount > 100;"
+# Updated 13 prices
+
+# For future re-seeds, use the corrected seed script:
 pnpm medusa exec ./src/scripts/seed-opticworks-products.ts
 ```
 
