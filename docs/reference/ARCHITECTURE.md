@@ -1,6 +1,6 @@
 # Architecture Overview
 
-**Updated**: 2025-12-02
+**Updated**: 2025-12-03
 
 High-level system architecture for the OpticWorks e-commerce platform.
 
@@ -18,20 +18,27 @@ High-level system architecture for the OpticWorks e-commerce platform.
          ▼                     ▼                     ▼
 ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
 │   Cloudflare    │  │   Cloudflare    │  │    Hookdeck     │
-│     Pages       │  │     Tunnel      │  │   (Webhooks)    │
+│    Workers      │  │     Tunnel      │  │   (Webhooks)    │
 │  (optic.works)  │  │(api.optic.works)│  │                 │
+│                 │  │(medusa.optic.   │  │                 │
+│   OpenNext +    │  │    works)       │  │                 │
+│   Next.js 15    │  │                 │  │                 │
 └────────┬────────┘  └────────┬────────┘  └────────┬────────┘
          │                    │                    │
-         │                    │                    │
-         ▼                    ▼                    ▼
+         │  SSR requests use  │                    │
+         │  medusa.optic.works│                    │
+         │  (bypasses hairpin)│                    │
+         └────────────────────┼────────────────────┘
+                              │
+                              ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                       HETZNER CLOUD                              │
 │  ┌─────────────────────────────────────────────────────────┐    │
 │  │                    Medusa Backend                        │    │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐      │    │
-│  │  │   Store     │  │   Admin     │  │  Webhooks   │      │    │
-│  │  │   API       │  │   API       │  │   Handler   │      │    │
-│  │  │ /store/*    │  │ /admin/*    │  │ /webhooks/* │      │    │
+│  │  │   Store     │  │   Admin     │  │    CORS     │      │    │
+│  │  │   API       │  │   Panel     │  │  (native)   │      │    │
+│  │  │ /store/*    │  │   /app      │  │             │      │    │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘      │    │
 │  │                          │                               │    │
 │  │                          ▼                               │    │
@@ -51,11 +58,25 @@ High-level system architecture for the OpticWorks e-commerce platform.
 
 ---
 
+## Hostnames
+
+| Hostname | Purpose | Routing |
+|----------|---------|---------|
+| `optic.works` | Storefront | Cloudflare Workers (OpenNext) |
+| `www.optic.works` | Storefront alias | Cloudflare Workers (OpenNext) |
+| `api.optic.works` | Client-side Medusa API | Cloudflare Tunnel → Medusa |
+| `medusa.optic.works` | SSR Medusa API | Cloudflare Tunnel → Medusa |
+
+**Note**: Both `api.optic.works` and `medusa.optic.works` point to the same Medusa backend. The SSR hostname (`medusa.optic.works`) bypasses the Cloudflare edge hairpin issue that occurs when Workers call Cloudflare-proxied domains.
+
+---
+
 ## Components
 
 ### Storefront (Next.js 15)
 
-**URL**: https://optic.works (Phase 4: Cloudflare Pages)
+**URL**: https://optic.works
+**Platform**: Cloudflare Workers (via OpenNext adapter)
 **Dev**: http://localhost:3000
 
 **Technology**:
@@ -65,6 +86,8 @@ High-level system architecture for the OpticWorks e-commerce platform.
 - Shadcn UI components
 - Zustand (state management)
 - Stripe Elements (payment UI)
+- OpenNext for Cloudflare Workers deployment
+- R2 for incremental cache (ISR/SSG)
 
 **Key directories**:
 ```
@@ -75,10 +98,17 @@ src/
 └── lib/api/          # Backend integration
 ```
 
+**Deployment**:
+```bash
+unset NODE_ENV && pnpm run cf:build
+pnpm exec wrangler deploy --env production
+```
+
 ### Medusa Backend (v2.11.3)
 
 **URL**: https://api.optic.works
 **Admin**: https://api.optic.works/app
+**SSR URL**: https://medusa.optic.works (internal)
 
 **Technology**:
 - Medusa v2 (modular commerce)
@@ -92,6 +122,15 @@ src/
 - `/store/carts` - Cart management
 - `/store/auth` - Customer authentication
 - `/admin/*` - Admin dashboard API
+
+**CORS Configuration** (in `medusa-config.ts`):
+```typescript
+http: {
+  storeCors: process.env.STORE_CORS,   // https://optic.works,https://www.optic.works
+  adminCors: process.env.ADMIN_CORS,   // https://api.optic.works
+  authCors: process.env.AUTH_CORS,     // https://api.optic.works
+}
+```
 
 ### Infrastructure (Ansible)
 
@@ -116,6 +155,16 @@ User → Storefront → Medusa Store API → PostgreSQL
                     Product data
                           ↓
                     Storefront renders
+```
+
+**SSR Path** (Server-side in Workers):
+```
+OpenNext Worker → medusa.optic.works → Tunnel → Medusa
+```
+
+**Client Path** (Browser):
+```
+Browser → api.optic.works → Tunnel → Medusa
 ```
 
 ### Add to Cart
@@ -145,7 +194,7 @@ User → Checkout Form → createPaymentSession(cartId)
 ### Webhooks
 
 ```
-Stripe → Hookdeck (buffer/retry) → Medusa /webhooks/stripe
+Stripe → Hookdeck (buffer/retry) → optic.works/api/stripe/webhook
                                           ↓
                                    Order status updated
 ```
@@ -157,6 +206,18 @@ Stripe → Hookdeck (buffer/retry) → Medusa /webhooks/stripe
 ### Storefront ↔ Medusa
 
 **File**: `src/lib/api/medusa.ts`
+
+**URL Selection**:
+```typescript
+const getBaseUrl = () => {
+  // Server-side: use direct tunnel (avoids Cloudflare hairpin)
+  if (typeof window === 'undefined' && process.env.MEDUSA_SSR_BASE_URL) {
+    return process.env.MEDUSA_SSR_BASE_URL  // medusa.optic.works
+  }
+  // Client-side: use public API
+  return process.env.NEXT_PUBLIC_MEDUSA_BASE_URL  // api.optic.works
+}
+```
 
 **Functions**:
 - `listProducts()` - Fetch catalog
@@ -207,15 +268,50 @@ Stripe → Hookdeck (buffer/retry) → Medusa /webhooks/stripe
 
 ### Network
 
-- **Cloudflare Tunnel**: Backend not directly exposed
+- **Cloudflare Tunnel**: Backend not directly exposed to internet
 - **Hookdeck**: Webhook gateway with retry/logging
 - **HTTPS**: All traffic encrypted
+- **CORS**: Handled natively by Medusa (no proxy worker needed)
 
 ### Authentication
 
-- **Customers**: Medusa CIAM (pending Track 6)
+- **Customers**: Medusa customer auth (httpOnly cookies)
 - **Admin**: Medusa admin dashboard login
 - **API**: Publishable key (public), Secret key (server-only)
+
+---
+
+## Cloudflare Configuration
+
+### Workers (wrangler.jsonc)
+
+```jsonc
+{
+  "name": "opticworks-store",
+  "main": ".open-next/worker.js",
+  "vars": {
+    "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
+    "MEDUSA_SSR_BASE_URL": "https://medusa.optic.works"
+  },
+  "r2_buckets": [
+    { "binding": "NEXT_INC_CACHE_R2_BUCKET", "bucket_name": "opticworks-cache" }
+  ]
+}
+```
+
+### Tunnel (/etc/cloudflared/config.yml on Hetzner)
+
+```yaml
+tunnel: db4738a9-20b7-4dd7-bde2-0760e0188071
+credentials-file: /root/.cloudflared/<tunnel-id>.json
+
+ingress:
+  - hostname: api.optic.works
+    service: http://localhost:9000
+  - hostname: medusa.optic.works
+    service: http://localhost:9000
+  - service: http_status:404
+```
 
 ---
 
@@ -241,6 +337,10 @@ sudo -u postgres psql medusa
 ### Webhooks
 
 Check Hookdeck dashboard for delivery status and retries.
+
+### Cloudflare Workers
+
+Check Cloudflare dashboard → Workers & Pages → opticworks-store → Logs
 
 ---
 
