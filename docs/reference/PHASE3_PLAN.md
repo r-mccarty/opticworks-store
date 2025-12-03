@@ -1,6 +1,6 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6-9 Complete, Track 5 Pending)
+**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6-9 Complete, Track 5 Pending, Track 10 In Progress)
 **Updated**: 2025-12-03
 
 ---
@@ -19,6 +19,7 @@
 | 7 | ✅ Complete | E2E testing (Playwright with page objects) |
 | 8 | ✅ Complete | Cloudflare Workers deployment (OpenNext) |
 | 9 | ✅ Complete | Medusa order integration (admin price display bug documented) |
+| 10 | 🚧 In Progress | SSR direct tunnel routing (bypass Cloudflare hairpin) |
 
 **Blockers Resolved**:
 - ✅ Email system stubbed (react-email/Next.js 15 conflict)
@@ -413,6 +414,97 @@ Product Page → addToCart(product) → Product includes variantId
 - Medusa handles inventory, notifications, fulfillment
 - Clearer error messages (no silent fallbacks)
 - Simpler codebase to maintain
+
+---
+
+### Track 10: SSR Direct Tunnel Routing 🚧 IN PROGRESS
+
+**Goal**: Fix Cloudflare Workers → Medusa API 404 errors by routing SSR requests directly through the Cloudflare Tunnel, bypassing the public proxy.
+
+**Problem**: When the OpenNext worker (optic.works) makes server-side requests to `api.optic.works`, Cloudflare's edge routing fails with 404. This is a known "hairpin" issue - Cloudflare Workers calling Cloudflare-proxied domains don't route correctly.
+
+**Current Workaround**: Static product data fallback (works, but prevents dynamic product updates)
+
+**Solution**: Use `medusa.optic.works` (internal Cloudflare Tunnel hostname) for SSR requests:
+- The `opticworks-api-cors` worker already uses this successfully
+- Same tunnel, just accessed directly without going through the public proxy
+- Client-side requests continue using `api.optic.works` (need CORS headers from the proxy worker)
+
+**Architecture**:
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                        Cloudflare Edge                                   │
+│                                                                         │
+│  ┌─────────────────────────────────┐                                    │
+│  │  opticworks-store (OpenNext)    │                                    │
+│  │  Routes: optic.works/*          │                                    │
+│  │                                 │                                    │
+│  │  SSR: medusa.optic.works ───────┼────────────┐                       │
+│  │  (direct tunnel, no proxy)      │            │                       │
+│  └─────────────────────────────────┘            │                       │
+│                                                 │  Cloudflare Tunnel    │
+│  ┌─────────────────────────────────┐            │  (medusa.optic.works) │
+│  │  opticworks-api-cors            │            │                       │
+│  │  Routes: api.optic.works/*      │            │                       │
+│  │                                 │            │                       │
+│  │  Proxy: medusa.optic.works ─────┼────────────┤                       │
+│  │  (adds CORS headers)            │            │                       │
+│  └─────────────────────────────────┘            │                       │
+│                                                 │                       │
+│  Browser → api.optic.works ─────────────────────┘                       │
+│            (needs CORS worker)                                          │
+└─────────────────────────────────────────────────────────────────────────┘
+                                                  │
+                                                  ▼
+                                        ┌─────────────────┐
+                                        │  Hetzner VPS    │
+                                        │  Medusa :9000   │
+                                        └─────────────────┘
+```
+
+**Implementation**:
+
+1. **Add SSR base URL to wrangler.jsonc**:
+```jsonc
+"vars": {
+  "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",     // Client
+  "MEDUSA_SSR_BASE_URL": "https://medusa.optic.works"           // Server
+}
+```
+
+2. **Update src/lib/api/medusa.ts**:
+```typescript
+const medusaEnv = {
+  baseUrl: process.env.NEXT_PUBLIC_MEDUSA_BASE_URL,
+  ssrBaseUrl: process.env.MEDUSA_SSR_BASE_URL,
+}
+
+const getBaseUrl = () => {
+  // Server-side: use direct tunnel (avoids Cloudflare hairpin)
+  if (typeof window === 'undefined' && medusaEnv.ssrBaseUrl) {
+    return medusaEnv.ssrBaseUrl
+  }
+  // Client-side: use public API (CORS worker adds headers)
+  return medusaEnv.baseUrl
+}
+```
+
+**Why This Works**:
+- `medusa.optic.works` is a Cloudflare Tunnel hostname pointing directly to the origin
+- No Cloudflare proxy in the middle = no hairpin issue
+- Client requests still go through `api.optic.works` for CORS handling
+- Both workers already trust this tunnel (CORS worker uses it)
+
+**Tasks**:
+- [ ] Add `MEDUSA_SSR_BASE_URL` to `wrangler.jsonc`
+- [ ] Update `src/lib/api/medusa.ts` to use SSR base URL server-side
+- [ ] Deploy to Cloudflare Workers
+- [ ] Test SSR product fetching works
+- [ ] Verify client-side cart/checkout still works
+
+**Related**:
+- Archived: `docs/reference/archived/RFD-011-cloudflare-ssr-workaround.md`
+- `infrastructure/workers/api-cors/` - CORS worker that already uses the tunnel
 
 ---
 

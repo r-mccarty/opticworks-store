@@ -7,7 +7,29 @@ import { products as fallbackProducts, type Product } from "@/lib/products"
 const medusaEnv = {
   enabled: process.env.NEXT_PUBLIC_MEDUSA_ENABLED === "true",
   baseUrl: process.env.NEXT_PUBLIC_MEDUSA_BASE_URL,
+  // SSR base URL: Direct Cloudflare Tunnel access (bypasses hairpin routing issue)
+  // See Track 10 in PHASE3_PLAN.md for details
+  ssrBaseUrl: process.env.MEDUSA_SSR_BASE_URL,
   publishableKey: process.env.NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY,
+}
+
+/**
+ * Get the appropriate Medusa base URL for the current environment.
+ *
+ * Server-side (SSR): Uses MEDUSA_SSR_BASE_URL (direct tunnel) to avoid
+ * Cloudflare hairpin routing issue where Workers calling Cloudflare-proxied
+ * domains return 404.
+ *
+ * Client-side: Uses NEXT_PUBLIC_MEDUSA_BASE_URL (api.optic.works) which goes
+ * through the CORS worker for proper header handling.
+ */
+const getBaseUrl = (): string | undefined => {
+  // Server-side: prefer direct tunnel access
+  if (typeof window === "undefined" && medusaEnv.ssrBaseUrl) {
+    return medusaEnv.ssrBaseUrl
+  }
+  // Client-side or SSR fallback: use public API URL
+  return medusaEnv.baseUrl
 }
 
 // Debug logging for Medusa configuration (helps diagnose env var issues)
@@ -16,6 +38,8 @@ if (typeof window === "undefined") {
   console.log("[medusa] Server config:", {
     enabled: medusaEnv.enabled,
     baseUrl: medusaEnv.baseUrl ? "SET" : "NOT SET",
+    ssrBaseUrl: medusaEnv.ssrBaseUrl ? "SET" : "NOT SET",
+    usingUrl: getBaseUrl() ? "SET" : "NOT SET",
     publishableKey: medusaEnv.publishableKey ? "SET" : "NOT SET",
     raw_enabled: process.env.NEXT_PUBLIC_MEDUSA_ENABLED,
   })
@@ -214,11 +238,12 @@ const medusaHeaders = (): HeadersInit => {
 }
 
 const medusaFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
-  if (!medusaEnv.baseUrl) {
+  const baseUrl = getBaseUrl()
+  if (!baseUrl) {
     throw new Error("MEDUSA_BASE_URL is not configured")
   }
 
-  const url = `${medusaEnv.baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`
+  const url = `${baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`
   console.log(`[medusa] ${init?.method ?? "GET"} ${url}`)
 
   const response = await fetch(url, {
@@ -241,8 +266,8 @@ const medusaFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
 }
 
 export const medusaConfig = {
-  enabled: medusaEnv.enabled && Boolean(medusaEnv.baseUrl),
-  baseUrl: medusaEnv.baseUrl,
+  enabled: medusaEnv.enabled && Boolean(getBaseUrl()),
+  baseUrl: getBaseUrl(),
 }
 
 export async function listProducts(): Promise<Product[]> {

@@ -49,6 +49,9 @@
     // Medusa API configuration (public vars, safe to commit)
     "NEXT_PUBLIC_MEDUSA_ENABLED": "true",
     "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
+    // SSR base URL: Direct tunnel access (bypasses Cloudflare hairpin issue)
+    // See Track 10 in docs/reference/PHASE3_PLAN.md
+    "MEDUSA_SSR_BASE_URL": "https://medusa.optic.works",
     "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_db1d0b19fe8e824f1290070dcce30dd51028fd323baf310e7d00cbc89ceb6ece"
   },
 
@@ -94,6 +97,8 @@
         // Medusa API configuration (public vars, safe to commit)
         "NEXT_PUBLIC_MEDUSA_ENABLED": "true",
         "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
+        // SSR base URL: Direct tunnel access (bypasses Cloudflare hairpin issue)
+        "MEDUSA_SSR_BASE_URL": "https://medusa.optic.works",
         "NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY": "pk_db1d0b19fe8e824f1290070dcce30dd51028fd323baf310e7d00cbc89ceb6ece"
       }
     }
