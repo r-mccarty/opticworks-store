@@ -92,3 +92,31 @@ export const testCards = {
 export function generateTestEmail(): string {
   return `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@optic.works`;
 }
+
+/**
+ * Mailosaur configuration for email testing.
+ * Mailosaur captures emails sent to its test domains, allowing verification in E2E tests.
+ *
+ * Required environment variables:
+ * - MAILOSAUR_API_KEY: Your Mailosaur API key
+ * - MAILOSAUR_SERVER_ID: Your Mailosaur server ID (also used in email domain)
+ *
+ * @see https://mailosaur.com/docs
+ */
+export const mailosaurConfig = {
+  apiKey: process.env.MAILOSAUR_API_KEY || '',
+  serverId: process.env.MAILOSAUR_SERVER_ID || '',
+  /**
+   * Generate a unique email address that routes to Mailosaur for testing.
+   * Format: {unique-id}@{server-id}.mailosaur.net
+   */
+  generateEmail: (): string => {
+    const serverId = process.env.MAILOSAUR_SERVER_ID;
+    if (!serverId) {
+      console.warn('[Mailosaur] MAILOSAUR_SERVER_ID not set, falling back to optic.works domain');
+      return generateTestEmail();
+    }
+    const uniqueId = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return `${uniqueId}@${serverId}.mailosaur.net`;
+  },
+};

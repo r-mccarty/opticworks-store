@@ -9,6 +9,7 @@ import { Resend } from "resend"
 import { OrderPlacedEmail } from "./emails/order-placed"
 import { OrderShippedEmail } from "./emails/order-shipped"
 import { PasswordResetEmail } from "./emails/password-reset"
+import { CustomerWelcomeEmail } from "./emails/customer-welcome"
 
 type ResendOptions = {
   api_key: string
@@ -24,6 +25,7 @@ const TEMPLATES: Record<string, (data: Record<string, unknown>) => React.ReactEl
   "order.placed": OrderPlacedEmail,
   "order.shipped": OrderShippedEmail,
   "auth.password_reset": PasswordResetEmail,
+  "customer.welcome": CustomerWelcomeEmail,
 }
 
 // Default subjects for each template
@@ -31,6 +33,7 @@ const TEMPLATE_SUBJECTS: Record<string, string | ((data: Record<string, unknown>
   "order.placed": (data) => `Order Confirmation - #${data.display_id || data.id}`,
   "order.shipped": (data) => `Your Order Has Shipped - #${data.display_id || data.id}`,
   "auth.password_reset": "Reset Your Password",
+  "customer.welcome": "Welcome to OpticWorks!",
 }
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {

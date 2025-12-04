@@ -14,14 +14,17 @@ import {
   Preview,
 } from "@react-email/components"
 
+// Medusa v2 uses BigNumber objects for prices, which have {numeric_, raw_, bignumber_} shape
+type BigNumberLike = { numeric_?: number; raw_?: string; bignumber_?: unknown } | number | undefined
+
 interface OrderItem {
   id: string
   title?: string
   product_title?: string
   variant_title?: string
-  quantity: number
-  unit_price: number
-  total: number
+  quantity: number | BigNumberLike
+  unit_price: number | BigNumberLike
+  total: number | BigNumberLike
 }
 
 interface OrderPlacedEmailProps {
@@ -52,12 +55,23 @@ interface OrderPlacedEmailProps {
 
 // Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents)
 // See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
-const formatCurrency = (amount: number | undefined, currency: string = "USD") => {
-  if (amount === undefined) return "$0.00"
+
+const toNumber = (value: BigNumberLike): number => {
+  if (value === undefined || value === null) return 0
+  if (typeof value === "number") return value
+  // Handle Medusa BigNumber objects
+  if (typeof value === "object" && "numeric_" in value && value.numeric_ !== undefined) {
+    return value.numeric_
+  }
+  return 0
+}
+
+const formatCurrency = (amount: BigNumberLike, currency: string = "USD") => {
+  const numericAmount = toNumber(amount)
   return new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: currency.toUpperCase(),
-  }).format(amount)
+  }).format(numericAmount)
 }
 
 export function OrderPlacedEmail(props: OrderPlacedEmailProps): React.ReactElement {
@@ -111,7 +125,7 @@ export function OrderPlacedEmail(props: OrderPlacedEmailProps): React.ReactEleme
                         <span style={variantStyle}> - {item.variant_title}</span>
                       )}
                     </Text>
-                    <Text style={itemQuantityStyle}>Qty: {item.quantity}</Text>
+                    <Text style={itemQuantityStyle}>Qty: {toNumber(item.quantity)}</Text>
                   </Column>
                   <Column style={itemPriceColumnStyle}>
                     <Text style={itemPriceStyle}>

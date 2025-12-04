@@ -1,7 +1,7 @@
 # Phase 3: Medusa E-Commerce Migration
 
-**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6-10 Complete, Track 5 Pending)
-**Updated**: 2025-12-03
+**Status**: 🚧 IN PROGRESS (Tracks 1-4, 6-11 Complete, Track 5 Pending)
+**Updated**: 2025-12-04
 
 ---
 
@@ -20,9 +20,10 @@
 | 8 | ✅ Complete | Cloudflare Workers deployment (OpenNext) |
 | 9 | ✅ Complete | Medusa order integration (admin price display bug documented) |
 | 10 | ✅ Complete | SSR direct tunnel routing (bypass Cloudflare hairpin) |
+| 11 | ✅ Complete | Email notifications (Resend + Mailosaur) |
 
 **Blockers Resolved**:
-- ✅ Email system stubbed (react-email/Next.js 15 conflict)
+- ✅ Email system working (Resend + Medusa notifications, Track 11)
 - ✅ Lazy Stripe initialization pattern applied
 - ✅ Product pages use force-dynamic
 
@@ -550,6 +551,91 @@ const getBaseUrl = () => {
 
 **Related**:
 - Archived: `docs/reference/archived/RFD-011-cloudflare-ssr-workaround.md`
+
+---
+
+### Track 11: Email Notifications (Resend + Mailosaur) ✅ COMPLETE
+
+**Goal**: Complete the Resend email integration with Medusa v2 and add Mailosaur for E2E email testing.
+
+**What was done**:
+- [x] Fixed BigNumber rendering in email templates (Medusa v2 uses `{numeric_, raw_, bignumber_}` objects)
+- [x] Added customer welcome email subscriber (`customer.created` event)
+- [x] Created customer-welcome email template
+- [x] Updated Resend service with all templates registered
+- [x] Verified `notifications.optic.works` domain in Resend dashboard
+- [x] Installed Mailosaur for E2E email testing
+- [x] Created email testing utilities (`e2e/fixtures/email-utils.ts`)
+- [x] Added E2E email verification tests (`e2e/tests/email-flow.spec.ts`)
+- [x] Documented RESEND_API_KEY and RESEND_FROM_EMAIL in `.env.template`
+
+**Email Templates**:
+
+| Template | Event | Status |
+|----------|-------|--------|
+| `order.placed` | `order.placed` | ✅ Working |
+| `order.shipped` | `fulfillment.created` | 📋 Template only |
+| `auth.password_reset` | (manual) | 📋 Template only |
+| `customer.welcome` | `customer.created` | ✅ Working |
+
+**Key Files**:
+
+Backend:
+- `backend/src/modules/resend/service.ts` - Resend notification provider
+- `backend/src/modules/resend/emails/order-placed.tsx` - Order confirmation template
+- `backend/src/modules/resend/emails/customer-welcome.tsx` - Welcome email template
+- `backend/src/subscribers/order-placed.ts` - Order placed subscriber
+- `backend/src/subscribers/customer-created.ts` - Customer created subscriber
+
+E2E:
+- `e2e/fixtures/test-data.ts` - Mailosaur config added
+- `e2e/fixtures/email-utils.ts` - Email testing utilities
+- `e2e/tests/email-flow.spec.ts` - Email verification tests
+
+**Environment Variables**:
+
+Backend (Infisical/Hetzner):
+| Variable | Description |
+|----------|-------------|
+| `RESEND_API_KEY` | Resend API key |
+| `RESEND_FROM_EMAIL` | From address (e.g., `OpticWorks <noreply@notifications.optic.works>`) |
+
+E2E Tests (Local/CI):
+| Variable | Description |
+|----------|-------------|
+| `MAILOSAUR_API_KEY` | Mailosaur API key |
+| `MAILOSAUR_SERVER_ID` | Mailosaur server ID (used in email domain) |
+
+**Bug Fixed: Medusa v2 BigNumber Rendering**
+
+Medusa v2 returns BigNumber objects for price fields (`{numeric_, raw_, bignumber_}`), which React can't render directly. Fixed by adding a `toNumber()` helper in `order-placed.tsx`:
+
+```typescript
+type BigNumberLike = { numeric_?: number; raw_?: string; bignumber_?: unknown } | number | undefined
+
+const toNumber = (value: BigNumberLike): number => {
+  if (value === undefined || value === null) return 0
+  if (typeof value === "number") return value
+  if (typeof value === "object" && "numeric_" in value && value.numeric_ !== undefined) {
+    return value.numeric_
+  }
+  return 0
+}
+```
+
+**E2E Email Tests** (when Mailosaur configured):
+
+1. Order confirmation email sent after checkout
+2. Welcome email sent after registration
+3. Email content verification (subject, body text, links)
+
+Tests gracefully skip when Mailosaur is not configured (falls back to checking checkout completes).
+
+**Run Email Tests**:
+```bash
+# Requires MAILOSAUR_API_KEY and MAILOSAUR_SERVER_ID
+pnpm exec playwright test email-flow
+```
 
 ---
 
