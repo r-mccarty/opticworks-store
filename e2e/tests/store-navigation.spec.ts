@@ -47,7 +47,7 @@ test.describe("Store Navigation", () => {
     expect(page.url()).toContain("/products/")
 
     // Should not be a 404
-    const heading = await page.locator("h1").textContent()
+    const heading = await page.locator("h1").first().textContent()
     expect(heading).toBeTruthy()
     expect(heading?.toLowerCase()).not.toContain("not found")
 

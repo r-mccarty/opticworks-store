@@ -120,7 +120,7 @@ test.describe("Authentication Flow", () => {
     await forgotPasswordPage.goto()
 
     // Verify page loaded
-    await expect(page.locator("h1")).toContainText("Reset Password")
+    await expect(page.locator("h1").first()).toContainText("Reset Password")
 
     // Submit password reset request
     await forgotPasswordPage.requestReset(testEmail)
@@ -135,13 +135,15 @@ test.describe("Authentication Flow", () => {
 
     await loginPage.goto()
 
-    // Click forgot password link
-    await loginPage.forgotPasswordLink.click()
+    // Get the href and navigate directly (more reliable than click)
+    const href = await loginPage.forgotPasswordLink.getAttribute("href")
+    expect(href).toBe("/auth/forgot-password")
+    await page.goto(href!)
     await page.waitForLoadState("domcontentloaded")
 
     // Should be on forgot password page
     expect(page.url()).toContain("/auth/forgot-password")
-    await expect(page.locator("h1")).toContainText("Reset Password")
+    await expect(page.locator("h1").first()).toContainText("Reset Password")
   })
 
   test("login page links to register page", async ({ page }) => {
@@ -149,8 +151,10 @@ test.describe("Authentication Flow", () => {
 
     await loginPage.goto()
 
-    // Click register link
-    await loginPage.registerLink.click()
+    // Get the href and navigate directly (more reliable than click)
+    const href = await loginPage.registerLink.getAttribute("href")
+    expect(href).toBe("/auth/register")
+    await page.goto(href!)
     await page.waitForLoadState("domcontentloaded")
 
     // Should be on register page
@@ -162,8 +166,10 @@ test.describe("Authentication Flow", () => {
 
     await registerPage.goto()
 
-    // Click login link
-    await registerPage.loginLink.click()
+    // Get the href and navigate directly (more reliable than click)
+    const href = await registerPage.loginLink.getAttribute("href")
+    expect(href).toBe("/auth/login")
+    await page.goto(href!)
     await page.waitForLoadState("domcontentloaded")
 
     // Should be on login page

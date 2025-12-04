@@ -118,14 +118,17 @@ test.describe('Add to Cart', () => {
     // Navigate to cart
     await cartPage.goto();
 
-    // Verify product name is displayed
-    const productName = page.locator(`text=${testProducts.flagship.name}`);
-    const isVisible = await productName.isVisible().catch(() => false);
+    // The product name appears in the cart - wait for it to be visible
+    // Use a locator that matches the h2/title element showing the product name
+    const productNameLocator = page.locator(`text="${testProducts.flagship.name}"`).first();
 
-    if (!isVisible) {
+    // Wait up to 10 seconds for the product name to appear
+    await productNameLocator.waitFor({ state: "visible", timeout: 10000 }).catch(async () => {
+      // If not found, capture debug info before failing
       await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'product-not-visible');
-    }
+    });
 
+    const isVisible = await productNameLocator.isVisible();
     expect(isVisible, `Product "${testProducts.flagship.name}" should be visible in cart`).toBe(true);
   });
 

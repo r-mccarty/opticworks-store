@@ -72,6 +72,7 @@ export class RegisterPage {
   readonly page: Page
   readonly emailInput: Locator
   readonly passwordInput: Locator
+  readonly confirmPasswordInput: Locator
   readonly firstNameInput: Locator
   readonly lastNameInput: Locator
   readonly submitButton: Locator
@@ -82,6 +83,7 @@ export class RegisterPage {
     this.page = page
     this.emailInput = page.locator('input[name="email"]')
     this.passwordInput = page.locator('input[name="password"]')
+    this.confirmPasswordInput = page.locator('input[name="confirmPassword"]')
     this.firstNameInput = page.locator('input[name="firstName"]')
     this.lastNameInput = page.locator('input[name="lastName"]')
     this.submitButton = page.locator('button[type="submit"]')
@@ -100,11 +102,14 @@ export class RegisterPage {
     email: string,
     password: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
+    confirmPassword?: string
   ): Promise<void> {
     console.log(`[RegisterPage] Filling form for: ${email}`)
     await this.emailInput.fill(email)
     await this.passwordInput.fill(password)
+    // Use confirmPassword if provided, otherwise use password
+    await this.confirmPasswordInput.fill(confirmPassword ?? password)
     if (firstName) await this.firstNameInput.fill(firstName)
     if (lastName) await this.lastNameInput.fill(lastName)
   }
@@ -118,9 +123,10 @@ export class RegisterPage {
     email: string,
     password: string,
     firstName?: string,
-    lastName?: string
+    lastName?: string,
+    confirmPassword?: string
   ): Promise<void> {
-    await this.fillForm(email, password, firstName, lastName)
+    await this.fillForm(email, password, firstName, lastName, confirmPassword)
     await this.submit()
   }
 

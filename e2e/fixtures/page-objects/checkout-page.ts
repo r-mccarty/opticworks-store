@@ -248,6 +248,10 @@ export class CheckoutPage {
         await line1Input.fill(address.line1);
         console.log('[CheckoutPage] Address line 1 filled');
 
+        // Dismiss Google autocomplete dropdown by pressing Escape
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(300);
+
         const cityInput = addressFrameSecure.locator('input[name="locality"]').first();
         await cityInput.fill(address.city);
         console.log('[CheckoutPage] City filled');
@@ -282,9 +286,15 @@ export class CheckoutPage {
         await this.page.keyboard.type(address.name, { delay: 30 });
         await this.page.keyboard.press('Tab');
         await this.page.keyboard.type(address.line1, { delay: 30 });
+        // Dismiss Google autocomplete dropdown if it appears
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(300);
         await this.page.keyboard.press('Tab');
         await this.page.keyboard.press('Tab'); // Skip line2
         await this.page.keyboard.type(address.city, { delay: 30 });
+        // Dismiss any autocomplete
+        await this.page.keyboard.press('Escape');
+        await this.page.waitForTimeout(300);
         await this.page.keyboard.press('Tab');
         await this.page.keyboard.type(address.state, { delay: 30 });
         await this.page.keyboard.press('Tab');
