@@ -10,10 +10,12 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 |----------|---------|
 | [PHASE4_PLAN.md](PHASE4_PLAN.md) | Current phase tracks and status |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System overview and data flows |
+| [MEDUSA_API.md](MEDUSA_API.md) | Products, carts, orders, shipping API |
 | [CUSTOMER_AUTH.md](CUSTOMER_AUTH.md) | Customer login, registration, sessions |
+| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
+| [WEBHOOKS.md](WEBHOOKS.md) | Stripe webhooks via Hookdeck |
 | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Ansible playbooks and troubleshooting |
 | [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Complete secrets inventory |
-| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
 | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand store patterns |
 | [E2E_TESTING.md](E2E_TESTING.md) | Playwright test setup |
 
@@ -40,10 +42,12 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 
 - **PHASE4_PLAN.md** - Understanding current work and priorities
 - **ARCHITECTURE.md** - Debugging integration issues
+- **MEDUSA_API.md** - Product, cart, order API calls
 - **CUSTOMER_AUTH.md** - Auth flows, session issues, protected routes
+- **STRIPE_INTEGRATION.md** - Payment flow debugging
+- **WEBHOOKS.md** - Stripe/Hookdeck webhook issues
 - **DEPLOYMENT_GUIDE.md** - First-time deploys or Ansible issues
 - **KEY_MANAGEMENT.md** - Adding or rotating secrets
-- **STRIPE_INTEGRATION.md** - Payment flow debugging
 - **STATE_MANAGEMENT.md** - Modifying Zustand stores
 - **E2E_TESTING.md** - Writing or debugging tests
 
