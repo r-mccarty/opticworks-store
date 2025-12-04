@@ -188,18 +188,87 @@ EASYPOST_API_KEY=xxx  # Already in Infisical
 
 **Goal**: Launch docs.optic.works with product guides and support content.
 
+**Design Reference**: [docs.crossplane.io](https://docs.crossplane.io) - Clone their "Geekboot" theme styling.
+
 ### Architecture
 
 ```
-platform/docs-site/           # Hugo site
+platform/docs-site/
 ├── content/
 │   ├── getting-started/      # Setup guides
 │   ├── products/             # Product documentation
 │   ├── troubleshooting/      # Common issues
 │   └── support/              # Contact info, warranty
-├── themes/geekdoc/           # Geekdoc theme
-└── hugo.toml                 # Configuration
+├── themes/
+│   └── opticboot/            # Custom theme (based on Crossplane's Geekboot)
+│       ├── assets/
+│       │   ├── scss/         # Custom SCSS (variables, components)
+│       │   └── js/           # Search, navigation
+│       ├── layouts/
+│       │   ├── _default/     # Base templates
+│       │   ├── partials/     # Header, footer, sidebar
+│       │   └── shortcodes/   # Callouts, tabs, hints
+│       └── static/           # Fonts, images
+├── config.yaml               # Hugo configuration
+└── package.json              # PostCSS, dependencies
 ```
+
+### Theme Reference: Crossplane Geekboot
+
+Source: [github.com/crossplane/docs](https://github.com/crossplane/docs/tree/master/themes/geekboot)
+
+**Key Features to Adopt**:
+
+| Feature | Crossplane Implementation |
+|---------|---------------------------|
+| Color System | 16-shade grayscale (fog-0 to fog-1000) + accent colors |
+| Typography | Avenir font family, 1.125rem base, 1.8 line-height |
+| Dark Mode | Separate `dark-mode.scss` and `light-mode.scss` |
+| Navigation | Dark navbar (#0A1111), white links, 17px font |
+| Sidebar | Collapsible sections, version selector |
+| Code Blocks | Light/dark themes, line numbers, copy button |
+| Callouts | Info, warning, danger variants with icons |
+| Search | Client-side search with results overlay |
+
+**SCSS Structure** (from Crossplane):
+```
+assets/scss/
+├── _variables.scss      # Colors, fonts, spacing
+├── _navbar.scss         # Top navigation
+├── _sidebar.scss        # Left navigation
+├── _content.scss        # Main content area
+├── _code-theme-*.scss   # Syntax highlighting
+├── _callouts.scss       # Admonition blocks
+├── _hints.scss          # Inline hints
+├── _toc.scss            # Table of contents
+├── dark-mode.scss       # Dark theme overrides
+├── light-mode.scss      # Light theme
+└── docs.scss            # Main entry point
+```
+
+**Color Palette** (Crossplane variables):
+```scss
+// Grayscale
+$fog-0: #FFFFFF;     // Background
+$fog-100: #E8E9E9;   // Borders
+$fog-200: #CECFCF;   // Muted text
+$fog-800: #1A2222;   // Text
+$fog-1000: #0A1111;  // Navbar background
+
+// Accent (adapt for OpticWorks brand)
+$aqua-500: #23B89A;  // Primary accent (Crossplane teal)
+```
+
+### OpticWorks Customizations
+
+Adapt Crossplane's theme with OpticWorks branding:
+
+| Element | Crossplane | OpticWorks |
+|---------|------------|------------|
+| Primary accent | Teal (#23B89A) | Brand blue (TBD) |
+| Logo | Crossplane | OpticWorks |
+| Fonts | Avenir | Geist or Inter |
+| Favicon | Crossplane | OpticWorks |
 
 ### Deployment
 
@@ -220,14 +289,17 @@ platform/docs-site/           # Hugo site
 
 ### Tasks
 
-- [ ] Add Geekdoc theme as git submodule
-- [ ] Configure hugo.toml for production
+- [ ] Clone Crossplane's Geekboot theme as starting point
+- [ ] Rename to `opticboot`, update branding
+- [ ] Adapt color palette for OpticWorks brand
+- [ ] Configure hugo.yaml (based on Crossplane's config.yaml)
+- [ ] Set up PostCSS pipeline for SCSS compilation
 - [ ] Write Getting Started guide
 - [ ] Write product documentation (per product)
 - [ ] Add troubleshooting section
 - [ ] Configure Cloudflare Pages deployment
 - [ ] Set up docs.optic.works DNS
-- [ ] Add search functionality
+- [ ] Verify dark mode works correctly
 
 ### Commands
 
@@ -241,6 +313,12 @@ pnpm docs:build
 # Deploy (Cloudflare Pages)
 # Configured via dashboard or wrangler
 ```
+
+### Reference
+
+- [Crossplane Docs Repo](https://github.com/crossplane/docs)
+- [Crossplane Geekboot Theme](https://github.com/crossplane/docs/tree/master/themes/geekboot)
+- [Live Example](https://docs.crossplane.io)
 
 ---
 
@@ -426,6 +504,7 @@ jobs:
 ### External Resources
 
 - [Medusa FedEx Fulfillment](https://github.com/igorppbr/medusa-fedex-fulfillment)
-- [Geekdoc Hugo Theme](https://geekdocs.de/)
+- [Crossplane Docs (theme reference)](https://github.com/crossplane/docs)
+- [docs.crossplane.io (live example)](https://docs.crossplane.io)
 - [EasyPost API](https://www.easypost.com/docs)
 - [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
