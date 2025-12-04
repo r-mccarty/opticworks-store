@@ -1,681 +1,167 @@
-# OpticWorks Platform Deployment Guide
+# Deployment Guide
 
-**Version**: 1.1
-**Last Updated**: 2025-12-02
-**Deployment Method**: Ansible Infrastructure-as-Code
-**Architecture**: Next.js Storefront + Medusa Backend + Cloudflare Services
+Ansible-based deployment for the Medusa backend on Hetzner Cloud.
 
 ---
 
-## Overview
-
-This guide documents the OpticWorks production architecture and deployment workflow. The platform consists of:
-
-- **Storefront**: Next.js 15.5 application (Cloudflare Pages - Phase 4)
-- **Backend**: Medusa v2 e-commerce engine (Hetzner Cloud via Ansible)
-- **Infrastructure**: Fully automated via Ansible playbooks
-- **Security**: Cloudflare Tunnel + Access Zero Trust
-
-**Key Principle**: Infrastructure-as-Code ensures reproducibility and prevents configuration drift.
-
----
-
-## Architecture
-
-### Production Stack
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    CLOUDFLARE SERVICES                       │
-├─────────────────────────────────────────────────────────────┤
-│  Pages (optic.works)          Tunnel (api.optic.works)      │
-│  ↓ Next.js Storefront         ↓ Medusa Backend Proxy        │
-└────────┬──────────────────────────────┬─────────────────────┘
-         │                              │
-         │                              ↓
-         │                    ┌──────────────────────┐
-         │                    │  HETZNER CLOUD       │
-         │                    │  (3 vCPU, 4GB RAM)   │
-         │                    ├──────────────────────┤
-         │                    │  • PostgreSQL 17     │
-         │                    │  • Redis 7.x         │
-         │                    │  • Node.js 22        │
-         │                    │  • Medusa v2.11.3    │
-         │                    │  • PM2 Manager       │
-         │                    │  • Cloudflared       │
-         │                    └──────────────────────┘
-         │
-         └──────────────────────────────┘
-                  API Calls
-```
-
-### Infrastructure Management
-
-**Ansible Roles** (`infrastructure/ansible/roles/`):
-- `postgresql` - PostgreSQL 17 + database creation
-- `redis` - Redis server configuration
-- `nodejs` - Node.js 22 + pnpm installation
-- `medusa` - Application deployment + PM2 management
-- `cloudflared` - Cloudflare Tunnel configuration
-
-**Playbooks** (`infrastructure/ansible/playbooks/`):
-- `medusa-provision.yml` - Full stack deployment (8-12 min)
-- `medusa-deploy.yml` - Code updates only (2-3 min)
-- `medusa-destroy.yml` - Complete teardown for rebuilds
-
----
-
-## Deployment Workflow
-
-### Prerequisites
-
-1. **SSH Access**: Configure Hetzner node access (pre-configured in Codespaces as `ssh hetzner-node`)
-2. **Ansible**: Install locally (`pip install ansible` or `apt install ansible`)
-3. **Infisical**: Ensure all secrets are stored in Infisical **before** deployment
-   - Project: `OpticWorks`
-   - Environment: `production`
-   - Paths: `/infrastructure`, `/medusa`
-   - See `docs/KEY_MANAGEMENT.md` for complete variable list
-4. **Infisical Service Token**: Set `INFISICAL_SERVICE_TOKEN` environment variable
-
-### Quick Start
+## Quick Reference
 
 ```bash
-# 0. Sync secrets from Infisical (REQUIRED before every deployment)
-export INFISICAL_SERVICE_TOKEN=st.xxxxx
+# Full provisioning (first time or recovery)
 cd infrastructure/ansible
-bash scripts/generate-secrets-from-infisical.sh
-# → Creates group_vars/secrets.yml from Infisical
-# → Script FAILS if required secrets are missing
-
-# 1. Verify connectivity
-ansible all -m ping
-# Expected: hetzner-node | SUCCESS => {"ping": "pong"}
-
-# 2. Full provisioning (first time or after teardown)
 ansible-playbook playbooks/medusa-provision.yml
 
-# 3. Verify deployment
-curl https://api.optic.works/health
-# Expected: {"status": "ok"}
+# Code updates only
+ansible-playbook playbooks/medusa-deploy.yml
 
-# 4. Access admin dashboard
-open https://api.optic.works/app
+# Teardown for clean rebuild
+ansible-playbook playbooks/medusa-destroy.yml
 ```
 
-**Time Estimates**:
-- Initial provision: 8-12 minutes
-- Code deployment: 2-3 minutes
-- Complete teardown: 1-2 minutes
+---
 
-### Deployment Modes
+## Prerequisites
 
-#### Full Provisioning (Clean Install)
+1. **SSH Access**: `ssh hetzner-node` (pre-configured in Codespaces)
+2. **Infisical Token**: `export INFISICAL_SERVICE_TOKEN=st.xxx`
+3. **Secrets Sync**: `bash scripts/generate-secrets-from-infisical.sh`
+
+---
+
+## Deployment Modes
+
+### Full Provisioning
+
 ```bash
 ansible-playbook playbooks/medusa-provision.yml
 ```
 
-**When to use**:
-- First-time deployment
-- After infrastructure changes
-- Recovery from configuration drift
-- Testing infrastructure changes
+**When**: First-time deployment, after infrastructure changes, recovery from drift
+
+**Time**: 8-12 minutes
 
 **What it does**:
-- Installs system packages (PostgreSQL, Redis, Node.js)
-- Creates database and user
-- Clones/updates repository
-- Builds Medusa admin dashboard
-- Configures PM2 process manager
-- Sets up Cloudflare Tunnel
-- Starts all services
+- Installs PostgreSQL, Redis, Node.js
+- Clones repository and builds Medusa
+- Configures PM2 and Cloudflare Tunnel
+- Creates admin user
 
-#### Code Deployment (Updates Only)
+### Code Deployment
+
 ```bash
 ansible-playbook playbooks/medusa-deploy.yml
 ```
 
-**When to use**:
-- Application code updates
-- Medusa version upgrades
-- Script changes
+**When**: Application code updates, Medusa version upgrades
+
+**Time**: 2-3 minutes
 
 **What it does**:
 - Pulls latest code from Git
-- Installs/updates dependencies
+- Installs dependencies
 - Rebuilds admin dashboard
 - Restarts PM2 gracefully
-- Verifies health
 
-#### Teardown (Clean Rebuild)
+### Teardown
+
 ```bash
 ansible-playbook playbooks/medusa-destroy.yml
 ```
 
-**When to use**:
-- Resolving configuration drift
-- Testing clean deployments
-- Major infrastructure changes
+**When**: Configuration drift, clean rebuilds
 
-**What it removes**:
-- PM2 processes
-- PostgreSQL database/user
-- Redis data
-- Application files
-- Cloudflare Tunnel service
+**What it removes**: PM2 processes, database, Redis data, application files
 
-**What it preserves**:
-- SSH keys and configuration
-- System packages
-- User accounts
-- Network configuration
+**What it preserves**: SSH keys, system packages, user accounts
 
 ---
 
-## Configuration Management
+## Secrets Management
 
-### Secrets (Ansible)
+Secrets are pulled from Infisical before every deployment:
 
-**File**: `infrastructure/ansible/group_vars/secrets.yml`
-
-**Contents**:
-```yaml
-# PostgreSQL
-postgres_db_password: "..."
-
-# Medusa Admin
-medusa_admin_email: "admin@optic.works"
-medusa_admin_password: "..."
-
-# Application Secrets
-jwt_secret: "..."
-cookie_secret: "..."
-
-# Cloudflare Tunnel
-cloudflare_tunnel_id: "..."
-cloudflare_tunnel_credentials: |
-  {...}
-```
-
-**Security**:
-- Never commit secrets.yml to Git (`.gitignore` configured)
-- Use Ansible Vault for encryption: `ansible-vault encrypt secrets.yml`
-- Sync to Infisical for team access (see `docs/KEY_MANAGEMENT.md`)
-
-### Environment Variables (Storefront)
-
-**File**: `.env.local` (local development)
-
-**Managed via**: Infisical (production/team)
-
-**Complete Variable Inventory**: See `docs/reference/KEY_MANAGEMENT.md` for all variables.
-
-**Key variables** (example):
 ```bash
-NEXT_PUBLIC_MEDUSA_ENABLED=true
-NEXT_PUBLIC_MEDUSA_BASE_URL=https://api.optic.works
-NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
-STRIPE_SECRET_KEY=sk_test_...
-RESEND_API_KEY=re_...
-# See docs/reference/KEY_MANAGEMENT.md for complete list
+cd infrastructure/ansible
+export INFISICAL_SERVICE_TOKEN=st.xxx
+bash scripts/generate-secrets-from-infisical.sh
+# Creates group_vars/secrets.yml
 ```
+
+**Never** edit `secrets.yml` directly.
 
 ---
 
-## File Storage (Cloudflare R2)
+## Cloudflare R2 Storage
 
-Medusa uses Cloudflare R2 for file storage (product images, uploads). R2 is S3-compatible.
+Medusa uses R2 for product images. Configuration in `backend/medusa-config.ts`:
 
-### Configuration
-
-**Files:**
-- `backend/medusa-config.ts` - File module configuration
-- `infrastructure/ansible/roles/medusa/templates/medusa.env.j2` - Environment variables
-- `infrastructure/ansible/group_vars/secrets.yml` - R2 credentials
-
-**Environment Variables:**
-```bash
-R2_ACCESS_KEY_ID=xxx        # R2 API token access key
-R2_SECRET_ACCESS_KEY=xxx    # R2 API token secret
-R2_BUCKET_NAME=opticworks-public
-R2_ENDPOINT_URL=https://<account-id>.r2.cloudflarestorage.com
-R2_PUBLIC_URL=https://pub-xxx.r2.dev  # Or custom domain
-```
-
-**Medusa Config:**
 ```typescript
-// backend/medusa-config.ts
 {
-  resolve: "@medusajs/medusa/file",
+  resolve: "@medusajs/medusa/file-s3",
   options: {
-    providers: [
-      {
-        resolve: "@medusajs/medusa/file-s3",
-        id: "s3",
-        options: {
-          file_url: process.env.R2_PUBLIC_URL,
-          access_key_id: process.env.R2_ACCESS_KEY_ID,
-          secret_access_key: process.env.R2_SECRET_ACCESS_KEY,
-          region: "auto",  // R2 uses "auto"
-          bucket: process.env.R2_BUCKET_NAME,
-          endpoint: process.env.R2_ENDPOINT_URL,
-          additional_client_config: {
-            forcePathStyle: true,  // Required for S3-compatible providers
-          },
-        },
-      },
-    ],
+    file_url: process.env.R2_PUBLIC_URL,
+    access_key_id: process.env.R2_ACCESS_KEY_ID,
+    secret_access_key: process.env.R2_SECRET_ACCESS_KEY,
+    region: "auto",
+    bucket: process.env.R2_BUCKET_NAME,
+    endpoint: process.env.R2_ENDPOINT_URL,
   },
-},
-```
-
-### Setup New R2 Bucket
-
-1. **Create bucket in Cloudflare:**
-   ```bash
-   # Via Cloudflare API
-   curl -X POST "https://api.cloudflare.com/client/v4/accounts/<account-id>/r2/buckets" \
-     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-     -H "Content-Type: application/json" \
-     --data '{"name": "opticworks-public"}'
-   ```
-
-2. **Create R2 API token:**
-   - Go to Cloudflare Dashboard → R2 → Manage R2 API Tokens
-   - Create token with Object Read & Write permissions
-   - Save access key ID and secret
-
-3. **Configure public access:**
-   ```bash
-   # Enable public access via r2.dev domain
-   curl -X PUT "https://api.cloudflare.com/client/v4/accounts/<account-id>/r2/buckets/opticworks-public" \
-     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-     -H "Content-Type: application/json" \
-     --data '{"public_access": {"r2_dev": true}}'
-   ```
-
-4. **Add to Ansible secrets:**
-   ```yaml
-   # infrastructure/ansible/group_vars/secrets.yml
-   r2_access_key_id: "xxx"
-   r2_secret_access_key: "xxx"
-   r2_bucket_name: "opticworks-public"
-   r2_endpoint_url: "https://<account-id>.r2.cloudflarestorage.com"
-   r2_public_url: "https://pub-xxx.r2.dev"
-   ```
-
-5. **Deploy:**
-   ```bash
-   cd infrastructure/ansible
-   ansible-playbook playbooks/medusa-deploy.yml
-   ```
-
-### Troubleshooting
-
-**Upload fails silently:**
-- Check R2 credentials are set in `.env`
-- Verify bucket has public access enabled
-- Check Medusa logs: `pm2 logs medusa-prod`
-
-**Images don't display:**
-- Verify `R2_PUBLIC_URL` is accessible
-- Check CORS settings on the bucket
-
----
-
-## Development vs Production
-
-### Development Environment
-
-**Storefront**:
-```bash
-pnpm install
-pnpm run dev  # localhost:3000
-```
-
-**Backend** (local Medusa):
-```bash
-cd services/medusa
-pnpm install
-docker-compose up -d  # PostgreSQL + Redis
-pnpm run dev  # localhost:9000
-```
-
-### Production Environment
-
-**Storefront**: Cloudflare Pages (Phase 4)
-**Backend**: Hetzner Cloud (via Ansible)
-
-**Access**:
-- Backend API: `https://api.optic.works`
-- Admin Dashboard: `https://api.optic.works/app`
-- Store API: `https://api.optic.works/store/*`
-
-**Monitoring**:
-```bash
-# SSH to server
-ssh hetzner-node
-
-# PM2 status
-pm2 status
-pm2 logs medusa-dev
-
-# Service health
-systemctl status cloudflared
-systemctl status postgresql
-systemctl status redis-server
-
-# Application logs
-tail -f /opt/opticworks/medusa-backend/services/medusa/logs/*.log
-```
-
----
-
-## Post-Deployment Tasks
-
-After successful provisioning, complete these steps to activate the backend:
-
-### 1. Create Admin User
-```bash
-# Access admin dashboard
-open https://api.optic.works/app
-
-# Use credentials from secrets.yml
-Email: admin@optic.works
-Password: <from secrets.yml>
-```
-
-### 2. Create Publishable API Key
-```bash
-# Via Admin UI:
-Settings → API Key Management → Create API Key
-- Name: "Storefront"
-- Type: Publishable
-- Sales Channel: "Default Sales Channel"
-
-# Copy the key immediately (cannot retrieve later)
-# Update Infisical: NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
-```
-
-### 3. Import Product Catalog
-```bash
-ssh hetzner-node
-cd /opt/opticworks/medusa-backend/services/medusa
-
-# Import all products from src/lib/products.ts
-pnpm run catalog:import
-
-# Verify import
-pnpm run catalog:verify
-
-# Test Store API
-curl -H "x-publishable-api-key: pk_..." \
-  https://api.optic.works/store/products
-```
-
-### 4. Sync Secrets to Infisical
-```bash
-# Upload generated secrets for team access
-# See: docs/KEY_MANAGEMENT.md
-
-# Key secrets to sync:
-- POSTGRES_PASSWORD
-- MEDUSA_ADMIN_PASSWORD
-- JWT_SECRET
-- COOKIE_SECRET
-- NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY
+}
 ```
 
 ---
 
 ## Troubleshooting
 
-### Common Issues
+### Ansible ping fails
 
-**Issue**: `ansible all -m ping` fails
 ```bash
-# Verify SSH access
-ssh hetzner-node
-
-# Check inventory
-cat infrastructure/ansible/inventory/production.ini
-
-# Test with verbose output
-ansible all -m ping -vvv
+ssh hetzner-node              # Verify SSH access
+ansible all -m ping -vvv      # Verbose output
 ```
 
-**Issue**: Medusa build fails during provision
+### 502 Bad Gateway
+
 ```bash
-# Check build logs
 ssh hetzner-node
-pm2 logs medusa-dev --lines 100
-
-# Manually rebuild
-cd /opt/opticworks/medusa-backend/services/medusa
-pnpm run build
-```
-
-**Issue**: 502 Bad Gateway on api.optic.works
-```bash
-# Check Cloudflare Tunnel
-ssh hetzner-node
-systemctl status cloudflared
-
-# Check Medusa service
-pm2 status
-pm2 restart medusa-dev
-
-# Check local health
+systemctl status cloudflared  # Check tunnel
+pm2 status                    # Check Medusa
 curl http://localhost:9000/health
 ```
 
-**Issue**: Admin auth fails (401 Unauthorized)
-```bash
-# See: docs/RFD-006.md for known auth issues
-# Workaround: Use secret API key instead of JWT
+### Database connection timeout
 
-# Get secret key from database
-ssh hetzner-node
-psql medusa_db -c "SELECT token FROM api_key WHERE type='secret';"
+```bash
+# Check if password has unencoded special chars
+ssh hetzner-node "grep DATABASE_URL /opt/opticworks/medusa-backend/.env"
+# '/' should be %2F, '=' should be %3D
 ```
 
-**Issue**: PostgreSQL connection timeout (KnexTimeoutError)
-```bash
-# Symptom: Medusa logs show "Pg connection failed to connect to the database"
-# Cause: PASSWORD in DATABASE_URL contains special chars not properly URL-encoded
+---
 
-# Check the .env file
-ssh hetzner-node "cat /opt/opticworks/medusa-backend/.env | grep DATABASE_URL"
-
-# If password contains '/' characters that aren't encoded as %2F, fix it:
-# BAD:  ...password:abc/def/xyz=@localhost...
-# GOOD: ...password:abc%2Fdef%2Fxyz%3D@localhost...
-
-# The Ansible template now handles this, but if manually editing:
-# Use Python to properly encode: python3 -c "import urllib.parse; print(urllib.parse.quote('your-password', safe=''))"
-```
-
-**Issue**: .env syntax error with angle brackets
-```bash
-# Symptom: Shell error "syntax error near unexpected token 'newline'"
-# Cause: Values like "Name <email@example.com>" need quotes
-
-# BAD:  RESEND_FROM_EMAIL=OpticWorks <notifications@optic.works>
-# GOOD: RESEND_FROM_EMAIL="OpticWorks <notifications@optic.works>"
-
-# The Ansible template now handles this automatically
-```
-
-### Health Checks
+## Health Checks
 
 ```bash
-# Backend health endpoint
+# Backend health
 curl https://api.optic.works/health
 
-# PostgreSQL connection
+# PostgreSQL
 ssh hetzner-node "psql medusa_db -c 'SELECT version();'"
 
-# Redis connection
+# Redis
 ssh hetzner-node "redis-cli ping"
 
-# PM2 process status
+# PM2
 ssh hetzner-node "pm2 status"
 
-# Cloudflare Tunnel status
-ssh hetzner-node "systemctl status cloudflared"
-```
-
-### Logs
-
-```bash
-# Application logs
+# Logs
 ssh hetzner-node "pm2 logs medusa-dev --lines 50"
-
-# Cloudflare Tunnel logs
-ssh hetzner-node "journalctl -u cloudflared -n 50"
-
-# PostgreSQL logs
-ssh hetzner-node "journalctl -u postgresql -n 50"
-
-# System logs
-ssh hetzner-node "journalctl -xe"
 ```
 
 ---
 
-## Roadmap
-
-### Current State (2025-11-20)
-- ✅ Ansible Infrastructure-as-Code **COMPLETE**
-- ✅ Hetzner backend provisioned **LIVE**
-- ✅ Cloudflare Tunnel operational **LIVE**
-- ✅ Backend serving at api.optic.works **VERIFIED**
-- ✅ Phase 2 infrastructure deployment **COMPLETE**
-- ⚠️  Running in dev mode (medusa-dev) due to prod admin bundler issue
-
-### Phase 2: Infrastructure & Backend Deployment (✅ COMPLETE - 2025-11-20)
-
-**Status:** ✅ All infrastructure operational and validated
-
-**Delivered:**
-- ✅ Backend at `https://api.optic.works` (Hetzner + Cloudflare Tunnel)
-- ✅ PostgreSQL 17 + Redis 7.x operational (proven via API)
-- ✅ Medusa v2.11.3 serving Store/Admin APIs (7 products queryable)
-- ✅ Admin dashboard accessible with authentication
-- ✅ Cloudflare Tunnel configured and routing traffic
-- ✅ Infisical secret management integrated
-- ✅ Ansible automation preventing infrastructure drift
-- ✅ Next.js storefront builds successfully (46 pages)
-- ✅ Infrastructure validation suite created
-
-**Validation**: See `docs/PHASE2_VALIDATION_REPORT.md` for complete test results.
-
-**What's Deferred to Phase 3**: Full e-commerce configuration (cart/checkout flow, Medusa regions, payment processing) - infrastructure is ready, configuration is next.
-
-### Phase 3: Complete E-Commerce Integration (📋 READY TO IMPLEMENT)
-
-**Status:** Ready for implementation; focused on Medusa e-commerce migration
-
-**Core Implementation Tracks** (see `docs/PHASE3_PLAN.md` for details):
-- [ ] **Track 1**: Medusa e-commerce configuration (regions, payments, shipping)
-- [ ] **Track 2**: Cart & checkout integration (full customer purchase flow)
-- [ ] **Track 3**: Hookdeck webhook infrastructure (Stripe → Hookdeck → Medusa)
-- [ ] **Track 4**: Customer authentication & portal (Medusa CIAM)
-- [ ] **Track 5**: E2E + CI coverage for checkout flows
-
-**Deferred to Phase 4 (per `docs/PHASE3_PLAN.md`):** Discord integration, Hugo documentation site, and broader CI/CD hardening.
-
-**Estimated Effort**: ~15-20 implementation sessions focused on Medusa migration
-
-**Details**: See `docs/PHASE3_PLAN.md` for comprehensive implementation guide.
-
-### Phase 4: Production Optimization (📋 FUTURE)
-
-**Planned features:**
-- [ ] Migrate storefront from Vercel to Cloudflare Pages
-- [ ] Performance optimization (Core Web Vitals)
-- [ ] SEO finalization
-- [ ] International expansion (EU region, multi-currency)
-- [ ] Advanced features (subscriptions, bundles, pre-orders)
-
----
-
-## Related Documentation
-
-### Documentation Priority
-
-**Start Here:**
-1. **This file (DEPLOYMENT_GUIDE.md)** - Infrastructure provisioning and deployment
-2. **[PHASE2_VALIDATION_REPORT.md](PHASE2_VALIDATION_REPORT.md)** - Infrastructure validation results
-3. **[PHASE3_PLAN.md](PHASE3_PLAN.md)** - Next implementation phase
-
-**Infrastructure & Deployment:**
-- **[CONTRIBUTORS.md](CONTRIBUTORS.md)** - Dev setup, SSH access, Hetzner workflow
-- **[KEY_MANAGEMENT.md](KEY_MANAGEMENT.md)** - Secret rotation and Infisical strategy
-- `infrastructure/ansible/README.md` - Ansible playbook details
-
-**Integration & Development:**
-- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** - Storefront-Backend integration walkthrough
-- **[CODEBASE_EXPLANATION.md](CODEBASE_EXPLANATION.md)** - Storefront architecture
-- **[STATE_MANAGEMENT.md](STATE_MANAGEMENT.md)** - Zustand store patterns
-- **[STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md)** - Checkout implementation
-- **[API_STUBS.md](API_STUBS.md)** - API endpoint design
-
-**Phase Documentation:**
-- **[PHASE2_RECREATION_GUIDE.md](PHASE2_RECREATION_GUIDE.md)** - How to recreate validated Phase 2 state
-
-**Archived (Reference Only):**
-- `docs/archived/MIGRATION_PLAN.md` - Old manual deployment plan
-- `docs/archived/IMPLEMENTATION_GUIDE.md` - Manual setup runbooks
-- `docs/archived/INFISICAL_SETUP.md` - Superseded by KEY_MANAGEMENT.md
-- `docs/archived/CLOUDFLARE_ACCESS_SETUP.md` - Not implemented
-
----
-
-## Quick Reference
-
-### Essential Commands
-
-```bash
-# Provision full stack
-cd infrastructure/ansible
-ansible-playbook playbooks/medusa-provision.yml
-
-# Deploy code updates
-ansible-playbook playbooks/medusa-deploy.yml
-
-# Teardown for rebuild
-ansible-playbook playbooks/medusa-destroy.yml
-
-# SSH to server
-ssh hetzner-node
-
-# Check services
-pm2 status
-systemctl status cloudflared postgresql redis-server
-
-# View logs
-pm2 logs medusa-dev
-journalctl -u cloudflared -f
-
-# Database access
-psql medusa_db
-
-# Redis access
-redis-cli
-```
-
-### Important URLs
+## Important URLs
 
 - **Backend API**: https://api.optic.works
 - **Admin Dashboard**: https://api.optic.works/app
-- **Store API**: https://api.optic.works/store/*
 - **Health Check**: https://api.optic.works/health
-- **GitHub Repo**: https://github.com/r-mccarty/opticworks-store
-- **Cloudflare Dashboard**: https://dash.cloudflare.com
-
----
-
-**Last Updated**: 2025-12-03
-**Next Review**: After Phase 4 implementation

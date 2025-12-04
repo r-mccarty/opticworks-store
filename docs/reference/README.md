@@ -1,31 +1,48 @@
 # Reference Documentation
 
-**Updated**: 2025-12-02
+Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily development.
 
-Detailed documentation for deep dives. **Start with the main docs first** - only use these when you need specifics.
+---
 
 ## Contents
 
-| Document | When to Use |
-|----------|-------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System overview, data flows, integration points |
-| [PHASE3_PLAN.md](PHASE3_PLAN.md) | Phase 3 tracks, implementation status |
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Ansible playbook details, provisioning steps |
-| [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Full Infisical variable inventory |
-| [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand patterns, store architecture |
-| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow (Medusa + legacy) |
-| [RFD-010](RFD-010-infrastructure-and-testing.md) | Infrastructure drift solutions, E2E email testing |
+| Document | Purpose |
+|----------|---------|
+| [PHASE4_PLAN.md](PHASE4_PLAN.md) | Current phase tracks and status |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System overview and data flows |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Ansible playbooks and troubleshooting |
+| [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Complete secrets inventory |
+| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
+| [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand store patterns |
+| [E2E_TESTING.md](E2E_TESTING.md) | Playwright test setup |
 
-## When to Reference
+---
 
-- **ARCHITECTURE.md** - Understanding overall system, debugging integration issues
-- **PHASE3_PLAN.md** - Need to understand what's implemented vs pending
-- **DEPLOYMENT_GUIDE.md** - First time deploying or debugging Ansible
-- **KEY_MANAGEMENT.md** - Adding new secrets, understanding variable groups
-- **STATE_MANAGEMENT.md** - Modifying cart/checkout stores
-- **STRIPE_INTEGRATION.md** - Debugging payment flows
-- **RFD-010** - Infrastructure drift issues, Terraform migration, email testing strategy
+## Archived
 
-## Note
+| Document | Notes |
+|----------|-------|
+| [archived/PHASE3_PLAN.md](archived/PHASE3_PLAN.md) | Completed - full implementation details |
+| [archived/RFD-011-cloudflare-ssr-workaround.md](archived/RFD-011-cloudflare-ssr-workaround.md) | Resolved |
 
-These are reference docs, not daily guides. The main README.md and CLAUDE.md have everything needed for normal development.
+---
+
+## RFDs (Request for Discussion)
+
+| Document | Status |
+|----------|--------|
+| [RFD-010-infrastructure-and-testing.md](RFD-010-infrastructure-and-testing.md) | Draft - Terraform migration, email testing |
+
+---
+
+## When to Use
+
+- **PHASE4_PLAN.md** - Understanding current work and priorities
+- **ARCHITECTURE.md** - Debugging integration issues
+- **DEPLOYMENT_GUIDE.md** - First-time deploys or Ansible issues
+- **KEY_MANAGEMENT.md** - Adding or rotating secrets
+- **STRIPE_INTEGRATION.md** - Payment flow debugging
+- **STATE_MANAGEMENT.md** - Modifying Zustand stores
+- **E2E_TESTING.md** - Writing or debugging tests
+
+For daily development, `CLAUDE.md` has everything you need.
