@@ -20,41 +20,16 @@ sudo corepack enable
 echo "Installing global npm packages (AI CLIs)..."
 sudo npm i -g @openai/codex @google/gemini-cli
 
+# Install Claude Code CLI for the current user (not root).
+# This installs to ~/.local/bin/claude which is already in PATH.
 CLAUDE_INSTALLER_URL="https://claude.ai/install.sh"
-CLAUDE_ROOT_BIN="/root/.local/bin/claude"
-CLAUDE_GLOBAL_BIN="/usr/local/bin/claude"
 
-if command -v claude >/dev/null 2>&1; then
-    echo "Claude AI CLI already available."
-else
-    echo "Installing Claude AI CLI..."
-    if sudo bash -c "curl -fsSL ${CLAUDE_INSTALLER_URL} | bash"; then
-        echo "Claude AI CLI installer completed."
-    else
-        echo "WARNING: Failed to run the Claude AI CLI installer. Continuing without blocking the build."
-    fi
-fi
-
-echo "Ensuring Claude AI CLI is accessible system-wide..."
-if sudo test -e "$CLAUDE_ROOT_BIN"; then
-    CLAUDE_RESOLVED_PATH=$(sudo readlink -f "$CLAUDE_ROOT_BIN" 2>/dev/null || true)
-    if [ -n "$CLAUDE_RESOLVED_PATH" ]; then
-        if sudo install -m 0755 "$CLAUDE_RESOLVED_PATH" "$CLAUDE_GLOBAL_BIN"; then
-            echo "Claude AI CLI copied to $CLAUDE_GLOBAL_BIN."
-        else
-            echo "WARNING: Failed to place Claude AI CLI in $CLAUDE_GLOBAL_BIN."
-        fi
-    else
-        echo "WARNING: Unable to resolve the Claude AI CLI target path from $CLAUDE_ROOT_BIN."
-    fi
-else
-    echo "WARNING: Claude AI CLI binary not found in $CLAUDE_ROOT_BIN."
-fi
-
-if command -v claude >/dev/null 2>&1; then
+echo "Installing Claude Code CLI..."
+if curl -fsSL "$CLAUDE_INSTALLER_URL" | bash; then
+    echo "Claude Code CLI installed successfully."
     claude --version 2>/dev/null || true
 else
-    echo "WARNING: Claude AI CLI remains unavailable after the installation attempt."
+    echo "WARNING: Failed to install Claude Code CLI. Continuing without blocking the build."
 fi
 
 echo "Ensuring Infisical CLI is installed..."
