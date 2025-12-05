@@ -25,18 +25,35 @@
     dest: /etc/apt/keyrings/nodesource.asc
     mode: '0644'
 
+# Remove any old NodeSource repositories to avoid conflicts
+- name: Find old NodeSource repository files
+  become: yes
+  ansible.builtin.find:
+    paths: /etc/apt/sources.list.d
+    patterns: "nodesource*.list,nodesource*.sources"
+  register: old_nodesource_files
+
+- name: Remove old NodeSource repository files
+  become: yes
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ old_nodesource_files.files }}"
+  when: old_nodesource_files.files | length > 0
+
 - name: Add NodeSource repository
   become: yes
   ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_{{ nodejs_version }}.x nodistro main"
     state: present
     filename: nodesource
+    update_cache: yes
 
-- name: Install Node.js
+- name: Install or upgrade Node.js
   become: yes
   ansible.builtin.apt:
     name: nodejs
-    state: present
+    state: latest
     update_cache: yes
 
 - name: Check if pnpm is installed
