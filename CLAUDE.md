@@ -82,10 +82,12 @@ Key variables: `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIP
 
 | Issue | Solution |
 |-------|----------|
-| Codespaces `<Html>` error on 404 | Codespaces-specific; ignore - Cloudflare builds succeed |
+| Codespaces `<Html>` error on 404 | Push and verify via Cloudflare (see note below) |
 | Medusa unavailable at build | Static product fallback |
 | Product pages SSG fails | `force-dynamic` export |
 | Stripe SDK at build | Lazy init with `getStripe()` |
+
+**Codespaces Build Issue**: Local `pnpm run cf:build` fails with `<Html> should not be imported outside of pages/_document` on the 404 page. This is a Codespaces-specific environment issue (possibly Node version or module resolution). Cloudflare builds succeed. Workaround: push to branch and let Cloudflare verify the build. TODO: Debug root cause.
 
 ## Current State
 
