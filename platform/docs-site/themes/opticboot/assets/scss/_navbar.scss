@@ -1,0 +1,176 @@
+// =============================================================================
+// Navigation Bar
+// =============================================================================
+
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: $z-navbar;
+  height: $navbar-height;
+  display: flex;
+  align-items: center;
+  padding: 0 $spacer-lg;
+  background-color: $fog-1000;
+  border-bottom: 1px solid $fog-900;
+
+  &__container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-width: $container-max-width;
+    margin: 0 auto;
+  }
+
+  &__brand {
+    display: flex;
+    align-items: center;
+    gap: $spacer-sm;
+    color: $fog-0;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-lg;
+    text-decoration: none;
+
+    &:hover {
+      color: $fog-0;
+      text-decoration: none;
+    }
+
+    img, svg {
+      height: 32px;
+      width: auto;
+    }
+  }
+
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: $spacer-lg;
+  }
+
+  &__link {
+    color: $fog-200;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-medium;
+    text-decoration: none;
+    transition: color $transition-fast;
+
+    &:hover {
+      color: $fog-0;
+      text-decoration: none;
+    }
+
+    &--active {
+      color: $fog-0;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: $spacer-md;
+  }
+
+  &__search-btn {
+    display: flex;
+    align-items: center;
+    gap: $spacer-xs;
+    padding: $spacer-sm $spacer-md;
+    color: $fog-300;
+    font-size: $font-size-sm;
+    background-color: $fog-900;
+    border: 1px solid $fog-800;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      background-color: $fog-800;
+      border-color: $fog-700;
+    }
+
+    kbd {
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      font-family: $font-family-sans;
+      background-color: $fog-800;
+      border-radius: $border-radius-sm;
+    }
+  }
+
+  &__theme-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    color: $fog-200;
+    background: transparent;
+    border: none;
+    border-radius: $border-radius;
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $fog-0;
+      background-color: $fog-900;
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  &__github {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: $fog-200;
+    transition: color $transition-fast;
+
+    &:hover {
+      color: $fog-0;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  // Mobile menu toggle
+  &__mobile-toggle {
+    display: none;
+    padding: $spacer-sm;
+    color: $fog-200;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+
+    @media (max-width: $breakpoint-lg) {
+      display: flex;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  // Hide nav links on mobile
+  @media (max-width: $breakpoint-lg) {
+    &__nav {
+      display: none;
+    }
+
+    &__search-btn kbd {
+      display: none;
+    }
+  }
+}

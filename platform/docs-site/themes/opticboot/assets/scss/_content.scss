@@ -1,0 +1,205 @@
+// =============================================================================
+// Content Area
+// =============================================================================
+
+.content {
+  flex: 1;
+  min-width: 0;
+  max-width: $content-max-width;
+  margin: 0 auto;
+  padding: $spacer-2xl;
+
+  @media (max-width: $breakpoint-lg) {
+    padding: $spacer-lg;
+  }
+
+  // Page title
+  &__title {
+    margin-bottom: $spacer-lg;
+    padding-bottom: $spacer-md;
+    border-bottom: 1px solid $fog-200;
+
+    [data-theme="dark"] & {
+      border-bottom-color: $fog-800;
+    }
+
+    h1 {
+      margin-bottom: $spacer-xs;
+    }
+  }
+
+  &__description {
+    color: $fog-600;
+    font-size: $font-size-lg;
+    margin: 0;
+
+    [data-theme="dark"] & {
+      color: $fog-400;
+    }
+  }
+
+  // Article body
+  &__body {
+    h2 {
+      margin-top: $spacer-2xl;
+      padding-bottom: $spacer-sm;
+      border-bottom: 1px solid $fog-200;
+
+      [data-theme="dark"] & {
+        border-bottom-color: $fog-800;
+      }
+
+      &:first-child {
+        margin-top: 0;
+      }
+    }
+
+    h3, h4, h5, h6 {
+      margin-top: $spacer-xl;
+    }
+
+    // Anchor links on headings
+    .heading-anchor {
+      margin-left: $spacer-sm;
+      color: $fog-400;
+      text-decoration: none;
+      opacity: 0;
+      transition: opacity $transition-fast;
+
+      &:hover {
+        color: $brand-primary;
+      }
+    }
+
+    h2:hover .heading-anchor,
+    h3:hover .heading-anchor,
+    h4:hover .heading-anchor {
+      opacity: 1;
+    }
+
+    // Images in content
+    img {
+      display: block;
+      margin: $spacer-lg auto;
+      border-radius: $border-radius-md;
+      box-shadow: $shadow-md;
+    }
+
+    // Figure captions
+    figcaption {
+      text-align: center;
+      color: $fog-600;
+      font-size: $font-size-sm;
+      margin-top: $spacer-sm;
+
+      [data-theme="dark"] & {
+        color: $fog-400;
+      }
+    }
+  }
+
+  // Edit link
+  &__edit {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacer-xs;
+    margin-top: $spacer-2xl;
+    padding-top: $spacer-lg;
+    border-top: 1px solid $fog-200;
+    color: $fog-600;
+    font-size: $font-size-sm;
+    text-decoration: none;
+
+    [data-theme="dark"] & {
+      border-top-color: $fog-800;
+      color: $fog-400;
+    }
+
+    &:hover {
+      color: $brand-primary;
+      text-decoration: none;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  // Navigation between pages
+  &__nav {
+    display: flex;
+    justify-content: space-between;
+    gap: $spacer-lg;
+    margin-top: $spacer-2xl;
+    padding-top: $spacer-lg;
+    border-top: 1px solid $fog-200;
+
+    [data-theme="dark"] & {
+      border-top-color: $fog-800;
+    }
+  }
+
+  &__nav-link {
+    display: flex;
+    flex-direction: column;
+    gap: $spacer-xs;
+    padding: $spacer-md;
+    border: 1px solid $fog-200;
+    border-radius: $border-radius-md;
+    text-decoration: none;
+    transition: all $transition-fast;
+    max-width: 50%;
+
+    [data-theme="dark"] & {
+      border-color: $fog-800;
+    }
+
+    &:hover {
+      border-color: $brand-primary;
+      text-decoration: none;
+    }
+
+    &--prev {
+      align-items: flex-start;
+    }
+
+    &--next {
+      align-items: flex-end;
+      margin-left: auto;
+    }
+  }
+
+  &__nav-label {
+    font-size: $font-size-sm;
+    color: $fog-500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__nav-title {
+    color: $fog-800;
+    font-weight: $font-weight-medium;
+
+    [data-theme="dark"] & {
+      color: $fog-200;
+    }
+  }
+}
+
+// Main layout wrapper
+.docs-layout {
+  display: flex;
+  min-height: 100vh;
+  padding-top: $navbar-height;
+
+  &__main {
+    flex: 1;
+    display: flex;
+    margin-left: $sidebar-width;
+
+    @media (max-width: $breakpoint-lg) {
+      margin-left: 0;
+    }
+  }
+}

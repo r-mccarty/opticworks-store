@@ -1,0 +1,102 @@
+baseURL: "https://docs.optic.works/"
+languageCode: "en-us"
+title: "OpticWorks Documentation"
+theme: "opticboot"
+enableGitInfo: true
+
+# Build settings
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+# Markup configuration
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+    extensions:
+      linkify: true
+      strikethrough: true
+      table: true
+      taskList: true
+  highlight:
+    style: dracula
+    lineNos: true
+    lineNumbersInTable: false
+    noClasses: false
+  tableOfContents:
+    startLevel: 2
+    endLevel: 4
+    ordered: false
+
+# Permalinks
+permalinks:
+  docs: "/docs/:sections/:filename/"
+
+# Menus
+menu:
+  main:
+    - name: "Docs"
+      url: "/docs/"
+      weight: 1
+    - name: "Products"
+      url: "/docs/products/"
+      weight: 2
+    - name: "Support"
+      url: "/docs/support/"
+      weight: 3
+
+  footer:
+    - name: "Privacy"
+      url: "https://optic.works/privacy"
+      weight: 1
+    - name: "Terms"
+      url: "https://optic.works/terms"
+      weight: 2
+    - name: "Contact"
+      url: "https://optic.works/contact"
+      weight: 3
+
+# Site parameters
+params:
+  description: "Presence Intelligence Platform - product guides and support documentation"
+  github: "https://github.com/r-mccarty/opticworks-store"
+  editURL: "https://github.com/r-mccarty/opticworks-store/edit/main/platform/docs-site/content"
+  ogImage: "/images/og-image.png"
+
+  # Search
+  search:
+    enabled: true
+
+  # Footer
+  copyright: "OpticWorks"
+
+# Output formats for search
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON
+
+outputFormats:
+  JSON:
+    mediaType: "application/json"
+    baseName: "index"
+    isPlainText: true
+
+# Security (for Hugo modules if used later)
+security:
+  enableInlineShortcodes: false
+  funcs:
+    getenv:
+      - "^HUGO_"
+
+# Minification
+minify:
+  disableCSS: false
+  disableHTML: false
+  disableJS: false
+  disableJSON: false
+  disableSVG: false
+  disableXML: false
+  minifyOutput: true

@@ -1,0 +1,195 @@
+// =============================================================================
+// Base Styles
+// =============================================================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: $font-size-root;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  line-height: $line-height-base;
+  color: $fog-800;
+  background-color: $fog-0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Dark mode
+[data-theme="dark"] body {
+  color: $fog-100;
+  background-color: $fog-1000;
+}
+
+// -----------------------------------------------------------------------------
+// Typography
+// -----------------------------------------------------------------------------
+h1, h2, h3, h4, h5, h6 {
+  margin-top: 0;
+  margin-bottom: $spacer-md;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-heading;
+  color: $fog-900;
+}
+
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: $fog-50;
+}
+
+h1 { font-size: $font-size-3xl; }
+h2 { font-size: $font-size-2xl; }
+h3 { font-size: $font-size-xl; }
+h4 { font-size: $font-size-lg; }
+h5 { font-size: $font-size-base; }
+h6 { font-size: $font-size-sm; }
+
+p {
+  margin-top: 0;
+  margin-bottom: $spacer-md;
+}
+
+a {
+  color: $brand-primary;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $brand-accent;
+    text-decoration: underline;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Code
+// -----------------------------------------------------------------------------
+code {
+  font-family: $font-family-mono;
+  font-size: 0.875em;
+  padding: 0.2em 0.4em;
+  background-color: $fog-100;
+  border-radius: $border-radius-sm;
+}
+
+[data-theme="dark"] code {
+  background-color: $fog-900;
+}
+
+pre {
+  margin: 0 0 $spacer-lg;
+  padding: $spacer-md;
+  overflow-x: auto;
+  font-family: $font-family-mono;
+  font-size: $font-size-sm;
+  line-height: 1.6;
+  background-color: $fog-900;
+  border-radius: $border-radius-md;
+
+  code {
+    padding: 0;
+    background: none;
+    border-radius: 0;
+    color: $fog-100;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Lists
+// -----------------------------------------------------------------------------
+ul, ol {
+  margin-top: 0;
+  margin-bottom: $spacer-md;
+  padding-left: $spacer-xl;
+}
+
+li {
+  margin-bottom: $spacer-xs;
+}
+
+// -----------------------------------------------------------------------------
+// Tables
+// -----------------------------------------------------------------------------
+table {
+  width: 100%;
+  margin-bottom: $spacer-lg;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: $spacer-sm $spacer-md;
+  text-align: left;
+  border-bottom: 1px solid $fog-200;
+}
+
+th {
+  font-weight: $font-weight-semibold;
+  background-color: $fog-50;
+}
+
+[data-theme="dark"] th {
+  background-color: $fog-900;
+}
+
+[data-theme="dark"] th,
+[data-theme="dark"] td {
+  border-bottom-color: $fog-800;
+}
+
+// -----------------------------------------------------------------------------
+// Blockquote
+// -----------------------------------------------------------------------------
+blockquote {
+  margin: 0 0 $spacer-lg;
+  padding: $spacer-md $spacer-lg;
+  border-left: 4px solid $brand-primary;
+  background-color: $fog-50;
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+[data-theme="dark"] blockquote {
+  background-color: $fog-900;
+}
+
+// -----------------------------------------------------------------------------
+// Horizontal Rule
+// -----------------------------------------------------------------------------
+hr {
+  margin: $spacer-xl 0;
+  border: 0;
+  border-top: 1px solid $fog-200;
+}
+
+[data-theme="dark"] hr {
+  border-top-color: $fog-800;
+}
+
+// -----------------------------------------------------------------------------
+// Images
+// -----------------------------------------------------------------------------
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+// -----------------------------------------------------------------------------
+// Selection
+// -----------------------------------------------------------------------------
+::selection {
+  background-color: rgba($brand-primary, 0.2);
+}

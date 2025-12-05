@@ -431,19 +431,6 @@ rsync -avz --exclude node_modules --exclude .medusa --exclude .env \
   backend/ hetzner-node:/opt/opticworks/medusa-backend/
 ```
 
-### Rsync Delete Errors
-
-**Problem**: The rsync task may show warnings about non-empty directories it cannot delete:
-```
-cannot delete non-empty directory: archive/aws-cli/dist/...
-```
-
-**Solution**: This is usually harmless - old files that don't affect the build. To force clean sync:
-```bash
-ssh hetzner-node "rm -rf /opt/opticworks/medusa-backend/archive"
-ansible-playbook playbooks/medusa-deploy.yml
-```
-
 ## CI/CD Integration
 
 Add to `.github/workflows/deploy.yml`:

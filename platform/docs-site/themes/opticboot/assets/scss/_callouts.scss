@@ -1,0 +1,159 @@
+// =============================================================================
+// Callouts / Hints / Admonitions
+// =============================================================================
+
+.callout {
+  position: relative;
+  margin: $spacer-lg 0;
+  padding: $spacer-md $spacer-lg;
+  padding-left: calc($spacer-lg + 24px + $spacer-sm);
+  border-radius: $border-radius-md;
+  border-left: 4px solid;
+
+  // Icon positioning
+  &::before {
+    content: "";
+    position: absolute;
+    left: $spacer-md;
+    top: $spacer-md;
+    width: 20px;
+    height: 20px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  // Remove margin from last element
+  > *:last-child {
+    margin-bottom: 0;
+  }
+
+  // Title (optional)
+  &__title {
+    display: block;
+    margin-bottom: $spacer-sm;
+    font-weight: $font-weight-semibold;
+  }
+
+  // -----------------------------------------------------------------------------
+  // Info (default)
+  // -----------------------------------------------------------------------------
+  &--info,
+  &--note {
+    background-color: $info-light;
+    border-left-color: $color-info;
+
+    [data-theme="dark"] & {
+      background-color: rgba($color-info, 0.1);
+    }
+
+    &::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233B82F6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E");
+    }
+
+    .callout__title {
+      color: $color-info;
+    }
+  }
+
+  // -----------------------------------------------------------------------------
+  // Warning
+  // -----------------------------------------------------------------------------
+  &--warning,
+  &--caution {
+    background-color: $warning-light;
+    border-left-color: $color-warning;
+
+    [data-theme="dark"] & {
+      background-color: rgba($color-warning, 0.1);
+    }
+
+    &::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F59E0B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z'/%3E%3Cline x1='12' y1='9' x2='12' y2='13'/%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'/%3E%3C/svg%3E");
+    }
+
+    .callout__title {
+      color: $color-warning;
+    }
+  }
+
+  // -----------------------------------------------------------------------------
+  // Danger / Error
+  // -----------------------------------------------------------------------------
+  &--danger,
+  &--error {
+    background-color: $danger-light;
+    border-left-color: $color-danger;
+
+    [data-theme="dark"] & {
+      background-color: rgba($color-danger, 0.1);
+    }
+
+    &::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23EF4444' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='15' y1='9' x2='9' y2='15'/%3E%3Cline x1='9' y1='9' x2='15' y2='15'/%3E%3C/svg%3E");
+    }
+
+    .callout__title {
+      color: $color-danger;
+    }
+  }
+
+  // -----------------------------------------------------------------------------
+  // Success / Tip
+  // -----------------------------------------------------------------------------
+  &--success,
+  &--tip {
+    background-color: $success-light;
+    border-left-color: $color-success;
+
+    [data-theme="dark"] & {
+      background-color: rgba($color-success, 0.1);
+    }
+
+    &::before {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2322C55E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E");
+    }
+
+    .callout__title {
+      color: $color-success;
+    }
+  }
+}
+
+// =============================================================================
+// Shortcode Compatibility (hint shortcode)
+// =============================================================================
+
+.hint {
+  @extend .callout;
+
+  &.info { @extend .callout--info; }
+  &.note { @extend .callout--note; }
+  &.warning { @extend .callout--warning; }
+  &.caution { @extend .callout--caution; }
+  &.danger { @extend .callout--danger; }
+  &.error { @extend .callout--error; }
+  &.tip { @extend .callout--tip; }
+  &.success { @extend .callout--success; }
+}
+
+// =============================================================================
+// Important / Highlight Box
+// =============================================================================
+
+.important-box {
+  margin: $spacer-lg 0;
+  padding: $spacer-lg;
+  background: linear-gradient(135deg, rgba($brand-primary, 0.1) 0%, rgba($brand-primary, 0.05) 100%);
+  border: 1px solid rgba($brand-primary, 0.2);
+  border-radius: $border-radius-md;
+
+  [data-theme="dark"] & {
+    background: linear-gradient(135deg, rgba($brand-primary, 0.15) 0%, rgba($brand-primary, 0.05) 100%);
+    border-color: rgba($brand-primary, 0.3);
+  }
+
+  > *:last-child {
+    margin-bottom: 0;
+  }
+}

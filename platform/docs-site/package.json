@@ -1,0 +1,21 @@
+{
+  "name": "opticworks-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "OpticWorks documentation site",
+  "scripts": {
+    "dev": "npm run sass:watch & hugo server -D --bind 0.0.0.0",
+    "build": "npm run sass:build && hugo --minify",
+    "sass:build": "sass themes/opticboot/assets/scss/docs.scss themes/opticboot/static/css/docs.css --style=compressed --no-source-map",
+    "sass:watch": "sass themes/opticboot/assets/scss/docs.scss themes/opticboot/static/css/docs.css --watch",
+    "clean": "rm -rf public resources themes/opticboot/static/css/docs.css",
+    "deploy": "npm run build && wrangler pages deploy public --project-name=opticworks-docs",
+    "deploy:preview": "npm run build && wrangler pages deploy public --project-name=opticworks-docs --branch=preview"
+  },
+  "devDependencies": {
+    "sass": "^1.77.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

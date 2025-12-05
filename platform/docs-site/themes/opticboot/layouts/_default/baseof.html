@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="{{ .Site.LanguageCode | default "en" }}">
+<head>
+  {{ partial "head.html" . }}
+</head>
+<body>
+  {{ partial "header.html" . }}
+
+  <div class="docs-layout">
+    {{ partial "sidebar.html" . }}
+
+    <main class="docs-layout__main">
+      {{ block "main" . }}{{ end }}
+    </main>
+  </div>
+
+  {{ partial "search-modal.html" . }}
+
+  <!-- Scripts -->
+  <script src="{{ "js/theme-toggle.js" | relURL }}"></script>
+  <script src="{{ "js/sidebar.js" | relURL }}"></script>
+  {{ if .Site.Params.search.enabled }}
+  <script src="{{ "js/search.js" | relURL }}"></script>
+  {{ end }}
+  <script src="{{ "js/clipboard.js" | relURL }}"></script>
+</body>
+</html>

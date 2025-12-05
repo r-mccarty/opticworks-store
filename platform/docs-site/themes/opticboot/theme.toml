@@ -1,0 +1,10 @@
+name = "Opticboot"
+license = "MIT"
+licenselink = "https://github.com/r-mccarty/opticworks-store/blob/main/LICENSE"
+description = "OpticWorks documentation theme based on Crossplane's Geekboot"
+homepage = "https://docs.optic.works"
+min_version = "0.125.0"
+
+[author]
+  name = "OpticWorks"
+  homepage = "https://optic.works"

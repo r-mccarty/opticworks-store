@@ -1,0 +1,121 @@
+{{/* Tabs shortcode
+    Usage:
+    {{< tabs >}}
+    {{< tab "Tab 1" >}} Content 1 {{< /tab >}}
+    {{< tab "Tab 2" >}} Content 2 {{< /tab >}}
+    {{< /tabs >}}
+*/}}
+{{ $id := .Get "id" | default (printf "tabs-%d" .Ordinal) }}
+<div class="tabs" id="{{ $id }}">
+  <div class="tabs__nav" role="tablist">
+    {{ range $i, $tab := .Inner | findRE `(?s)<tab name="([^"]+)">(.*?)</tab>` }}
+    {{ $name := index (findRE `name="([^"]+)"` $tab) 0 | replaceRE `name="([^"]+)"` "$1" }}
+    <button
+      class="tabs__btn{{ if eq $i 0 }} tabs__btn--active{{ end }}"
+      role="tab"
+      aria-selected="{{ if eq $i 0 }}true{{ else }}false{{ end }}"
+      aria-controls="{{ $id }}-panel-{{ $i }}"
+      data-tab="{{ $i }}"
+    >
+      {{ $name }}
+    </button>
+    {{ end }}
+  </div>
+
+  {{ range $i, $tab := .Inner | findRE `(?s)<tab name="([^"]+)">(.*?)</tab>` }}
+  {{ $content := index (findRE `(?s)>(.*?)</tab>` $tab) 0 | replaceRE `(?s)>(.*?)</tab>` "$1" }}
+  <div
+    class="tabs__panel{{ if eq $i 0 }} tabs__panel--active{{ end }}"
+    role="tabpanel"
+    id="{{ $id }}-panel-{{ $i }}"
+    {{ if ne $i 0 }}hidden{{ end }}
+  >
+    {{ $content | markdownify }}
+  </div>
+  {{ end }}
+</div>
+
+<style>
+.tabs {
+  margin: 1.5rem 0;
+  border: 1px solid var(--fog-200, #CECFCF);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .tabs {
+  border-color: var(--fog-800, #1A2222);
+}
+
+.tabs__nav {
+  display: flex;
+  background-color: var(--fog-50, #FAFAFA);
+  border-bottom: 1px solid var(--fog-200, #CECFCF);
+}
+
+[data-theme="dark"] .tabs__nav {
+  background-color: var(--fog-900, #0F1414);
+  border-bottom-color: var(--fog-800, #1A2222);
+}
+
+.tabs__btn {
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--fog-600, #636565);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.tabs__btn:hover {
+  color: var(--fog-800, #1A2222);
+}
+
+[data-theme="dark"] .tabs__btn:hover {
+  color: var(--fog-200, #CECFCF);
+}
+
+.tabs__btn--active {
+  color: var(--brand-primary, #F97316);
+  border-bottom-color: var(--brand-primary, #F97316);
+}
+
+.tabs__panel {
+  padding: 1rem;
+}
+
+.tabs__panel[hidden] {
+  display: none;
+}
+</style>
+
+<script>
+(function() {
+  const tabs = document.getElementById('{{ $id }}');
+  if (!tabs) return;
+
+  const buttons = tabs.querySelectorAll('.tabs__btn');
+  const panels = tabs.querySelectorAll('.tabs__panel');
+
+  buttons.forEach((btn, i) => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => {
+        b.classList.remove('tabs__btn--active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      panels.forEach(p => {
+        p.classList.remove('tabs__panel--active');
+        p.hidden = true;
+      });
+
+      btn.classList.add('tabs__btn--active');
+      btn.setAttribute('aria-selected', 'true');
+      panels[i].classList.add('tabs__panel--active');
+      panels[i].hidden = false;
+    });
+  });
+})();
+</script>

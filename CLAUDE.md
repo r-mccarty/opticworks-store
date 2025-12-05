@@ -92,5 +92,6 @@ See `docs/reference/PHASE4_PLAN.md` for current tracks.
 |----------|----------|
 | `docs/reference/ARCHITECTURE.md` | System overview |
 | `docs/reference/PHASE4_PLAN.md` | Current implementation |
-| `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible troubleshooting |
+| `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible deployment, backup & recovery |
+| `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS programmatic access |
 | `docs/SECRETS.md` | Environment variables |

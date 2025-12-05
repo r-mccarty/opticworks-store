@@ -54,6 +54,9 @@ export function NavBar() {
               <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="/install-guides">
                 Install Guides
               </Link>
+              <Link className="px-2 py-1 text-gray-900 hover:text-orange-600 transition-colors" href="https://docs.optic.works">
+                Docs
+              </Link>
             </div>
           </nav>
           <div className="hidden sm:flex items-center gap-3">
@@ -126,6 +129,9 @@ export function NavBar() {
             </li>
             <li onClick={() => setOpen(false)}>
               <Link href="/install-guides" className="hover:text-orange-600 transition-colors">Install Guides</Link>
+            </li>
+            <li onClick={() => setOpen(false)}>
+              <Link href="https://docs.optic.works" className="hover:text-orange-600 transition-colors">Docs</Link>
             </li>
             <li onClick={() => setOpen(false)}>
               <Link

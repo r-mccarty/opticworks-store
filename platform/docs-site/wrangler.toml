@@ -1,0 +1,6 @@
+# Cloudflare Pages configuration for docs.optic.works
+name = "opticworks-docs"
+pages_build_output_dir = "public"
+
+# Custom domain
+# Configure via Cloudflare Dashboard: Pages > opticworks-docs > Custom domains > Add: docs.optic.works

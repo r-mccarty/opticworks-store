@@ -1,0 +1,13 @@
+{{- $pages := where .Site.RegularPages "Type" "in" (slice "docs" "page") -}}
+[
+{{- range $index, $page := $pages -}}
+  {{- if $index }},{{ end }}
+  {
+    "title": {{ $page.Title | jsonify }},
+    "description": {{ with $page.Description }}{{ . | jsonify }}{{ else }}""{{ end }},
+    "content": {{ $page.Plain | htmlUnescape | jsonify }},
+    "permalink": {{ $page.Permalink | jsonify }},
+    "section": {{ with $page.Section }}{{ . | jsonify }}{{ else }}""{{ end }}
+  }
+{{- end -}}
+]

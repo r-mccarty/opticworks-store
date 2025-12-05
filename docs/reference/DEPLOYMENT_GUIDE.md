@@ -14,6 +14,9 @@ ansible-playbook playbooks/medusa-provision.yml
 # Code updates only
 ansible-playbook playbooks/medusa-deploy.yml
 
+# Setup/update backup system
+ansible-playbook playbooks/backup-setup.yml
+
 # Teardown for clean rebuild
 ansible-playbook playbooks/medusa-destroy.yml
 ```
@@ -135,6 +138,59 @@ curl http://localhost:9000/health
 # Check if password has unencoded special chars
 ssh hetzner-node "grep DATABASE_URL /opt/opticworks/medusa-backend/.env"
 # '/' should be %2F, '=' should be %3D
+```
+
+---
+
+## Backup & Recovery
+
+Automated backups run daily at 3 AM using Restic to Cloudflare R2.
+
+### Setup
+
+```bash
+ansible-playbook playbooks/backup-setup.yml
+```
+
+### Manual Backup
+
+```bash
+ssh hetzner-node "/opt/opticworks/backup/backup.sh"
+```
+
+### List Snapshots
+
+```bash
+ssh hetzner-node "/opt/opticworks/backup/restore.sh --list"
+```
+
+### Restore Database Only
+
+```bash
+ssh hetzner-node "/opt/opticworks/backup/restore.sh latest --db-only"
+```
+
+### Full Restore
+
+```bash
+ssh hetzner-node "/opt/opticworks/backup/restore.sh <snapshot-id> --full"
+```
+
+### What's Backed Up
+
+- PostgreSQL database dump
+- `/opt/opticworks/medusa-backend/` (excluding node_modules, cache, logs)
+
+### Retention Policy
+
+- 7 daily snapshots
+- 4 weekly snapshots
+- 6 monthly snapshots
+
+### Backup Logs
+
+```bash
+ssh hetzner-node "tail -100 /var/log/opticworks-backup.log"
 ```
 
 ---

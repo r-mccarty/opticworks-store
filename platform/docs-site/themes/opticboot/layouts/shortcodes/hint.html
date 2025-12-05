@@ -1,0 +1,8 @@
+{{/* Hint/Callout shortcode
+    Usage: {{< hint info >}} Content {{< /hint >}}
+    Types: info, note, warning, caution, danger, error, tip, success
+*/}}
+{{ $type := .Get 0 | default "info" }}
+<div class="callout callout--{{ $type }}">
+  {{ .Inner | markdownify }}
+</div>

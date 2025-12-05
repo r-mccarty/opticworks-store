@@ -1,0 +1,12 @@
+{{ if and .TableOfContents (gt (len .TableOfContents) 0) }}
+<nav class="toc" id="toc">
+  <h4 class="toc__title">On this page</h4>
+  {{ .TableOfContents }}
+</nav>
+
+<!-- Inline ToC for mobile -->
+<div class="toc-inline">
+  <h4 class="toc-inline__title">On this page</h4>
+  {{ .TableOfContents }}
+</div>
+{{ end }}

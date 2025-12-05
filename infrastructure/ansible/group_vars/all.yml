@@ -44,3 +44,7 @@ tunnel_service: "http://localhost:{{ medusa_port }}"
 pm2_app_name: medusa-prod
 pm2_instances: 1
 pm2_max_memory: 512M
+
+# Backup Configuration
+r2_backup_bucket_name: "opticworks-backups"  # Private bucket for backups
+backup_hour: "3"  # 3 AM daily backups

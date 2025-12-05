@@ -73,6 +73,12 @@ STRIPE_WEBHOOK_SECRET=$(get_secret "STRIPE_WEBHOOK_SECRET" "false")
 RESEND_API_KEY=$(get_secret "RESEND_API_KEY" "false")
 RESEND_FROM_EMAIL=$(get_secret "RESEND_FROM_EMAIL" "false")
 
+# Backup (Restic to R2)
+R2_BACKUP_ACCESS_KEY_ID=$(get_secret "R2_BACKUP_ACCESS_KEY_ID" "false")
+R2_BACKUP_SECRET_ACCESS_KEY=$(get_secret "R2_BACKUP_SECRET_ACCESS_KEY" "false")
+R2_BACKUP_BUCKET_NAME=$(get_secret "R2_BACKUP_BUCKET_NAME" "false")
+RESTIC_PASSWORD=$(get_secret "RESTIC_PASSWORD" "false")
+
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
 # Default from email if not set
@@ -120,6 +126,21 @@ stripe_webhook_secret: "$STRIPE_WEBHOOK_SECRET"
 # Resend Email
 resend_api_key: "$RESEND_API_KEY"
 resend_from_email: "$RESEND_FROM_EMAIL"
+
+# Cloudflare R2 File Storage (existing public bucket)
+r2_access_key_id: "da9f20bb117f5bd90075632c137199f6"
+r2_secret_access_key: "bec66c595b8923b9a1dccf66a1299f814d14fb8561e80cb7a96366e76c4ebf99"
+r2_bucket_name: "opticworks-public"
+r2_endpoint_url: "https://39f8fd4a5b0c7558aed585facd57ec3b.r2.cloudflarestorage.com"
+r2_public_url: "https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev"
+
+# Cloudflare R2 Backup Storage (private bucket)
+r2_backup_access_key_id: "$R2_BACKUP_ACCESS_KEY_ID"
+r2_backup_secret_access_key: "$R2_BACKUP_SECRET_ACCESS_KEY"
+r2_backup_bucket_name: "${R2_BACKUP_BUCKET_NAME:-opticworks-backups}"
+
+# Restic encryption password
+restic_password: "$RESTIC_PASSWORD"
 EOF
 
 echo "✅ Secrets file synced: $SECRETS_FILE"

@@ -1,0 +1,175 @@
+// =============================================================================
+// Table of Contents (Right Sidebar)
+// =============================================================================
+
+.toc {
+  position: fixed;
+  top: $navbar-height;
+  right: 0;
+  bottom: 0;
+  width: $toc-width;
+  padding: $spacer-lg;
+  overflow-y: auto;
+  border-left: 1px solid $fog-200;
+  background-color: $fog-0;
+
+  [data-theme="dark"] & {
+    background-color: $fog-1000;
+    border-left-color: $fog-800;
+  }
+
+  // Hide on smaller screens
+  @media (max-width: $breakpoint-xl) {
+    display: none;
+  }
+
+  &__title {
+    margin-bottom: $spacer-md;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $fog-600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    [data-theme="dark"] & {
+      color: $fog-400;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  &__item {
+    margin: 0;
+  }
+
+  &__link {
+    display: block;
+    padding: $spacer-xs 0;
+    padding-left: $spacer-sm;
+    color: $fog-600;
+    font-size: $font-size-sm;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    transition: all $transition-fast;
+
+    [data-theme="dark"] & {
+      color: $fog-400;
+    }
+
+    &:hover {
+      color: $fog-800;
+      text-decoration: none;
+
+      [data-theme="dark"] & {
+        color: $fog-200;
+      }
+    }
+
+    &--active {
+      color: $brand-primary;
+      border-left-color: $brand-primary;
+      font-weight: $font-weight-medium;
+    }
+
+    // Nested levels (h3, h4)
+    &--h3 {
+      padding-left: $spacer-md;
+    }
+
+    &--h4 {
+      padding-left: $spacer-lg;
+      font-size: 0.8125rem;
+    }
+  }
+}
+
+// =============================================================================
+// Inline ToC (for mobile / in-content)
+// =============================================================================
+
+.toc-inline {
+  margin: $spacer-lg 0;
+  padding: $spacer-md $spacer-lg;
+  background-color: $fog-50;
+  border-radius: $border-radius-md;
+  border: 1px solid $fog-200;
+
+  [data-theme="dark"] & {
+    background-color: $fog-900;
+    border-color: $fog-800;
+  }
+
+  // Only show on screens where fixed ToC is hidden
+  display: none;
+
+  @media (max-width: $breakpoint-xl) {
+    display: block;
+  }
+
+  &__title {
+    margin-bottom: $spacer-sm;
+    font-size: $font-size-sm;
+    font-weight: $font-weight-semibold;
+    color: $fog-700;
+
+    [data-theme="dark"] & {
+      color: $fog-300;
+    }
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    columns: 2;
+    column-gap: $spacer-lg;
+
+    @media (max-width: $breakpoint-md) {
+      columns: 1;
+    }
+  }
+
+  &__item {
+    break-inside: avoid;
+    margin-bottom: $spacer-xs;
+  }
+
+  &__link {
+    color: $brand-primary;
+    font-size: $font-size-sm;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+// =============================================================================
+// Scroll Progress Indicator
+// =============================================================================
+
+.scroll-progress {
+  position: fixed;
+  top: $navbar-height;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background-color: $fog-200;
+  z-index: calc($z-navbar - 1);
+
+  [data-theme="dark"] & {
+    background-color: $fog-800;
+  }
+
+  &__bar {
+    height: 100%;
+    width: 0;
+    background-color: $brand-primary;
+    transition: width 50ms ease-out;
+  }
+}

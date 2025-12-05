@@ -1,0 +1,228 @@
+// =============================================================================
+// Search Modal
+// =============================================================================
+
+.search-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: $z-modal;
+  padding: $spacer-2xl;
+  background-color: rgba($fog-1000, 0.7);
+  backdrop-filter: blur(4px);
+
+  &.is-open {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+  }
+
+  &__container {
+    width: 100%;
+    max-width: 600px;
+    margin-top: 10vh;
+    background-color: $fog-0;
+    border-radius: $border-radius-lg;
+    box-shadow: $shadow-lg;
+    overflow: hidden;
+
+    [data-theme="dark"] & {
+      background-color: $fog-900;
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: $spacer-sm;
+    padding: $spacer-md $spacer-lg;
+    border-bottom: 1px solid $fog-200;
+
+    [data-theme="dark"] & {
+      border-bottom-color: $fog-800;
+    }
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    color: $fog-400;
+  }
+
+  &__input {
+    flex: 1;
+    padding: 0;
+    font-size: $font-size-lg;
+    font-family: $font-family-sans;
+    color: $fog-800;
+    background: transparent;
+    border: none;
+    outline: none;
+
+    [data-theme="dark"] & {
+      color: $fog-100;
+    }
+
+    &::placeholder {
+      color: $fog-400;
+    }
+  }
+
+  &__kbd {
+    padding: $spacer-xs $spacer-sm;
+    font-size: 0.75rem;
+    font-family: $font-family-sans;
+    color: $fog-500;
+    background-color: $fog-100;
+    border-radius: $border-radius-sm;
+
+    [data-theme="dark"] & {
+      background-color: $fog-800;
+      color: $fog-400;
+    }
+  }
+
+  &__results {
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: $spacer-sm;
+  }
+
+  &__empty {
+    padding: $spacer-xl;
+    text-align: center;
+    color: $fog-500;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacer-sm $spacer-lg;
+    border-top: 1px solid $fog-200;
+    font-size: $font-size-sm;
+    color: $fog-500;
+
+    [data-theme="dark"] & {
+      border-top-color: $fog-800;
+    }
+  }
+
+  &__hint {
+    display: flex;
+    align-items: center;
+    gap: $spacer-md;
+
+    span {
+      display: flex;
+      align-items: center;
+      gap: $spacer-xs;
+    }
+
+    kbd {
+      padding: 2px 6px;
+      font-size: 0.75rem;
+      background-color: $fog-100;
+      border-radius: $border-radius-sm;
+
+      [data-theme="dark"] & {
+        background-color: $fog-800;
+      }
+    }
+  }
+}
+
+// =============================================================================
+// Search Result Item
+// =============================================================================
+
+.search-result {
+  display: block;
+  padding: $spacer-md;
+  border-radius: $border-radius;
+  text-decoration: none;
+  transition: background-color $transition-fast;
+
+  &:hover,
+  &--selected {
+    background-color: $fog-100;
+    text-decoration: none;
+
+    [data-theme="dark"] & {
+      background-color: $fog-800;
+    }
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: $spacer-sm;
+    margin-bottom: $spacer-xs;
+    font-weight: $font-weight-medium;
+    color: $fog-800;
+
+    [data-theme="dark"] & {
+      color: $fog-100;
+    }
+  }
+
+  &__section {
+    font-size: $font-size-sm;
+    color: $fog-500;
+    font-weight: $font-weight-normal;
+
+    &::before {
+      content: "›";
+      margin: 0 $spacer-xs;
+    }
+  }
+
+  &__excerpt {
+    font-size: $font-size-sm;
+    color: $fog-600;
+    line-height: 1.5;
+
+    [data-theme="dark"] & {
+      color: $fog-400;
+    }
+
+    mark {
+      background-color: rgba($brand-primary, 0.2);
+      color: inherit;
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+  }
+}
+
+// =============================================================================
+// Search Loading State
+// =============================================================================
+
+.search-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacer-xl;
+
+  &__spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid $fog-200;
+    border-top-color: $brand-primary;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+
+    [data-theme="dark"] & {
+      border-color: $fog-700;
+      border-top-color: $brand-primary;
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

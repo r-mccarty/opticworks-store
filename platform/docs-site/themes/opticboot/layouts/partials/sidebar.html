@@ -1,0 +1,76 @@
+<aside class="sidebar" id="sidebar">
+  {{ $currentPage := . }}
+  {{ $sections := where .Site.Sections "Section" "docs" }}
+
+  {{ range $sections }}
+  {{ template "sidebar-section" (dict "Section" . "CurrentPage" $currentPage "Level" 0) }}
+  {{ end }}
+</aside>
+
+<div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+{{ define "sidebar-section" }}
+{{ $section := .Section }}
+{{ $currentPage := .CurrentPage }}
+{{ $level := .Level }}
+{{ $isActive := or ($currentPage.IsDescendant $section) (eq $currentPage $section) }}
+{{ $hasChildren := gt (len $section.Pages) 0 }}
+{{ $hasSections := gt (len $section.Sections) 0 }}
+
+<div class="sidebar__section">
+  <!-- Section Heading -->
+  <button
+    type="button"
+    class="sidebar__heading{{ if not $isActive }} is-collapsed{{ end }}"
+    aria-expanded="{{ if $isActive }}true{{ else }}false{{ end }}"
+    data-toggle="collapse"
+  >
+    {{ $section.Title }}
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </button>
+
+  <!-- Section Links -->
+  <ul class="sidebar__list{{ if not $isActive }} is-collapsed{{ end }}">
+    <!-- Section index page (if it has content) -->
+    {{ if and $section.Content (ne $section.Content "") }}
+    <li class="sidebar__item">
+      <a href="{{ $section.RelPermalink }}" class="sidebar__link{{ if eq $currentPage $section }} sidebar__link--active{{ end }}">
+        Overview
+      </a>
+    </li>
+    {{ end }}
+
+    <!-- Child pages -->
+    {{ range $section.Pages }}
+    {{ if not .Params.hidden }}
+    <li class="sidebar__item">
+      <a href="{{ .RelPermalink }}" class="sidebar__link{{ if eq $currentPage . }} sidebar__link--active{{ end }}">
+        {{ .Title }}
+      </a>
+
+      <!-- Nested pages (if any) -->
+      {{ $children := where .Pages "Params.hidden" "ne" true }}
+      {{ if gt (len $children) 0 }}
+      <ul class="sidebar__nested{{ if not (or ($currentPage.IsDescendant .) (eq $currentPage .)) }} is-collapsed{{ end }}">
+        {{ range $children }}
+        <li class="sidebar__item">
+          <a href="{{ .RelPermalink }}" class="sidebar__nested-link{{ if eq $currentPage . }} sidebar__nested-link--active{{ end }}">
+            {{ .Title }}
+          </a>
+        </li>
+        {{ end }}
+      </ul>
+      {{ end }}
+    </li>
+    {{ end }}
+    {{ end }}
+
+    <!-- Child sections (recursively) -->
+    {{ range $section.Sections }}
+    {{ template "sidebar-section" (dict "Section" . "CurrentPage" $currentPage "Level" (add $level 1)) }}
+    {{ end }}
+  </ul>
+</div>
+{{ end }}

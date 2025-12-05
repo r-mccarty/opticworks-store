@@ -1,0 +1,40 @@
+---
+# Setup Restic Backup to Cloudflare R2
+#
+# Usage:
+#   ansible-playbook playbooks/backup-setup.yml
+#
+# Manual backup:
+#   ssh hetzner-node "/opt/opticworks/backup/backup.sh"
+#
+# List snapshots:
+#   ssh hetzner-node "/opt/opticworks/backup/restore.sh --list"
+
+- name: Setup Restic Backup
+  hosts: medusa_backend
+  gather_facts: yes
+  vars_files:
+    - ../group_vars/all.yml
+    - ../group_vars/secrets.yml
+
+  vars:
+    backup_cron_enabled: true
+
+  roles:
+    - role: ../roles/restic-backup
+
+  post_tasks:
+    - name: Display backup information
+      debug:
+        msg: |
+          Restic backup configured successfully!
+
+          Backup schedule: Daily at {{ backup_hour }}:00 AM
+          Backup destination: R2 bucket '{{ r2_backup_bucket_name }}'
+
+          Manual commands:
+            Run backup now:    /opt/opticworks/backup/backup.sh
+            List snapshots:    /opt/opticworks/backup/restore.sh --list
+            Restore database:  /opt/opticworks/backup/restore.sh latest --db-only
+
+          Logs: /var/log/opticworks-backup.log

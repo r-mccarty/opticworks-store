@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Home, Package, Store, Headphones, BookOpen, ShoppingCart, Menu, X, UserCircle } from "lucide-react"
+import { Home, Package, Store, Headphones, BookOpen, FileText, ShoppingCart, Menu, X, UserCircle } from "lucide-react"
 import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 import { useCart } from "@/hooks/useCart"
@@ -52,6 +52,13 @@ const menuItems: MenuItem[] = [
     href: "/install-guides",
     gradient: "radial-gradient(circle, rgba(239,68,68,0.15) 0%, rgba(220,38,38,0.06) 50%, rgba(185,28,28,0) 100%)",
     iconColor: "rgb(239 68 68)", // red-500
+  },
+  {
+    icon: <FileText className="h-5 w-5" />,
+    label: "Docs",
+    href: "https://docs.optic.works",
+    gradient: "radial-gradient(circle, rgba(14,165,233,0.15) 0%, rgba(2,132,199,0.06) 50%, rgba(3,105,161,0) 100%)",
+    iconColor: "rgb(14 165 233)", // sky-500
   },
 ]
 

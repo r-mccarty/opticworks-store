@@ -1,0 +1,186 @@
+{{ define "main" }}
+<article class="content">
+  <!-- Hero Section -->
+  <div class="hero">
+    <h1 class="hero__title">{{ .Site.Title }}</h1>
+    <p class="hero__description">{{ .Site.Params.description }}</p>
+
+    <div class="hero__actions">
+      <a href="{{ "docs/getting-started/" | relURL }}" class="btn btn--primary">
+        Get Started
+      </a>
+      <a href="{{ "docs/products/" | relURL }}" class="btn btn--secondary">
+        View Products
+      </a>
+    </div>
+  </div>
+
+  <!-- Content from _index.md -->
+  {{ if .Content }}
+  <div class="content__body">
+    {{ .Content }}
+  </div>
+  {{ end }}
+
+  <!-- Featured Sections -->
+  {{ $sections := where .Site.Sections "Section" "docs" }}
+  {{ if gt (len $sections) 0 }}
+  <div class="featured-sections">
+    <h2>Documentation</h2>
+    <div class="page-list">
+      {{ range (first 6 $sections) }}
+      <a href="{{ .RelPermalink }}" class="page-card">
+        <h3 class="page-card__title">{{ .Title }}</h3>
+        {{ with .Description }}
+        <p class="page-card__description">{{ . }}</p>
+        {{ end }}
+        <span class="page-card__link">Learn more →</span>
+      </a>
+      {{ end }}
+    </div>
+  </div>
+  {{ end }}
+</article>
+
+<style>
+.hero {
+  text-align: center;
+  padding: 4rem 0;
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--fog-200, #CECFCF);
+}
+
+[data-theme="dark"] .hero {
+  border-bottom-color: var(--fog-800, #1A2222);
+}
+
+.hero__title {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.hero__description {
+  font-size: 1.25rem;
+  color: var(--fog-600, #636565);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+}
+
+[data-theme="dark"] .hero__description {
+  color: var(--fog-400, #9A9B9B);
+}
+
+.hero__actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+.btn--primary {
+  color: white;
+  background-color: var(--brand-primary, #F97316);
+}
+
+.btn--primary:hover {
+  background-color: var(--brand-accent, #ea580c);
+  text-decoration: none;
+  color: white;
+}
+
+.btn--secondary {
+  color: var(--fog-800, #1A2222);
+  background-color: var(--fog-100, #E8E9E9);
+}
+
+[data-theme="dark"] .btn--secondary {
+  color: var(--fog-100, #E8E9E9);
+  background-color: var(--fog-800, #1A2222);
+}
+
+.btn--secondary:hover {
+  background-color: var(--fog-200, #CECFCF);
+  text-decoration: none;
+}
+
+[data-theme="dark"] .btn--secondary:hover {
+  background-color: var(--fog-700, #3D4242);
+}
+
+.featured-sections {
+  margin-top: 3rem;
+}
+
+.featured-sections h2 {
+  margin-bottom: 1.5rem;
+}
+
+.page-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.page-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background-color: var(--fog-50, #FAFAFA);
+  border: 1px solid var(--fog-200, #CECFCF);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+[data-theme="dark"] .page-card {
+  background-color: var(--fog-900, #0F1414);
+  border-color: var(--fog-800, #1A2222);
+}
+
+.page-card:hover {
+  border-color: var(--brand-primary, #F97316);
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.page-card__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  color: var(--fog-900, #0A1111);
+}
+
+[data-theme="dark"] .page-card__title {
+  color: var(--fog-100, #E8E9E9);
+}
+
+.page-card__description {
+  flex: 1;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--fog-600, #636565);
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .page-card__description {
+  color: var(--fog-400, #9A9B9B);
+}
+
+.page-card__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--brand-primary, #F97316);
+}
+</style>
+{{ end }}

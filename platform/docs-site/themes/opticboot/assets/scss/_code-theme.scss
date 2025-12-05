@@ -1,0 +1,219 @@
+// =============================================================================
+// Code Blocks & Syntax Highlighting
+// =============================================================================
+
+// Code block wrapper
+.highlight {
+  position: relative;
+  margin: 0 0 $spacer-lg;
+
+  pre {
+    margin: 0;
+    padding: $spacer-lg;
+    padding-top: $spacer-xl;
+    overflow-x: auto;
+    background-color: $fog-900;
+    border-radius: $border-radius-md;
+
+    code {
+      display: block;
+      padding: 0;
+      background: none;
+      color: $fog-100;
+      font-size: $font-size-sm;
+      line-height: 1.6;
+    }
+  }
+
+  // Language label
+  &::before {
+    content: attr(data-lang);
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: $spacer-xs $spacer-sm;
+    font-size: 0.75rem;
+    font-family: $font-family-sans;
+    color: $fog-500;
+    background-color: $fog-800;
+    border-radius: 0 $border-radius-md 0 $border-radius-sm;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  // Copy button
+  .copy-btn {
+    position: absolute;
+    top: $spacer-sm;
+    right: $spacer-sm;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    color: $fog-400;
+    background-color: $fog-800;
+    border: 1px solid $fog-700;
+    border-radius: $border-radius;
+    cursor: pointer;
+    opacity: 0;
+    transition: all $transition-fast;
+
+    &:hover {
+      color: $fog-100;
+      background-color: $fog-700;
+    }
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &.copied {
+      color: $color-success;
+      border-color: $color-success;
+    }
+  }
+
+  &:hover .copy-btn {
+    opacity: 1;
+  }
+}
+
+// Line numbers
+.highlight .lnt {
+  display: inline-block;
+  width: 2em;
+  margin-right: $spacer-md;
+  color: $fog-600;
+  text-align: right;
+  user-select: none;
+}
+
+// Line highlighting
+.highlight .hl {
+  display: block;
+  background-color: rgba($brand-primary, 0.15);
+  margin: 0 (-$spacer-lg);
+  padding: 0 $spacer-lg;
+}
+
+// =============================================================================
+// Syntax Colors (Dracula-inspired)
+// =============================================================================
+
+.highlight {
+  // Comments
+  .c, .c1, .cm, .cs {
+    color: #6272a4;
+    font-style: italic;
+  }
+
+  // Keywords
+  .k, .kc, .kd, .kn, .kp, .kr, .kt {
+    color: #ff79c6;
+  }
+
+  // Strings
+  .s, .s1, .s2, .sb, .sc, .sd, .se, .sh, .si, .sx, .sr, .ss {
+    color: #f1fa8c;
+  }
+
+  // Numbers
+  .m, .mb, .mf, .mh, .mi, .mo, .il {
+    color: #bd93f9;
+  }
+
+  // Operators
+  .o, .ow {
+    color: #ff79c6;
+  }
+
+  // Punctuation
+  .p {
+    color: $fog-100;
+  }
+
+  // Names / Identifiers
+  .n, .na, .nb, .nc, .nd, .ne, .nf, .ni, .nl, .nn, .no, .nt, .nv {
+    color: #50fa7b;
+  }
+
+  // Functions
+  .nf {
+    color: #50fa7b;
+  }
+
+  // Classes
+  .nc {
+    color: #8be9fd;
+  }
+
+  // Variables
+  .nv, .vi, .vg, .vm {
+    color: #f8f8f2;
+  }
+
+  // Attributes (HTML/XML)
+  .na {
+    color: #50fa7b;
+  }
+
+  // Tags (HTML/XML)
+  .nt {
+    color: #ff79c6;
+  }
+
+  // Entity
+  .ni {
+    color: #ffb86c;
+  }
+
+  // Error
+  .err {
+    color: #ff5555;
+  }
+
+  // Generic
+  .ge {
+    font-style: italic;
+  }
+
+  .gs {
+    font-weight: bold;
+  }
+
+  .gd {
+    color: #ff5555;
+    background-color: rgba(#ff5555, 0.1);
+  }
+
+  .gi {
+    color: #50fa7b;
+    background-color: rgba(#50fa7b, 0.1);
+  }
+}
+
+// =============================================================================
+// Shell/Terminal Styling
+// =============================================================================
+
+.highlight[data-lang="bash"],
+.highlight[data-lang="shell"],
+.highlight[data-lang="sh"] {
+  pre {
+    background-color: $fog-1000;
+  }
+
+  // Prompt styling
+  .gp {
+    color: $brand-primary;
+    user-select: none;
+  }
+
+  // Output
+  .go {
+    color: $fog-400;
+  }
+}

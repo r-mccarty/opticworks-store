@@ -1,0 +1,62 @@
+{{ define "main" }}
+<article class="content">
+  <header class="content__title">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}
+    <p class="content__description">{{ . }}</p>
+    {{ end }}
+  </header>
+
+  {{ partial "toc.html" . }}
+
+  <div class="content__body">
+    {{ .Content }}
+  </div>
+
+  <!-- Edit on GitHub link -->
+  {{ with .Site.Params.editURL }}
+  {{ $editPath := $.File.Path }}
+  <a href="{{ . }}/{{ $editPath }}" class="content__edit" target="_blank" rel="noopener noreferrer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+    Edit this page on GitHub
+  </a>
+  {{ end }}
+
+  <!-- Prev/Next Navigation -->
+  {{ $pages := where .Site.RegularPages "Section" "docs" }}
+  {{ $currentIndex := 0 }}
+  {{ range $i, $p := $pages }}
+    {{ if eq $p.Permalink $.Permalink }}
+      {{ $currentIndex = $i }}
+    {{ end }}
+  {{ end }}
+
+  {{ $prev := index $pages (sub $currentIndex 1) }}
+  {{ $next := index $pages (add $currentIndex 1) }}
+
+  {{ if or $prev $next }}
+  <nav class="content__nav">
+    {{ with $prev }}
+    <a href="{{ .RelPermalink }}" class="content__nav-link content__nav-link--prev">
+      <span class="content__nav-label">← Previous</span>
+      <span class="content__nav-title">{{ .Title }}</span>
+    </a>
+    {{ else }}
+    <div></div>
+    {{ end }}
+
+    {{ with $next }}
+    <a href="{{ .RelPermalink }}" class="content__nav-link content__nav-link--next">
+      <span class="content__nav-label">Next →</span>
+      <span class="content__nav-title">{{ .Title }}</span>
+    </a>
+    {{ end }}
+  </nav>
+  {{ end }}
+</article>
+
+{{ partial "toc.html" . }}
+{{ end }}

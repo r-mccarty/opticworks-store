@@ -1,0 +1,72 @@
+<footer class="footer">
+  <div class="footer__container">
+    <div class="footer__brand">
+      <span>&copy; {{ now.Year }} OpticWorks</span>
+    </div>
+
+    <nav class="footer__links">
+      {{ range .Site.Menus.footer }}
+      <a href="{{ .URL }}" class="footer__link"{{ if hasPrefix .URL "http" }} target="_blank" rel="noopener noreferrer"{{ end }}>
+        {{ .Name }}
+      </a>
+      {{ end }}
+    </nav>
+
+    {{ with .Site.Params.github }}
+    <div class="footer__meta">
+      <a href="{{ . }}" target="_blank" rel="noopener noreferrer" class="footer__link">
+        View on GitHub
+      </a>
+    </div>
+    {{ end }}
+  </div>
+</footer>
+
+<style>
+.footer {
+  padding: var(--spacer-lg, 1.5rem) var(--spacer-xl, 2rem);
+  border-top: 1px solid var(--fog-200, #CECFCF);
+  background-color: var(--fog-50, #FAFAFA);
+  font-size: var(--font-size-sm, 0.875rem);
+  color: var(--fog-600, #636565);
+}
+
+[data-theme="dark"] .footer {
+  background-color: var(--fog-900, #0F1414);
+  border-top-color: var(--fog-800, #1A2222);
+  color: var(--fog-400, #9A9B9B);
+}
+
+.footer__container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: var(--container-max-width, 1400px);
+  margin: 0 auto;
+  flex-wrap: wrap;
+  gap: var(--spacer-md, 1rem);
+}
+
+.footer__links {
+  display: flex;
+  gap: var(--spacer-lg, 1.5rem);
+}
+
+.footer__link {
+  color: inherit;
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+
+.footer__link:hover {
+  color: var(--brand-primary, #F97316);
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .footer__container {
+    flex-direction: column;
+    text-align: center;
+  }
+}
+</style>

@@ -1,0 +1,96 @@
+{{ define "main" }}
+<article class="content">
+  <header class="content__title">
+    <h1>{{ .Title }}</h1>
+    {{ with .Description }}
+    <p class="content__description">{{ . }}</p>
+    {{ end }}
+  </header>
+
+  {{ if .Content }}
+  <div class="content__body">
+    {{ .Content }}
+  </div>
+  {{ end }}
+
+  <!-- List child pages -->
+  {{ $pages := union .Pages .Sections }}
+  {{ if gt (len $pages) 0 }}
+  <div class="page-list">
+    {{ range $pages.ByWeight }}
+    {{ if not .Params.hidden }}
+    <a href="{{ .RelPermalink }}" class="page-card">
+      <h3 class="page-card__title">{{ .Title }}</h3>
+      {{ with .Description }}
+      <p class="page-card__description">{{ . }}</p>
+      {{ end }}
+      <span class="page-card__link">
+        Read more →
+      </span>
+    </a>
+    {{ end }}
+    {{ end }}
+  </div>
+  {{ end }}
+</article>
+
+<style>
+.page-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.page-card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background-color: var(--fog-50, #FAFAFA);
+  border: 1px solid var(--fog-200, #CECFCF);
+  border-radius: 0.5rem;
+  text-decoration: none;
+  transition: all 150ms ease;
+}
+
+[data-theme="dark"] .page-card {
+  background-color: var(--fog-900, #0F1414);
+  border-color: var(--fog-800, #1A2222);
+}
+
+.page-card:hover {
+  border-color: var(--brand-primary, #F97316);
+  text-decoration: none;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.page-card__title {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+  color: var(--fog-900, #0A1111);
+}
+
+[data-theme="dark"] .page-card__title {
+  color: var(--fog-100, #E8E9E9);
+}
+
+.page-card__description {
+  flex: 1;
+  margin: 0 0 1rem;
+  font-size: 0.875rem;
+  color: var(--fog-600, #636565);
+  line-height: 1.6;
+}
+
+[data-theme="dark"] .page-card__description {
+  color: var(--fog-400, #9A9B9B);
+}
+
+.page-card__link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--brand-primary, #F97316);
+}
+</style>
+{{ end }}

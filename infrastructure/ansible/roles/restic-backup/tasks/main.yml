@@ -1,0 +1,76 @@
+---
+# Restic Backup Role
+# Installs restic and configures automated backups to Cloudflare R2
+
+- name: Install restic
+  apt:
+    name: restic
+    state: present
+  become: true
+
+- name: Create backup scripts directory
+  file:
+    path: /opt/opticworks/backup
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0750'
+  become: true
+
+- name: Create restic environment file
+  template:
+    src: restic-env.j2
+    dest: /opt/opticworks/backup/.restic-env
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0600'
+  become: true
+
+- name: Create backup script
+  template:
+    src: backup.sh.j2
+    dest: /opt/opticworks/backup/backup.sh
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0750'
+  become: true
+
+- name: Create restore script
+  template:
+    src: restore.sh.j2
+    dest: /opt/opticworks/backup/restore.sh
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0750'
+  become: true
+
+- name: Initialize restic repository (if not exists)
+  shell: |
+    source /opt/opticworks/backup/.restic-env
+    restic snapshots 2>/dev/null || restic init
+  args:
+    executable: /bin/bash
+  become: true
+  become_user: "{{ app_user }}"
+  register: restic_init
+  changed_when: "'created restic repository' in restic_init.stdout"
+
+- name: Setup backup cron job
+  cron:
+    name: "Restic backup to R2"
+    minute: "0"
+    hour: "{{ backup_hour | default('3') }}"
+    job: "/opt/opticworks/backup/backup.sh >> /var/log/opticworks-backup.log 2>&1"
+    user: "{{ app_user }}"
+  become: true
+  when: backup_cron_enabled | default(true)
+
+- name: Create log file with correct permissions
+  file:
+    path: /var/log/opticworks-backup.log
+    state: touch
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+  become: true
+  changed_when: false

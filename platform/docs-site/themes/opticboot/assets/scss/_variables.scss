@@ -1,0 +1,136 @@
+// =============================================================================
+// OpticWorks Documentation Theme Variables
+// Based on Crossplane's Geekboot theme
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Brand Colors (from OpticWorks storefront)
+// -----------------------------------------------------------------------------
+$brand-primary: #F97316;        // Orange
+$brand-secondary: #0f172a;      // Dark slate
+$brand-accent: #ea580c;         // Orange-600 for hover states
+
+// -----------------------------------------------------------------------------
+// Grayscale (Crossplane fog system)
+// -----------------------------------------------------------------------------
+$fog-0: #FFFFFF;
+$fog-50: #FAFAFA;
+$fog-100: #E8E9E9;
+$fog-150: #DBDCDC;
+$fog-200: #CECFCF;
+$fog-300: #B5B5B5;
+$fog-400: #9A9B9B;
+$fog-500: #7E8080;
+$fog-600: #636565;
+$fog-700: #3D4242;
+$fog-800: #1A2222;
+$fog-900: #0F1414;
+$fog-1000: #0A1111;
+
+// -----------------------------------------------------------------------------
+// Semantic Colors
+// -----------------------------------------------------------------------------
+$color-info: #3B82F6;           // Blue-500
+$color-success: #22C55E;        // Green-500
+$color-warning: #F59E0B;        // Amber-500
+$color-danger: #EF4444;         // Red-500
+
+// Info shades
+$info-light: #EFF6FF;
+$info-border: #93C5FD;
+
+// Warning shades
+$warning-light: #FFFBEB;
+$warning-border: #FCD34D;
+
+// Danger shades
+$danger-light: #FEF2F2;
+$danger-border: #FCA5A5;
+
+// Success shades
+$success-light: #F0FDF4;
+$success-border: #86EFAC;
+
+// -----------------------------------------------------------------------------
+// Typography
+// -----------------------------------------------------------------------------
+$font-family-sans: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+$font-family-mono: "Geist Mono", "SF Mono", Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+
+$font-size-root: 16px;
+$font-size-base: 1.125rem;      // 18px
+$font-size-sm: 0.875rem;        // 14px
+$font-size-lg: 1.25rem;         // 20px
+$font-size-xl: 1.5rem;          // 24px
+$font-size-2xl: 2rem;           // 32px
+$font-size-3xl: 2.5rem;         // 40px
+
+$line-height-base: 1.8;
+$line-height-heading: 1.25;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// -----------------------------------------------------------------------------
+// Spacing
+// -----------------------------------------------------------------------------
+$spacer: 1rem;
+$spacer-xs: 0.25rem;
+$spacer-sm: 0.5rem;
+$spacer-md: 1rem;
+$spacer-lg: 1.5rem;
+$spacer-xl: 2rem;
+$spacer-2xl: 3rem;
+$spacer-3xl: 4rem;
+
+// -----------------------------------------------------------------------------
+// Layout
+// -----------------------------------------------------------------------------
+$sidebar-width: 280px;
+$toc-width: 220px;
+$content-max-width: 800px;
+$navbar-height: 60px;
+$container-max-width: 1400px;
+
+// -----------------------------------------------------------------------------
+// Border Radius
+// -----------------------------------------------------------------------------
+$border-radius-sm: 0.25rem;
+$border-radius: 0.375rem;
+$border-radius-md: 0.5rem;
+$border-radius-lg: 0.75rem;
+$border-radius-xl: 1rem;
+
+// -----------------------------------------------------------------------------
+// Shadows
+// -----------------------------------------------------------------------------
+$shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+$shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+$shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+$shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+// -----------------------------------------------------------------------------
+// Transitions
+// -----------------------------------------------------------------------------
+$transition-fast: 150ms ease;
+$transition-base: 200ms ease;
+$transition-slow: 300ms ease;
+
+// -----------------------------------------------------------------------------
+// Z-Index
+// -----------------------------------------------------------------------------
+$z-sidebar: 100;
+$z-navbar: 200;
+$z-modal: 300;
+$z-tooltip: 400;
+
+// -----------------------------------------------------------------------------
+// Breakpoints
+// -----------------------------------------------------------------------------
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;

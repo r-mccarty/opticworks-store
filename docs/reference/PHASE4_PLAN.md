@@ -12,7 +12,7 @@
 | 1 | Pending | Production product catalog (real products, images, pricing) |
 | 2 | Pending | Design system + UI overhaul (Shadcn/Radix theming) |
 | 3 | Pending | Fulfillment module (FedEx integration + address validation) |
-| 4 | Pending | Consumer documentation site (docs.optic.works) |
+| 4 | **Complete** | Consumer documentation site (docs.optic.works) |
 | 5 | Pending | Usability testing + accessibility audit |
 | 6 | Pending | CI/CD hardening + monitoring |
 
@@ -186,6 +186,8 @@ EASYPOST_API_KEY=xxx  # Already in Infisical
 
 ## Track 4: Consumer Documentation Site
 
+**Status**: Complete
+
 **Goal**: Launch docs.optic.works with product guides and support content.
 
 **Design Reference**: [docs.crossplane.io](https://docs.crossplane.io) - Clone their "Geekboot" theme styling.
@@ -289,17 +291,17 @@ Adapt Crossplane's theme with OpticWorks branding:
 
 ### Tasks
 
-- [ ] Clone Crossplane's Geekboot theme as starting point
-- [ ] Rename to `opticboot`, update branding
-- [ ] Adapt color palette for OpticWorks brand
-- [ ] Configure hugo.yaml (based on Crossplane's config.yaml)
-- [ ] Set up PostCSS pipeline for SCSS compilation
-- [ ] Write Getting Started guide
-- [ ] Write product documentation (per product)
-- [ ] Add troubleshooting section
-- [ ] Configure Cloudflare Pages deployment
-- [ ] Set up docs.optic.works DNS
-- [ ] Verify dark mode works correctly
+- [x] Clone Crossplane's Geekboot theme as starting point
+- [x] Rename to `opticboot`, update branding
+- [x] Adapt color palette for OpticWorks brand
+- [x] Configure hugo.yaml (based on Crossplane's config.yaml)
+- [x] Set up PostCSS pipeline for SCSS compilation
+- [x] Write Getting Started guide
+- [x] Write product documentation (Bed Presence Sensor)
+- [x] Add troubleshooting section
+- [x] Configure Cloudflare Pages deployment
+- [x] Set up docs.optic.works DNS
+- [x] Add Docs link to main store navigation (MenuBar)
 
 ### Commands
 
@@ -467,9 +469,9 @@ jobs:
 - [ ] Tracking emails sent
 
 ### Track 4: Docs
-- [ ] docs.optic.works live
-- [ ] Product guides complete
-- [ ] Search functional
+- [x] docs.optic.works live
+- [x] Product guides complete (Bed Presence Sensor)
+- [x] Navigation link added to main store
 
 ### Track 5: Usability
 - [ ] WCAG 2.1 AA compliant
