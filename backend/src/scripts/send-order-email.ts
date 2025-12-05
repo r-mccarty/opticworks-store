@@ -21,7 +21,7 @@ export default async function sendOrderEmail({ container }: ExecArgs) {
       "items.*", "items.variant.*", "items.variant.product.*",
       "shipping_address.*", "customer.*",
     ],
-    filters: { display_id: parseInt(displayId) },
+    filters: { display_id: displayId },
   })
 
   if (!orders || orders.length === 0) {
@@ -31,6 +31,11 @@ export default async function sendOrderEmail({ container }: ExecArgs) {
 
   const order = orders[0]
   logger.info(`[send-order-email] Found order ${order.id}, email: ${order.email}`)
+
+  if (!order.email) {
+    logger.error(`[send-order-email] Order ${displayId} has no email address`)
+    return
+  }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const notificationData = {
