@@ -7,9 +7,8 @@ E-commerce platform: Next.js 15 + Medusa v2 + Stripe + Cloudflare Workers.
 ```bash
 pnpm run dev                        # Dev server (localhost:3000)
 pnpm run lint && pnpm run test      # Pre-commit checks
+pnpm run cf:build                   # Cloudflare Workers build (runs next build internally)
 ```
-
-**WARNING: DO NOT run `pnpm build` in Codespaces** - it will crash the environment due to memory limits. Builds are verified automatically by Cloudflare when you push to any branch.
 
 ## Structure
 
@@ -83,7 +82,7 @@ Key variables: `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIP
 
 | Issue | Solution |
 |-------|----------|
-| Codespaces build crashes | **Never build locally** - push and let Cloudflare build |
+| Codespaces `<Html>` error on 404 | Codespaces-specific; ignore - Cloudflare builds succeed |
 | Medusa unavailable at build | Static product fallback |
 | Product pages SSG fails | `force-dynamic` export |
 | Stripe SDK at build | Lazy init with `getStripe()` |
