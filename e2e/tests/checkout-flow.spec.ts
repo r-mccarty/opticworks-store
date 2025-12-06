@@ -90,18 +90,32 @@ test.describe('Checkout Flow', () => {
     }
 
     // Step 5.6: Wait for shipping rates and verify selection
+    // Shipping selection is REQUIRED for payment - the Pay button is disabled until a rate is selected
     logStep(5.6, 'Waiting for shipping rates');
     try {
       await checkoutPage.waitForShippingRates();
       const rates = await checkoutPage.getAvailableShippingRates();
       console.log(`Found ${rates.length} shipping rates`);
 
+      // If rates loaded, the cheapest should be auto-selected
+      // If no rates, it might be a digital-only order or error
+      if (rates.length > 0) {
+        // Wait a bit for auto-selection to take effect
+        await page.waitForTimeout(500);
+      }
+
       // Verify shipping cost shows in order summary
       const shippingCost = await checkoutPage.getShippingCost();
       console.log(`Shipping cost: ${shippingCost >= 0 ? '$' + shippingCost : 'pending'}`);
     } catch (error) {
-      console.warn('Shipping rates may not have loaded:', error);
-      // Don't fail the test - shipping rates may be mocked or unavailable
+      console.warn('Shipping rates loading issue:', error);
+      // Check if it's digital-only (no shipping needed)
+      const isDigital = await checkoutPage.isDigitalOnly();
+      if (!isDigital) {
+        await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'step5-shipping-failed');
+        throw new Error('Shipping rates required but failed to load: ' + error);
+      }
+      console.log('Order is digital-only, no shipping needed');
     }
 
     // Step 6: Fill card details
@@ -183,6 +197,16 @@ test.describe('Checkout Flow', () => {
     // Fill form with declined card
     await checkoutPage.fillEmail(generateTestEmail());
     await checkoutPage.fillShippingAddress(testAddress);
+
+    // Wait for shipping rates to load and auto-select
+    try {
+      await checkoutPage.waitForShippingRates();
+      await page.waitForTimeout(500); // Allow auto-selection
+    } catch {
+      // Shipping may still work if digital-only
+      console.log('Shipping rates loading issue, continuing...');
+    }
+
     await checkoutPage.fillCardDetails(testCards.decline);
 
     // Submit

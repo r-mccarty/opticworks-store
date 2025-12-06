@@ -322,12 +322,18 @@ export class CheckoutPage {
 
   /**
    * Submit the payment.
+   * Note: Pay button is disabled until shipping is selected (for physical products).
    */
   async submitPayment(): Promise<void> {
     console.log('[CheckoutPage] Submitting payment...');
 
-    // Wait for pay button to be enabled
-    await expect(this.payButton).toBeEnabled({ timeout: 10000 });
+    // Check current button state for debugging
+    const isDisabled = await this.payButton.isDisabled();
+    const buttonText = await this.payButton.textContent();
+    console.log(`[CheckoutPage] Pay button state: disabled=${isDisabled}, text="${buttonText}"`);
+
+    // Wait for pay button to be enabled (shipping must be selected first)
+    await expect(this.payButton).toBeEnabled({ timeout: 20000 });
 
     await this.payButton.click();
     console.log('[CheckoutPage] Pay button clicked');
