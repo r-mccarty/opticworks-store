@@ -21,6 +21,11 @@ export class CheckoutPage {
   readonly checkoutMessage: Locator;
   readonly successIcon: Locator;
   readonly orderSuccess: Locator;
+  readonly shippingSelector: Locator;
+  readonly shippingRatesLoading: Locator;
+  readonly shippingRatesList: Locator;
+  readonly shippingRatesError: Locator;
+  readonly shippingDigital: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -32,6 +37,11 @@ export class CheckoutPage {
     this.checkoutMessage = page.locator('[data-testid="checkout-message"]');
     this.successIcon = page.locator('[data-testid="success-icon"]');
     this.orderSuccess = page.locator('[data-testid="order-success"]');
+    this.shippingSelector = page.locator('[data-testid="shipping-selector"]');
+    this.shippingRatesLoading = page.locator('[data-testid="shipping-rates-loading"]');
+    this.shippingRatesList = page.locator('[data-testid="shipping-rates-list"]');
+    this.shippingRatesError = page.locator('[data-testid="shipping-rates-error"]');
+    this.shippingDigital = page.locator('[data-testid="shipping-selector-digital"]');
   }
 
   /**
@@ -354,5 +364,124 @@ export class CheckoutPage {
     const isVisible = await this.checkoutMessage.isVisible().catch(() => false);
     if (!isVisible) return null;
     return await this.checkoutMessage.textContent();
+  }
+
+  // ===== Shipping Methods =====
+
+  /**
+   * Wait for shipping rates to be loaded.
+   * Should be called after filling the shipping address.
+   */
+  async waitForShippingRates(timeout = 15000): Promise<void> {
+    console.log('[CheckoutPage] Waiting for shipping rates...');
+
+    // First check if loading state appears
+    try {
+      await this.shippingRatesLoading.waitFor({ state: 'visible', timeout: 5000 });
+      console.log('[CheckoutPage] Shipping rates loading...');
+    } catch {
+      // Loading state may have passed quickly
+      console.log('[CheckoutPage] Loading state not detected, checking for rates...');
+    }
+
+    // Wait for either rates list OR digital-only OR error
+    await Promise.race([
+      this.shippingRatesList.waitFor({ state: 'visible', timeout }),
+      this.shippingDigital.waitFor({ state: 'visible', timeout }),
+      this.shippingRatesError.waitFor({ state: 'visible', timeout }),
+    ]);
+
+    console.log('[CheckoutPage] Shipping rates ready');
+  }
+
+  /**
+   * Check if the order is digital-only (no shipping needed).
+   */
+  async isDigitalOnly(): Promise<boolean> {
+    return await this.shippingDigital.isVisible().catch(() => false);
+  }
+
+  /**
+   * Get all available shipping rate IDs.
+   */
+  async getAvailableShippingRates(): Promise<string[]> {
+    const rateLabels = this.page.locator('[data-testid^="shipping-rate-"]');
+    const count = await rateLabels.count();
+
+    const rates: string[] = [];
+    for (let i = 0; i < count; i++) {
+      const testId = await rateLabels.nth(i).getAttribute('data-testid');
+      if (testId) {
+        rates.push(testId.replace('shipping-rate-', ''));
+      }
+    }
+
+    console.log(`[CheckoutPage] Found ${rates.length} shipping rates:`, rates);
+    return rates;
+  }
+
+  /**
+   * Select a specific shipping rate by ID.
+   */
+  async selectShippingRate(rateId: string): Promise<void> {
+    console.log(`[CheckoutPage] Selecting shipping rate: ${rateId}`);
+
+    const rateLabel = this.page.locator(`[data-testid="shipping-rate-${rateId}"]`);
+    await rateLabel.waitFor({ state: 'visible', timeout: 5000 });
+    await rateLabel.click();
+
+    console.log('[CheckoutPage] Shipping rate selected');
+  }
+
+  /**
+   * Get the currently selected shipping rate ID.
+   */
+  async getSelectedShippingRate(): Promise<string | null> {
+    const checkedInput = this.page.locator('[data-testid^="shipping-radio-"]:checked');
+    if (await checkedInput.isVisible().catch(() => false)) {
+      const testId = await checkedInput.getAttribute('data-testid');
+      return testId?.replace('shipping-radio-', '') || null;
+    }
+    return null;
+  }
+
+  /**
+   * Get the shipping cost displayed in the order summary.
+   */
+  async getShippingCost(): Promise<number> {
+    // Find the shipping line in order summary
+    const shippingLine = this.page.locator('text=Shipping').locator('..').locator('span').last();
+    const text = await shippingLine.textContent();
+
+    if (!text) return 0;
+
+    // Handle various formats: "FREE", "$9.99", "Select shipping"
+    if (text.includes('FREE') || text.includes('Digital')) {
+      return 0;
+    }
+    if (text.includes('Select')) {
+      return -1; // Indicates no shipping selected yet
+    }
+
+    // Parse dollar amount
+    const match = text.match(/\$?([\d.]+)/);
+    return match ? parseFloat(match[1]) : 0;
+  }
+
+  /**
+   * Check if there's a shipping rate error.
+   */
+  async hasShippingError(): Promise<boolean> {
+    return await this.shippingRatesError.isVisible().catch(() => false);
+  }
+
+  /**
+   * Get the shipping error message if present.
+   */
+  async getShippingErrorMessage(): Promise<string | null> {
+    if (await this.hasShippingError()) {
+      return await this.shippingRatesError.textContent();
+    }
+    return null;
   }
 }

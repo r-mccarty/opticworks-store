@@ -106,7 +106,7 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 **Goal**: Address validation, real-time shipping rates, label generation, and inventory tracking.
 
-**Status**: In Progress
+**Status**: Near Complete (E2E testing in progress)
 
 ### Architecture
 
@@ -145,6 +145,7 @@ Admin marks order ready → Generate EasyPost label
 - [x] Create `seed-inventory.ts` with realistic stock quantities (50-100 units)
 - [ ] Verify reservation flow during checkout
 - [ ] Test stock deduction on order completion
+- [ ] Run inventory seed script on backend
 
 **EasyPost Integration (Phases 1-2)**:
 - [x] Extend `src/lib/api/easypost.ts` with rate calculation
@@ -155,14 +156,21 @@ Admin marks order ready → Generate EasyPost label
 - [x] Add address validation (`useAddressValidation` hook)
 - [x] Create ShippingSelector component
 - [x] Create useShippingRates hook
-- [ ] Update CheckoutWrapper to wait for shipping selection
-- [ ] Include shipping cost in payment intent
+- [x] Update CheckoutWrapper to wait for shipping selection
+- [x] Integrate ShippingSelector into CheckoutForm
+- [x] Include shipping cost in payment intent via `/api/checkout/update-shipping`
 
 **Label Generation (Phase 6)**:
 - [x] Create `/api/fulfillment/create-label` endpoint
 - [x] Create fulfillment helper functions
-- [ ] Store tracking number in order metadata
-- [ ] Trigger tracking email via Resend
+- [x] Store tracking number in order metadata (via Medusa Admin API)
+- [x] Trigger tracking email via Resend (via Medusa fulfillment notification)
+
+**E2E Testing (Phase 7)**:
+- [x] Add data-testid attributes to ShippingSelector
+- [x] Extend CheckoutPage page object with shipping methods
+- [x] Create `e2e/tests/checkout-shipping.spec.ts`
+- [x] Update `e2e/tests/checkout-flow.spec.ts` with shipping step
 
 ### Key Files
 
@@ -170,17 +178,26 @@ Admin marks order ready → Generate EasyPost label
 - `backend/src/scripts/seed-opticworks-products.ts` - Products with `manage_inventory: true`
 - `backend/src/scripts/seed-inventory.ts` - Realistic stock quantities
 - `backend/src/scripts/seed-us-region.ts` - US Warehouse stock location
+- `backend/src/modules/resend/emails/order-shipped.tsx` - Order shipped email template
 
 **Storefront (Next.js)**:
 - `src/lib/api/easypost.ts` - EasyPost client (address validation + rates + labels)
 - `src/lib/api/fulfillment.ts` - Fulfillment helper functions
-- `src/lib/products-dimensions.ts` - Product parcel dimensions
+- `src/lib/products-dimensions.ts` - Product parcel dimensions + SKU mapping
 - `src/app/api/shipping/rates/route.ts` - Shipping rates API
-- `src/app/api/fulfillment/create-label/route.ts` - Label generation API
+- `src/app/api/checkout/update-shipping/route.ts` - Update cart with shipping selection
+- `src/app/api/fulfillment/create-label/route.ts` - Label generation + metadata + fulfillment
 - `src/hooks/useShippingRates.ts` - Shipping rates hook
 - `src/hooks/useAddressValidation.ts` - Address validation hook
 - `src/components/checkout/ShippingSelector.tsx` - Shipping option selector
 - `src/components/checkout/AddressValidationIndicator.tsx` - Validation status UI
+- `src/components/checkout/CheckoutForm.tsx` - Checkout form with shipping integration
+- `src/components/checkout/CheckoutWrapper.tsx` - Checkout wrapper with shipping updates
+
+**E2E Tests**:
+- `e2e/tests/checkout-shipping.spec.ts` - Shipping-specific tests
+- `e2e/tests/checkout-flow.spec.ts` - Main checkout flow (includes shipping)
+- `e2e/fixtures/page-objects/checkout-page.ts` - Checkout page object with shipping methods
 
 ### Environment Variables
 

@@ -139,3 +139,61 @@ export function isDigitalOnlyOrder(items: Array<{ sku: string }>): boolean {
   const digitalSkus = ['HADP-DL', 'LAB-MONTHLY'];
   return items.every(item => digitalSkus.includes(item.sku));
 }
+
+/**
+ * Map product/variant names to SKUs
+ * This allows the checkout to work with cart items that don't have SKUs directly
+ */
+const NAME_TO_SKU_MAP: Record<string, string> = {
+  // Bed Presence Sensor Kit variants
+  'Bed Presence Sensor Kit - Single Bed Kit': 'BPS-SINGLE',
+  'Bed Presence Sensor Kit': 'BPS-SINGLE',  // Default variant
+  'Single Bed Kit': 'BPS-SINGLE',
+  'Dual Bed Pack': 'BPS-DUO',
+  'Studio + Dev Pack': 'BPS-STUDIO',
+
+  // Presence Sensor Duo Pack
+  'Presence Sensor Duo Pack': 'PSP-DUO',
+  'Presence Sensor Duo Pack - Standard': 'PSP-DUO',
+
+  // Presence Engine Developer Edition
+  'Presence Engine Developer Edition': 'PDE-STD',
+  'Presence Engine Developer Edition - Standard': 'PDE-STD',
+
+  // Home Assistant Dashboard Pack
+  'Home Assistant Dashboard Pack': 'HADP-DL',
+  'Home Assistant Dashboard Pack - Digital License': 'HADP-DL',
+
+  // Magnetic Enclosure + Mount Pack
+  'Magnetic Enclosure + Mount Pack': 'ENC-PACK',
+  'Magnetic Enclosure + Mount Pack - Standard': 'ENC-PACK',
+
+  // Spare mmWave Sensor Module
+  'Spare mmWave Sensor Module': 'SPARE-MOD',
+  'Spare mmWave Sensor Module - Standard': 'SPARE-MOD',
+
+  // Reliability Lab Subscription
+  'Reliability Lab Subscription': 'LAB-MONTHLY',
+  'Reliability Lab Subscription - Monthly': 'LAB-MONTHLY',
+};
+
+/**
+ * Get SKU from product/variant name
+ * Falls back to product id if no match found
+ */
+export function getSkuFromName(name: string): string {
+  // Check exact match first
+  if (NAME_TO_SKU_MAP[name]) {
+    return NAME_TO_SKU_MAP[name];
+  }
+
+  // Check if name contains any of the keys (partial match)
+  for (const [key, sku] of Object.entries(NAME_TO_SKU_MAP)) {
+    if (name.includes(key) || key.includes(name)) {
+      return sku;
+    }
+  }
+
+  // Return a generic fallback (will use DEFAULT_PARCEL)
+  return 'UNKNOWN';
+}

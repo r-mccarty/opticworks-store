@@ -129,10 +129,12 @@ export function useShippingRates({
   }, [address, items, subtotal, selectedRate]);
 
   // Fetch rates when address or items change
+  // We deliberately use individual address fields for better debouncing
   useEffect(() => {
     if (enabled && address && items.length > 0) {
       fetchRates();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, address?.line1, address?.city, address?.state, address?.postal_code, items.length, subtotal, fetchRates]);
 
   // Reset selected rate when rates change

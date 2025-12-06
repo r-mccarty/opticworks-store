@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
 import { Loader2, Truck, Package, Zap, Check } from 'lucide-react';
 import type { ShippingRateResponse } from '@/hooks/useShippingRates';
 
@@ -61,7 +60,7 @@ export function ShippingSelector({
   // Digital-only orders don't need shipping
   if (isDigitalOnly) {
     return (
-      <Card>
+      <Card data-testid="shipping-selector-digital">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
@@ -82,7 +81,7 @@ export function ShippingSelector({
   }
 
   return (
-    <Card>
+    <Card data-testid="shipping-selector">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Truck className="h-5 w-5" />
@@ -104,7 +103,7 @@ export function ShippingSelector({
 
         {/* Loading state */}
         {isLoading && (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-8" data-testid="shipping-rates-loading">
             <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
             <span className="ml-2 text-gray-500">Calculating shipping rates...</span>
           </div>
@@ -112,7 +111,7 @@ export function ShippingSelector({
 
         {/* Error state */}
         {error && !isLoading && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
+          <div className="rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400" data-testid="shipping-rates-error">
             <p className="font-medium">Unable to calculate shipping</p>
             <p className="mt-1">{error}</p>
           </div>
@@ -127,13 +126,14 @@ export function ShippingSelector({
 
         {/* Shipping options */}
         {!isLoading && rates.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-3" data-testid="shipping-rates-list">
             {rates.map((rate) => {
               const isSelected = selectedRate?.id === rate.id;
 
               return (
                 <label
                   key={rate.id}
+                  data-testid={`shipping-rate-${rate.id}`}
                   className={`
                     relative flex cursor-pointer rounded-lg border p-4 transition-all
                     ${isSelected
@@ -149,6 +149,7 @@ export function ShippingSelector({
                     checked={isSelected}
                     onChange={() => onSelectRate(rate)}
                     className="sr-only"
+                    data-testid={`shipping-radio-${rate.id}`}
                   />
 
                   <div className="flex w-full items-start gap-4">

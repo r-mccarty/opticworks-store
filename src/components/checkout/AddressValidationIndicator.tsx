@@ -52,7 +52,11 @@ export function AddressValidationIndicator({
   }
 
   return (
-    <div className={`flex items-center gap-1.5 ${currentConfig.className} ${className}`}>
+    <div
+      className={`flex items-center gap-1.5 ${currentConfig.className} ${className}`}
+      data-testid="address-validation-status"
+      data-status={status}
+    >
       {currentConfig.icon}
       {showLabel && (
         <span className="text-sm">{currentConfig.label}</span>
@@ -73,7 +77,7 @@ export function AddressValidationMessage({
 }) {
   if (status === 'valid') {
     return (
-      <p className="mt-1.5 flex items-center gap-1 text-sm text-green-600">
+      <p className="mt-1.5 flex items-center gap-1 text-sm text-green-600" data-testid="address-validation-message" data-status="valid">
         <Check className="h-4 w-4" />
         Address verified
       </p>
@@ -82,7 +86,7 @@ export function AddressValidationMessage({
 
   if (status === 'warning' && errors.length > 0) {
     return (
-      <div className="mt-1.5 rounded-md bg-amber-50 p-2 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-400">
+      <div className="mt-1.5 rounded-md bg-amber-50 p-2 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-400" data-testid="address-validation-message" data-status="warning">
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <div>
@@ -100,7 +104,7 @@ export function AddressValidationMessage({
 
   if (status === 'invalid' && errors.length > 0) {
     return (
-      <div className="mt-1.5 rounded-md bg-red-50 p-2 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400">
+      <div className="mt-1.5 rounded-md bg-red-50 p-2 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400" data-testid="address-validation-message" data-status="invalid">
         <div className="flex items-start gap-2">
           <X className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <div>

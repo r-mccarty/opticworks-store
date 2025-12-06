@@ -7,7 +7,8 @@ import type { Stripe, StripeElementsOptions } from '@stripe/stripe-js';
 import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
-import { createMedusaPaymentSession, updateCart, getShippingOptions, addShippingMethod, type MedusaAddress } from '@/lib/api/medusa';
+import type { ShippingRateResponse } from '@/hooks/useShippingRates';
+import { createMedusaPaymentSession } from '@/lib/api/medusa';
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise: Promise<Stripe | null> = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
@@ -23,6 +24,7 @@ export default function CheckoutWrapper({
 }: CheckoutWrapperProps) {
   const { items, getCartId, initializeCart } = useCart();
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [cartId, setCartId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -37,57 +39,28 @@ export default function CheckoutWrapper({
 
     try {
       // Get or initialize Medusa cart
-      let cartId = getCartId();
-      console.log('[checkout] Current cart ID:', cartId);
+      let currentCartId = getCartId();
+      console.log('[checkout] Current cart ID:', currentCartId);
 
-      if (!cartId) {
+      if (!currentCartId) {
         console.log('[checkout] No cart ID found, initializing cart...');
         await initializeCart();
-        cartId = getCartId();
-        console.log('[checkout] After initializeCart, cart ID:', cartId);
+        currentCartId = getCartId();
+        console.log('[checkout] After initializeCart, cart ID:', currentCartId);
       }
 
-      if (!cartId) {
+      if (!currentCartId) {
         throw new Error('Failed to initialize cart. Please try again.');
       }
 
-      console.log('[checkout] Using Medusa cart:', cartId);
-
-      // IMPORTANT: Add shipping address and method BEFORE creating payment session
-      // This ensures the Payment Intent has the correct total including shipping
-      console.log('[checkout] Setting up default shipping address...');
-      const defaultAddress: MedusaAddress = {
-        first_name: 'Customer',
-        last_name: '',
-        address_1: 'TBD',
-        address_2: '',
-        city: 'TBD',
-        province: 'CA',
-        postal_code: '00000',
-        country_code: 'us',
-        phone: '',
-      };
-
-      try {
-        await updateCart(cartId, { shipping_address: defaultAddress });
-        console.log('[checkout] Default shipping address set');
-
-        // Get and add shipping method
-        const shippingOptions = await getShippingOptions(cartId);
-        console.log('[checkout] Found', shippingOptions.length, 'shipping options');
-
-        if (shippingOptions.length > 0) {
-          await addShippingMethod(cartId, shippingOptions[0].id);
-          console.log('[checkout] Default shipping method added:', shippingOptions[0].name);
-        }
-      } catch (shippingError) {
-        console.warn('[checkout] Failed to set default shipping, continuing anyway:', shippingError);
-      }
+      console.log('[checkout] Using Medusa cart:', currentCartId);
+      setCartId(currentCartId);
 
       // Create payment session via Medusa (Stripe provider)
-      // NOW the cart has shipping, so the Payment Intent will have the correct total
+      // Note: Shipping will be handled by the checkout form via EasyPost
+      // The payment intent amount will be updated when shipping is selected
       console.log('[checkout] Creating Medusa payment session...');
-      const session = await createMedusaPaymentSession(cartId);
+      const session = await createMedusaPaymentSession(currentCartId);
       console.log('[checkout] Payment session result:', {
         sessionId: session.sessionId,
         provider: session.provider,
@@ -108,6 +81,44 @@ export default function CheckoutWrapper({
       onError(errorMessage);
     }
   }, [items, getCartId, initializeCart, onError]);
+
+  // Handle shipping rate change - update payment intent with new shipping cost
+  const handleShippingChange = useCallback(async (rate: ShippingRateResponse | null, shipmentId: string) => {
+    if (!cartId || !rate) return;
+
+    console.log('[checkout] Shipping rate selected:', {
+      carrier: rate.carrier,
+      service: rate.service,
+      rate: rate.rate,
+      shipmentId,
+    });
+
+    // Call API to update the cart shipping and refresh payment intent
+    try {
+      const response = await fetch('/api/checkout/update-shipping', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cartId,
+          shippingRate: rate,
+          shipmentId,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.clientSecret) {
+        // Update client secret if payment intent was recreated
+        setClientSecret(data.clientSecret);
+        console.log('[checkout] Payment intent updated with shipping');
+      } else if (!data.success) {
+        console.warn('[checkout] Failed to update shipping:', data.error);
+      }
+    } catch (err) {
+      console.error('[checkout] Error updating shipping:', err);
+      // Don't block checkout - shipping will be added to metadata
+    }
+  }, [cartId]);
 
   // Validate environment variables
   useEffect(() => {
@@ -157,7 +168,7 @@ export default function CheckoutWrapper({
     );
   }
 
-  if (!clientSecret) {
+  if (!clientSecret || !cartId) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
         <p className="text-yellow-800">
@@ -188,8 +199,10 @@ export default function CheckoutWrapper({
     <Elements stripe={stripePromise} options={elementsOptions}>
       <CheckoutForm
         clientSecret={clientSecret}
+        cartId={cartId}
         onSuccess={onSuccess}
         onError={onError}
+        onShippingChange={handleShippingChange}
       />
     </Elements>
   );

@@ -22,11 +22,13 @@ INFISICAL_OUTPUT_FILE_VALUE="${INFISICAL_OUTPUT_FILE:-.env.local}"
 
 # Use service token to export secrets directly (no login needed)
 # --projectId is required for service tokens
+# Filter out NODE_ENV - Next.js manages this automatically and having it set
+# causes build failures (Html should not be imported outside of pages/_document)
 infisical export \
   --token="$INFISICAL_SERVICE_TOKEN" \
   --projectId="$INFISICAL_PROJECT_ID" \
   --env="$INFISICAL_ENVIRONMENT_VALUE" \
-  --format=dotenv > "$INFISICAL_OUTPUT_FILE_VALUE"
+  --format=dotenv | grep -v "^NODE_ENV=" > "$INFISICAL_OUTPUT_FILE_VALUE"
 
 SECRET_COUNT=$(grep -cE "^[A-Z]" "$INFISICAL_OUTPUT_FILE_VALUE" || echo 0)
 echo "Infisical secrets synced to $INFISICAL_OUTPUT_FILE_VALUE (env: $INFISICAL_ENVIRONMENT_VALUE, $SECRET_COUNT secrets)"

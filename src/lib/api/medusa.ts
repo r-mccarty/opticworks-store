@@ -424,6 +424,7 @@ export async function updateCart(
     shipping_address?: MedusaAddress
     billing_address?: MedusaAddress
     customer_id?: string
+    metadata?: Record<string, unknown>
   }
 ): Promise<MedusaCart> {
   const response = await medusaFetch<{ cart: MedusaCart }>(`/store/carts/${cartId}`, {

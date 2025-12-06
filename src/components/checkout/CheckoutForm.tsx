@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useCallback, FormEvent } from 'react';
 import {
   PaymentElement,
   AddressElement,
   useStripe,
   useElements,
 } from '@stripe/react-stripe-js';
+import type { StripeAddressElementChangeEvent } from '@stripe/stripe-js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,21 +15,86 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { completeCart, updateCart, type MedusaAddress } from '@/lib/api/medusa';
+import { ShippingSelector } from './ShippingSelector';
+import { useShippingRates, type ShippingAddress, type ShippingRateResponse } from '@/hooks/useShippingRates';
+import { getSkuFromName } from '@/lib/products-dimensions';
 
 interface CheckoutFormProps {
   clientSecret: string;
+  cartId: string;
   onSuccess: (orderId: string) => void;
   onError: (error: string) => void;
+  onShippingChange?: (rate: ShippingRateResponse | null, shipmentId: string) => void;
 }
 
-export default function CheckoutForm({ clientSecret, onSuccess, onError }: CheckoutFormProps) {
+export default function CheckoutForm({
+  clientSecret: _clientSecret, // Provided for interface consistency, used by Elements wrapper
+  cartId,
+  onSuccess,
+  onError,
+  onShippingChange,
+}: CheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
-  const { items, getTotalPrice, getCartId, clearCart } = useCart();
+  const { items, getTotalPrice, clearCart } = useCart();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [email, setEmail] = useState('');
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null);
+
+  // Convert cart items to SKU-based items for shipping calculation
+  const shippingItems = items.map(item => ({
+    sku: getSkuFromName(item.name),
+    quantity: item.quantity,
+  }));
+
+  // Use shipping rates hook
+  const {
+    rates,
+    selectedRate,
+    shipmentId,
+    isLoading: ratesLoading,
+    error: ratesError,
+    isDigitalOnly,
+    freeShippingEligible,
+    freeShippingThreshold,
+    selectRate,
+  } = useShippingRates({
+    address: shippingAddress,
+    items: shippingItems,
+    subtotal: getTotalPrice(),
+  });
+
+  // Handle shipping rate selection
+  const handleSelectRate = useCallback((rate: ShippingRateResponse) => {
+    selectRate(rate);
+    onShippingChange?.(rate, shipmentId);
+  }, [selectRate, onShippingChange, shipmentId]);
+
+  // Handle address element changes
+  const handleAddressChange = useCallback((event: StripeAddressElementChangeEvent) => {
+    if (event.complete && event.value?.address) {
+      const addr = event.value.address;
+      setShippingAddress({
+        name: event.value.name,
+        line1: addr.line1 || '',
+        line2: addr.line2 || undefined,
+        city: addr.city || '',
+        state: addr.state || '',
+        postal_code: addr.postal_code || '',
+        country: addr.country || 'US',
+      });
+    } else {
+      // Address incomplete - clear shipping address
+      setShippingAddress(null);
+    }
+  }, []);
+
+  // Calculate total including shipping
+  const subtotal = getTotalPrice();
+  const shippingCost = selectedRate?.rate ?? 0;
+  const total = subtotal + shippingCost;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -43,9 +109,14 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
       return;
     }
 
-    const cartId = getCartId();
     if (!cartId) {
       setMessage('Cart not found. Please try again.');
+      return;
+    }
+
+    // Require shipping selection for physical products
+    if (!isDigitalOnly && !selectedRate) {
+      setMessage('Please select a shipping method.');
       return;
     }
 
@@ -181,9 +252,22 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
                 },
               },
             }}
+            onChange={handleAddressChange}
           />
         </CardContent>
       </Card>
+
+      {/* Shipping Method */}
+      <ShippingSelector
+        rates={rates}
+        selectedRate={selectedRate}
+        onSelectRate={handleSelectRate}
+        isLoading={ratesLoading}
+        error={ratesError}
+        isDigitalOnly={isDigitalOnly}
+        freeShippingEligible={freeShippingEligible}
+        freeShippingThreshold={freeShippingThreshold}
+      />
 
       {/* Payment Method */}
       <Card>
@@ -214,15 +298,23 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
           <div className="border-t pt-2 mt-2">
             <div className="flex justify-between text-sm">
               <span>Subtotal</span>
-              <span>${getTotalPrice().toLocaleString()}</span>
+              <span>${subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm">
               <span>Shipping</span>
-              <span>Free</span>
+              {isDigitalOnly ? (
+                <span className="text-green-600">Digital Delivery</span>
+              ) : selectedRate ? (
+                <span className={shippingCost === 0 ? 'text-green-600' : ''}>
+                  {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
+                </span>
+              ) : (
+                <span className="text-gray-400">Select shipping</span>
+              )}
             </div>
             <div className="flex justify-between font-semibold mt-2">
               <span>Total</span>
-              <span>${getTotalPrice().toLocaleString()}</span>
+              <span>${total.toLocaleString()}</span>
             </div>
           </div>
         </CardContent>
@@ -245,7 +337,7 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isProcessing || !stripe || !elements}
+        disabled={isProcessing || !stripe || !elements || (!isDigitalOnly && !selectedRate)}
         className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 text-xl shadow-lg hover:shadow-xl transition-all duration-200"
         size="lg"
         data-testid="pay-button"
@@ -256,7 +348,7 @@ export default function CheckoutForm({ clientSecret, onSuccess, onError }: Check
             Processing Payment...
           </>
         ) : (
-          `Pay $${getTotalPrice().toLocaleString()}`
+          `Pay $${total.toLocaleString()}`
         )}
       </Button>
 
