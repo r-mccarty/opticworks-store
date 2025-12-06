@@ -278,8 +278,8 @@ export async function listProducts(): Promise<Product[]> {
   }
 
   try {
-    // Include variant prices in the response
-    const response = await medusaFetch<MedusaListResponse>("/store/products?fields=*variants.prices")
+    // Include variant prices and inventory in the response
+    const response = await medusaFetch<MedusaListResponse>("/store/products?fields=*variants.prices,+variants.inventory_quantity")
     return response.products.map(transformMedusaProduct)
   } catch (error) {
     console.warn("[medusa] Falling back to static products:", error)
@@ -300,7 +300,8 @@ export const getProductById = cache(async (id: string): Promise<Product | undefi
 
   try {
     // Medusa v2 uses handle for product lookup (id is the URL slug which matches handle)
-    const response = await medusaFetch<MedusaListResponse>(`/store/products?handle=${id}&fields=*variants.prices`)
+    // Include inventory_quantity to correctly determine stock status
+    const response = await medusaFetch<MedusaListResponse>(`/store/products?handle=${id}&fields=*variants.prices,+variants.inventory_quantity`)
     const product = response.products?.[0]
     if (!product) {
       console.warn(`[medusa] No product found with handle ${id}, falling back to static data`)
