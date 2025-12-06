@@ -219,7 +219,8 @@ pnpm medusa exec ./src/scripts/link-inventory-items.ts
 ### Environment Variables
 
 ```bash
-# EasyPost (already in Infisical)
+# EasyPost (must be added as Cloudflare Workers secret)
+# If not configured, shipping rates will use mock data
 EASYPOST_API_KEY=xxx
 
 # Origin warehouse address (for shipments)
@@ -232,6 +233,23 @@ SHIP_FROM_ZIP="90001"
 # FedEx carrier account (add to EasyPost dashboard)
 # Sign up at https://developer.fedex.com/
 ```
+
+### Deployment Notes
+
+**Build-time vs Runtime Variables:**
+- `NEXT_PUBLIC_*` variables must be set as **build variables** in Cloudflare Workers Builds
+- They are inlined at build time and cannot be set at runtime
+- Created `.env.production` with public keys (safe to commit - publishable keys only)
+
+**Cloudflare Workers Secrets:**
+- `EASYPOST_API_KEY` - Add via Cloudflare dashboard or `wrangler secret put`
+- `STRIPE_SECRET_KEY` - Already configured
+- `STRIPE_WEBHOOK_SECRET` - Already configured
+
+**Known Issues Fixed (2024-12):**
+- Fixed infinite loop in `useShippingRates` hook when API returned errors
+- Fixed graceful fallback to mock rates when `EASYPOST_API_KEY` not configured
+- Fixed `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` not available at runtime (now in `.env.production`)
 
 ---
 
