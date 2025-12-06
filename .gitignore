@@ -36,6 +36,7 @@ medusa.pid
 # env files (can opt-in for committing if needed)
 .env*
 !.env.template
+!.env.production
 
 # credentials (service account keys, etc.)
 .credentials/
