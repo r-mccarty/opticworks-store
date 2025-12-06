@@ -62,12 +62,10 @@ export default async function enableInventoryManagement({ container }: ExecArgs)
     // Update variant to enable inventory management
     logger.info(`  🔧 Enabling inventory for ${sku} (${productTitle})`)
 
-    await productModule.updateProductVariants([
-      {
-        id: variant.id as string,
-        manage_inventory: true,
-      }
-    ])
+    await productModule.updateProductVariants(
+      variant.id as string,
+      { manage_inventory: true }
+    )
     updated++
 
     // Check if inventory item exists
