@@ -112,11 +112,7 @@ export function useShippingRates({
       setFreeShippingEligible(data.freeShippingEligible);
       setFreeShippingThreshold(data.freeShippingThreshold);
 
-      // Auto-select cheapest rate if none selected
-      if (data.rates.length > 0 && !selectedRate) {
-        const cheapest = data.rates.reduce((a, b) => a.rate < b.rate ? a : b);
-        setSelectedRate(cheapest);
-      }
+      // Auto-select cheapest rate (handled in separate useEffect to avoid dependency loop)
 
     } catch (err) {
       console.error('Error fetching shipping rates:', err);
@@ -126,7 +122,7 @@ export function useShippingRates({
     } finally {
       setIsLoading(false);
     }
-  }, [address, items, subtotal, selectedRate]);
+  }, [address, items, subtotal]);
 
   // Fetch rates when address or items change
   // We deliberately use individual address fields for better debouncing
@@ -137,15 +133,21 @@ export function useShippingRates({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, address?.line1, address?.city, address?.state, address?.postal_code, items.length, subtotal, fetchRates]);
 
-  // Reset selected rate when rates change
+  // Auto-select cheapest rate when rates load, or reset if selected rate is no longer valid
   useEffect(() => {
-    if (rates.length > 0 && selectedRate) {
-      // Check if selected rate is still valid
-      const stillValid = rates.some(r => r.id === selectedRate.id);
-      if (!stillValid) {
-        // Select cheapest rate
+    if (rates.length > 0) {
+      if (!selectedRate) {
+        // Auto-select cheapest rate on initial load
         const cheapest = rates.reduce((a, b) => a.rate < b.rate ? a : b);
         setSelectedRate(cheapest);
+      } else {
+        // Check if selected rate is still valid
+        const stillValid = rates.some(r => r.id === selectedRate.id);
+        if (!stillValid) {
+          // Select cheapest rate
+          const cheapest = rates.reduce((a, b) => a.rate < b.rate ? a : b);
+          setSelectedRate(cheapest);
+        }
       }
     }
   }, [rates, selectedRate]);

@@ -181,16 +181,22 @@ export async function POST(request: NextRequest) {
     // Calculate combined parcel dimensions
     const parcel = calculateCombinedParcel(items);
 
-    // Get rates from EasyPost (or mock in development)
+    // Get rates from EasyPost (or mock if API key not configured)
     let ratesResponse;
-    const useMock = process.env.NODE_ENV === 'development' && !process.env.EASYPOST_API_KEY;
+    const hasEasyPostKey = !!process.env.EASYPOST_API_KEY;
 
-    if (useMock) {
-      console.log('📦 Using mock shipping rates (no EASYPOST_API_KEY)');
+    if (!hasEasyPostKey) {
+      console.log('📦 Using mock shipping rates (EASYPOST_API_KEY not configured)');
       ratesResponse = getMockShippingRates(easypostAddress);
     } else {
-      // Filter to USPS and FedEx only
-      ratesResponse = await getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']);
+      try {
+        // Filter to USPS and FedEx only
+        ratesResponse = await getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']);
+      } catch (easypostError) {
+        console.error('📦 EasyPost API error, falling back to mock rates:', easypostError);
+        // Fall back to mock rates if EasyPost fails
+        ratesResponse = getMockShippingRates(easypostAddress);
+      }
     }
 
     if (!ratesResponse.success) {
