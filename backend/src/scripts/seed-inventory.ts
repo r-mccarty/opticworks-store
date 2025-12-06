@@ -88,7 +88,9 @@ export default async function seedInventory({ container }: ExecArgs) {
   })
 
   const inventoryBySku = new Map(
-    inventoryItems.map((item: { id: string; sku: string }) => [item.sku, item])
+    inventoryItems
+      .filter((item: { id: string; sku: string | null }) => item.sku !== null)
+      .map((item: { id: string; sku: string | null }) => [item.sku as string, item])
   )
 
   // Get existing inventory levels at this location
@@ -107,7 +109,8 @@ export default async function seedInventory({ container }: ExecArgs) {
   }> = []
 
   const levelsToUpdate: Array<{
-    id: string
+    inventory_item_id: string
+    location_id: string
     stocked_quantity: number
   }> = []
 
@@ -138,7 +141,8 @@ export default async function seedInventory({ container }: ExecArgs) {
       // Update existing level if quantity is unrealistic (1M+)
       if (existingLevel.stocked_quantity >= 100000) {
         levelsToUpdate.push({
-          id: existingLevel.id,
+          inventory_item_id: inventoryItem.id,
+          location_id: stockLocation.id,
           stocked_quantity: config.quantity,
         })
         logger.info(`  📝 Will update ${sku}: ${existingLevel.stocked_quantity} → ${config.quantity}`)
