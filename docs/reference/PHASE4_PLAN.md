@@ -11,7 +11,7 @@ node# Phase 4: Production Launch
 |-------|--------|-------------|
 | 1 | Pending | Production product catalog (real products, images, pricing) |
 | 2 | Pending | Design system + UI overhaul (Shadcn/Radix theming) |
-| 3 | Pending | Fulfillment module (FedEx integration + address validation) |
+| 3 | **Near Complete** | Fulfillment module (EasyPost + inventory tracking) |
 | 4 | **Complete** | Consumer documentation site (docs.optic.works) |
 | 5 | Pending | Usability testing + accessibility audit |
 | 6 | Pending | CI/CD hardening + monitoring |
@@ -143,9 +143,24 @@ Admin marks order ready → Generate EasyPost label
 **Inventory Management (Phase 0)**:
 - [x] Enable `manage_inventory: true` in product seed
 - [x] Create `seed-inventory.ts` with realistic stock quantities (50-100 units)
+- [x] Run inventory seed script on backend (100 units per SKU)
+- [x] Create `enable-inventory-management.ts` to enable inventory on existing products
+- [x] Create `link-inventory-items.ts` to link variants to inventory items
+- [x] Fix Medusa API to include `+variants.inventory_quantity` in product queries
 - [ ] Verify reservation flow during checkout
 - [ ] Test stock deduction on order completion
-- [ ] Run inventory seed script on backend
+
+**Running Inventory Scripts** (on production backend):
+```bash
+ssh hetzner-node
+cd /opt/opticworks/medusa-backend
+# Enable inventory management on all variants
+pnpm medusa exec ./src/scripts/enable-inventory-management.ts
+# Set stock levels (100 units per SKU)
+pnpm medusa exec ./src/scripts/seed-inventory.ts
+# Link inventory items to variants (required for inventory_quantity to show in API)
+pnpm medusa exec ./src/scripts/link-inventory-items.ts
+```
 
 **EasyPost Integration (Phases 1-2)**:
 - [x] Extend `src/lib/api/easypost.ts` with rate calculation
@@ -177,6 +192,8 @@ Admin marks order ready → Generate EasyPost label
 **Backend (Medusa)**:
 - `backend/src/scripts/seed-opticworks-products.ts` - Products with `manage_inventory: true`
 - `backend/src/scripts/seed-inventory.ts` - Realistic stock quantities
+- `backend/src/scripts/enable-inventory-management.ts` - Enable inventory on existing variants
+- `backend/src/scripts/link-inventory-items.ts` - Link variants to inventory items
 - `backend/src/scripts/seed-us-region.ts` - US Warehouse stock location
 - `backend/src/modules/resend/emails/order-shipped.tsx` - Order shipped email template
 
