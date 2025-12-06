@@ -147,18 +147,20 @@ Admin marks order ready → Generate EasyPost label
 - [ ] Test stock deduction on order completion
 
 **EasyPost Integration (Phases 1-2)**:
-- [ ] Extend `src/lib/api/easypost.ts` with rate calculation
-- [ ] Replace mock `/api/shipping/rates` with EasyPost
-- [ ] Add product parcel dimensions config
+- [x] Extend `src/lib/api/easypost.ts` with rate calculation
+- [x] Replace mock `/api/shipping/rates` with EasyPost
+- [x] Add product parcel dimensions config (`src/lib/products-dimensions.ts`)
 
 **Checkout Flow (Phases 3-5)**:
-- [ ] Add address validation (hybrid: on-blur + before-payment)
-- [ ] Create ShippingSelector component
+- [x] Add address validation (`useAddressValidation` hook)
+- [x] Create ShippingSelector component
+- [x] Create useShippingRates hook
 - [ ] Update CheckoutWrapper to wait for shipping selection
 - [ ] Include shipping cost in payment intent
 
 **Label Generation (Phase 6)**:
-- [ ] Create `/api/fulfillment/create-label` endpoint
+- [x] Create `/api/fulfillment/create-label` endpoint
+- [x] Create fulfillment helper functions
 - [ ] Store tracking number in order metadata
 - [ ] Trigger tracking email via Resend
 
@@ -170,11 +172,15 @@ Admin marks order ready → Generate EasyPost label
 - `backend/src/scripts/seed-us-region.ts` - US Warehouse stock location
 
 **Storefront (Next.js)**:
-- `src/lib/api/easypost.ts` - EasyPost client (address validation + rates)
+- `src/lib/api/easypost.ts` - EasyPost client (address validation + rates + labels)
+- `src/lib/api/fulfillment.ts` - Fulfillment helper functions
+- `src/lib/products-dimensions.ts` - Product parcel dimensions
 - `src/app/api/shipping/rates/route.ts` - Shipping rates API
-- `src/components/checkout/CheckoutForm.tsx` - Address validation UI
-- `src/components/checkout/ShippingSelector.tsx` - Shipping option selector (new)
-- `src/app/api/fulfillment/create-label/route.ts` - Label generation (new)
+- `src/app/api/fulfillment/create-label/route.ts` - Label generation API
+- `src/hooks/useShippingRates.ts` - Shipping rates hook
+- `src/hooks/useAddressValidation.ts` - Address validation hook
+- `src/components/checkout/ShippingSelector.tsx` - Shipping option selector
+- `src/components/checkout/AddressValidationIndicator.tsx` - Validation status UI
 
 ### Environment Variables
 
