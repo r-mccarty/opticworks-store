@@ -38,21 +38,21 @@ const OPTICWORKS_PRODUCTS = [
         sku: "BPS-SINGLE",
         options: { Configuration: "Single Bed Kit" },
         prices: [{ amount: 239, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
       {
         title: "Dual Bed Pack",
         sku: "BPS-DUO",
         options: { Configuration: "Dual Bed Pack" },
         prices: [{ amount: 449, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
       {
         title: "Studio + Dev Pack",
         sku: "BPS-STUDIO",
         options: { Configuration: "Studio + Dev Pack" },
         prices: [{ amount: 525, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {
@@ -78,7 +78,7 @@ const OPTICWORKS_PRODUCTS = [
         sku: "PSP-DUO",
         options: { Configuration: "Standard" },
         prices: [{ amount: 449, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {
@@ -104,7 +104,7 @@ const OPTICWORKS_PRODUCTS = [
         sku: "PDE-STD",
         options: { Configuration: "Standard" },
         prices: [{ amount: 329, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {
@@ -129,7 +129,7 @@ const OPTICWORKS_PRODUCTS = [
         sku: "HADP-DL",
         options: { Configuration: "Digital Download" },
         prices: [{ amount: 59, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {
@@ -153,7 +153,7 @@ const OPTICWORKS_PRODUCTS = [
         sku: "ENC-PACK",
         options: { Configuration: "Standard" },
         prices: [{ amount: 79, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {
@@ -177,7 +177,7 @@ const OPTICWORKS_PRODUCTS = [
         sku: "SPARE-MOD",
         options: { Configuration: "Standard" },
         prices: [{ amount: 119, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {
@@ -201,7 +201,7 @@ const OPTICWORKS_PRODUCTS = [
         sku: "LAB-MONTHLY",
         options: { Configuration: "Monthly" },
         prices: [{ amount: 19, currency_code: "usd" }],
-        manage_inventory: false,
+        manage_inventory: true,
       },
     ],
     metadata: {

@@ -328,5 +328,310 @@ export function convertToStripeAddress(address: ValidatedAddress): {
   };
 }
 
+// ============================================================================
+// SHIPPING RATES
+// ============================================================================
+
+/**
+ * Parcel dimensions for shipping rate calculation
+ */
+export interface ParcelDimensions {
+  length: number;  // inches
+  width: number;   // inches
+  height: number;  // inches
+  weight: number;  // ounces
+}
+
+/**
+ * Shipping rate from EasyPost
+ */
+export interface ShippingRate {
+  id: string;
+  carrier: string;
+  service: string;
+  rate: number;
+  currency: string;
+  deliveryDays: number | null;
+  deliveryDate: string | null;
+  deliveryDateGuaranteed: boolean;
+  retailRate: number | null;
+  listRate: number | null;
+}
+
+/**
+ * Response from shipping rate calculation
+ */
+export interface ShippingRatesResponse {
+  success: boolean;
+  shipmentId: string;
+  rates: ShippingRate[];
+  errors?: string[];
+}
+
+/**
+ * Origin address for shipments (OpticWorks warehouse)
+ */
+function getOriginAddress(): AddressInput {
+  return {
+    name: process.env.SHIP_FROM_NAME || 'OpticWorks',
+    street1: process.env.SHIP_FROM_STREET1 || '123 Commerce St',
+    city: process.env.SHIP_FROM_CITY || 'Los Angeles',
+    state: process.env.SHIP_FROM_STATE || 'CA',
+    zip: process.env.SHIP_FROM_ZIP || '90001',
+    country: 'US',
+  };
+}
+
+/**
+ * Get shipping rates for a destination address and parcel
+ *
+ * @param toAddress - Customer's shipping address
+ * @param parcel - Package dimensions and weight
+ * @param carrierFilter - Optional list of carriers to include (e.g., ['USPS', 'FedEx'])
+ */
+export async function getShippingRates(
+  toAddress: AddressInput,
+  parcel: ParcelDimensions,
+  carrierFilter?: string[]
+): Promise<ShippingRatesResponse> {
+  try {
+    const client = getEasyPostClient();
+    const fromAddress = getOriginAddress();
+
+    // Create shipment with origin, destination, and parcel
+    const shipment = await client.Shipment.create({
+      from_address: {
+        name: fromAddress.name,
+        street1: fromAddress.street1,
+        street2: fromAddress.street2 || '',
+        city: fromAddress.city,
+        state: fromAddress.state,
+        zip: fromAddress.zip,
+        country: fromAddress.country || 'US',
+      },
+      to_address: {
+        name: toAddress.name || 'Customer',
+        street1: toAddress.street1,
+        street2: toAddress.street2 || '',
+        city: toAddress.city,
+        state: toAddress.state,
+        zip: toAddress.zip,
+        country: toAddress.country || 'US',
+      },
+      parcel: {
+        length: parcel.length,
+        width: parcel.width,
+        height: parcel.height,
+        weight: parcel.weight,
+      },
+    });
+
+    // Map EasyPost rates to our format
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let rates: ShippingRate[] = (shipment.rates || []).map((rate: any) => ({
+      id: rate.id,
+      carrier: rate.carrier,
+      service: rate.service,
+      rate: parseFloat(rate.rate),
+      currency: rate.currency || 'USD',
+      deliveryDays: rate.delivery_days || null,
+      deliveryDate: rate.delivery_date || null,
+      deliveryDateGuaranteed: rate.delivery_date_guaranteed || false,
+      retailRate: rate.retail_rate ? parseFloat(rate.retail_rate) : null,
+      listRate: rate.list_rate ? parseFloat(rate.list_rate) : null,
+    }));
+
+    // Filter by carrier if specified
+    if (carrierFilter && carrierFilter.length > 0) {
+      const normalizedFilter = carrierFilter.map(c => c.toUpperCase());
+      rates = rates.filter(rate =>
+        normalizedFilter.includes(rate.carrier.toUpperCase())
+      );
+    }
+
+    // Sort by rate (cheapest first)
+    rates.sort((a, b) => a.rate - b.rate);
+
+    return {
+      success: true,
+      shipmentId: shipment.id,
+      rates,
+    };
+
+  } catch (error) {
+    console.error('EasyPost shipping rates error:', error);
+
+    return {
+      success: false,
+      shipmentId: '',
+      rates: [],
+      errors: [error instanceof Error ? error.message : 'Failed to get shipping rates'],
+    };
+  }
+}
+
+/**
+ * Get mock shipping rates for development/testing
+ */
+export function getMockShippingRates(toAddress: AddressInput): ShippingRatesResponse {
+  // Simulate delivery based on distance (very rough approximation)
+  const isWestCoast = ['CA', 'OR', 'WA', 'NV', 'AZ'].includes(toAddress.state.toUpperCase());
+  const baseDeliveryDays = isWestCoast ? 3 : 5;
+
+  return {
+    success: true,
+    shipmentId: `mock_shp_${Date.now()}`,
+    rates: [
+      {
+        id: `mock_rate_usps_ground_${Date.now()}`,
+        carrier: 'USPS',
+        service: 'GroundAdvantage',
+        rate: 5.99,
+        currency: 'USD',
+        deliveryDays: baseDeliveryDays + 2,
+        deliveryDate: null,
+        deliveryDateGuaranteed: false,
+        retailRate: 7.99,
+        listRate: 6.99,
+      },
+      {
+        id: `mock_rate_usps_priority_${Date.now()}`,
+        carrier: 'USPS',
+        service: 'Priority',
+        rate: 9.99,
+        currency: 'USD',
+        deliveryDays: baseDeliveryDays,
+        deliveryDate: null,
+        deliveryDateGuaranteed: false,
+        retailRate: 12.99,
+        listRate: 10.99,
+      },
+      {
+        id: `mock_rate_fedex_ground_${Date.now()}`,
+        carrier: 'FedEx',
+        service: 'FEDEX_GROUND',
+        rate: 12.99,
+        currency: 'USD',
+        deliveryDays: baseDeliveryDays + 1,
+        deliveryDate: null,
+        deliveryDateGuaranteed: false,
+        retailRate: 15.99,
+        listRate: 13.99,
+      },
+      {
+        id: `mock_rate_fedex_2day_${Date.now()}`,
+        carrier: 'FedEx',
+        service: 'FEDEX_2_DAY',
+        rate: 24.99,
+        currency: 'USD',
+        deliveryDays: 2,
+        deliveryDate: null,
+        deliveryDateGuaranteed: true,
+        retailRate: 29.99,
+        listRate: 26.99,
+      },
+      {
+        id: `mock_rate_fedex_express_${Date.now()}`,
+        carrier: 'FedEx',
+        service: 'FEDEX_EXPRESS_SAVER',
+        rate: 34.99,
+        currency: 'USD',
+        deliveryDays: 1,
+        deliveryDate: null,
+        deliveryDateGuaranteed: true,
+        retailRate: 44.99,
+        listRate: 39.99,
+      },
+    ],
+  };
+}
+
+// ============================================================================
+// LABEL GENERATION
+// ============================================================================
+
+/**
+ * Purchased shipping label
+ */
+export interface PurchasedLabel {
+  trackingCode: string;
+  trackingUrl: string;
+  labelUrl: string;
+  labelFormat: string;
+  carrier: string;
+  service: string;
+  shipmentId: string;
+}
+
+/**
+ * Purchase a shipping label for a shipment
+ *
+ * @param shipmentId - EasyPost shipment ID (from getShippingRates)
+ * @param rateId - EasyPost rate ID (user's selected rate)
+ */
+export async function purchaseLabel(
+  shipmentId: string,
+  rateId: string
+): Promise<{ success: boolean; label?: PurchasedLabel; errors?: string[] }> {
+  try {
+    const client = getEasyPostClient();
+
+    // Retrieve the shipment
+    const shipment = await client.Shipment.retrieve(shipmentId);
+
+    // Buy the selected rate
+    const purchasedShipment = await client.Shipment.buy(shipment.id, rateId);
+
+    // Extract tracking and label info
+    const tracker = purchasedShipment.tracker;
+    const postageLabel = purchasedShipment.postage_label;
+    const selectedRate = purchasedShipment.selected_rate;
+
+    return {
+      success: true,
+      label: {
+        trackingCode: tracker?.tracking_code || purchasedShipment.tracking_code || '',
+        trackingUrl: tracker?.public_url || '',
+        labelUrl: postageLabel?.label_url || '',
+        labelFormat: postageLabel?.label_file_type || 'PDF',
+        carrier: selectedRate?.carrier || '',
+        service: selectedRate?.service || '',
+        shipmentId: purchasedShipment.id,
+      },
+    };
+
+  } catch (error) {
+    console.error('EasyPost label purchase error:', error);
+
+    return {
+      success: false,
+      errors: [error instanceof Error ? error.message : 'Failed to purchase label'],
+    };
+  }
+}
+
+/**
+ * Convert Stripe address format to EasyPost address format
+ */
+export function stripeToEasyPostAddress(stripeAddress: {
+  name?: string;
+  line1?: string;
+  line2?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+}): AddressInput {
+  return {
+    name: stripeAddress.name || '',
+    street1: stripeAddress.line1 || '',
+    street2: stripeAddress.line2 || '',
+    city: stripeAddress.city || '',
+    state: stripeAddress.state || '',
+    zip: stripeAddress.postal_code || '',
+    country: stripeAddress.country || 'US',
+  };
+}
+
 // Export EasyPost client for advanced usage
 export { easypost };

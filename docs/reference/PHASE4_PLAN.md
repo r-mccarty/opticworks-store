@@ -1,4 +1,4 @@
-# Phase 4: Production Launch
+node# Phase 4: Production Launch
 
 **Status**: Planning
 **Target**: Production-ready store with real products, polished UI, and fulfillment automation
@@ -102,84 +102,95 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 ---
 
-## Track 3: Fulfillment Module (FedEx + Address Validation)
+## Track 3: Fulfillment Module (EasyPost + Inventory)
 
-**Goal**: Automated shipping label generation and address validation.
+**Goal**: Address validation, real-time shipping rates, label generation, and inventory tracking.
+
+**Status**: In Progress
 
 ### Architecture
 
 ```
-Order Placed
-    |
-    v
-Address Validation (EasyPost or Shippo)
-    |
-    v
-FedEx Rate Calculation (checkout)
-    |
-    v
-Order Confirmed
-    |
-    v
-FedEx Label Generation (fulfillment)
-    |
-    v
-Tracking Email Sent
+INVENTORY FLOW:
+Product (manage_inventory: true) → Stock tracked at US Warehouse
+  → Add to cart → Reserve inventory
+  → Complete checkout → Deduct inventory
+  → Cancel order → Restore inventory
+
+SHIPPING FLOW:
+Customer enters address
+  → (on blur) Light address validation via EasyPost
+  → (on submit) Full validation with ZIP+4
+  → Fetch real-time rates (USPS Ground, FedEx 2Day/Express)
+  → User selects shipping option
+  → Rate included in payment intent
+
+FULFILLMENT FLOW:
+Admin marks order ready → Generate EasyPost label
+  → Tracking number stored → Email sent via Resend
 ```
 
-### FedEx Integration
+### Implementation Approach
 
-Using [`@igorppbr/medusa-v2-fedex-fulfillment`](https://github.com/igorppbr/medusa-fedex-fulfillment):
-
-**Requirements**:
-- Medusa v2.4.0+ (current: v2.11.3)
-- FedEx Developer Account (Client ID, Secret, Account Number)
-
-**Features**:
-- Real-time rate calculation during checkout
-- Automated label generation
-- Tracking number integration
-- PDF label downloads from admin
-
-### Address Validation Options
-
-| Provider | Pros | Cons |
-|----------|------|------|
-| EasyPost | Already have API key | Additional service |
-| Shippo | Free tier | New integration |
-| FedEx Address API | Same account | Limited features |
-| SmartyStreets | High accuracy | Paid only |
-
-**Recommendation**: EasyPost (already in secrets inventory)
+**EasyPost (Storefront-side)** instead of FedEx plugin because:
+- Already have EasyPost API key and client code
+- Multi-carrier support (USPS + FedEx) in single API
+- Simpler integration at checkout layer
+- Keep existing Medusa manual fulfillment provider
 
 ### Tasks
 
-- [ ] Install and configure medusa-v2-fedex-fulfillment
-- [ ] Set up FedEx developer account (sandbox first)
-- [ ] Configure FedEx credentials in Medusa
-- [ ] Implement address validation in checkout flow
-- [ ] Add shipping rate calculation to cart
-- [ ] Test fulfillment workflow end-to-end
-- [ ] Configure production FedEx credentials
-- [ ] Add tracking page for customers
+**Inventory Management (Phase 0)**:
+- [x] Enable `manage_inventory: true` in product seed
+- [x] Create `seed-inventory.ts` with realistic stock quantities (50-100 units)
+- [ ] Verify reservation flow during checkout
+- [ ] Test stock deduction on order completion
+
+**EasyPost Integration (Phases 1-2)**:
+- [ ] Extend `src/lib/api/easypost.ts` with rate calculation
+- [ ] Replace mock `/api/shipping/rates` with EasyPost
+- [ ] Add product parcel dimensions config
+
+**Checkout Flow (Phases 3-5)**:
+- [ ] Add address validation (hybrid: on-blur + before-payment)
+- [ ] Create ShippingSelector component
+- [ ] Update CheckoutWrapper to wait for shipping selection
+- [ ] Include shipping cost in payment intent
+
+**Label Generation (Phase 6)**:
+- [ ] Create `/api/fulfillment/create-label` endpoint
+- [ ] Store tracking number in order metadata
+- [ ] Trigger tracking email via Resend
 
 ### Key Files
 
-- `backend/medusa-config.ts` - FedEx provider config
-- `backend/src/modules/fedex/` - Custom module (if needed)
-- `src/app/account/orders/[id]/page.tsx` - Tracking display
+**Backend (Medusa)**:
+- `backend/src/scripts/seed-opticworks-products.ts` - Products with `manage_inventory: true`
+- `backend/src/scripts/seed-inventory.ts` - Realistic stock quantities
+- `backend/src/scripts/seed-us-region.ts` - US Warehouse stock location
+
+**Storefront (Next.js)**:
+- `src/lib/api/easypost.ts` - EasyPost client (address validation + rates)
+- `src/app/api/shipping/rates/route.ts` - Shipping rates API
+- `src/components/checkout/CheckoutForm.tsx` - Address validation UI
+- `src/components/checkout/ShippingSelector.tsx` - Shipping option selector (new)
+- `src/app/api/fulfillment/create-label/route.ts` - Label generation (new)
 
 ### Environment Variables
 
 ```bash
-# FedEx
-FEDEX_CLIENT_ID=xxx
-FEDEX_CLIENT_SECRET=xxx
-FEDEX_ACCOUNT_NUMBER=xxx
-FEDEX_SANDBOX=true  # false for production
+# EasyPost (already in Infisical)
+EASYPOST_API_KEY=xxx
 
-# Address Validation (EasyPost)
-EASYPOST_API_KEY=xxx  # Already in Infisical
+# Origin warehouse address (for shipments)
+SHIP_FROM_NAME="OpticWorks"
+SHIP_FROM_STREET1="123 Commerce St"
+SHIP_FROM_CITY="Los Angeles"
+SHIP_FROM_STATE="CA"
+SHIP_FROM_ZIP="90001"
+
+# FedEx carrier account (add to EasyPost dashboard)
+# Sign up at https://developer.fedex.com/
 ```
 
 ---
