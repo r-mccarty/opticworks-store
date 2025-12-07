@@ -15,7 +15,41 @@ This document traces the complete checkout flow from cart to order completion, i
                         │  Medusa   │           │  Stripe API     │
                         │  Backend  │           │  (Payment)      │
                         └───────────┘           └─────────────────┘
+                              │
+                              ▼
+                        ┌───────────────────────────────────────┐
+                        │  EasyPost Fulfillment Provider        │
+                        │  (calculatePrice → real-time rates)   │
+                        └───────────────────────────────────────┘
 ```
+
+## Shipping Architecture (Updated Dec 2024)
+
+Shipping rates are calculated through **Medusa's fulfillment module** with a custom EasyPost provider:
+
+```
+Customer enters address
+       │
+       ▼
+GET /store/shipping-options?cart_id=xxx
+       │
+       ▼
+Medusa calls EasyPost provider's calculatePrice()
+       │
+       ▼
+Provider creates EasyPost shipment, returns rates
+       │
+       ▼
+Display shipping options with calculated prices
+       │
+       ▼
+POST /store/carts/{id}/shipping-methods (add selected option)
+       │
+       ▼
+Cart total includes shipping → Payment Intent updated
+```
+
+See `docs/reference/FULFILLMENT.md` for full fulfillment architecture details.
 
 ## Component Hierarchy
 
@@ -30,7 +64,7 @@ This document traces the complete checkout flow from cart to order completion, i
                 ├── Email Input
                 ├── AddressElement (Stripe)
                 ├── ShippingSelector
-                │   └── useShippingRates hook
+                │   └── Medusa shipping options API
                 ├── PaymentElement (Stripe)
                 ├── Order Summary
                 └── Pay Button
@@ -116,63 +150,47 @@ The form renders in this order:
    };
    ```
 
-**Shipping Rates Flow**:
+**Shipping Rates Flow** (Medusa Fulfillment Provider):
 
-**File**: `src/hooks/useShippingRates.ts`
+3. When address is complete, fetch shipping options from Medusa
+4. **API Call**: `GET /store/shipping-options?cart_id=xxx`
+   - Medusa internally calls the EasyPost fulfillment provider
+   - Provider's `calculatePrice()` creates EasyPost shipment, gets rates
+   - Returns shipping options with calculated prices
 
-3. `useShippingRates` hook triggers when address is complete
-4. **API Call**: `POST /api/shipping/rates`
-   - Request body: `{ address, items, subtotal }`
-   - Uses EasyPost API (or mock fallback)
-   - Returns: `{ rates[], shipmentId, isDigitalOnly, freeShippingEligible }`
+5. Display options in ShippingSelector, auto-select cheapest
 
-5. Auto-selection logic (lines 137-153):
-   ```tsx
-   useEffect(() => {
-     if (rates.length > 0 && !selectedRate) {
-       const cheapest = rates.reduce((a, b) => a.rate < b.rate ? a : b);
-       setSelectedRate(cheapest);
-     }
-   }, [rates, selectedRate]);
-   ```
+6. When user selects option:
+   **API Call**: `POST /store/carts/{id}/shipping-methods`
+   - Adds shipping method to cart
+   - Cart total automatically includes shipping
 
-> **FIXED BUG**: Previously had `selectedRate` in `fetchRates` dependencies, causing
-> infinite loop when API returned errors. Fixed by separating fetch from auto-select.
+> **Architecture Note**: Shipping rates are now calculated server-side through
+> Medusa's fulfillment provider, not via custom storefront API routes.
+> See `docs/reference/FULFILLMENT.md` for implementation details.
 
 ### Step 5: Shipping Rate Selection & Payment Update
 
-**File**: `src/components/checkout/CheckoutWrapper.tsx` (lines 86-121)
+When shipping option is selected:
 
-When shipping rate is selected (or auto-selected):
-
-1. `handleShippingChange` callback is triggered
-2. **API Call**: `POST /api/checkout/update-shipping`
+1. **API Call**: `POST /store/carts/{id}/shipping-methods`
    ```json
    {
-     "cartId": "cart_xxx",
-     "shippingRate": { "carrier": "USPS", "rate": 8.50, ... },
-     "shipmentId": "shp_xxx"
+     "option_id": "so_xxx"
    }
    ```
 
-**Update Shipping API Flow** (`src/app/api/checkout/update-shipping/route.ts`):
+2. Medusa automatically:
+   - Adds shipping method to cart
+   - Updates cart total (includes shipping)
+   - The fulfillment provider's `validateFulfillmentData()` validates the address
 
-3. Get available Medusa shipping options
-4. Add first shipping option to cart (placeholder for fulfillment)
-5. Store EasyPost details in cart metadata:
-   ```typescript
-   await updateCart(cartId, {
-     metadata: {
-       easypost_shipment_id: shipmentId,
-       easypost_rate_id: shippingRate.id,
-       shipping_carrier: shippingRate.carrier,
-       shipping_rate: shippingRate.rate,
-       // ...
-     },
-   });
-   ```
-6. Create new payment session to update Stripe Payment Intent amount
-7. Return new `clientSecret` if Payment Intent was recreated
+3. Refresh payment session if needed to update Payment Intent amount:
+   **API Call**: `POST /store/payment-collections/{id}/payment-sessions`
+
+> **Simplified**: The old flow required a custom `/api/checkout/update-shipping`
+> route to store EasyPost metadata. Now everything goes through Medusa's native
+> shipping APIs, with the EasyPost provider handling rate calculation internally.
 
 ### Step 6: Payment Submission
 
@@ -249,16 +267,18 @@ User is redirected to `/store/cart/success` with order details.
 3. POST /store/payment-collections      (create payment collection)
 4. POST /store/payment-collections/{id}/payment-sessions (create Stripe session)
    └── Returns: clientSecret
-5. POST /api/shipping/rates             (when address entered)
-   └── Backend calls EasyPost API (or returns mock rates)
-6. POST /api/checkout/update-shipping   (when shipping selected)
-   ├── GET /store/shipping-options
-   ├── POST /store/carts/{id}/shipping-methods
-   ├── POST /store/carts/{id} (update metadata)
-   └── POST /store/payment-collections/{id}/payment-sessions (refresh)
-7. [Stripe] confirmPayment              (client-side)
-8. POST /store/carts/{id}/complete      (finalize order)
+5. GET  /store/shipping-options?cart_id=xxx (when address entered)
+   └── Medusa calls EasyPost provider's calculatePrice() for each option
+6. POST /store/carts/{id}/shipping-methods (when shipping selected)
+   └── Adds shipping method, updates cart total
+7. POST /store/payment-collections/{id}/payment-sessions (refresh if needed)
+8. [Stripe] confirmPayment              (client-side)
+9. POST /store/carts/{id}/complete      (finalize order)
 ```
+
+> **Note**: Steps 5-6 use Medusa's native shipping APIs. The EasyPost fulfillment
+> provider handles rate calculation transparently - no custom `/api/shipping/*`
+> routes are needed.
 
 ---
 
@@ -291,26 +311,33 @@ This chain of async operations can take several seconds, especially with:
 but with "Calculating shipping..." indicator. The 20s timeout is a test workaround,
 not a UX solution.
 
-### 2. Mock Shipping Rates Fallback
+### 2. EasyPost Fulfillment Provider
 
-**File**: `src/app/api/shipping/rates/route.ts`
+**File**: `backend/src/modules/easypost-fulfillment/service.ts`
+
+Shipping rates are now calculated through Medusa's fulfillment module:
 
 ```typescript
-if (!hasEasyPostKey) {
-  console.log('📦 Using mock shipping rates (EASYPOST_API_KEY not configured)');
-  ratesResponse = getMockShippingRates(easypostAddress);
-} else {
-  try {
-    ratesResponse = await getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']);
-  } catch (easypostError) {
-    console.error('📦 EasyPost API error, falling back to mock rates:', easypostError);
-    ratesResponse = getMockShippingRates(easypostAddress);
-  }
+// In the EasyPost provider's calculatePrice() method:
+const shipment = await this.client.createShipment(
+  this.originAddress,
+  toAddress,
+  parcel,
+  carrierConfig.carriers
+)
+return {
+  calculated_amount: Math.round(parseFloat(matchingRate.rate) * 100),
+  is_calculated_price_tax_inclusive: false,
 }
 ```
 
-**Why**: EasyPost API key not configured as Cloudflare Workers secret.
-This allows checkout to work in development and tests without real shipping rates.
+**Why**: Moving shipping logic to the backend:
+- Prevents infinite loop bugs from complex frontend state
+- Enables admin visibility in Medusa dashboard
+- Proper separation of concerns (fulfillment belongs in backend)
+- EasyPost API key stays in backend, not exposed to Workers
+
+See `docs/reference/FULFILLMENT.md` for full architecture.
 
 ### 3. Build-Time Environment Variables
 
@@ -357,31 +384,17 @@ if (!isMounted) return <Loading />;
 server (empty) and client (populated). Without this guard, React throws a
 hydration mismatch error.
 
-### 6. Infinite Loop Prevention in useShippingRates
+### 6. Previous Infinite Loop Bug (Resolved)
 
-**File**: `src/hooks/useShippingRates.ts`
+The previous storefront-based shipping implementation had an infinite loop bug
+where unstable React dependencies caused repeated API calls. This maxed out
+Cloudflare Workers request limits.
 
-**Previous bug**:
-```typescript
-// BAD: selectedRate in dependencies caused infinite loop on API errors
-const fetchRates = useCallback(async () => {
-  // ... if API fails, state changes, callback recreated, effect re-runs
-}, [address, items, subtotal, selectedRate]);
-```
+**Resolution**: Shipping is now handled by the backend EasyPost fulfillment
+provider, eliminating the complex frontend state management that caused the bug.
 
-**Fix**: Separate auto-selection into its own useEffect:
-```typescript
-// fetchRates only depends on inputs, not state it sets
-const fetchRates = useCallback(async () => { ... }, [address, items, subtotal]);
-
-// Auto-select in separate effect
-useEffect(() => {
-  if (rates.length > 0 && !selectedRate) {
-    const cheapest = rates.reduce((a, b) => a.rate < b.rate ? a : b);
-    setSelectedRate(cheapest);
-  }
-}, [rates, selectedRate]);
-```
+See the git history for commit `5a66f33` for the original fix attempt, and
+the subsequent migration to Medusa fulfillment provider for the proper solution.
 
 ---
 
@@ -401,7 +414,7 @@ useEffect(() => {
 |-----------|-------|---------|
 | CheckoutWrapper | `clientSecret`, `cartId`, `isLoading`, `error` | Payment session |
 | CheckoutForm | `email`, `shippingAddress`, `isProcessing`, `message` | Form state |
-| useShippingRates | `rates`, `selectedRate`, `shipmentId`, `isLoading` | Shipping |
+| ShippingSelector | `shippingOptions`, `selectedOption`, `isLoading` | Shipping (from Medusa API) |
 
 ---
 
@@ -461,7 +474,7 @@ Key test scenarios:
 
 1. **Progressive disclosure**: Show email first, then address, then shipping, then payment
 2. **Skeleton loading**: Replace 20s timeout with proper loading states
-3. **Real EasyPost integration**: Configure EASYPOST_API_KEY in production
-4. **Address validation**: Show validation feedback before rate calculation
-5. **Retry logic**: Exponential backoff for failed API calls
-6. **Offline support**: Queue cart changes when offline
+3. **Address validation**: Show validation feedback before rate calculation (EasyPost provider validates)
+4. **Retry logic**: Exponential backoff for failed API calls
+5. **Offline support**: Queue cart changes when offline
+6. **Free shipping rules**: Implement price-based rules in Medusa admin for free shipping threshold

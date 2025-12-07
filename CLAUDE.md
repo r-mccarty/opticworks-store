@@ -39,7 +39,22 @@ e2e/                    # Playwright tests
 | `src/hooks/useCart.ts` | Cart state (hybrid local + Medusa) |
 | `src/hooks/useAuth.ts` | Customer authentication |
 | `backend/medusa-config.ts` | Backend configuration |
+| `backend/src/modules/easypost-fulfillment/` | EasyPost fulfillment provider |
 | `wrangler.jsonc` | Cloudflare Workers config |
+
+## Fulfillment
+
+Shipping rates and label generation use **Medusa's fulfillment module with EasyPost provider**.
+
+| Layer | Responsibility |
+|-------|----------------|
+| Backend | EasyPost provider calculates rates, generates labels |
+| Storefront | Calls Medusa shipping APIs, displays options |
+| Admin | Manages fulfillments, triggers label generation |
+
+Shipping options use `price_type: "calculated"` - prices are fetched from EasyPost in real-time based on customer address.
+
+See `docs/reference/FULFILLMENT.md` for full architecture details.
 
 ## Architecture
 
@@ -99,6 +114,7 @@ See `docs/reference/PHASE4_PLAN.md` for current tracks.
 |----------|----------|
 | `docs/reference/ARCHITECTURE.md` | System overview |
 | `docs/reference/PHASE4_PLAN.md` | Current implementation |
+| `docs/reference/FULFILLMENT.md` | Shipping rates, EasyPost, label generation |
 | `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible deployment, backup & recovery |
 | `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS programmatic access |
 | `docs/SECRETS.md` | Environment variables |

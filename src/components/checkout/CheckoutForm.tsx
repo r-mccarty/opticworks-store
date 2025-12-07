@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, FormEvent } from 'react';
+import { useState, useCallback, useMemo, FormEvent } from 'react';
 import {
   PaymentElement,
   AddressElement,
@@ -44,10 +44,14 @@ export default function CheckoutForm({
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null);
 
   // Convert cart items to SKU-based items for shipping calculation
-  const shippingItems = items.map(item => ({
-    sku: getSkuFromName(item.name),
-    quantity: item.quantity,
-  }));
+  // Memoized to prevent unnecessary re-fetches of shipping rates
+  const shippingItems = useMemo(() =>
+    items.map(item => ({
+      sku: getSkuFromName(item.name),
+      quantity: item.quantity,
+    })),
+    [items]
+  );
 
   // Use shipping rates hook
   const {

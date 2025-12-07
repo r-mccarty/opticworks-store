@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getShippingRates,
-  getMockShippingRates,
   stripeToEasyPostAddress,
   type ShippingRate as EasyPostRate,
   type AddressInput,
@@ -213,30 +212,9 @@ export async function POST(request: NextRequest) {
     // Calculate combined parcel dimensions
     const parcel = calculateCombinedParcel(items);
 
-    // Get rates from EasyPost (or mock if API key not configured)
-    let ratesResponse;
-    // Check for actual API key value, not just existence
-    const easypostKey = process.env.EASYPOST_API_KEY;
-    const hasEasyPostKey = typeof easypostKey === 'string' && easypostKey.length > 0;
-
-    console.log('📦 EasyPost config:', {
-      hasKey: hasEasyPostKey,
-      keyPrefix: hasEasyPostKey ? easypostKey.substring(0, 8) + '...' : 'none',
-    });
-
-    if (!hasEasyPostKey) {
-      console.log('📦 Using mock shipping rates (EASYPOST_API_KEY not configured)');
-      ratesResponse = getMockShippingRates(easypostAddress);
-    } else {
-      try {
-        // Filter to USPS and FedEx only
-        ratesResponse = await getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']);
-      } catch (easypostError) {
-        console.error('📦 EasyPost API error, falling back to mock rates:', easypostError);
-        // Fall back to mock rates if EasyPost fails
-        ratesResponse = getMockShippingRates(easypostAddress);
-      }
-    }
+    // Get rates from EasyPost
+    // Filter to USPS and FedEx only
+    const ratesResponse = await getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']);
 
     if (!ratesResponse.success) {
       return NextResponse.json<ShippingRatesApiResponse>(

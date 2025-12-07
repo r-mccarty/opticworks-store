@@ -108,13 +108,23 @@ export default async function seedUSRegion({ container }: ExecArgs) {
   const usStockLocation = stockLocationResult[0];
   logger.info(`Created US stock location: ${usStockLocation.id}`);
 
-  // Link fulfillment provider to stock location
+  // Link fulfillment providers to stock location
+  // Both manual (fallback) and easypost (calculated rates)
   await link.create({
     [Modules.STOCK_LOCATION]: {
       stock_location_id: usStockLocation.id,
     },
     [Modules.FULFILLMENT]: {
       fulfillment_provider_id: "manual_manual",
+    },
+  });
+
+  await link.create({
+    [Modules.STOCK_LOCATION]: {
+      stock_location_id: usStockLocation.id,
+    },
+    [Modules.FULFILLMENT]: {
+      fulfillment_provider_id: "fp_easypost_easypost",
     },
   });
 
@@ -167,32 +177,28 @@ export default async function seedUSRegion({ container }: ExecArgs) {
     },
   });
 
-  // Create US shipping options
-  // Medusa v2 stores prices in MAJOR units (dollars), not cents
-  logger.info("Creating US shipping options...");
+  // Create US shipping options using EasyPost provider with calculated prices
+  // These map to EasyPost carrier/service combinations
+  logger.info("Creating US shipping options (EasyPost calculated)...");
   await createShippingOptionsWorkflow(container).run({
     input: [
+      // USPS Ground Advantage (economical)
       {
-        name: "US Standard Shipping",
-        price_type: "flat",
-        provider_id: "manual_manual",
+        name: "USPS Ground Advantage",
+        price_type: "calculated",
+        provider_id: "fp_easypost_easypost",
         service_zone_id: fulfillmentSet.service_zones[0].id,
         shipping_profile_id: shippingProfile.id,
         type: {
-          label: "Standard",
-          description: "Ships in 5-7 business days.",
-          code: "us-standard",
+          label: "USPS Ground",
+          description: "5-7 business days via USPS",
+          code: "usps-ground",
         },
-        prices: [
-          {
-            currency_code: "usd",
-            amount: 9.99,
-          },
-          {
-            region_id: usRegion.id,
-            amount: 9.99,
-          },
-        ],
+        data: {
+          id: "usps-ground",
+          carrier: "USPS",
+          service: "GroundAdvantage",
+        },
         rules: [
           {
             attribute: "enabled_in_store",
@@ -206,27 +212,23 @@ export default async function seedUSRegion({ container }: ExecArgs) {
           },
         ],
       },
+      // USPS Priority Mail
       {
-        name: "US Express Shipping",
-        price_type: "flat",
-        provider_id: "manual_manual",
+        name: "USPS Priority Mail",
+        price_type: "calculated",
+        provider_id: "fp_easypost_easypost",
         service_zone_id: fulfillmentSet.service_zones[0].id,
         shipping_profile_id: shippingProfile.id,
         type: {
-          label: "Express",
-          description: "Ships in 2-3 business days.",
-          code: "us-express",
+          label: "USPS Priority",
+          description: "2-3 business days via USPS",
+          code: "usps-priority",
         },
-        prices: [
-          {
-            currency_code: "usd",
-            amount: 19.99,
-          },
-          {
-            region_id: usRegion.id,
-            amount: 19.99,
-          },
-        ],
+        data: {
+          id: "usps-priority",
+          carrier: "USPS",
+          service: "Priority",
+        },
         rules: [
           {
             attribute: "enabled_in_store",
@@ -240,27 +242,83 @@ export default async function seedUSRegion({ container }: ExecArgs) {
           },
         ],
       },
+      // FedEx Ground
       {
-        name: "US Free Shipping (Orders $100+)",
-        price_type: "flat",
-        provider_id: "manual_manual",
+        name: "FedEx Ground",
+        price_type: "calculated",
+        provider_id: "fp_easypost_easypost",
         service_zone_id: fulfillmentSet.service_zones[0].id,
         shipping_profile_id: shippingProfile.id,
         type: {
-          label: "Free Shipping",
-          description: "Free shipping on orders over $100. Ships in 5-7 business days.",
-          code: "us-free",
+          label: "FedEx Ground",
+          description: "3-5 business days via FedEx",
+          code: "fedex-ground",
         },
-        prices: [
+        data: {
+          id: "fedex-ground",
+          carrier: "FedEx",
+          service: "FEDEX_GROUND",
+        },
+        rules: [
           {
-            currency_code: "usd",
-            amount: 0,
+            attribute: "enabled_in_store",
+            value: "true",
+            operator: "eq",
           },
           {
-            region_id: usRegion.id,
-            amount: 0,
+            attribute: "is_return",
+            value: "false",
+            operator: "eq",
           },
         ],
+      },
+      // FedEx 2Day
+      {
+        name: "FedEx 2Day",
+        price_type: "calculated",
+        provider_id: "fp_easypost_easypost",
+        service_zone_id: fulfillmentSet.service_zones[0].id,
+        shipping_profile_id: shippingProfile.id,
+        type: {
+          label: "FedEx 2Day",
+          description: "2 business days via FedEx (guaranteed)",
+          code: "fedex-2day",
+        },
+        data: {
+          id: "fedex-2day",
+          carrier: "FedEx",
+          service: "FEDEX_2_DAY",
+        },
+        rules: [
+          {
+            attribute: "enabled_in_store",
+            value: "true",
+            operator: "eq",
+          },
+          {
+            attribute: "is_return",
+            value: "false",
+            operator: "eq",
+          },
+        ],
+      },
+      // FedEx Express (overnight)
+      {
+        name: "FedEx Standard Overnight",
+        price_type: "calculated",
+        provider_id: "fp_easypost_easypost",
+        service_zone_id: fulfillmentSet.service_zones[0].id,
+        shipping_profile_id: shippingProfile.id,
+        type: {
+          label: "FedEx Overnight",
+          description: "Next business day via FedEx (guaranteed)",
+          code: "fedex-overnight",
+        },
+        data: {
+          id: "fedex-overnight",
+          carrier: "FedEx",
+          service: "FEDEX_STANDARD_OVERNIGHT",
+        },
         rules: [
           {
             attribute: "enabled_in_store",
@@ -276,7 +334,7 @@ export default async function seedUSRegion({ container }: ExecArgs) {
       },
     ],
   });
-  logger.info("US shipping options created.");
+  logger.info("US shipping options created (EasyPost calculated prices).");
 
   // Link US stock location to default sales channel
   await linkSalesChannelsToStockLocationWorkflow(container).run({
@@ -329,5 +387,6 @@ export default async function seedUSRegion({ container }: ExecArgs) {
   logger.info(`Region ID: ${usRegion.id}`);
   logger.info(`Stock Location ID: ${usStockLocation.id}`);
   logger.info("Payment Provider: Stripe (pp_stripe_stripe)");
-  logger.info("Shipping Options: Standard ($9.99), Express ($19.99), Free ($100+)");
+  logger.info("Fulfillment Provider: EasyPost (fp_easypost_easypost)");
+  logger.info("Shipping Options: USPS Ground, USPS Priority, FedEx Ground, FedEx 2Day, FedEx Overnight (calculated prices)");
 }

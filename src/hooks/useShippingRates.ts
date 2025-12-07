@@ -133,24 +133,25 @@ export function useShippingRates({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, address?.line1, address?.city, address?.state, address?.postal_code, items.length, subtotal, fetchRates]);
 
-  // Auto-select cheapest rate when rates load, or reset if selected rate is no longer valid
+  // Auto-select cheapest rate when rates load
+  // Only runs when rates change, not when selectedRate changes (avoids loop)
   useEffect(() => {
     if (rates.length > 0) {
-      if (!selectedRate) {
-        // Auto-select cheapest rate on initial load
-        const cheapest = rates.reduce((a, b) => a.rate < b.rate ? a : b);
-        setSelectedRate(cheapest);
-      } else {
-        // Check if selected rate is still valid
-        const stillValid = rates.some(r => r.id === selectedRate.id);
-        if (!stillValid) {
-          // Select cheapest rate
-          const cheapest = rates.reduce((a, b) => a.rate < b.rate ? a : b);
-          setSelectedRate(cheapest);
+      setSelectedRate(prevSelected => {
+        // If no rate selected, pick cheapest
+        if (!prevSelected) {
+          return rates.reduce((a, b) => a.rate < b.rate ? a : b);
         }
-      }
+        // If selected rate is no longer valid, pick cheapest
+        const stillValid = rates.some(r => r.id === prevSelected.id);
+        if (!stillValid) {
+          return rates.reduce((a, b) => a.rate < b.rate ? a : b);
+        }
+        // Keep current selection
+        return prevSelected;
+      });
     }
-  }, [rates, selectedRate]);
+  }, [rates]);
 
   const selectRate = useCallback((rate: ShippingRateResponse) => {
     setSelectedRate(rate);

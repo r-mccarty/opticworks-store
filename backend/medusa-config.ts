@@ -33,6 +33,12 @@ if (!resendApiKey) {
   console.warn("[medusa-config] RESEND_API_KEY is not set. Email notifications will not work.")
 }
 
+// Check for EasyPost configuration
+const easypostApiKey = process.env.EASYPOST_API_KEY
+if (!easypostApiKey) {
+  console.warn("[medusa-config] EASYPOST_API_KEY is not set. Shipping rate calculation will not work.")
+}
+
 // Redis URLs for infrastructure modules
 const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379"
 const redisCacheUrl = process.env.REDIS_CACHE_URL ?? redisUrl
@@ -157,6 +163,34 @@ module.exports = defineConfig({
               additional_client_config: {
                 forcePathStyle: true,
               },
+            },
+          },
+        ],
+      },
+    },
+
+    // ===== Fulfillment Module (EasyPost) =====
+    {
+      key: Modules.FULFILLMENT,
+      resolve: "@medusajs/medusa/fulfillment",
+      options: {
+        providers: [
+          // Manual provider for legacy/fallback
+          {
+            resolve: "@medusajs/medusa/fulfillment-manual",
+            id: "manual",
+          },
+          // EasyPost provider for dynamic shipping rates
+          {
+            resolve: "./src/modules/easypost-fulfillment",
+            id: "easypost",
+            options: {
+              api_key: easypostApiKey,
+              ship_from_name: process.env.SHIP_FROM_NAME,
+              ship_from_street1: process.env.SHIP_FROM_STREET1,
+              ship_from_city: process.env.SHIP_FROM_CITY,
+              ship_from_state: process.env.SHIP_FROM_STATE,
+              ship_from_zip: process.env.SHIP_FROM_ZIP,
             },
           },
         ],
