@@ -16,6 +16,7 @@
 | 5 | Pending | Usability testing + accessibility audit |
 | 6 | Pending | CI/CD hardening + monitoring |
 | 7 | **In Progress** | Edge rate limiting + request buffering (Cloudflare WAF + Upstash Qstash) |
+| 8 | Pending | Platform verification + image optimization |
 
 ---
 
@@ -842,6 +843,140 @@ UPSTASH_REDIS_TOKEN=xxx
 
 ---
 
+## Track 8: Platform Verification + Image Optimization
+
+**Goal**: Verify the current OpenNext + Cloudflare Workers setup is optimally configured and document image optimization strategy.
+
+**Status**: Pending
+
+**Context**: Initial investigation after the Dec 7 incident suggested static assets might be inflating Worker invocations. Analysis confirmed this is **not the case** - OpenNext serves static assets directly from the CDN by default (`run_worker_first=false`). This track verifies the platform is working as expected and addresses legitimate optimization opportunities.
+
+### Key Findings (Dec 7, 2025 Investigation)
+
+| Assumption | Reality |
+|------------|---------|
+| Static assets served by Worker | **FALSE** - CDN-direct by default |
+| 50x request multiplier from assets | **FALSE** - Subrequests were 3.6% of total |
+| Need platform migration | **FALSE** - Issue was application bug |
+| ISR requires complex KV setup | **FALSE** - R2 cache already configured |
+
+The 580K requests were caused by an infinite loop in `useShippingRates` making real API calls, not static asset inflation.
+
+### Current Architecture (Verified Working)
+
+```
+Static Assets (.js, .css, images):
+  Browser → Cloudflare CDN → .open-next/assets/
+  (Bypasses Worker entirely, FREE)
+
+Dynamic Routes (/api/*, SSR pages):
+  Browser → Cloudflare Worker → Next.js handler
+  (Counts as Worker invocation)
+
+ISR Cache:
+  Worker → R2 bucket (opticworks-cache)
+  (Configured via open-next.config.ts)
+```
+
+### Tasks
+
+**Phase 1: R2 Incremental Cache Verification**
+- [ ] Verify `opticworks-cache` R2 bucket exists and is accessible
+- [ ] Test ISR by checking cache headers on product pages
+- [ ] Confirm revalidation works via `WORKER_SELF_REFERENCE` binding
+- [ ] Document cache TTL strategy for Medusa data
+
+**Verification Commands:**
+```bash
+# List R2 buckets
+curl -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/r2/buckets" \
+  -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+  -H "X-Auth-Key: ${CLOUDFLARE_GLOBAL_API_KEY}"
+
+# Check cache contents (via wrangler)
+wrangler r2 object list opticworks-cache --prefix "incremental-cache"
+```
+
+**Phase 2: Image Optimization Strategy**
+- [ ] Audit all `next/image` usages (8 files currently)
+- [ ] Evaluate options:
+  - Option A: `unoptimized: true` (simplest, relies on source images being optimized)
+  - Option B: Cloudflare Images loader (paid, automatic optimization)
+  - Option C: Pre-optimize images at upload time (R2 + ImageMagick/Sharp)
+- [ ] Document chosen strategy in `CLAUDE.md`
+- [ ] Implement chosen solution
+
+**Current `next/image` Usage:**
+| File | Context |
+|------|---------|
+| `src/components/products/ProductHero.tsx` | Product detail images |
+| `src/components/products/KitContents.tsx` | Kit component images |
+| `src/components/products/InstallProcess.tsx` | Installation step images |
+| `src/components/store/ProductGrid.tsx` | Product thumbnails |
+| `src/components/store/CartPage.tsx` | Cart item images |
+| `src/app/store/cart/success/page.tsx` | Order confirmation |
+| `src/app/install-guides/*.tsx` | Guide images |
+
+**Phase 3: Static Asset Serving Confirmation**
+- [ ] Add `run_worker_first` documentation to `CLAUDE.md`
+- [ ] Verify no middleware.ts exists that could trigger Worker on static routes
+- [ ] Test static asset requests don't appear in Workers logs
+- [ ] Document expected behavior for future reference
+
+**Verification Test:**
+```bash
+# Request a static asset and check if it hits Worker
+curl -I https://optic.works/_next/static/chunks/main.js
+
+# Should see CDN headers (cf-cache-status), NOT Worker execution
+# Check Cloudflare dashboard -> Workers -> Logs to confirm no invocation
+```
+
+**Phase 4: Node.js API Compatibility Audit**
+- [ ] Grep for Node.js-specific APIs: `fs`, `path`, `crypto`, `http`, `https`
+- [ ] Verify EasyPost fetch-based implementation has no Node.js dependencies
+- [ ] Document any remaining compatibility concerns
+- [ ] Test all API routes work in Workers environment
+
+**Audit Commands:**
+```bash
+# Search for potentially problematic Node.js APIs
+grep -r "require('fs')" src/ --include="*.ts" --include="*.tsx"
+grep -r "require('crypto')" src/ --include="*.ts" --include="*.tsx"
+grep -r "from 'node:" src/ --include="*.ts" --include="*.tsx"
+```
+
+### Decision: Platform Migration NOT Required
+
+After investigation, we will **stay on OpenNext + Cloudflare Workers** because:
+
+1. Static assets already bypass Worker (CDN-direct)
+2. R2 incremental cache is configured and working
+3. EasyPost SDK has been replaced with fetch-based API
+4. The Dec 7 incident was an application bug, not platform limitation
+
+**Cloudflare Pages migration is not needed** - it would provide no benefit since static assets are already served efficiently.
+
+**Vercel migration is not needed** - cost would be higher ($20/seat) with no functional advantage for our use case.
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `wrangler.jsonc` | Worker + assets configuration |
+| `open-next.config.ts` | R2 cache configuration |
+| `next.config.ts` | Image remote patterns |
+| `src/lib/api/easypost.ts` | Fetch-based EasyPost (no Node.js deps) |
+
+### References
+
+- [OpenNext Static Assets](https://opennext.js.org/cloudflare/howtos/assets)
+- [Cloudflare Workers Static Assets](https://developers.cloudflare.com/workers/static-assets/)
+- [Cloudflare Images](https://developers.cloudflare.com/images/)
+- [R2 Incremental Cache](https://opennext.js.org/cloudflare/howtos/incremental-cache)
+
+---
+
 ## Success Criteria
 
 ### Track 1: Products
@@ -880,6 +1015,12 @@ UPSTASH_REDIS_TOKEN=xxx
 - [ ] Upstash Qstash buffering EasyPost requests
 - [ ] Circuit breaker preventing cascading failures
 - [ ] Alerting on abnormal request volumes
+
+### Track 8: Platform Verification
+- [ ] R2 incremental cache verified working
+- [ ] Image optimization strategy documented
+- [ ] Static asset serving confirmed (CDN, not Worker)
+- [ ] Node.js API compatibility audit complete
 
 ---
 
