@@ -7,6 +7,12 @@ import {
   type AddressInput,
 } from '@/lib/api/easypost';
 import { calculateCombinedParcel, isDigitalOnlyOrder } from '@/lib/products-dimensions';
+import {
+  checkRateLimit,
+  getClientIP,
+  rateLimitHeaders,
+  RATE_LIMITS,
+} from '@/lib/rate-limit';
 
 /**
  * Request body for shipping rates API
@@ -133,8 +139,34 @@ function assignBadges(rates: EasyPostRate[]): Map<string, string[]> {
  * POST /api/shipping/rates
  *
  * Calculate real-time shipping rates using EasyPost
+ *
+ * Rate limited to 20 requests per minute per IP to prevent abuse
+ * and reduce costs from EasyPost API calls.
  */
 export async function POST(request: NextRequest) {
+  // Rate limiting check
+  const clientIP = getClientIP(request);
+  const rateLimitResult = checkRateLimit(clientIP, RATE_LIMITS.shipping);
+
+  if (!rateLimitResult.success) {
+    console.warn(`📦 Rate limit exceeded for IP: ${clientIP}`);
+    return NextResponse.json<ShippingRatesApiResponse>(
+      {
+        success: false,
+        shipmentId: '',
+        rates: [],
+        isDigitalOnly: false,
+        freeShippingEligible: false,
+        freeShippingThreshold: 200,
+        errors: ['Too many requests. Please wait a moment and try again.'],
+      },
+      {
+        status: 429,
+        headers: rateLimitHeaders(rateLimitResult),
+      }
+    );
+  }
+
   try {
     const body = await request.json() as ShippingRateRequest;
     const { address, items, subtotal = 0 } = body;
@@ -183,7 +215,14 @@ export async function POST(request: NextRequest) {
 
     // Get rates from EasyPost (or mock if API key not configured)
     let ratesResponse;
-    const hasEasyPostKey = !!process.env.EASYPOST_API_KEY;
+    // Check for actual API key value, not just existence
+    const easypostKey = process.env.EASYPOST_API_KEY;
+    const hasEasyPostKey = typeof easypostKey === 'string' && easypostKey.length > 0;
+
+    console.log('📦 EasyPost config:', {
+      hasKey: hasEasyPostKey,
+      keyPrefix: hasEasyPostKey ? easypostKey.substring(0, 8) + '...' : 'none',
+    });
 
     if (!hasEasyPostKey) {
       console.log('📦 Using mock shipping rates (EASYPOST_API_KEY not configured)');

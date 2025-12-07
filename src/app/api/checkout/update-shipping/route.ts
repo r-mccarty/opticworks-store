@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateCart, getShippingOptions, addShippingMethod, createMedusaPaymentSession } from '@/lib/api/medusa';
 import type { ShippingRateResponse } from '@/hooks/useShippingRates';
+import {
+  checkRateLimit,
+  getClientIP,
+  rateLimitHeaders,
+  RATE_LIMITS,
+} from '@/lib/rate-limit';
 
 /**
  * Request body for update-shipping API
@@ -25,8 +31,22 @@ interface UpdateShippingResponse {
  *
  * Updates the cart with the selected shipping rate and refreshes the payment session.
  * This ensures the Stripe Payment Intent has the correct total including shipping.
+ *
+ * Rate limited to 10 requests per minute per IP.
  */
 export async function POST(request: NextRequest) {
+  // Rate limiting check
+  const clientIP = getClientIP(request);
+  const rateLimitResult = checkRateLimit(clientIP, RATE_LIMITS.checkout);
+
+  if (!rateLimitResult.success) {
+    console.warn(`[update-shipping] Rate limit exceeded for IP: ${clientIP}`);
+    return NextResponse.json<UpdateShippingResponse>(
+      { success: false, error: 'Too many requests. Please wait a moment.' },
+      { status: 429, headers: rateLimitHeaders(rateLimitResult) }
+    );
+  }
+
   try {
     const body = await request.json() as UpdateShippingRequest;
     const { cartId, shippingRate, shipmentId } = body;

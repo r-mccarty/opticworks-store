@@ -1,4 +1,4 @@
-node# Phase 4: Production Launch
+# Phase 4: Production Launch
 
 **Status**: Planning
 **Target**: Production-ready store with real products, polished UI, and fulfillment automation
@@ -198,11 +198,13 @@ pnpm medusa exec ./src/scripts/link-inventory-items.ts
 - `backend/src/modules/resend/emails/order-shipped.tsx` - Order shipped email template
 
 **Storefront (Next.js)**:
-- `src/lib/api/easypost.ts` - EasyPost client (address validation + rates + labels)
+- `src/lib/api/easypost.ts` - EasyPost client (fetch-based, Cloudflare Workers compatible)
 - `src/lib/api/fulfillment.ts` - Fulfillment helper functions
 - `src/lib/products-dimensions.ts` - Product parcel dimensions + SKU mapping
-- `src/app/api/shipping/rates/route.ts` - Shipping rates API
-- `src/app/api/checkout/update-shipping/route.ts` - Update cart with shipping selection
+- `src/lib/rate-limit.ts` - In-memory rate limiting for API routes
+- `src/app/api/shipping/rates/route.ts` - Shipping rates API (rate limited)
+- `src/app/api/checkout/update-shipping/route.ts` - Update cart with shipping (rate limited)
+- `src/app/api/easypost/validate-address/route.ts` - Address validation (rate limited)
 - `src/app/api/fulfillment/create-label/route.ts` - Label generation + metadata + fulfillment
 - `src/hooks/useShippingRates.ts` - Shipping rates hook
 - `src/hooks/useAddressValidation.ts` - Address validation hook
@@ -250,6 +252,28 @@ SHIP_FROM_ZIP="90001"
 - Fixed infinite loop in `useShippingRates` hook when API returned errors
 - Fixed graceful fallback to mock rates when `EASYPOST_API_KEY` not configured
 - Fixed `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` not available at runtime (now in `.env.production`)
+- Replaced EasyPost SDK with fetch-based API (SDK uses Node.js `https` which isn't supported in Cloudflare Workers)
+- Added rate limiting to shipping and checkout APIs to prevent abuse and control costs
+
+### Rate Limiting
+
+API endpoints are protected with in-memory rate limiting to prevent abuse and control third-party API costs:
+
+| Endpoint | Limit | Window | Purpose |
+|----------|-------|--------|---------|
+| `/api/shipping/rates` | 20 req | 1 min | EasyPost API cost control |
+| `/api/checkout/update-shipping` | 10 req | 1 min | Prevent checkout abuse |
+| `/api/easypost/validate-address` | 30 req | 1 min | EasyPost API cost control |
+
+**Implementation**: `src/lib/rate-limit.ts`
+
+**Note**: This is per-isolate rate limiting. Cloudflare Workers run across multiple isolates, so this provides soft rate limiting. For strict enforcement, use Cloudflare's built-in Rate Limiting Rules or Durable Objects.
+
+**Rate Limit Headers** (returned on all requests):
+- `X-RateLimit-Limit`: Maximum requests allowed
+- `X-RateLimit-Remaining`: Requests remaining in window
+- `X-RateLimit-Reset`: Unix timestamp when limit resets
+- `Retry-After`: Seconds to wait (only on 429 responses)
 
 ---
 

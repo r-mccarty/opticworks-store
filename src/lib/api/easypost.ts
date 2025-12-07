@@ -1,21 +1,43 @@
-import EasyPost from '@easypost/api';
+// Use fetch-based EasyPost API calls for Cloudflare Workers compatibility
+// The @easypost/api SDK uses Node.js 'https' module which isn't supported in Workers
 
-// Lazily initialize EasyPost client to avoid build errors
-let easypost: InstanceType<typeof EasyPost> | null = null;
+const EASYPOST_API_BASE = 'https://api.easypost.com/v2';
 
-function getEasyPostClient(): InstanceType<typeof EasyPost> {
-  if (!easypost) {
-    if (!process.env.EASYPOST_API_KEY) {
-      if (process.env.NODE_ENV === 'production') {
-        throw new Error('EASYPOST_API_KEY is not set in production environment');
-      }
-      // In non-production environments, we can allow this to fail gracefully
-      // or use a mock client. For now, we'll throw to indicate a setup issue.
-      throw new Error('EASYPOST_API_KEY is not set.');
-    }
-    easypost = new EasyPost(process.env.EASYPOST_API_KEY);
+/**
+ * Make an authenticated request to the EasyPost API
+ */
+async function easypostFetch<T>(
+  endpoint: string,
+  options: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
+    body?: Record<string, unknown>;
+  } = {}
+): Promise<T> {
+  const apiKey = process.env.EASYPOST_API_KEY;
+  if (!apiKey) {
+    throw new Error('EASYPOST_API_KEY is not configured');
   }
-  return easypost;
+
+  const { method = 'GET', body } = options;
+
+  const response = await fetch(`${EASYPOST_API_BASE}${endpoint}`, {
+    method,
+    headers: {
+      'Authorization': `Basic ${btoa(`${apiKey}:`)}`,
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(
+      (errorData as { error?: { message?: string } })?.error?.message ||
+      `EasyPost API error: ${response.status}`
+    );
+  }
+
+  return response.json() as Promise<T>;
 }
 
 
@@ -67,7 +89,34 @@ export interface AddressSuggestionResponse {
 }
 
 /**
+ * EasyPost address response type
+ */
+interface EasyPostAddressResponse {
+  id: string;
+  street1: string;
+  street2: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+  name: string;
+  residential: boolean;
+  verifications?: {
+    delivery?: {
+      success: boolean;
+      errors?: Array<{ code: string; field: string; message: string }>;
+      details?: { latitude: number; longitude: number; time_zone: string };
+    };
+    zip4?: {
+      success: boolean;
+      zip4?: string;
+    };
+  };
+}
+
+/**
  * Validate a single address using EasyPost's address verification API
+ * Uses fetch-based API calls for Cloudflare Workers compatibility
  */
 export async function validateAddress(address: AddressInput): Promise<AddressValidationResponse> {
   try {
@@ -76,15 +125,20 @@ export async function validateAddress(address: AddressInput): Promise<AddressVal
       await new Promise(resolve => setTimeout(resolve, 800));
     }
 
-    const client = getEasyPostClient();
-    const easypostAddress = await client.Address.create({
-      street1: address.street1,
-      street2: address.street2 || '',
-      city: address.city,
-      state: address.state,
-      zip: address.zip,
-      country: address.country || 'US',
-      name: address.name || '',
+    const easypostAddress = await easypostFetch<EasyPostAddressResponse>('/addresses', {
+      method: 'POST',
+      body: {
+        address: {
+          street1: address.street1,
+          street2: address.street2 || '',
+          city: address.city,
+          state: address.state,
+          zip: address.zip,
+          country: address.country || 'US',
+          name: address.name || '',
+          verify: ['delivery', 'zip4'],
+        },
+      },
     });
 
     const validated: ValidatedAddress = {
@@ -100,8 +154,7 @@ export async function validateAddress(address: AddressInput): Promise<AddressVal
       verifications: {
         delivery: {
           success: easypostAddress.verifications?.delivery?.success || false,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          errors: easypostAddress.verifications?.delivery?.errors?.map((err: any) => ({
+          errors: easypostAddress.verifications?.delivery?.errors?.map((err) => ({
             code: err.code || 'unknown',
             field: err.field || 'unknown',
             message: err.message || 'Unknown error'
@@ -114,8 +167,7 @@ export async function validateAddress(address: AddressInput): Promise<AddressVal
         },
         zip4: {
           success: easypostAddress.verifications?.zip4?.success || false,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          zip4: (easypostAddress.verifications?.zip4 as any)?.zip4 || '',
+          zip4: easypostAddress.verifications?.zip4?.zip4 || '',
         }
       }
     };
@@ -128,7 +180,7 @@ export async function validateAddress(address: AddressInput): Promise<AddressVal
 
   } catch (error) {
     console.error('EasyPost address validation error:', error);
-    
+
     return {
       success: false,
       errors: [error instanceof Error ? error.message : 'Address validation failed'],
@@ -383,7 +435,27 @@ function getOriginAddress(): AddressInput {
 }
 
 /**
+ * EasyPost API response types for shipment creation
+ */
+interface EasyPostShipmentResponse {
+  id: string;
+  rates: Array<{
+    id: string;
+    carrier: string;
+    service: string;
+    rate: string;
+    currency: string;
+    delivery_days: number | null;
+    delivery_date: string | null;
+    delivery_date_guaranteed: boolean;
+    retail_rate: string | null;
+    list_rate: string | null;
+  }>;
+}
+
+/**
  * Get shipping rates for a destination address and parcel
+ * Uses fetch-based API calls for Cloudflare Workers compatibility
  *
  * @param toAddress - Customer's shipping address
  * @param parcel - Package dimensions and weight
@@ -395,40 +467,43 @@ export async function getShippingRates(
   carrierFilter?: string[]
 ): Promise<ShippingRatesResponse> {
   try {
-    const client = getEasyPostClient();
     const fromAddress = getOriginAddress();
 
-    // Create shipment with origin, destination, and parcel
-    const shipment = await client.Shipment.create({
-      from_address: {
-        name: fromAddress.name,
-        street1: fromAddress.street1,
-        street2: fromAddress.street2 || '',
-        city: fromAddress.city,
-        state: fromAddress.state,
-        zip: fromAddress.zip,
-        country: fromAddress.country || 'US',
-      },
-      to_address: {
-        name: toAddress.name || 'Customer',
-        street1: toAddress.street1,
-        street2: toAddress.street2 || '',
-        city: toAddress.city,
-        state: toAddress.state,
-        zip: toAddress.zip,
-        country: toAddress.country || 'US',
-      },
-      parcel: {
-        length: parcel.length,
-        width: parcel.width,
-        height: parcel.height,
-        weight: parcel.weight,
+    // Create shipment with origin, destination, and parcel using fetch API
+    const shipment = await easypostFetch<EasyPostShipmentResponse>('/shipments', {
+      method: 'POST',
+      body: {
+        shipment: {
+          from_address: {
+            name: fromAddress.name,
+            street1: fromAddress.street1,
+            street2: fromAddress.street2 || '',
+            city: fromAddress.city,
+            state: fromAddress.state,
+            zip: fromAddress.zip,
+            country: fromAddress.country || 'US',
+          },
+          to_address: {
+            name: toAddress.name || 'Customer',
+            street1: toAddress.street1,
+            street2: toAddress.street2 || '',
+            city: toAddress.city,
+            state: toAddress.state,
+            zip: toAddress.zip,
+            country: toAddress.country || 'US',
+          },
+          parcel: {
+            length: parcel.length,
+            width: parcel.width,
+            height: parcel.height,
+            weight: parcel.weight,
+          },
+        },
       },
     });
 
     // Map EasyPost rates to our format
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let rates: ShippingRate[] = (shipment.rates || []).map((rate: any) => ({
+    let rates: ShippingRate[] = (shipment.rates || []).map((rate) => ({
       id: rate.id,
       carrier: rate.carrier,
       service: rate.service,
@@ -569,18 +644,41 @@ export interface PurchasedLabel {
  * @param shipmentId - EasyPost shipment ID (from getShippingRates)
  * @param rateId - EasyPost rate ID (user's selected rate)
  */
+/**
+ * EasyPost purchased shipment response type
+ */
+interface EasyPostPurchasedShipmentResponse {
+  id: string;
+  tracking_code: string;
+  tracker?: {
+    tracking_code: string;
+    public_url: string;
+  };
+  postage_label?: {
+    label_url: string;
+    label_file_type: string;
+  };
+  selected_rate?: {
+    carrier: string;
+    service: string;
+  };
+}
+
 export async function purchaseLabel(
   shipmentId: string,
   rateId: string
 ): Promise<{ success: boolean; label?: PurchasedLabel; errors?: string[] }> {
   try {
-    const client = getEasyPostClient();
-
-    // Retrieve the shipment
-    const shipment = await client.Shipment.retrieve(shipmentId);
-
-    // Buy the selected rate
-    const purchasedShipment = await client.Shipment.buy(shipment.id, rateId);
+    // Buy the selected rate using fetch API
+    const purchasedShipment = await easypostFetch<EasyPostPurchasedShipmentResponse>(
+      `/shipments/${shipmentId}/buy`,
+      {
+        method: 'POST',
+        body: {
+          rate: { id: rateId },
+        },
+      }
+    );
 
     // Extract tracking and label info
     const tracker = purchasedShipment.tracker;
@@ -632,6 +730,3 @@ export function stripeToEasyPostAddress(stripeAddress: {
     country: stripeAddress.country || 'US',
   };
 }
-
-// Export EasyPost client for advanced usage
-export { easypost };
