@@ -15,6 +15,7 @@
 | 4 | **Complete** | Consumer documentation site (docs.optic.works) |
 | 5 | Pending | Usability testing + accessibility audit |
 | 6 | Pending | CI/CD hardening + monitoring |
+| 7 | **In Progress** | Edge rate limiting + request buffering (Cloudflare WAF + Upstash Qstash) |
 
 ---
 
@@ -544,6 +545,303 @@ jobs:
 
 ---
 
+## Track 7: Edge Rate Limiting + Request Buffering
+
+**Goal**: Protect against runaway loops, API abuse, and third-party API cost overruns using edge-level rate limiting and request queuing.
+
+**Status**: In Progress
+
+**Context**: On December 7, 2025, an infinite loop bug exhausted the Cloudflare Workers free tier limit (100K/day) by generating ~580K requests in 2 hours. See `docs/postmortems/2025-12-07-infinite-loop-rate-limit.md` for full details.
+
+### Architecture
+
+```
+                    EDGE LAYER                         APPLICATION LAYER
+
+Browser Request
+       │
+       ▼
+┌─────────────────┐
+│  Cloudflare WAF │  ← Rate limiting rules (IP-based, path-based)
+│  Rate Limiting  │  ← Block before Workers invocation
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│   Cloudflare    │  ← In-memory rate limiting (per-isolate)
+│    Workers      │  ← Request debouncing
+└────────┬────────┘
+         │
+         ├──────────────────────────────────────┐
+         │                                      │
+         ▼                                      ▼
+┌─────────────────┐                   ┌─────────────────┐
+│  Direct APIs    │                   │  Upstash Qstash │
+│  (Medusa, etc)  │                   │  Request Queue  │
+└─────────────────┘                   └────────┬────────┘
+                                               │
+                                               ▼
+                                      ┌─────────────────┐
+                                      │   EasyPost API  │
+                                      │  (rate limited) │
+                                      └─────────────────┘
+```
+
+### Defense Layers
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| 1. Edge | Cloudflare WAF Rate Limiting | Block abusive IPs before Workers invocation |
+| 2. Application | In-memory rate limiting | Soft per-IP limits within Workers |
+| 3. Frontend | Request debouncing | Prevent rapid-fire requests from typing |
+| 4. Queue | Upstash Qstash | Buffer EasyPost calls, prevent overwhelming API |
+| 5. Circuit Breaker | Application logic | Stop calling failing APIs temporarily |
+
+### Implementation Plan
+
+#### Phase 1: Cloudflare WAF Rate Limiting (Edge)
+
+Configure WAF rules in Cloudflare dashboard for optic.works zone:
+
+**Rule 1: Shipping API Rate Limit**
+```
+Expression: (http.request.uri.path contains "/api/shipping")
+Characteristics: IP
+Period: 1 minute
+Requests: 30
+Action: Block
+Mitigation timeout: 60 seconds
+```
+
+**Rule 2: Checkout API Rate Limit**
+```
+Expression: (http.request.uri.path contains "/api/checkout")
+Characteristics: IP
+Period: 1 minute
+Requests: 15
+Action: Block
+Mitigation timeout: 60 seconds
+```
+
+**Rule 3: General API Rate Limit**
+```
+Expression: (http.request.uri.path starts with "/api/")
+Characteristics: IP
+Period: 1 minute
+Requests: 100
+Action: Challenge
+Mitigation timeout: 60 seconds
+```
+
+#### Phase 2: Frontend Debouncing
+
+Add debouncing to `useShippingRates` hook:
+
+```typescript
+// src/hooks/useShippingRates.ts
+import { useDebouncedCallback } from 'use-debounce';
+
+const debouncedFetch = useDebouncedCallback(
+  fetchRates,
+  500,  // 500ms debounce
+  { leading: false, trailing: true }
+);
+```
+
+#### Phase 3: Upstash Qstash Integration
+
+**Why Qstash?**
+- Rate limiting: Control requests/second to EasyPost
+- Retry logic: Automatic retries on failure
+- Dead letter queue: Handle permanently failed requests
+- Decoupling: Frontend doesn't wait for EasyPost response
+
+**Architecture:**
+
+```
+POST /api/shipping/rates
+       │
+       ▼
+┌─────────────────┐
+│  Check cache    │ ← Redis/KV cache for recent rates
+│  (hit? return)  │
+└────────┬────────┘
+         │ (miss)
+         ▼
+┌─────────────────┐
+│  Qstash publish │ ← Queue the EasyPost request
+│  + return 202   │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Qstash worker  │ ← Processes queue with rate limiting
+│  calls EasyPost │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│  Store in cache │ ← Cache result for 5-15 minutes
+│  (Redis/KV)     │
+└─────────────────┘
+```
+
+**Qstash Configuration:**
+```typescript
+// src/lib/qstash.ts
+import { Client } from '@upstash/qstash';
+
+export const qstash = new Client({
+  token: process.env.QSTASH_TOKEN!,
+});
+
+// Rate limit: 2 requests per second to EasyPost
+export const EASYPOST_RATE_LIMIT = {
+  requestsPerSecond: 2,
+  burstLimit: 5,
+};
+```
+
+**API Route (async pattern):**
+```typescript
+// POST /api/shipping/rates
+export async function POST(request: NextRequest) {
+  const { address, items } = await request.json();
+  const cacheKey = generateCacheKey(address, items);
+
+  // Check cache first
+  const cached = await kv.get(cacheKey);
+  if (cached) return Response.json(cached);
+
+  // Queue the request
+  await qstash.publishJSON({
+    url: `${process.env.APP_URL}/api/shipping/rates/process`,
+    body: { address, items, cacheKey },
+    retries: 3,
+    delay: 0,
+  });
+
+  // Return 202 Accepted with polling endpoint
+  return Response.json({
+    status: 'processing',
+    pollUrl: `/api/shipping/rates/status/${cacheKey}`,
+  }, { status: 202 });
+}
+```
+
+#### Phase 4: Circuit Breaker
+
+Implement circuit breaker pattern for EasyPost:
+
+```typescript
+// src/lib/circuit-breaker.ts
+interface CircuitState {
+  failures: number;
+  lastFailure: number;
+  state: 'closed' | 'open' | 'half-open';
+}
+
+const FAILURE_THRESHOLD = 5;
+const RESET_TIMEOUT = 300_000; // 5 minutes
+
+export function shouldAllowRequest(service: string): boolean {
+  const state = getCircuitState(service);
+
+  if (state.state === 'open') {
+    if (Date.now() - state.lastFailure > RESET_TIMEOUT) {
+      // Try half-open
+      setCircuitState(service, { ...state, state: 'half-open' });
+      return true;
+    }
+    return false; // Circuit open, use fallback
+  }
+
+  return true;
+}
+```
+
+### Tasks
+
+**Phase 1: Cloudflare WAF (Edge Rate Limiting)**
+- [ ] Create shipping API rate limit rule (30 req/min)
+- [ ] Create checkout API rate limit rule (15 req/min)
+- [ ] Create general API rate limit rule (100 req/min)
+- [ ] Test rules don't block legitimate traffic
+- [ ] Document rules in `docs/reference/CLOUDFLARE_API.md`
+
+**Phase 2: Frontend Debouncing**
+- [ ] Install `use-debounce` package
+- [ ] Add 500ms debounce to `useShippingRates`
+- [ ] Add 300ms debounce to `useAddressValidation`
+- [ ] Test debouncing doesn't affect UX
+
+**Phase 3: Upstash Qstash Integration**
+- [ ] Set up Upstash account and Qstash
+- [ ] Add `QSTASH_TOKEN` to Infisical and Workers secrets
+- [ ] Implement async shipping rates API
+- [ ] Add Cloudflare KV for rate caching
+- [ ] Create Qstash callback endpoint
+- [ ] Implement polling mechanism for frontend
+- [ ] Add fallback for when queue is slow
+
+**Phase 4: Circuit Breaker**
+- [ ] Implement circuit breaker utility
+- [ ] Add to EasyPost API calls
+- [ ] Configure failure threshold (5 failures in 60s)
+- [ ] Configure reset timeout (5 minutes)
+- [ ] Log circuit state changes
+
+**Phase 5: Monitoring & Alerting**
+- [ ] Set up Cloudflare Workers analytics alerting
+- [ ] Add Qstash dashboard monitoring
+- [ ] Create runbook for rate limit incidents
+- [ ] Document escalation procedures
+
+### Environment Variables
+
+```bash
+# Upstash Qstash (add to Infisical + Cloudflare Workers secrets)
+QSTASH_TOKEN=xxx
+QSTASH_CURRENT_SIGNING_KEY=xxx
+QSTASH_NEXT_SIGNING_KEY=xxx
+
+# Upstash Redis (for caching, optional)
+UPSTASH_REDIS_URL=xxx
+UPSTASH_REDIS_TOKEN=xxx
+```
+
+### Key Files
+
+**New Files:**
+- `src/lib/qstash.ts` - Qstash client configuration
+- `src/lib/circuit-breaker.ts` - Circuit breaker utility
+- `src/app/api/shipping/rates/process/route.ts` - Qstash callback endpoint
+- `src/app/api/shipping/rates/status/[key]/route.ts` - Polling endpoint
+
+**Modified Files:**
+- `src/hooks/useShippingRates.ts` - Add debouncing, polling support
+- `src/hooks/useAddressValidation.ts` - Add debouncing
+- `src/app/api/shipping/rates/route.ts` - Async queue pattern
+- `src/lib/api/easypost.ts` - Circuit breaker integration
+
+### Success Criteria
+
+- [ ] WAF rules blocking >30 req/min from single IP on /api/shipping
+- [ ] No infinite loops can exhaust Workers daily limit
+- [ ] EasyPost API calls rate-limited to 2/second via Qstash
+- [ ] Circuit breaker activates after 5 consecutive failures
+- [ ] Frontend debouncing prevents rapid-fire requests
+- [ ] Alerting triggers on abnormal request volumes
+
+### Reference
+
+- [Cloudflare WAF Rate Limiting](https://developers.cloudflare.com/waf/rate-limiting-rules/)
+- [Upstash Qstash Documentation](https://upstash.com/docs/qstash/overall/getstarted)
+- [Circuit Breaker Pattern](https://martinfowler.com/bliki/CircuitBreaker.html)
+- [Postmortem: 2025-12-07 Infinite Loop](../postmortems/2025-12-07-infinite-loop-rate-limit.md)
+
+---
+
 ## Success Criteria
 
 ### Track 1: Products
@@ -575,6 +873,13 @@ jobs:
 - [ ] Automated deployments working
 - [ ] E2E tests in CI
 - [ ] Monitoring and alerting active
+
+### Track 7: Rate Limiting
+- [ ] Cloudflare WAF rate limiting rules active
+- [ ] Frontend debouncing implemented
+- [ ] Upstash Qstash buffering EasyPost requests
+- [ ] Circuit breaker preventing cascading failures
+- [ ] Alerting on abnormal request volumes
 
 ---
 
