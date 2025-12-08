@@ -185,15 +185,124 @@ curl -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/dns_records"
 
 ---
 
+## WAF Rate Limiting Rules
+
+Rate limiting rules protect API endpoints from abuse and prevent runaway loops from exhausting Workers quota.
+
+### Current Rules
+
+| Ruleset ID | Rule ID | Description |
+|------------|---------|-------------|
+| `d88b83536001478ba826e0fe4c36bb3a` | `e6e4f40f74bf47e092b8f7f95fa45421` | Shipping + Checkout API Rate Limit |
+
+**Rule Details:**
+- **Expression**: `(http.request.uri.path contains "/api/shipping") or (http.request.uri.path contains "/api/checkout")`
+- **Limit**: 5 requests per 10 seconds per IP (30/min equivalent)
+- **Action**: Block for 10 seconds
+- **Characteristics**: `cf.colo.id`, `ip.src` (per-colo, per-IP)
+
+### Free Plan Limitations
+
+The Cloudflare Free plan has significant limitations for rate limiting:
+
+| Feature | Free Plan | Pro Plan |
+|---------|-----------|----------|
+| Rules per phase | 1 | 5 |
+| Period options | 10s only | 10s, 1m, 2m, 5m, 10m, 1h |
+| Mitigation timeout | 10s only | 10s - 1h |
+| Characteristics | Limited | Full set |
+
+**Recommendation**: Consider upgrading to Pro ($20/month) if more granular rate limiting is needed.
+
+### Create Rate Limiting Ruleset
+
+```bash
+ZONE_ID="aa28e2b93bb6af9db7a0e95d53820b92"
+
+curl -X POST "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets" \
+  -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+  -H "X-Auth-Key: ${CLOUDFLARE_GLOBAL_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "OpticWorks API Rate Limiting",
+    "description": "Rate limiting for API endpoints",
+    "kind": "zone",
+    "phase": "http_ratelimit",
+    "rules": [{
+      "action": "block",
+      "expression": "(http.request.uri.path contains \"/api/shipping\") or (http.request.uri.path contains \"/api/checkout\")",
+      "description": "API Rate Limit - 5 req/10s per IP",
+      "ratelimit": {
+        "characteristics": ["cf.colo.id", "ip.src"],
+        "period": 10,
+        "requests_per_period": 5,
+        "mitigation_timeout": 10
+      }
+    }]
+  }'
+```
+
+### List Rate Limiting Rules
+
+```bash
+curl -X GET "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets?kind=zone" \
+  -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+  -H "X-Auth-Key: ${CLOUDFLARE_GLOBAL_API_KEY}"
+```
+
+### Delete Rate Limiting Ruleset
+
+```bash
+RULESET_ID="d88b83536001478ba826e0fe4c36bb3a"
+
+curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets/${RULESET_ID}" \
+  -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+  -H "X-Auth-Key: ${CLOUDFLARE_GLOBAL_API_KEY}"
+```
+
+---
+
+## KV Namespaces
+
+### Current Namespaces
+
+| Binding | Namespace ID | Purpose |
+|---------|--------------|---------|
+| `SHIPPING_RATES_CACHE` | `e11813a7581f480ea39633e492a53222` | Cache shipping rates (10min TTL) |
+
+### Create KV Namespace
+
+```bash
+curl -X POST "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/storage/kv/namespaces" \
+  -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+  -H "X-Auth-Key: ${CLOUDFLARE_GLOBAL_API_KEY}" \
+  -H "Content-Type: application/json" \
+  -d '{"title": "my-namespace"}'
+```
+
+### List KV Namespaces
+
+```bash
+curl -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/storage/kv/namespaces" \
+  -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
+  -H "X-Auth-Key: ${CLOUDFLARE_GLOBAL_API_KEY}"
+```
+
+---
+
 ## Current Resources
 
 | Resource | Name/ID |
 |----------|---------|
 | **Account ID** | `39f8fd4a5b0c7558aed585facd57ec3b` |
+| **Zone ID (optic.works)** | `aa28e2b93bb6af9db7a0e95d53820b92` |
 | **Public Bucket** | `opticworks-public` |
 | **Backup Bucket** | `opticworks-backups` |
+| **Cache Bucket** | `opticworks-cache` |
 | **API Tunnel** | `db4738a9-20b7-4dd7-bde2-0760e0188071` |
 | **R2 Endpoint** | `https://39f8fd4a5b0c7558aed585facd57ec3b.r2.cloudflarestorage.com` |
+| **Shipping Cache KV** | `e11813a7581f480ea39633e492a53222` |
+| **Rate Limit Ruleset** | `d88b83536001478ba826e0fe4c36bb3a` |
 
 ---
 

@@ -166,15 +166,26 @@ Dec 7: 433,366 requests (loop at scale, rate limited)
 | In-memory rate limiting | Per-IP limits on API routes | Done |
 | Rate limit headers | X-RateLimit-* headers on responses | Done |
 
-### Planned (Track 7 in Phase 4)
+### Implemented (Track 7 - December 8, 2025)
+
+| Measure | Description | Status |
+|---------|-------------|--------|
+| Cloudflare WAF rate limiting | Edge-level protection: 5 req/10s on /api/shipping + /api/checkout | ✅ Active |
+| Request debouncing | 500ms debounce in useShippingRates hook | ✅ Implemented |
+| KV caching | 10-minute cache for shipping rates | ✅ Implemented |
+| Circuit breaker | Stop calling EasyPost after 5 failures (5min reset) | ✅ Implemented |
+| 3s API timeout | Prevents slow EasyPost calls from blocking checkout | ✅ Implemented |
+| QStash library | Client library ready for future background job use | ✅ Implemented |
+
+### Future Considerations
 
 | Measure | Description | Priority |
 |---------|-------------|----------|
-| Cloudflare WAF rate limiting | Edge-level protection before Workers | High |
-| Upstash Qstash | Queue/buffer for EasyPost API calls | High |
-| Request debouncing | 500ms debounce in useShippingRates | Medium |
-| Circuit breaker | Stop calling EasyPost after N failures | Medium |
-| Workers Paid plan | 10M requests/month included | Consider |
+| Workers Paid plan | 10M requests/month included ($5/month) | Consider |
+| Cloudflare Pro | More WAF rules, longer rate limit periods ($20/month) | Consider |
+| QStash async pattern | Background cache warming for shipping rates | Low |
+
+**Note on Free Plan Limitations**: Cloudflare Free plan only allows 1 rate limiting rule with 10-second period/timeout. Pro plan ($20/month) provides 5 rules with configurable periods (10s-1hr).
 
 ---
 
@@ -195,13 +206,16 @@ Dec 7: 433,366 requests (loop at scale, rate limited)
 
 ### Action Items
 
-| Item | Owner | Due |
-|------|-------|-----|
-| Implement Cloudflare WAF rate limiting | Ryan | Dec 14 |
-| Set up Upstash Qstash for EasyPost | Ryan | Dec 14 |
-| Add request volume alerting | Ryan | Dec 21 |
-| Consider Workers Paid plan | Ryan | Dec 21 |
-| Add exhaustive-deps ESLint rule enforcement | Ryan | Dec 14 |
+| Item | Owner | Status |
+|------|-------|--------|
+| Implement Cloudflare WAF rate limiting | Ryan | ✅ Done (Dec 8) |
+| Set up Upstash Qstash for EasyPost | Ryan | ✅ Done (Dec 8) - library ready |
+| Add request debouncing | Ryan | ✅ Done (Dec 8) |
+| Implement circuit breaker | Ryan | ✅ Done (Dec 8) |
+| Add KV caching for rates | Ryan | ✅ Done (Dec 8) |
+| Add request volume alerting | Ryan | Pending |
+| Consider Workers Paid plan | Ryan | Pending |
+| Add exhaustive-deps ESLint rule enforcement | Ryan | Pending |
 
 ---
 

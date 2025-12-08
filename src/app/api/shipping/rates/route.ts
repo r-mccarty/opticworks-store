@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getShippingRates,
+  getMockShippingRates,
   stripeToEasyPostAddress,
   type ShippingRate as EasyPostRate,
   type AddressInput,
@@ -12,6 +13,17 @@ import {
   rateLimitHeaders,
   RATE_LIMITS,
 } from '@/lib/rate-limit';
+import {
+  withCircuitBreaker,
+  EASYPOST_CIRCUIT,
+} from '@/lib/circuit-breaker';
+import { getCloudflareContext } from '@opennext/cloudflare';
+
+// Cache TTL in seconds (10 minutes - balance between freshness and API cost savings)
+const CACHE_TTL_SECONDS = 600;
+
+// Timeout for EasyPost API calls (3 seconds)
+const API_TIMEOUT_MS = 3000;
 
 /**
  * Request body for shipping rates API
@@ -60,6 +72,53 @@ export interface ShippingRatesApiResponse {
   freeShippingEligible: boolean;
   freeShippingThreshold: number;
   errors?: string[];
+}
+
+/**
+ * Generate a cache key for shipping rates based on address and items
+ */
+function generateCacheKey(address: AddressInput, items: Array<{ sku: string; quantity: number }>): string {
+  const addressKey = `${address.zip}_${address.state}_${address.city}`.toLowerCase().replace(/\s+/g, '');
+  const itemsKey = items.map(i => `${i.sku}:${i.quantity}`).sort().join(',');
+  return `rates:${addressKey}:${itemsKey}`;
+}
+
+/**
+ * Get KV namespace for caching (returns null if not available)
+ */
+async function getKVNamespace(): Promise<KVNamespace | null> {
+  try {
+    const { env } = await getCloudflareContext();
+    return (env as { SHIPPING_RATES_CACHE?: KVNamespace }).SHIPPING_RATES_CACHE || null;
+  } catch {
+    // Running locally without Cloudflare context
+    return null;
+  }
+}
+
+/**
+ * Fetch with timeout
+ */
+async function fetchWithTimeout<T>(
+  fn: () => Promise<T>,
+  timeoutMs: number
+): Promise<T> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const result = await Promise.race([
+      fn(),
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error(`Request timed out after ${timeoutMs}ms`));
+        });
+      }),
+    ]);
+    return result;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 }
 
 /**
@@ -212,9 +271,72 @@ export async function POST(request: NextRequest) {
     // Calculate combined parcel dimensions
     const parcel = calculateCombinedParcel(items);
 
-    // Get rates from EasyPost
-    // Filter to USPS and FedEx only
-    const ratesResponse = await getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']);
+    // Generate cache key
+    const cacheKey = generateCacheKey(easypostAddress, items);
+    const kv = await getKVNamespace();
+
+    // Check cache first
+    if (kv) {
+      try {
+        const cached = await kv.get(cacheKey, 'json') as {
+          rates: EasyPostRate[];
+          shipmentId: string;
+        } | null;
+
+        if (cached) {
+          console.log('📦 Cache HIT for shipping rates');
+          // Process cached rates through the same transformation
+          const badges = assignBadges(cached.rates);
+          const freeShippingThreshold = 200;
+          const freeShippingEligible = subtotal >= freeShippingThreshold;
+
+          const rates: ShippingRateResponse[] = cached.rates.map((rate) => ({
+            id: rate.id,
+            carrier: rate.carrier,
+            service: rate.service,
+            serviceName: formatServiceName(rate.carrier, rate.service),
+            rate: freeShippingEligible && badges.get(rate.id)?.includes('Best Value')
+              ? 0
+              : rate.rate,
+            currency: rate.currency,
+            estimatedDays: rate.deliveryDays,
+            estimatedDelivery: formatEstimatedDelivery(rate.deliveryDays, rate.deliveryDateGuaranteed),
+            guaranteed: rate.deliveryDateGuaranteed,
+            badges: badges.get(rate.id),
+          }));
+
+          return NextResponse.json<ShippingRatesApiResponse>({
+            success: true,
+            shipmentId: cached.shipmentId,
+            rates,
+            isDigitalOnly: false,
+            freeShippingEligible,
+            freeShippingThreshold,
+          });
+        }
+      } catch (cacheError) {
+        console.warn('📦 Cache read error:', cacheError);
+        // Continue to fetch from API
+      }
+    }
+
+    console.log('📦 Cache MISS - fetching from EasyPost');
+
+    // Get rates from EasyPost with circuit breaker and timeout
+    // Falls back to mock rates if circuit is open or request times out
+    const ratesResponse = await withCircuitBreaker(
+      EASYPOST_CIRCUIT,
+      async () => {
+        return fetchWithTimeout(
+          () => getShippingRates(easypostAddress, parcel, ['USPS', 'FedEx']),
+          API_TIMEOUT_MS
+        );
+      },
+      () => {
+        console.log('📦 Using mock rates (circuit open or timeout)');
+        return getMockShippingRates(easypostAddress);
+      }
+    );
 
     if (!ratesResponse.success) {
       return NextResponse.json<ShippingRatesApiResponse>(
@@ -229,6 +351,24 @@ export async function POST(request: NextRequest) {
         },
         { status: 500 }
       );
+    }
+
+    // Cache the successful response
+    if (kv && ratesResponse.rates.length > 0) {
+      try {
+        await kv.put(
+          cacheKey,
+          JSON.stringify({
+            rates: ratesResponse.rates,
+            shipmentId: ratesResponse.shipmentId,
+          }),
+          { expirationTtl: CACHE_TTL_SECONDS }
+        );
+        console.log('📦 Cached shipping rates for', CACHE_TTL_SECONDS, 'seconds');
+      } catch (cacheError) {
+        console.warn('📦 Cache write error:', cacheError);
+        // Continue without caching
+      }
     }
 
     // Assign badges (Best Value, Fastest)

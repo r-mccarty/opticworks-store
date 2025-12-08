@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useDebouncedCallback } from 'use-debounce';
 import type { ShippingRateResponse, ShippingRatesApiResponse } from '@/app/api/shipping/rates/route';
 
 export interface ShippingAddress {
@@ -23,6 +24,8 @@ interface UseShippingRatesOptions {
   items: CartItem[];
   subtotal: number;
   enabled?: boolean;
+  /** Debounce delay in milliseconds (default: 500ms) */
+  debounceMs?: number;
 }
 
 interface UseShippingRatesReturn {
@@ -60,6 +63,7 @@ export function useShippingRates({
   items,
   subtotal,
   enabled = true,
+  debounceMs = 500,
 }: UseShippingRatesOptions): UseShippingRatesReturn {
   const [rates, setRates] = useState<ShippingRateResponse[]>([]);
   const [selectedRate, setSelectedRate] = useState<ShippingRateResponse | null>(null);
@@ -69,6 +73,9 @@ export function useShippingRates({
   const [isDigitalOnly, setIsDigitalOnly] = useState(false);
   const [freeShippingEligible, setFreeShippingEligible] = useState(false);
   const [freeShippingThreshold, setFreeShippingThreshold] = useState(200);
+
+  // Track the current request to cancel stale requests
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchRates = useCallback(async () => {
     // Validate address has required fields
@@ -80,6 +87,12 @@ export function useShippingRates({
     if (!items || items.length === 0) {
       return;
     }
+
+    // Cancel any in-flight request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     setIsLoading(true);
     setError(null);
@@ -95,6 +108,7 @@ export function useShippingRates({
           items,
           subtotal,
         }),
+        signal: abortControllerRef.current.signal,
       });
 
       const data: ShippingRatesApiResponse = await response.json();
@@ -115,6 +129,10 @@ export function useShippingRates({
       // Auto-select cheapest rate (handled in separate useEffect to avoid dependency loop)
 
     } catch (err) {
+      // Ignore abort errors - they're expected when debouncing
+      if (err instanceof Error && err.name === 'AbortError') {
+        return;
+      }
       console.error('Error fetching shipping rates:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch shipping rates');
       setRates([]);
@@ -124,14 +142,30 @@ export function useShippingRates({
     }
   }, [address, items, subtotal]);
 
-  // Fetch rates when address or items change
-  // We deliberately use individual address fields for better debouncing
+  // Debounced version of fetchRates to prevent rapid-fire requests
+  const debouncedFetchRates = useDebouncedCallback(
+    fetchRates,
+    debounceMs,
+    { leading: false, trailing: true }
+  );
+
+  // Fetch rates when address or items change (debounced to prevent rapid requests)
   useEffect(() => {
     if (enabled && address && items.length > 0) {
-      fetchRates();
+      debouncedFetchRates();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, address?.line1, address?.city, address?.state, address?.postal_code, items.length, subtotal, fetchRates]);
+  }, [enabled, address?.line1, address?.city, address?.state, address?.postal_code, items.length, subtotal, debouncedFetchRates]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      debouncedFetchRates.cancel();
+    };
+  }, [debouncedFetchRates]);
 
   // Auto-select cheapest rate when rates load
   // Only runs when rates change, not when selectedRate changes (avoids loop)

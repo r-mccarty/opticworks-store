@@ -35,6 +35,14 @@
     }
   ],
 
+  // KV namespace for shipping rates cache
+  "kv_namespaces": [
+    {
+      "binding": "SHIPPING_RATES_CACHE",
+      "id": "e11813a7581f480ea39633e492a53222"
+    }
+  ],
+
   // Self-reference for cache revalidation
   "services": [
     {
@@ -86,6 +94,12 @@
         {
           "binding": "NEXT_INC_CACHE_R2_BUCKET",
           "bucket_name": "opticworks-cache"
+        }
+      ],
+      "kv_namespaces": [
+        {
+          "binding": "SHIPPING_RATES_CACHE",
+          "id": "e11813a7581f480ea39633e492a53222"
         }
       ],
       "services": [
