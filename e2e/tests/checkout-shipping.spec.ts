@@ -192,9 +192,14 @@ test.describe('Checkout Shipping', () => {
     const rates = await checkoutPage.getAvailableShippingRates();
     expect(rates.length).toBeGreaterThan(0);
 
-    // Select first available rate
+    // Select first available rate - this triggers:
+    // 1. addShippingMethod() to add shipping to cart
+    // 2. onShippingChange() to refresh PaymentIntent with new amount
     await checkoutPage.selectShippingRate(rates[0]);
-    await page.waitForTimeout(500);
+
+    // Wait for payment session to refresh after shipping selection
+    // This is critical to prevent payment_intent_unexpected_state errors
+    await page.waitForTimeout(2000);
 
     // Verify shipping cost in order summary
     const shippingCost = await checkoutPage.getShippingCost();

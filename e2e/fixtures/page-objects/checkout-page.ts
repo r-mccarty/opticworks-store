@@ -490,4 +490,36 @@ export class CheckoutPage {
     }
     return null;
   }
+
+  /**
+   * Wait for payment session to refresh after shipping selection.
+   * When shipping is selected, the PaymentIntent needs to be updated
+   * with the new cart total (including shipping cost).
+   *
+   * This waits for:
+   * 1. Network activity to settle
+   * 2. Stripe Elements to potentially re-initialize
+   *
+   * @param timeout - How long to wait (default 3000ms)
+   */
+  async waitForPaymentSessionRefresh(timeout = 3000): Promise<void> {
+    console.log('[CheckoutPage] Waiting for payment session refresh...');
+
+    // Wait for any network requests to complete
+    await this.page.waitForLoadState('networkidle', { timeout });
+
+    // Additional buffer for Stripe to process the update
+    await this.page.waitForTimeout(1000);
+
+    console.log('[CheckoutPage] Payment session refresh complete');
+  }
+
+  /**
+   * Select shipping and wait for payment session to update.
+   * This is the recommended way to select shipping in tests.
+   */
+  async selectShippingAndWait(rateId: string): Promise<void> {
+    await this.selectShippingRate(rateId);
+    await this.waitForPaymentSessionRefresh();
+  }
 }

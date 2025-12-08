@@ -89,19 +89,26 @@ test.describe('Checkout Flow', () => {
       throw error;
     }
 
-    // Step 5.6: Wait for shipping rates and verify selection
-    // Shipping selection is REQUIRED for payment - the Pay button is disabled until a rate is selected
+    // Step 5.6: Wait for shipping rates and EXPLICITLY select one
+    // IMPORTANT: Auto-selection in the UI only sets state, it does NOT add shipping to cart
+    // or refresh the payment session. We MUST click a rate to trigger the full flow.
     logStep(5.6, 'Waiting for shipping rates');
     try {
       await checkoutPage.waitForShippingRates();
       const rates = await checkoutPage.getAvailableShippingRates();
       console.log(`Found ${rates.length} shipping rates`);
 
-      // If rates loaded, the cheapest should be auto-selected
-      // If no rates, it might be a digital-only order or error
       if (rates.length > 0) {
-        // Wait a bit for auto-selection to take effect
-        await page.waitForTimeout(500);
+        // EXPLICITLY click the first shipping rate to trigger:
+        // 1. addShippingMethod() - adds shipping to cart total
+        // 2. onShippingChange() - refreshes PaymentIntent with new amount
+        console.log(`Selecting shipping rate: ${rates[0]}`);
+        await checkoutPage.selectShippingRate(rates[0]);
+
+        // Wait for payment session to refresh after shipping selection
+        // This is critical - the PaymentIntent needs to be updated with shipping cost
+        await page.waitForTimeout(2000);
+        console.log('Waited for payment session refresh after shipping selection');
       }
 
       // Verify shipping cost shows in order summary
@@ -198,10 +205,15 @@ test.describe('Checkout Flow', () => {
     await checkoutPage.fillEmail(generateTestEmail());
     await checkoutPage.fillShippingAddress(testAddress);
 
-    // Wait for shipping rates to load and auto-select
+    // Wait for shipping rates and EXPLICITLY select one
     try {
       await checkoutPage.waitForShippingRates();
-      await page.waitForTimeout(500); // Allow auto-selection
+      const rates = await checkoutPage.getAvailableShippingRates();
+      if (rates.length > 0) {
+        await checkoutPage.selectShippingRate(rates[0]);
+        // Wait for payment session to refresh
+        await page.waitForTimeout(2000);
+      }
     } catch {
       // Shipping may still work if digital-only
       console.log('Shipping rates loading issue, continuing...');
@@ -226,6 +238,107 @@ test.describe('Checkout Flow', () => {
 
     // Should NOT be on success page
     expect(currentUrl).not.toContain('/success');
+  });
+
+  test('payment submission shows clear error on failure', async ({ page }, testInfo) => {
+    /**
+     * This test verifies that when payment fails, a clear error message is shown.
+     * This catches issues like payment_intent_unexpected_state where the UI might
+     * fail silently or show a generic error.
+     */
+    const consoleLogs = createConsoleCapture(page);
+    const networkLogs = createNetworkLogger(page);
+    const productPage = new ProductPage(page);
+    const cartPage = new CartPage(page);
+    const checkoutPage = new CheckoutPage(page);
+
+    // Setup: Add product to cart
+    await productPage.goto(testProducts.flagship.slug);
+    await productPage.waitForProduct();
+
+    try {
+      await productPage.addToCart();
+    } catch (error) {
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'add-failed');
+      throw error;
+    }
+
+    await page.waitForTimeout(2000);
+
+    // Go to checkout
+    await cartPage.goto();
+    if (!(await cartPage.hasItems())) {
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'cart-empty');
+      throw new Error('Cart is empty');
+    }
+
+    await cartPage.proceedToPayment();
+
+    try {
+      await checkoutPage.waitForCheckoutReady();
+    } catch (error) {
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'checkout-failed');
+      throw error;
+    }
+
+    // Fill checkout form
+    await checkoutPage.fillEmail(generateTestEmail());
+    await checkoutPage.fillShippingAddress(testAddress);
+
+    // Wait for shipping rates and select one
+    try {
+      await checkoutPage.waitForShippingRates();
+      const rates = await checkoutPage.getAvailableShippingRates();
+      if (rates.length > 0) {
+        await checkoutPage.selectShippingRate(rates[0]);
+        // Wait for payment session refresh
+        await page.waitForTimeout(2000);
+      }
+    } catch {
+      console.log('Shipping rates issue, continuing...');
+    }
+
+    // Fill declined card - will fail with clear error
+    await checkoutPage.fillCardDetails(testCards.decline);
+
+    // Submit payment
+    await checkoutPage.submitPayment();
+
+    // Wait for error to appear (not success)
+    await page.waitForTimeout(5000);
+
+    // Verify we're NOT on success page
+    const currentUrl = page.url();
+    expect(currentUrl).not.toContain('/success');
+
+    // Check for error message
+    const errorMsg = await checkoutPage.getErrorMessage();
+    const statusMsg = await checkoutPage.getStatusMessage();
+
+    console.log('Error message:', errorMsg);
+    console.log('Status message:', statusMsg);
+
+    // Should have some error indication (either in error or status message)
+    const hasErrorIndication = (errorMsg && errorMsg.length > 0) ||
+                               (statusMsg && statusMsg.length > 0 && !statusMsg.includes('successful'));
+
+    if (!hasErrorIndication) {
+      // Capture debug info if no error shown (this is the bug we want to catch)
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'no-error-shown');
+      console.error('BUG: Payment failed but no error message shown to user!');
+    }
+
+    // Log console errors for debugging
+    const stripeErrors = consoleLogs.errors.filter(e =>
+      e.toLowerCase().includes('stripe') ||
+      e.toLowerCase().includes('payment') ||
+      e.toLowerCase().includes('intent')
+    );
+    if (stripeErrors.length > 0) {
+      console.log('Stripe-related console errors:', stripeErrors);
+    }
+
+    expect(hasErrorIndication).toBe(true);
   });
 
   test('debug: capture full checkout initialization', async ({ page }, testInfo) => {
