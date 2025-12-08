@@ -17,7 +17,7 @@ import {
   withCircuitBreaker,
   EASYPOST_CIRCUIT,
 } from '@/lib/circuit-breaker';
-import { getCloudflareContext } from '@opennext/cloudflare';
+import { getCloudflareContext } from '@opennextjs/cloudflare';
 
 // Cache TTL in seconds (10 minutes - balance between freshness and API cost savings)
 const CACHE_TTL_SECONDS = 600;
