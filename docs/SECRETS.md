@@ -42,11 +42,75 @@ cat .env.local | head -5
 | Variable | Purpose |
 |----------|---------|
 | `DATABASE_URL` | PostgreSQL connection string |
+| `POSTGRES_PASSWORD` | Raw PostgreSQL password (URL-encoded in DATABASE_URL) |
 | `REDIS_URL` | Redis connection string |
 | `JWT_SECRET` | Auth token signing |
 | `COOKIE_SECRET` | Session cookie encryption |
+| `MEDUSA_SECRET_KEY` | Medusa backend secret key |
 | `MEDUSA_ADMIN_EMAIL` | Admin dashboard login |
 | `MEDUSA_ADMIN_PASSWORD` | Admin dashboard password |
+| `MEDUSA_ADMIN_CORS` | Allowed origins for admin API |
+| `MEDUSA_STORE_CORS` | Allowed origins for store API |
+
+### Cloudflare
+
+| Variable | Purpose |
+|----------|---------|
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account identifier |
+| `CLOUDFLARE_API_TOKEN` | Scoped API token for automation |
+| `CLOUDFLARE_EMAIL` | Account email |
+| `CLOUDFLARE_GLOBAL_API_KEY` | Global API key (legacy, prefer token) |
+| `CLOUDFLARE_API_BASE_URL` | API endpoint URL |
+| `CLOUDFLARE_TUNNEL_ID` | Tunnel identifier for backend |
+| `CLOUDFLARE_TUNNEL_CREDENTIALS` | JSON credentials for tunnel |
+
+### R2 Storage
+
+| Variable | Purpose |
+|----------|---------|
+| `R2_ACCESS_KEY_ID` | R2 access key for public bucket |
+| `R2_SECRET_ACCESS_KEY` | R2 secret for public bucket |
+| `R2_BUCKET_NAME` | Public assets bucket name |
+| `R2_ENDPOINT_URL` | R2 S3-compatible endpoint |
+| `R2_PUBLIC_URL` | Public CDN URL for assets |
+| `R2_BACKUP_ACCESS_KEY_ID` | R2 access key for backups |
+| `R2_BACKUP_SECRET_ACCESS_KEY` | R2 secret for backups |
+| `R2_BACKUP_BUCKET_NAME` | Backup bucket name |
+
+### Fulfillment
+
+| Variable | Purpose |
+|----------|---------|
+| `EASYPOST_API_KEY` | EasyPost API for shipping rates/labels |
+
+### Email
+
+| Variable | Purpose |
+|----------|---------|
+| `RESEND_API_KEY` | Resend API for transactional email |
+
+### Background Jobs (QStash)
+
+| Variable | Purpose |
+|----------|---------|
+| `QSTASH_URL` | QStash API endpoint |
+| `QSTASH_TOKEN` | QStash authentication token |
+| `QSTASH_CURRENT_SIGNING_KEY` | Current webhook signature key |
+| `QSTASH_NEXT_SIGNING_KEY` | Next rotation signing key |
+
+### Backup & Recovery
+
+| Variable | Purpose |
+|----------|---------|
+| `RESTIC_PASSWORD` | Encryption password for restic backups |
+
+### Testing
+
+| Variable | Purpose |
+|----------|---------|
+| `MAILOSAUR_API_KEY` | Email testing service API key |
+| `MAILOSAUR_SERVER_ID` | Mailosaur server for test emails |
+| `CONTEXT7_API_KEY` | Context7 API key |
 
 ## Infisical Structure
 
@@ -73,15 +137,29 @@ Never edit `group_vars/secrets.yml` directly - regenerate from Infisical.
 
 ## Adding New Secrets
 
-1. Add to Infisical via web UI
+### Via Web UI
+1. Add to Infisical via web UI at https://app.infisical.com
 2. For storefront: `pnpm run secrets:pull`
 3. For backend: Run Ansible deploy
 
+### Via CLI
+```bash
+# Add a secret to prod environment
+infisical secrets set SECRET_NAME="value" \
+  --env=prod \
+  --projectId=42e9e77c-88fa-4cbb-925b-5064c8e3b18c \
+  --token="$INFISICAL_SERVICE_TOKEN"
+```
+
 ## Rotation Schedule
 
-- **Backend secrets**: Monthly (DATABASE_URL, JWT_SECRET, etc.)
-- **API keys**: Quarterly (Stripe, analytics)
+- **Backend secrets**: Monthly (DATABASE_URL, JWT_SECRET, COOKIE_SECRET)
+- **API keys**: Quarterly (Stripe, EasyPost, Resend)
+- **Cloudflare credentials**: Quarterly
+- **R2 keys**: Quarterly
+- **QStash keys**: As needed (NEXT_SIGNING_KEY becomes CURRENT on rotation)
 - **Service tokens**: Yearly
+- **Backup encryption**: Yearly (RESTIC_PASSWORD - requires re-init)
 
 ## Troubleshooting
 
