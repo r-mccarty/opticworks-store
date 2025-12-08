@@ -433,8 +433,10 @@ export class CheckoutPage {
   async selectShippingRate(rateId: string): Promise<void> {
     console.log(`[CheckoutPage] Selecting shipping rate: ${rateId}`);
 
-    const rateLabel = this.page.locator(`[data-testid="shipping-rate-${rateId}"]`);
-    await rateLabel.waitFor({ state: 'visible', timeout: 5000 });
+    // Target the radio input directly (not the label) to ensure onChange fires
+    // The input has sr-only class but is still in the DOM and focusable
+    const radioInput = this.page.locator(`[data-testid="shipping-radio-${rateId}"]`);
+    await radioInput.waitFor({ state: 'attached', timeout: 5000 });
 
     // Click and wait for the shipping-methods API call to complete
     // This ensures the shipping method is actually added to the cart
@@ -443,7 +445,7 @@ export class CheckoutPage {
         (resp) => resp.url().includes('/shipping-methods') && resp.status() === 200,
         { timeout: 10000 }
       ).catch(() => null), // Don't fail if no call is made (e.g., already selected)
-      rateLabel.click(),
+      radioInput.click({ force: true }), // force: true to click even if sr-only
     ]);
 
     if (response) {
