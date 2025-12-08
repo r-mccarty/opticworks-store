@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo, FormEvent } from 'react';
+import { useState, useCallback, FormEvent } from 'react';
 import {
   PaymentElement,
   AddressElement,
@@ -16,15 +16,15 @@ import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { completeCart, updateCart, type MedusaAddress } from '@/lib/api/medusa';
 import { ShippingSelector } from './ShippingSelector';
-import { useShippingRates, type ShippingAddress, type ShippingRateResponse } from '@/hooks/useShippingRates';
-import { getSkuFromName } from '@/lib/products-dimensions';
+import { useMedusaShipping, type ShippingAddress, type ShippingRate } from '@/hooks/useMedusaShipping';
 
 interface CheckoutFormProps {
   clientSecret: string;
   cartId: string;
   onSuccess: (orderId: string) => void;
   onError: (error: string) => void;
-  onShippingChange?: (rate: ShippingRateResponse | null, shipmentId: string) => void;
+  /** Called when shipping rate changes, allowing parent to refresh payment intent */
+  onShippingChange?: (rate: ShippingRate | null) => void;
 }
 
 export default function CheckoutForm({
@@ -43,38 +43,24 @@ export default function CheckoutForm({
   const [email, setEmail] = useState('');
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null);
 
-  // Convert cart items to SKU-based items for shipping calculation
-  // Memoized to prevent unnecessary re-fetches of shipping rates
-  const shippingItems = useMemo(() =>
-    items.map(item => ({
-      sku: getSkuFromName(item.name),
-      quantity: item.quantity,
-    })),
-    [items]
-  );
-
-  // Use shipping rates hook
+  // Use Medusa shipping hook (fetches from backend EasyPost provider)
   const {
     rates,
     selectedRate,
-    shipmentId,
     isLoading: ratesLoading,
     error: ratesError,
     isDigitalOnly,
-    freeShippingEligible,
-    freeShippingThreshold,
     selectRate,
-  } = useShippingRates({
+  } = useMedusaShipping({
+    cartId,
     address: shippingAddress,
-    items: shippingItems,
-    subtotal: getTotalPrice(),
   });
 
   // Handle shipping rate selection
-  const handleSelectRate = useCallback((rate: ShippingRateResponse) => {
-    selectRate(rate);
-    onShippingChange?.(rate, shipmentId);
-  }, [selectRate, onShippingChange, shipmentId]);
+  const handleSelectRate = useCallback(async (rate: ShippingRate) => {
+    await selectRate(rate);
+    onShippingChange?.(rate);
+  }, [selectRate, onShippingChange]);
 
   // Handle address element changes
   const handleAddressChange = useCallback((event: StripeAddressElementChangeEvent) => {
@@ -97,7 +83,7 @@ export default function CheckoutForm({
 
   // Calculate total including shipping
   const subtotal = getTotalPrice();
-  const shippingCost = selectedRate?.rate ?? 0;
+  const shippingCost = selectedRate?.amount ?? 0;
   const total = subtotal + shippingCost;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -269,8 +255,8 @@ export default function CheckoutForm({
         isLoading={ratesLoading}
         error={ratesError}
         isDigitalOnly={isDigitalOnly}
-        freeShippingEligible={freeShippingEligible}
-        freeShippingThreshold={freeShippingThreshold}
+        subtotal={subtotal}
+        freeShippingThreshold={200}
       />
 
       {/* Payment Method */}

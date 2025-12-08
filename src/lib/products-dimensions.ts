@@ -2,10 +2,18 @@
  * Product Parcel Dimensions for Shipping Rate Calculation
  *
  * Dimensions are in inches, weight is in ounces.
- * These are used by EasyPost to calculate accurate shipping rates.
+ * These are used by the backend EasyPost provider to calculate accurate shipping rates.
  */
 
-import { ParcelDimensions } from './api/easypost';
+/**
+ * Parcel dimensions for shipping rate calculation
+ */
+export interface ParcelDimensions {
+  length: number;  // inches
+  width: number;   // inches
+  height: number;  // inches
+  weight: number;  // ounces
+}
 
 /**
  * Parcel dimensions by product SKU

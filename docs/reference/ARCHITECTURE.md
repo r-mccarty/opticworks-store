@@ -99,46 +99,39 @@ User pays --> stripe.confirmPayment() --> completeCart()
 Stripe --> Hookdeck --> optic.works/api/stripe/webhook
 ```
 
-### Shipping Rates
+### Shipping Rates (Medusa Backend Provider)
 
 ```
-User enters address --> useShippingRates (500ms debounce)
+User enters address --> useMedusaShipping (500ms debounce)
                                 |
                                 v
-                    POST /api/shipping/rates
+               POST /store/carts/{id} (update address)
                                 |
-                    +-----------+-----------+
-                    |                       |
-                    v                       v
-              KV Cache HIT?           KV Cache MISS
-              Return cached      Circuit Breaker Check
-                    |                       |
-                    |           +-----------+-----------+
-                    |           |                       |
-                    |           v                       v
-                    |    Circuit OPEN            Circuit CLOSED
-                    |    Return mock rates       Call EasyPost (3s timeout)
-                    |                                   |
-                    |                       +-----------+-----------+
-                    |                       |                       |
-                    |                       v                       v
-                    |                   Success                  Timeout
-                    |                   Cache in KV              Return mock
-                    |                   Return rates             rates
-                    v                       |                       |
-              +-----+-----------------------+-----------------------+
-              |
-              v
-         Return to frontend
+                                v
+               GET /store/shipping-options?cart_id=xxx
+                                |
+                                v
+               Backend EasyPost Provider
+               (calculatePrice with caching)
+                                |
+                                v
+               Return shipping options to frontend
+                                |
+                                v
+               User selects shipping method
+                                |
+                                v
+               POST /store/carts/{id}/shipping-methods
+                                |
+                                v
+               Cart total includes shipping
 ```
 
 **Protection Layers**:
-1. **Cloudflare WAF** - 5 req/10s per IP on `/api/shipping` + `/api/checkout`
+1. **Cloudflare WAF** - Rate limiting on API routes
 2. **Frontend Debouncing** - 500ms delay before API call
-3. **In-Memory Rate Limit** - 20 req/min per IP
-4. **KV Cache** - 10-minute TTL for shipping rates
-5. **Circuit Breaker** - Opens after 5 failures, resets after 5 minutes
-6. **API Timeout** - 3 seconds max for EasyPost calls
+3. **Backend Rate Limiting** - Medusa middleware
+4. **EasyPost Circuit Breaker** - Backend provider fallback to flat rates
 
 ---
 

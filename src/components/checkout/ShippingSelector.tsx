@@ -2,17 +2,19 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Truck, Package, Zap, Check } from 'lucide-react';
-import type { ShippingRateResponse } from '@/hooks/useShippingRates';
+import type { ShippingRate } from '@/hooks/useMedusaShipping';
 
 interface ShippingSelectorProps {
-  rates: ShippingRateResponse[];
-  selectedRate: ShippingRateResponse | null;
-  onSelectRate: (rate: ShippingRateResponse) => void;
+  rates: ShippingRate[];
+  selectedRate: ShippingRate | null;
+  onSelectRate: (rate: ShippingRate) => void;
   isLoading: boolean;
   error: string | null;
   isDigitalOnly: boolean;
-  freeShippingEligible: boolean;
-  freeShippingThreshold: number;
+  /** Subtotal for free shipping calculation */
+  subtotal?: number;
+  /** Free shipping threshold in dollars (default: 200) */
+  freeShippingThreshold?: number;
 }
 
 /**
@@ -54,9 +56,10 @@ export function ShippingSelector({
   isLoading,
   error,
   isDigitalOnly,
-  freeShippingEligible,
-  freeShippingThreshold,
+  subtotal = 0,
+  freeShippingThreshold = 200,
 }: ShippingSelectorProps) {
+  const freeShippingEligible = subtotal >= freeShippingThreshold;
   // Digital-only orders don't need shipping
   if (isDigitalOnly) {
     return (
@@ -95,9 +98,9 @@ export function ShippingSelector({
             <span className="font-medium">Free shipping applied!</span> Your order qualifies for free standard shipping.
           </div>
         )}
-        {!freeShippingEligible && (
+        {!freeShippingEligible && subtotal > 0 && (
           <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-            Add ${(freeShippingThreshold - 0).toFixed(2)} more to qualify for free shipping.
+            Add ${(freeShippingThreshold - subtotal).toFixed(2)} more to qualify for free shipping.
           </div>
         )}
 
@@ -162,7 +165,7 @@ export function ShippingSelector({
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-gray-900 dark:text-gray-100">
-                          {rate.serviceName}
+                          {rate.name}
                         </span>
                         {/* Badges */}
                         {rate.badges?.map((badge) => (
@@ -182,11 +185,6 @@ export function ShippingSelector({
                       </div>
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
                         {rate.estimatedDelivery}
-                        {rate.guaranteed && (
-                          <span className="ml-1 text-green-600 dark:text-green-400">
-                            (Guaranteed)
-                          </span>
-                        )}
                       </p>
                     </div>
 
@@ -195,13 +193,13 @@ export function ShippingSelector({
                       <span
                         className={`
                           text-lg font-semibold
-                          ${rate.rate === 0
+                          ${rate.amount === 0
                             ? 'text-green-600 dark:text-green-400'
                             : 'text-gray-900 dark:text-gray-100'
                           }
                         `}
                       >
-                        {formatPrice(rate.rate, rate.currency)}
+                        {formatPrice(rate.amount, rate.currency)}
                       </span>
                     </div>
 

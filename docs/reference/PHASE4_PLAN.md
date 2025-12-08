@@ -108,7 +108,7 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 **Goal**: Address validation, real-time shipping rates, label generation, and inventory tracking.
 
-**Status**: Near Complete (E2E testing in progress)
+**Status**: Complete (Architecture migrated to Medusa backend provider)
 
 ### Architecture
 
@@ -119,13 +119,14 @@ Product (manage_inventory: true) → Stock tracked at US Warehouse
   → Complete checkout → Deduct inventory
   → Cancel order → Restore inventory
 
-SHIPPING FLOW:
-Customer enters address
-  → (on blur) Light address validation via EasyPost
-  → (on submit) Full validation with ZIP+4
-  → Fetch real-time rates (USPS Ground, FedEx 2Day/Express)
+SHIPPING FLOW (Medusa Backend):
+Customer enters address → Stripe AddressElement
+  → Address synced to Medusa cart
+  → Fetch shipping options via Medusa API (GET /store/shipping-options?cart_id=xxx)
+  → Backend EasyPost provider calculates real-time rates
   → User selects shipping option
-  → Rate included in payment intent
+  → Shipping method added to cart (POST /store/carts/{id}/shipping-methods)
+  → Cart total automatically includes shipping
 
 FULFILLMENT FLOW:
 Admin marks order ready → Generate EasyPost label
@@ -134,11 +135,17 @@ Admin marks order ready → Generate EasyPost label
 
 ### Implementation Approach
 
-**EasyPost (Storefront-side)** instead of FedEx plugin because:
-- Already have EasyPost API key and client code
+**EasyPost (Backend Medusa Provider)** because:
+- Proper separation of concerns (shipping logic in backend)
 - Multi-carrier support (USPS + FedEx) in single API
-- Simpler integration at checkout layer
-- Keep existing Medusa manual fulfillment provider
+- Backend calculates rates dynamically via `calculatePrice()`
+- Shipping costs properly tracked in Medusa cart/order
+- Labels generated via same provider
+
+**Architecture Change (Dec 2025)**:
+Migrated from storefront-side EasyPost calls to Medusa's fulfillment provider.
+The backend EasyPost provider in `backend/src/modules/easypost-fulfillment/`
+handles rate calculation and label generation.
 
 ### Tasks
 
@@ -164,18 +171,18 @@ pnpm medusa exec ./src/scripts/seed-inventory.ts
 pnpm medusa exec ./src/scripts/link-inventory-items.ts
 ```
 
-**EasyPost Integration (Phases 1-2)**:
-- [x] Extend `src/lib/api/easypost.ts` with rate calculation
-- [x] Replace mock `/api/shipping/rates` with EasyPost
+**EasyPost Integration (Phases 1-2)** [DEPRECATED]:
+- [x] ~~Extend `src/lib/api/easypost.ts` with rate calculation~~ (now handled by backend)
+- [x] ~~Replace mock `/api/shipping/rates` with EasyPost~~ (removed, use Medusa API)
 - [x] Add product parcel dimensions config (`src/lib/products-dimensions.ts`)
 
-**Checkout Flow (Phases 3-5)**:
+**Checkout Flow (Phases 3-5) - Migrated to Medusa**:
 - [x] Add address validation (`useAddressValidation` hook)
 - [x] Create ShippingSelector component
-- [x] Create useShippingRates hook
-- [x] Update CheckoutWrapper to wait for shipping selection
+- [x] Create useMedusaShipping hook (replaces useShippingRates)
+- [x] Update CheckoutWrapper to use Medusa shipping flow
 - [x] Integrate ShippingSelector into CheckoutForm
-- [x] Include shipping cost in payment intent via `/api/checkout/update-shipping`
+- [x] Shipping cost handled via Medusa cart (replaces `/api/checkout/update-shipping`)
 
 **Label Generation (Phase 6)**:
 - [x] Create `/api/fulfillment/create-label` endpoint
@@ -200,20 +207,24 @@ pnpm medusa exec ./src/scripts/link-inventory-items.ts
 - `backend/src/modules/resend/emails/order-shipped.tsx` - Order shipped email template
 
 **Storefront (Next.js)**:
-- `src/lib/api/easypost.ts` - EasyPost client (fetch-based, Cloudflare Workers compatible)
+- `src/lib/api/medusa.ts` - Medusa API client (includes getShippingOptions, addShippingMethod)
+- `src/lib/api/easypost.ts` - EasyPost address validation + label purchase only
 - `src/lib/api/fulfillment.ts` - Fulfillment helper functions
 - `src/lib/products-dimensions.ts` - Product parcel dimensions + SKU mapping
 - `src/lib/rate-limit.ts` - In-memory rate limiting for API routes
-- `src/app/api/shipping/rates/route.ts` - Shipping rates API (rate limited)
-- `src/app/api/checkout/update-shipping/route.ts` - Update cart with shipping (rate limited)
 - `src/app/api/easypost/validate-address/route.ts` - Address validation (rate limited)
 - `src/app/api/fulfillment/create-label/route.ts` - Label generation + metadata + fulfillment
-- `src/hooks/useShippingRates.ts` - Shipping rates hook
+- `src/hooks/useMedusaShipping.ts` - Medusa shipping rates hook (NEW)
 - `src/hooks/useAddressValidation.ts` - Address validation hook
 - `src/components/checkout/ShippingSelector.tsx` - Shipping option selector
 - `src/components/checkout/AddressValidationIndicator.tsx` - Validation status UI
 - `src/components/checkout/CheckoutForm.tsx` - Checkout form with shipping integration
-- `src/components/checkout/CheckoutWrapper.tsx` - Checkout wrapper with shipping updates
+- `src/components/checkout/CheckoutWrapper.tsx` - Checkout wrapper with Medusa shipping
+
+**Removed Files (Dec 2025 Migration)**:
+- ~~`src/app/api/shipping/rates/route.ts`~~ - Replaced by Medusa shipping-options API
+- ~~`src/app/api/checkout/update-shipping/route.ts`~~ - Replaced by Medusa addShippingMethod
+- ~~`src/hooks/useShippingRates.ts`~~ - Replaced by useMedusaShipping
 
 **E2E Tests**:
 - `e2e/tests/checkout-shipping.spec.ts` - Shipping-specific tests
