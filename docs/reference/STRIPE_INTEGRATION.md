@@ -39,21 +39,31 @@ Success --> completeCart() --> Medusa Order
 Medusa v2 uses Payment Collections (not direct cart payment):
 
 ```typescript
-// 1. Create payment collection
+// 1. Create payment collection (returns existing if one exists)
 const paymentCollection = await medusaFetch(
   "/store/payment-collections",
   { method: "POST", body: JSON.stringify({ cart_id: cartId }) }
 )
 
-// 2. Create Stripe session
+// 2. Check for existing Stripe session (avoid duplicates)
+const existingSession = paymentCollection.payment_sessions?.find(
+  s => s.provider_id === "pp_stripe_stripe" && s.data?.client_secret
+)
+if (existingSession) {
+  return existingSession.data.client_secret
+}
+
+// 3. Create new Stripe session
 const session = await medusaFetch(
   `/store/payment-collections/${paymentCollection.id}/payment-sessions`,
   { method: "POST", body: JSON.stringify({ provider_id: "pp_stripe_stripe" }) }
 )
 
-// 3. Get client_secret
+// 4. Get client_secret
 const clientSecret = session.payment_sessions[0].data.client_secret
 ```
+
+**Important**: Medusa v2.12+ returns the existing payment collection if one already exists for the cart. Always check for an existing Stripe session before creating a new one to avoid duplicate PaymentIntents.
 
 ---
 
@@ -119,3 +129,36 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_xxx  # Client
 STRIPE_SECRET_KEY=sk_xxx                    # Backend only
 STRIPE_WEBHOOK_SECRET=whsec_xxx             # Webhook verification
 ```
+
+---
+
+## Troubleshooting
+
+### "Could not delete all payment sessions" (500 Error)
+
+**Cause**: This error occurs when `createPaymentCollection` is called on a cart that already has a payment collection with active payment sessions. Medusa's `deletePaymentSessionsWorkflow` tries to delete existing sessions but fails if they have active Stripe PaymentIntents.
+
+**Solution**:
+1. Call `POST /store/payment-collections` with `cart_id` - Medusa returns existing collection if one exists
+2. Check the returned collection for an existing Stripe session with `client_secret`
+3. Only create a new payment session if none exists
+
+**Code**: See `src/lib/api/medusa.ts` → `createMedusaPaymentSession()`
+
+### Cart Field Selector 500 Error
+
+**Cause**: The `?fields=*,+payment_collection.payment_sessions` query parameter on cart endpoints causes 500 errors in Medusa v2.12. This is a known issue with nested relation field selectors.
+
+**Solution**: Don't use field selectors to fetch payment collection data. Instead, call `POST /store/payment-collections` which returns the collection with its sessions.
+
+### "No shipping method selected" Error
+
+**Cause**: Cart completion requires a shipping method for physical items.
+
+**Solution**: Ensure `POST /store/carts/{id}/shipping-methods` is called with a valid shipping option ID before completing the cart.
+
+### Empty Cart Total (0) Payment Error
+
+**Cause**: Stripe requires a non-zero amount to create a PaymentIntent.
+
+**Solution**: Only initialize payment sessions when `cart.total > 0`. For zero-amount orders (100% discount), use the Manual Payment Provider instead.
