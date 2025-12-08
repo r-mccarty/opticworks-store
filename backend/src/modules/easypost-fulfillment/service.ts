@@ -8,7 +8,7 @@
  */
 
 import { AbstractFulfillmentProviderService, MedusaError } from "@medusajs/framework/utils"
-import { Logger } from "@medusajs/framework/types"
+import { Logger, CreateShippingOptionDTO } from "@medusajs/framework/types"
 import { EasyPostClient } from "./client"
 import {
   EasyPostProviderOptions,
@@ -150,7 +150,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
   /**
    * Check if this provider can calculate prices
    */
-  async canCalculate(_data: { name: string; [k: string]: unknown }): Promise<boolean> {
+  async canCalculate(_data: CreateShippingOptionDTO): Promise<boolean> {
     // We can calculate prices for all our shipping options
     return true
   }
