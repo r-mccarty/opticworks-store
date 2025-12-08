@@ -261,9 +261,13 @@ export function useMedusaShipping({
       setRates(ratesWithBadges);
 
       // Auto-select cheapest rate if none selected
+      // Note: This only sets the UI state - the user must explicitly click
+      // to trigger the actual addShippingMethod API call. This is intentional
+      // to avoid unexpected API calls during rate loading.
       if (ratesWithBadges.length > 0 && !selectedRate) {
         const cheapest = ratesWithBadges[0];
         setSelectedRate(cheapest);
+        console.log('[useMedusaShipping] Auto-selected cheapest rate (UI only):', cheapest.name);
       }
 
     } catch (err) {

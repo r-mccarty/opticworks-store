@@ -428,13 +428,32 @@ export class CheckoutPage {
 
   /**
    * Select a specific shipping rate by ID.
+   * Waits for the shipping-methods API call to complete.
    */
   async selectShippingRate(rateId: string): Promise<void> {
     console.log(`[CheckoutPage] Selecting shipping rate: ${rateId}`);
 
     const rateLabel = this.page.locator(`[data-testid="shipping-rate-${rateId}"]`);
     await rateLabel.waitFor({ state: 'visible', timeout: 5000 });
-    await rateLabel.click();
+
+    // Click and wait for the shipping-methods API call to complete
+    // This ensures the shipping method is actually added to the cart
+    const [response] = await Promise.all([
+      this.page.waitForResponse(
+        (resp) => resp.url().includes('/shipping-methods') && resp.status() === 200,
+        { timeout: 10000 }
+      ).catch(() => null), // Don't fail if no call is made (e.g., already selected)
+      rateLabel.click(),
+    ]);
+
+    if (response) {
+      console.log('[CheckoutPage] Shipping method API call completed:', response.status());
+    } else {
+      console.log('[CheckoutPage] No shipping-methods API call detected (may already be selected)');
+    }
+
+    // Additional wait to ensure state updates propagate
+    await this.page.waitForTimeout(500);
 
     console.log('[CheckoutPage] Shipping rate selected');
   }
