@@ -79,6 +79,9 @@ R2_BACKUP_SECRET_ACCESS_KEY=$(get_secret "R2_BACKUP_SECRET_ACCESS_KEY" "false")
 R2_BACKUP_BUCKET_NAME=$(get_secret "R2_BACKUP_BUCKET_NAME" "false")
 RESTIC_PASSWORD=$(get_secret "RESTIC_PASSWORD" "false")
 
+# Fulfillment (EasyPost) - only API key is secret, ship-from address is in all.yml
+EASYPOST_API_KEY=$(get_secret "EASYPOST_API_KEY" "false")
+
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
 # Default from email if not set
@@ -141,6 +144,9 @@ r2_backup_bucket_name: "${R2_BACKUP_BUCKET_NAME:-opticworks-backups}"
 
 # Restic encryption password
 restic_password: "$RESTIC_PASSWORD"
+
+# EasyPost Fulfillment (ship-from address is in all.yml, not secrets)
+easypost_api_key: "$EASYPOST_API_KEY"
 EOF
 
 echo "✅ Secrets file synced: $SECRETS_FILE"

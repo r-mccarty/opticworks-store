@@ -48,3 +48,10 @@ pm2_max_memory: 512M
 # Backup Configuration
 r2_backup_bucket_name: "opticworks-backups"  # Private bucket for backups
 backup_hour: "3"  # 3 AM daily backups
+
+# Fulfillment - Ship From Address (not sensitive)
+ship_from_name: "OpticWorks"
+ship_from_street1: "123 Commerce St"
+ship_from_city: "San Francisco"
+ship_from_state: "CA"
+ship_from_zip: "94102"
