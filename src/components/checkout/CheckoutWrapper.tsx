@@ -82,10 +82,9 @@ export default function CheckoutWrapper({
     }
   }, [items, getCartId, initializeCart, onError]);
 
-  // Handle shipping rate change
-  // Note: The useMedusaShipping hook now handles adding shipping to the cart
-  // via Medusa API (addShippingMethod), which updates the cart total.
-  // We may need to refresh the payment session if the amount changed significantly.
+  // Handle shipping rate change - refresh payment session to update PaymentIntent amount
+  // When shipping is added, the cart total changes. We need to refresh the payment
+  // session so Stripe's PaymentIntent has the correct amount.
   const handleShippingChange = useCallback(async (rate: ShippingRate | null) => {
     if (!cartId || !rate) return;
 
@@ -96,18 +95,24 @@ export default function CheckoutWrapper({
     });
 
     // The shipping method is already added to the cart by useMedusaShipping.selectRate()
-    // The cart total is automatically updated in Medusa.
-    // For now, we trust that the payment intent amount matches.
-    // If there are discrepancies, we may need to refresh the payment session here.
-    //
-    // Note: In a production setup, you might want to:
-    // 1. Refresh the payment collection to get an updated PaymentIntent
-    // 2. Or handle this via webhook when cart.updated event fires
-    //
-    // For MVP, the shipping is included in the cart total, and the payment
-    // intent was created with the base amount. Stripe allows capturing
-    // a different amount than authorized (within limits).
-  }, [cartId]);
+    // Now we need to refresh the payment session so the PaymentIntent amount is updated
+    // Use forceRefresh=true to skip reusing the existing session and create a new one
+    try {
+      console.log('[checkout] Refreshing payment session after shipping change...');
+      const session = await createMedusaPaymentSession(cartId, true);
+
+      if (session.clientSecret && session.clientSecret !== clientSecret) {
+        console.log('[checkout] Payment session refreshed with new client secret');
+        setClientSecret(session.clientSecret);
+      } else {
+        console.log('[checkout] Payment session client secret unchanged');
+      }
+    } catch (err) {
+      console.error('[checkout] Error refreshing payment session:', err);
+      // Don't fail checkout - the payment might still work if amounts are close
+      // Stripe allows some flexibility in captured vs authorized amounts
+    }
+  }, [cartId, clientSecret]);
 
   // Validate environment variables
   useEffect(() => {
@@ -185,7 +190,7 @@ export default function CheckoutWrapper({
   };
 
   return (
-    <Elements stripe={stripePromise} options={elementsOptions}>
+    <Elements key={clientSecret} stripe={stripePromise} options={elementsOptions}>
       <CheckoutForm
         clientSecret={clientSecret}
         cartId={cartId}

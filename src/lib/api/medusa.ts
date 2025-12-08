@@ -559,13 +559,15 @@ export async function createPaymentSession(
  *
  * This follows Medusa's recommended checkout flow:
  * 1. Create payment collection for the cart (Medusa returns existing if one exists)
- * 2. Check for existing Stripe session with valid client_secret
+ * 2. Check for existing Stripe session with valid client_secret (unless forceRefresh)
  * 3. Create new payment session if needed
  *
+ * @param cartId - The Medusa cart ID
+ * @param forceRefresh - If true, always create a new payment session (use when cart total changed)
  * @see https://docs.medusajs.com/resources/storefront-development/checkout/payment
  */
-export async function createMedusaPaymentSession(cartId: string): Promise<PaymentSessionResult> {
-  console.log("[medusa] createMedusaPaymentSession called with cartId:", cartId)
+export async function createMedusaPaymentSession(cartId: string, forceRefresh = false): Promise<PaymentSessionResult> {
+  console.log("[medusa] createMedusaPaymentSession called with cartId:", cartId, "forceRefresh:", forceRefresh)
 
   try {
     // Step 1: Create/get payment collection for the cart
@@ -575,17 +577,22 @@ export async function createMedusaPaymentSession(cartId: string): Promise<Paymen
     console.log("[medusa] Payment collection:", paymentCollection.id, "sessions:", paymentCollection.payment_sessions?.length ?? 0)
 
     // Step 2: Check if there's already a valid Stripe session we can reuse
-    const existingStripeSession = paymentCollection.payment_sessions?.find(
-      (s) => s.provider_id === "pp_stripe_stripe" && s.data?.client_secret
-    )
+    // Skip this if forceRefresh is true (cart total changed, need new PaymentIntent)
+    if (!forceRefresh) {
+      const existingStripeSession = paymentCollection.payment_sessions?.find(
+        (s) => s.provider_id === "pp_stripe_stripe" && s.data?.client_secret
+      )
 
-    if (existingStripeSession?.data?.client_secret) {
-      console.log("[medusa] Reusing existing Stripe session")
-      return {
-        sessionId: existingStripeSession.id,
-        clientSecret: existingStripeSession.data.client_secret as string,
-        provider: "medusa-stripe",
+      if (existingStripeSession?.data?.client_secret) {
+        console.log("[medusa] Reusing existing Stripe session")
+        return {
+          sessionId: existingStripeSession.id,
+          clientSecret: existingStripeSession.data.client_secret as string,
+          provider: "medusa-stripe",
+        }
       }
+    } else {
+      console.log("[medusa] Force refresh requested, skipping existing session check")
     }
 
     // Step 3: Create payment session with Stripe provider
