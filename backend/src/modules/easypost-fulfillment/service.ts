@@ -82,11 +82,12 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
   /**
    * Return the list of fulfillment options this provider supports
    */
-  async getFulfillmentOptions(): Promise<Record<string, unknown>[]> {
+  async getFulfillmentOptions(): Promise<{ id: string; is_return?: boolean; [k: string]: unknown }[]> {
     return Object.entries(CARRIER_SERVICES).map(([id, config]) => ({
       id,
       name: config.name,
       carriers: config.carriers,
+      is_return: false,
     }))
   }
 
@@ -149,7 +150,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
   /**
    * Check if this provider can calculate prices
    */
-  async canCalculate(data: Record<string, unknown>): Promise<boolean> {
+  async canCalculate(_data: { name: string; [k: string]: unknown }): Promise<boolean> {
     // We can calculate prices for all our shipping options
     return true
   }
@@ -243,8 +244,8 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     data: Record<string, unknown>,
     items: Record<string, unknown>[],
     order: Record<string, unknown> | undefined,
-    fulfillment: Record<string, unknown>
-  ): Promise<{ data: Record<string, unknown>; labels: Record<string, unknown>[] }> {
+    _fulfillment: Record<string, unknown>
+  ): Promise<{ data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] }> {
     const shipmentId = data.easypost_shipment_id as string
     const rateId = data.easypost_rate_id as string
 
@@ -313,8 +314,8 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
    * Create a return fulfillment
    */
   async createReturnFulfillment(
-    fulfillment: Record<string, unknown>
-  ): Promise<{ data: Record<string, unknown>; labels: Record<string, unknown>[] }> {
+    _fulfillment: Record<string, unknown>
+  ): Promise<{ data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] }> {
     // For returns, we'd create a return shipment
     // For now, return empty - can be implemented later
     this.logger.info("[EasyPost] Return fulfillment requested - not yet implemented")
@@ -469,7 +470,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     tracker?: { tracking_code: string; public_url: string }
     postage_label?: { label_url: string; label_file_type: string }
     selected_rate?: { carrier: string; service: string }
-  }): { data: Record<string, unknown>; labels: Record<string, unknown>[] } {
+  }): { data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] } {
     const trackingCode = purchasedLabel.tracker?.tracking_code || purchasedLabel.tracking_code
     const trackingUrl = purchasedLabel.tracker?.public_url || ""
     const labelUrl = purchasedLabel.postage_label?.label_url || ""
