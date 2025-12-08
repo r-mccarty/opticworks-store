@@ -122,6 +122,9 @@ export interface MedusaCart {
       client_secret?: string
     }
   }>
+  // Payment collection linked to this cart (Medusa v2)
+  // Must request with +payment_collection field selector
+  payment_collection?: MedusaPaymentCollection | null
 }
 
 export interface MedusaAddress {
@@ -364,6 +367,18 @@ export async function getCart(cartId: string): Promise<MedusaCart> {
 }
 
 /**
+ * Retrieve a cart with its payment collection included.
+ * Uses the +payment_collection field selector to include payment collection data
+ * with nested payment_sessions.
+ */
+export async function getCartWithPaymentCollection(cartId: string): Promise<MedusaCart> {
+  const response = await medusaFetch<{ cart: MedusaCart }>(
+    `/store/carts/${cartId}?fields=*,+payment_collection.payment_sessions`
+  )
+  return response.cart
+}
+
+/**
  * Add a line item to the cart.
  */
 export async function addLineItem(
@@ -554,35 +569,63 @@ export async function createPaymentSession(
 }
 
 /**
- * Create a payment session via Medusa's Stripe provider.
+ * Initialize or retrieve a payment session via Medusa's Stripe provider.
  * Returns the Stripe client_secret for use with Stripe Elements.
  *
- * Medusa v2 flow:
- * 1. Create payment collection for the cart
- * 2. Create payment session with Stripe provider on the collection
- * 3. Extract client_secret from the payment session data
+ * This follows Medusa's recommended checkout flow:
+ * 1. Check if cart already has a payment collection with valid Stripe session
+ * 2. If yes, return the existing client_secret (avoid duplicate creation errors)
+ * 3. If no, create payment collection and session
+ * 4. Extract client_secret from the payment session data
+ *
+ * @see https://docs.medusajs.com/resources/storefront-development/checkout/payment
  */
 export async function createMedusaPaymentSession(cartId: string): Promise<PaymentSessionResult> {
   console.log("[medusa] createMedusaPaymentSession called with cartId:", cartId)
 
   try {
-    // 1. Create payment collection for the cart
-    console.log("[medusa] Step 1: Creating payment collection...")
-    const paymentCollection = await createPaymentCollection(cartId)
-    console.log("[medusa] Payment collection created:", paymentCollection.id)
+    // Step 1: Check if cart already has a payment collection with a valid Stripe session
+    // This prevents the "Could not delete all payment sessions" error when retrying
+    console.log("[medusa] Step 1: Checking for existing payment collection...")
+    const cart = await getCartWithPaymentCollection(cartId)
 
-    // 2. Create payment session with Stripe provider
-    console.log("[medusa] Step 2: Creating Stripe payment session...")
+    const existingStripeSession = cart.payment_collection?.payment_sessions?.find(
+      (s) => s.provider_id === "pp_stripe_stripe" && s.data?.client_secret
+    )
+
+    if (existingStripeSession?.data?.client_secret) {
+      console.log("[medusa] Found existing Stripe session, reusing client_secret")
+      return {
+        sessionId: existingStripeSession.id,
+        clientSecret: existingStripeSession.data.client_secret as string,
+        provider: "medusa-stripe",
+      }
+    }
+
+    // Step 2: Create payment collection if cart doesn't have one
+    let paymentCollection: MedusaPaymentCollection
+
+    if (cart.payment_collection?.id) {
+      console.log("[medusa] Using existing payment collection:", cart.payment_collection.id)
+      paymentCollection = cart.payment_collection
+    } else {
+      console.log("[medusa] Step 2: Creating new payment collection...")
+      paymentCollection = await createPaymentCollection(cartId)
+      console.log("[medusa] Payment collection created:", paymentCollection.id)
+    }
+
+    // Step 3: Create payment session with Stripe provider
+    console.log("[medusa] Step 3: Creating Stripe payment session...")
     const collectionWithSession = await createPaymentSession(
       paymentCollection.id,
       "pp_stripe_stripe"
     )
 
-    // 3. Extract client_secret from the Stripe payment session
+    // Step 4: Extract client_secret from the Stripe payment session
     const stripeSession = collectionWithSession.payment_sessions.find(
       (s) => s.provider_id === "pp_stripe_stripe"
     )
-    console.log("[medusa] Step 3: Extracting client_secret. Session data keys:",
+    console.log("[medusa] Step 4: Extracting client_secret. Session data keys:",
       stripeSession?.data ? Object.keys(stripeSession.data) : "no data"
     )
 
