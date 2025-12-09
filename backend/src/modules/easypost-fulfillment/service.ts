@@ -164,26 +164,11 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     data: Record<string, unknown>,
     context: Record<string, unknown>
   ): Promise<{ calculated_amount: number; is_calculated_price_tax_inclusive: boolean }> {
-    // Write to file for debugging (console.log is not being captured by PM2)
-    const fs = await import("fs")
-    const debugLog = (msg: string) => {
-      const timestamp = new Date().toISOString()
-      fs.appendFileSync("/tmp/easypost-debug.log", `${timestamp} ${msg}\n`)
-    }
-
-    debugLog(`[EasyPost] calculatePrice called`)
-    debugLog(`[EasyPost] optionData: ${JSON.stringify(optionData)}`)
-    debugLog(`[EasyPost] data: ${JSON.stringify(data)}`)
-    debugLog(`[EasyPost] context keys: ${Object.keys(context || {}).join(", ")}`)
-
     const optionId = optionData.id as string
-    debugLog(`[EasyPost] Looking up carrier config for optionId: ${optionId}`)
-
     const carrierConfig = CARRIER_SERVICES[optionId]
 
     if (!carrierConfig) {
-      debugLog(`[EasyPost] Unknown shipping option: ${optionId}`)
-      debugLog(`[EasyPost] Available options: ${Object.keys(CARRIER_SERVICES).join(", ")}`)
+      this.logger.warn(`[EasyPost] Unknown shipping option: ${optionId}`)
       return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
     }
 
@@ -191,11 +176,9 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     const shippingAddress = context.shipping_address as Record<string, unknown> | undefined
 
     if (!shippingAddress) {
-      debugLog("[EasyPost] No shipping address in context for price calculation")
-      debugLog(`[EasyPost] context: ${JSON.stringify(context)}`)
+      this.logger.warn("[EasyPost] No shipping address in context for price calculation")
       return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
     }
-    debugLog(`[EasyPost] Shipping address found: ${JSON.stringify(shippingAddress)}`)
 
     // Build destination address
     const toAddress: EasyPostAddress = {
@@ -226,8 +209,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       const matchingRate = this.findMatchingRate(shipment.rates, optionId)
 
       if (!matchingRate) {
-        debugLog(`[EasyPost] No rate found for ${optionId}`)
-        debugLog(`[EasyPost] Available rates: ${JSON.stringify(shipment.rates.map(r => ({ carrier: r.carrier, service: r.service, rate: r.rate })))}`)
+        this.logger.warn(`[EasyPost] No rate found for ${optionId}`)
         return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
       }
 
@@ -241,7 +223,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       // Convert rate to cents (Medusa uses minor units)
       const rateInCents = Math.round(parseFloat(matchingRate.rate) * 100)
 
-      debugLog(
+      this.logger.info(
         `[EasyPost] Calculated rate for ${optionId}: $${matchingRate.rate} (${rateInCents} cents)`
       )
 
