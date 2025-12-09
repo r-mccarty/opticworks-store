@@ -118,6 +118,9 @@ SHIP_FROM_PHONE="5551234567"  # Required for FedEx rates
    - **USPS**: Automatic (included via EasyPost Wallet)
    - **FedEx**: Use EasyPost's FedEx Wallet (pre-negotiated rates) or connect your own FedEx account
 
+> **Note**: EasyPost's FedEx Wallet returns rates with `carrier="FedExDefault"` (not `"FedEx"`).
+> The provider handles both carrier names automatically.
+
 ## Checkout Flow
 
 ### 1. Customer Enters Address
@@ -301,16 +304,27 @@ POST /store/shipping-options/{option_id}/calculate
 
 ### FedEx Rates Not Appearing
 
-**Root Cause**: FedEx requires phone numbers on both origin and destination addresses. Without phone numbers, EasyPost returns the error: `"phoneNumber: none is not an allowed value"`.
+There are two common causes:
 
-**Fix**: The EasyPost provider now includes phone numbers on all addresses:
+**Cause 1: Missing phone numbers**
+
+FedEx requires phone numbers on both origin and destination addresses. Without phone numbers, EasyPost returns the error: `"phoneNumber: none is not an allowed value"`.
+
+**Fix**: The EasyPost provider includes phone numbers on all addresses:
 - Origin: Uses `SHIP_FROM_PHONE` env var (falls back to placeholder if not set)
 - Destination: Uses customer's `shipping_address.phone` (falls back to placeholder)
+
+**Cause 2: Carrier name mismatch**
+
+EasyPost's FedEx Wallet returns rates with `carrier="FedExDefault"` instead of `"FedEx"`. If the carrier filter only checks for `"FedEx"`, all FedEx rates will be filtered out.
+
+**Fix**: The provider's `CARRIER_SERVICES` config includes both `"FedEx"` and `"FedExDefault"` in the carriers array.
 
 **Verification Steps**:
 1. Check backend logs for `[EasyPost] Rates returned for fedex-*: FedExDefault/...`
 2. If logs show `No rates returned by EasyPost for fedex-*`, check that phone numbers are being sent
-3. Test directly with EasyPost API including phone on both addresses
+3. If logs show USPS rates but no FedEx, verify `"FedExDefault"` is in the carriers array
+4. Test directly with EasyPost API including phone on both addresses
 
 **EasyPost Dashboard**: If you don't see API logs in the EasyPost dashboard:
 - Ensure you're viewing **Production** logs (not Test)
