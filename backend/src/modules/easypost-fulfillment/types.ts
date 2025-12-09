@@ -143,23 +143,23 @@ export const CARRIER_SERVICES: Record<string, { name: string; carriers: string[]
   },
   "fedex-ground": {
     name: "FedEx Ground",
-    carriers: ["FedEx"],
+    carriers: ["FedEx", "FedExDefault"],  // EasyPost Wallet uses "FedExDefault"
   },
   "fedex-home": {
     name: "FedEx Home Delivery",
-    carriers: ["FedEx"],
+    carriers: ["FedEx", "FedExDefault"],
   },
   "fedex-2day": {
     name: "FedEx 2Day",
-    carriers: ["FedEx"],
+    carriers: ["FedEx", "FedExDefault"],
   },
   "fedex-express": {
     name: "FedEx Express Saver",
-    carriers: ["FedEx"],
+    carriers: ["FedEx", "FedExDefault"],
   },
   "fedex-overnight": {
     name: "FedEx Standard Overnight",
-    carriers: ["FedEx"],
+    carriers: ["FedEx", "FedExDefault"],
   },
 }
 

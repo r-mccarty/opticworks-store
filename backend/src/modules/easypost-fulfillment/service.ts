@@ -200,6 +200,9 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     // Get parcel dimensions from context or use defaults
     const parcel = this.getParcelFromContext(context)
 
+    // Debug log the addresses being sent
+    this.logger.info(`[EasyPost] Creating shipment for ${optionId} with from_phone=${this.originAddress.phone}, to_phone=${toAddress.phone}`)
+
     try {
       // Create shipment to get rates
       const shipment = await this.client.createShipment(
