@@ -81,6 +81,8 @@ RESTIC_PASSWORD=$(get_secret "RESTIC_PASSWORD" "false")
 
 # Fulfillment (EasyPost) - only API key is secret, ship-from address is in all.yml
 EASYPOST_API_KEY=$(get_secret "EASYPOST_API_KEY" "false")
+EASYPOST_TEST_API_KEY=$(get_secret "EASYPOST_TEST_API_KEY" "false")
+EASYPOST_MODE=$(get_secret "EASYPOST_MODE" "false")
 
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
@@ -166,6 +168,8 @@ restic_password: "$RESTIC_PASSWORD"
 
 # EasyPost Fulfillment (ship-from address is in all.yml, not secrets)
 easypost_api_key: "$EASYPOST_API_KEY"
+easypost_test_api_key: "$EASYPOST_TEST_API_KEY"
+easypost_mode: "$EASYPOST_MODE"
 EOF
 
 echo "✅ Secrets file synced: $SECRETS_FILE"
