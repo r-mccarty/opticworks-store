@@ -17,6 +17,7 @@ import { captureDebugInfo, logStep } from '../helpers/debug-utils';
  * - Shipping cost is reflected in order total
  * - Free shipping applies for eligible orders
  * - Error handling for invalid addresses
+ * - Calculated pricing API is called correctly (regression test for NaN rates bug)
  */
 test.describe('Checkout Shipping', () => {
   test.beforeEach(async ({ page }) => {
@@ -270,5 +271,145 @@ test.describe('Checkout Shipping', () => {
     }
 
     console.log('\n=== Incomplete Address Test Passed ===\n');
+  });
+
+  /**
+   * Regression test for calculated shipping pricing.
+   *
+   * This test verifies that the frontend correctly calls the Medusa v2
+   * calculated pricing API for shipping options with price_type: "calculated".
+   *
+   * Background: On 2024-12-09, shipping rates displayed as "NaN" because
+   * the frontend was not calling the /store/shipping-options/{id}/calculate
+   * endpoint. The /store/shipping-options endpoint returns calculated_price: null
+   * for calculated pricing options.
+   *
+   * See: docs/postmortems/2025-12-09-shipping-rates-nan.md
+   */
+  test('calculated shipping prices are fetched correctly (regression)', async ({ page }, testInfo) => {
+    const consoleLogs = createConsoleCapture(page);
+    const networkLogs = createNetworkLogger(page);
+    const productPage = new ProductPage(page);
+    const cartPage = new CartPage(page);
+    const checkoutPage = new CheckoutPage(page);
+
+    // Track API calls to verify calculate endpoint is called
+    const calculateCalls: { url: string; status: number; body: unknown }[] = [];
+
+    // Intercept shipping-options/calculate API calls
+    page.on('response', async (response) => {
+      const url = response.url();
+      if (url.includes('/shipping-options/') && url.includes('/calculate')) {
+        try {
+          const body = await response.json().catch(() => null);
+          calculateCalls.push({
+            url,
+            status: response.status(),
+            body,
+          });
+          console.log(`[Test] Calculate API called: ${url} -> ${response.status()}`);
+        } catch {
+          // Ignore JSON parse errors
+        }
+      }
+    });
+
+    // Step 1: Add product to cart
+    logStep(1, 'Adding product to cart');
+    await productPage.goto(testProducts.flagship.slug);
+    await productPage.waitForProduct();
+
+    try {
+      await productPage.addToCart();
+    } catch (error) {
+      console.error('Failed to add product to cart');
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'step1-add-failed');
+      throw error;
+    }
+
+    await page.waitForTimeout(2000);
+
+    // Step 2: Navigate to checkout
+    logStep(2, 'Navigating to checkout');
+    await cartPage.goto();
+    const hasItems = await cartPage.hasItems();
+    if (!hasItems) {
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'step2-cart-empty');
+      throw new Error('Cart is empty');
+    }
+
+    await cartPage.proceedToPayment();
+    await checkoutPage.waitForCheckoutReady();
+
+    // Step 3: Fill email and shipping address
+    logStep(3, 'Filling email and shipping address');
+    await checkoutPage.fillEmail(generateTestEmail());
+    await checkoutPage.fillShippingAddress(testAddress);
+
+    // Step 4: Wait for shipping rates to load
+    logStep(4, 'Waiting for shipping rates');
+    try {
+      await checkoutPage.waitForShippingRates();
+    } catch (error) {
+      console.error('Shipping rates failed to load');
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'step4-rates-failed');
+      throw error;
+    }
+
+    // Step 5: Verify calculate API was called
+    logStep(5, 'Verifying calculate API calls');
+    console.log(`Calculate API calls made: ${calculateCalls.length}`);
+
+    // For calculated pricing, the frontend should call /calculate for each option
+    // We expect at least one call (may have multiple shipping options)
+    expect(calculateCalls.length).toBeGreaterThan(0);
+
+    // Verify each call succeeded and returned a valid calculated_amount
+    for (const call of calculateCalls) {
+      expect(call.status).toBe(200);
+
+      // The response should have calculated_price with a numeric amount
+      const shippingOption = (call.body as { shipping_option?: { calculated_price?: { calculated_amount?: number } } })?.shipping_option;
+      const calculatedAmount = shippingOption?.calculated_price?.calculated_amount;
+
+      console.log(`Calculate response: calculated_amount = ${calculatedAmount}`);
+
+      // calculated_amount should be a number (in cents), not null/undefined/NaN
+      expect(calculatedAmount).toBeDefined();
+      expect(typeof calculatedAmount).toBe('number');
+      expect(Number.isNaN(calculatedAmount)).toBe(false);
+      expect(calculatedAmount).toBeGreaterThanOrEqual(0);
+    }
+
+    // Step 6: Verify shipping rates are displayed with valid prices (not NaN)
+    logStep(6, 'Verifying displayed shipping rates');
+    const rates = await checkoutPage.getAvailableShippingRates();
+    expect(rates.length).toBeGreaterThan(0);
+
+    // Check that the shipping cost in the UI is a valid number
+    const shippingCost = await checkoutPage.getShippingCost();
+    console.log(`Displayed shipping cost: $${shippingCost}`);
+
+    // Shipping cost should be a number >= 0 (not -1 which means "Select shipping", not NaN)
+    expect(shippingCost).toBeGreaterThanOrEqual(0);
+    expect(Number.isNaN(shippingCost)).toBe(false);
+
+    // Verify the displayed price matches what we got from the API
+    // (API returns cents, UI shows dollars)
+    if (calculateCalls.length > 0) {
+      const firstCallAmount = (calculateCalls[0].body as { shipping_option?: { calculated_price?: { calculated_amount?: number } } })?.shipping_option?.calculated_price?.calculated_amount;
+      if (firstCallAmount !== undefined) {
+        const expectedDollars = firstCallAmount / 100;
+        // Allow some tolerance for rounding
+        expect(Math.abs(shippingCost - expectedDollars)).toBeLessThan(0.02);
+        console.log(`Price verification: API=${expectedDollars}, UI=${shippingCost}`);
+      }
+    }
+
+    console.log('\n=== Calculated Shipping Pricing Test Passed ===\n');
+    console.log('Summary:');
+    console.log(`- Calculate API calls: ${calculateCalls.length}`);
+    console.log(`- Shipping rates displayed: ${rates.length}`);
+    console.log(`- Displayed cost: $${shippingCost}`);
   });
 });

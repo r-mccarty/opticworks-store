@@ -34,11 +34,17 @@ e2e/
 │   ├── test-data.ts        # Products, test cards, addresses, mailosaurConfig
 │   ├── email-utils.ts      # Mailosaur client and email verification helpers
 │   └── debug-utils.ts      # Screenshot/log capture
+├── helpers/
+│   ├── console-capture.ts  # Console log capture for debugging
+│   ├── network-logger.ts   # Network request/response logging
+│   ├── storage-inspector.ts # LocalStorage inspection and clearing
+│   └── debug-utils.ts      # Screenshot and debug info capture
 └── tests/
     ├── auth-flow.spec.ts
     ├── store-navigation.spec.ts
     ├── add-to-cart.spec.ts
     ├── checkout-flow.spec.ts
+    ├── checkout-shipping.spec.ts  # Shipping rate selection tests
     ├── email-flow.spec.ts   # Email verification tests (Mailosaur)
     └── full-journey.spec.ts
 ```
@@ -100,6 +106,67 @@ checkoutPage.waitForSuccess()
 **Stripe iframes**: Use `CheckoutPage` helpers for frame handling
 
 **Cart hydration**: Wait for Zustand to load from localStorage
+
+---
+
+## Shipping Rate Tests
+
+The `checkout-shipping.spec.ts` file contains tests for shipping rate selection:
+
+### Running Shipping Tests
+
+```bash
+# All shipping tests
+pnpm exec playwright test checkout-shipping.spec.ts --project=chromium
+
+# Specific test
+pnpm exec playwright test checkout-shipping.spec.ts --grep "calculated shipping" --project=chromium
+```
+
+### Available Shipping Tests
+
+| Test | Description |
+|------|-------------|
+| `shipping rates load after entering address` | Verifies rates appear after address is entered |
+| `user can select different shipping rates` | Verifies rate selection updates the cart |
+| `complete checkout with shipping rate selection` | Full checkout flow including shipping |
+| `shows error when shipping address is incomplete` | Verifies no rates without complete address |
+| `calculated shipping prices are fetched correctly` | **Regression test** for NaN rates bug |
+
+### Calculated Pricing Regression Test
+
+The `calculated shipping prices are fetched correctly` test verifies the fix for a bug where shipping rates displayed as "NaN" instead of actual prices.
+
+**What it verifies**:
+1. Frontend calls `/store/shipping-options/{id}/calculate` for each option
+2. API returns valid `calculated_amount` (number, not null/NaN)
+3. UI displays the correct price (cents → dollars conversion)
+4. Price in UI matches API response
+
+**Background**: Medusa v2 calculated pricing requires a two-step API flow:
+1. `GET /store/shipping-options` - Returns options with `calculated_price: null`
+2. `POST /store/shipping-options/{id}/calculate` - Returns actual price from provider
+
+See `docs/postmortems/2025-12-09-shipping-rates-nan.md` for full details.
+
+### CheckoutPage Shipping Methods
+
+```typescript
+// Wait for rates to load
+await checkoutPage.waitForShippingRates();
+
+// Get available rate IDs
+const rates = await checkoutPage.getAvailableShippingRates();
+
+// Select a rate (waits for API call)
+await checkoutPage.selectShippingRate(rates[0]);
+
+// Get shipping cost from order summary
+const cost = await checkoutPage.getShippingCost();
+
+// Select and wait for payment session refresh
+await checkoutPage.selectShippingAndWait(rateId);
+```
 
 ---
 
