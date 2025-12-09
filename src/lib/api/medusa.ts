@@ -512,7 +512,7 @@ export async function calculateShippingOptionPrice(
     return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
   }
 
-  console.log("[medusa] Calculated price:", calculatedPrice.calculated_amount, "cents")
+  console.log("[medusa] Calculated price:", calculatedPrice.calculated_amount, "dollars (major units)")
   return calculatedPrice
 }
 

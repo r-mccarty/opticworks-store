@@ -126,11 +126,15 @@ function formatEstimatedDelivery(days: number | null): string {
 
 /**
  * Transform Medusa shipping option to normalized ShippingRate format.
- * For calculated pricing, the amountInCents parameter should be provided.
+ * For calculated pricing, the calculatedAmount parameter should be provided.
+ *
+ * NOTE: Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents).
+ * The calculate endpoint returns calculated_amount already in dollars.
+ * See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
  */
 function transformShippingOption(
   option: MedusaShippingOption,
-  amountInCents?: number
+  calculatedAmount?: number
 ): ShippingRate {
   const { carrier, service } = parseCarrierInfo(
     (option.data?.id as string) || option.id,
@@ -139,12 +143,12 @@ function transformShippingOption(
   const estimatedDays = estimateDeliveryDays(option.name);
 
   // Determine amount: use calculated price if provided, otherwise fall back to option.amount
-  // Convert from cents to dollars if using calculated amount
+  // Medusa v2 uses major units (dollars), so no conversion needed
   let amount = 0;
-  if (amountInCents !== undefined) {
-    amount = amountInCents / 100; // Convert cents to dollars
+  if (calculatedAmount !== undefined) {
+    amount = calculatedAmount; // Already in dollars (major units)
   } else if (option.calculated_price?.calculated_amount !== undefined) {
-    amount = option.calculated_price.calculated_amount / 100;
+    amount = option.calculated_price.calculated_amount; // Already in dollars
   } else if (option.amount !== undefined) {
     amount = option.amount;
   }
@@ -266,23 +270,33 @@ export function useMedusaShipping({
       // For calculated pricing, we need to call the calculate endpoint for each option
       // This gets real-time rates from EasyPost
       console.log('[useMedusaShipping] Calculating prices for shipping options...');
-      const transformedRates = await Promise.all(
+      const transformedRatesWithNulls = await Promise.all(
         options.map(async (option) => {
           // Only call calculate for options with calculated pricing
           if (option.price_type === 'calculated') {
             try {
               const calculated = await calculateShippingOptionPrice(option.id, cartId);
+              // If calculated_amount is 0, the carrier didn't return a rate (e.g., FedEx not configured)
+              // Hide these options instead of showing misleading "free shipping"
+              if (calculated.calculated_amount === 0) {
+                console.warn(`[useMedusaShipping] Hiding ${option.name}: no rate returned (amount=0)`);
+                return null;
+              }
               return transformShippingOption(option, calculated.calculated_amount);
             } catch (err) {
               console.warn(`[useMedusaShipping] Failed to calculate price for ${option.name}:`, err);
-              return transformShippingOption(option);
+              // Hide options that fail to calculate - they're not usable
+              return null;
             }
           }
           // For flat pricing, use the existing amount
           return transformShippingOption(option);
         })
       );
-      console.log('[useMedusaShipping] Calculated prices for', transformedRates.length, 'options');
+
+      // Filter out null entries (options with no rates)
+      const transformedRates = transformedRatesWithNulls.filter((rate): rate is ShippingRate => rate !== null);
+      console.log('[useMedusaShipping] Calculated prices for', transformedRates.length, 'options (filtered from', options.length, ')');
 
       // Sort by price (cheapest first)
       transformedRates.sort((a, b) => a.amount - b.amount);

@@ -220,15 +220,18 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
         ;(data as Record<string, unknown>).easypost_rate_id = matchingRate.id
       }
 
-      // Convert rate to cents (Medusa uses minor units)
-      const rateInCents = Math.round(parseFloat(matchingRate.rate) * 100)
+      // Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents)
+      // EasyPost returns rate as a string like "7.67" (dollars)
+      // We return it directly as a number without converting to cents
+      // See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
+      const rateInDollars = parseFloat(matchingRate.rate)
 
       this.logger.info(
-        `[EasyPost] Calculated rate for ${optionId}: $${matchingRate.rate} (${rateInCents} cents)`
+        `[EasyPost] Calculated rate for ${optionId}: $${matchingRate.rate} (${rateInDollars} major units)`
       )
 
       return {
-        calculated_amount: rateInCents,
+        calculated_amount: rateInDollars,
         is_calculated_price_tax_inclusive: false,
       }
     } catch (error) {

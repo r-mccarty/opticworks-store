@@ -395,14 +395,15 @@ test.describe('Checkout Shipping', () => {
     expect(Number.isNaN(shippingCost)).toBe(false);
 
     // Verify the displayed price matches what we got from the API
-    // (API returns cents, UI shows dollars)
+    // Medusa v2 returns calculated_amount in MAJOR units (dollars), not cents
+    // See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
     if (calculateCalls.length > 0) {
       const firstCallAmount = (calculateCalls[0].body as { shipping_option?: { calculated_price?: { calculated_amount?: number } } })?.shipping_option?.calculated_price?.calculated_amount;
       if (firstCallAmount !== undefined) {
-        const expectedDollars = firstCallAmount / 100;
+        // API already returns dollars (major units), no conversion needed
         // Allow some tolerance for rounding
-        expect(Math.abs(shippingCost - expectedDollars)).toBeLessThan(0.02);
-        console.log(`Price verification: API=${expectedDollars}, UI=${shippingCost}`);
+        expect(Math.abs(shippingCost - firstCallAmount)).toBeLessThan(0.02);
+        console.log(`Price verification: API=${firstCallAmount}, UI=${shippingCost}`);
       }
     }
 
