@@ -107,15 +107,16 @@ SHIP_FROM_STREET1="123 Commerce St"
 SHIP_FROM_CITY="Los Angeles"
 SHIP_FROM_STATE="CA"
 SHIP_FROM_ZIP="90001"
+SHIP_FROM_PHONE="5551234567"  # Required for FedEx rates
 ```
 
 ### Setting Up EasyPost
 
 1. Create an account at [easypost.com](https://www.easypost.com)
 2. Get your API key from the dashboard
-3. (Optional) Add carrier accounts for production rates:
-   - USPS: Automatic (included)
-   - FedEx: Requires FedEx account connection
+3. Carrier accounts:
+   - **USPS**: Automatic (included via EasyPost Wallet)
+   - **FedEx**: Use EasyPost's FedEx Wallet (pre-negotiated rates) or connect your own FedEx account
 
 ## Checkout Flow
 
@@ -154,7 +155,7 @@ POST /store/shipping-options/{option_id}/calculate
 {
   "shipping_option": {
     "calculated_price": {
-      "calculated_amount": 621,  // Price in CENTS
+      "calculated_amount": 6.21,  // Price in DOLLARS (Medusa v2 major units)
       "is_calculated_price_tax_inclusive": false
     }
   }
@@ -164,7 +165,10 @@ POST /store/shipping-options/{option_id}/calculate
 This endpoint triggers the EasyPost provider's `calculatePrice()` method, which:
 1. Creates an EasyPost shipment with origin + destination addresses
 2. Gets real-time rates from EasyPost
-3. Returns the calculated price in cents
+3. Returns the calculated price in **dollars** (Medusa v2 uses major currency units)
+
+> **Note**: Medusa v2 stores prices in major units (dollars), not minor units (cents).
+> See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
 
 > **⚠️ REGRESSION PREVENTION**: The `/store/shipping-options` endpoint does NOT return
 > calculated prices for `price_type: "calculated"` options. If you see NaN or $0 prices
@@ -289,15 +293,44 @@ POST /store/shipping-options/{option_id}/calculate
 **Verification Steps**:
 1. Check browser console for `[useMedusaShipping] Calculating prices...` logs
 2. Verify API calls to `/store/shipping-options/{id}/calculate` in Network tab
-3. Check response contains `calculated_price.calculated_amount` (in cents)
-4. Ensure frontend converts cents to dollars (`amount / 100`)
+3. Check response contains `calculated_price.calculated_amount` (in dollars, not cents)
 
 **Related Code**:
 - `src/hooks/useMedusaShipping.ts` - Calls calculate endpoint for each option
 - `src/lib/api/medusa.ts` - `calculateShippingOptionPrice()` function
 
-**Postmortem**: This was fixed on 2024-12-09. See git commits `d155b6b` (frontend fix)
-and `d27ea0c` (backend debug cleanup) for the implementation.
+### FedEx Rates Not Appearing
+
+**Root Cause**: FedEx requires phone numbers on both origin and destination addresses. Without phone numbers, EasyPost returns the error: `"phoneNumber: none is not an allowed value"`.
+
+**Fix**: The EasyPost provider now includes phone numbers on all addresses:
+- Origin: Uses `SHIP_FROM_PHONE` env var (falls back to placeholder if not set)
+- Destination: Uses customer's `shipping_address.phone` (falls back to placeholder)
+
+**Verification Steps**:
+1. Check backend logs for `[EasyPost] Rates returned for fedex-*: FedExDefault/...`
+2. If logs show `No rates returned by EasyPost for fedex-*`, check that phone numbers are being sent
+3. Test directly with EasyPost API including phone on both addresses
+
+**EasyPost Dashboard**: If you don't see API logs in the EasyPost dashboard:
+- Ensure you're viewing **Production** logs (not Test)
+- Check the date filter includes recent requests
+- Look under "Shipments" section for created shipments
+
+### Shipping Charged Wrong Amount (e.g., $767 instead of $7.67)
+
+**Root Cause**: Medusa v2 stores prices in **major units (dollars)**, not minor units (cents). If the EasyPost provider returns cents, Medusa interprets it as dollars.
+
+**Fix**: The EasyPost provider's `calculatePrice()` method must return `calculated_amount` in dollars:
+```typescript
+// CORRECT - Medusa v2 major units
+return { calculated_amount: 7.67, ... }
+
+// WRONG - Would charge $767.00
+return { calculated_amount: 767, ... }
+```
+
+**Related**: See commit `96e3ce5` for the fix.
 
 ### Labels Not Generating
 
