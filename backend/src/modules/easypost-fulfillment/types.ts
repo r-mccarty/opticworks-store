@@ -103,6 +103,7 @@ export interface EasyPostProviderOptions {
   api_key: string
   ship_from_name?: string
   ship_from_street1?: string
+  ship_from_street2?: string  // Suite, floor, etc.
   ship_from_city?: string
   ship_from_state?: string
   ship_from_zip?: string

@@ -56,14 +56,16 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
 
     // Configure origin/warehouse address
     // FedEx requires phone number on both addresses to return rates
+    // Default to EasyPost's documented test address (417 Montgomery St, SF)
     this.originAddress = {
       name: options.ship_from_name || "OpticWorks",
-      street1: options.ship_from_street1 || "123 Commerce St",
-      city: options.ship_from_city || "Los Angeles",
+      street1: options.ship_from_street1 || "417 Montgomery Street",
+      street2: options.ship_from_street2,
+      city: options.ship_from_city || "San Francisco",
       state: options.ship_from_state || "CA",
-      zip: options.ship_from_zip || "90001",
+      zip: options.ship_from_zip || "94104",
       country: "US",
-      phone: options.ship_from_phone || "0000000000",
+      phone: options.ship_from_phone || "4153334445",
     }
 
     this.logger.info("[EasyPost] Fulfillment provider initialized")

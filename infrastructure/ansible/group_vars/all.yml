@@ -50,8 +50,12 @@ r2_backup_bucket_name: "opticworks-backups"  # Private bucket for backups
 backup_hour: "3"  # 3 AM daily backups
 
 # Fulfillment - Ship From Address (not sensitive)
+# Using EasyPost's documented test address for development
+# Replace with your real warehouse address for production
 ship_from_name: "OpticWorks"
-ship_from_street1: "123 Commerce St"
+ship_from_street1: "417 Montgomery Street"
+ship_from_street2: "5th Floor"
 ship_from_city: "San Francisco"
 ship_from_state: "CA"
-ship_from_zip: "94102"
+ship_from_zip: "94104"
+ship_from_phone: "4153334445"
