@@ -27,9 +27,9 @@ Shipping rates and fulfillment are handled through Medusa's fulfillment module w
 │  ┌─────────────────────┐    ┌─────────────────────────────────┐ │
 │  │  Fulfillment Module │───▶│  EasyPost Fulfillment Provider  │ │
 │  │                     │    │                                  │ │
-│  │  • Shipping Options │    │  • calculatePrice() → EasyPost  │ │
-│  │  • Service Zones    │    │  • createFulfillment() → Label  │ │
-│  │  • Fulfillments     │    │  • cancelFulfillment() → Void   │ │
+│  │  • Shipping Options │    │  • validateFulfillmentData()    │ │
+│  │  • Service Zones    │    │  • calculatePrice() → Rate      │ │
+│  │  • Fulfillments     │    │  • createFulfillment() → Label  │ │
 │  └─────────────────────┘    └─────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
                               │
@@ -42,6 +42,43 @@ Shipping rates and fulfillment are handled through Medusa's fulfillment module w
 │  • /shipments/{id}/refund - Void/refund labels                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+## Data Flow (Important!)
+
+Understanding how data flows through the fulfillment provider is critical:
+
+```
+┌───────────────────────────────────────────────────────────────────────────┐
+│                    SHIPPING METHOD CREATION                                │
+│                                                                            │
+│  1. validateFulfillmentData(optionData, data, context)                    │
+│     └─> Creates EasyPost shipment                                         │
+│     └─> Stores: shipment_id, rate_id, rate_amount                         │
+│     └─> Returns data → PERSISTED to shipping_method.data ✓                │
+│                                                                            │
+│  2. calculatePrice(optionData, data, context)                             │
+│     └─> Uses pre-created rate from step 1 if available                    │
+│     └─> Falls back to creating new shipment if not                        │
+│     └─> Returns: { calculated_amount } (price only)                       │
+│     └─> Data modifications are NOT persisted ✗                            │
+│                                                                            │
+└───────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌───────────────────────────────────────────────────────────────────────────┐
+│                    FULFILLMENT CREATION (Admin)                            │
+│                                                                            │
+│  3. createFulfillment(data, items, order, fulfillment)                    │
+│     └─> Receives: shipping_method.data (from step 1)                      │
+│     └─> Contains: easypost_shipment_id, easypost_rate_id                  │
+│     └─> Purchases label using pre-created rate                            │
+│     └─> Fallback: creates new shipment if IDs missing                     │
+│                                                                            │
+└───────────────────────────────────────────────────────────────────────────┘
+```
+
+**Key Insight**: Only `validateFulfillmentData()` return values are persisted.
+Modifications made to the `data` object in `calculatePrice()` are lost.
 
 ## Key Components
 

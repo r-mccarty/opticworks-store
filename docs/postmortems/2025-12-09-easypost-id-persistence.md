@@ -2,7 +2,7 @@
 
 **Date**: 2025-12-09
 **Severity**: Medium (workaround exists)
-**Status**: Root cause identified, fix pending
+**Status**: Fixed (commit 6925e8c)
 
 ## Summary
 
@@ -145,9 +145,10 @@ Then `calculatePrice()` would retrieve the rate from the pre-created shipment in
 
 - [x] Fix fallback path (add phone number, FedExDefault carrier)
 - [x] Document the issue in postmortem
-- [ ] Implement proper fix: move shipment creation to `validateFulfillmentData()`
-- [ ] Add shipment expiration handling
-- [ ] Update FULFILLMENT.md with correct data flow documentation
+- [x] Implement proper fix: move shipment creation to `validateFulfillmentData()` (commit 6925e8c)
+- [x] Update FULFILLMENT.md with correct data flow documentation
+- [ ] Add shipment expiration handling (future improvement)
+- [ ] Monitor for any edge cases where IDs still don't persist
 
 ## References
 
