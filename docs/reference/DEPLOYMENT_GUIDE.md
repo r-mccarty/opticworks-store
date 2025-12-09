@@ -164,6 +164,42 @@ ssh hetzner-node "pm2 logs medusa-prod --lines 50"
 
 **Reference**: [Medusa Logging Documentation](https://docs.medusajs.com/learn/debugging-and-testing/logging)
 
+### Backend TypeScript build fails in Codespaces
+
+**Symptom**: Running `pnpm run build` in the `backend/` directory fails with errors like:
+
+```
+Cannot find module '@medusajs/framework/utils' or its corresponding type declarations.
+```
+
+**Root cause**: The Medusa CLI build command requires specific module resolution settings that aren't fully compatible with Codespaces' ephemeral environment. The build works on the production server but fails locally.
+
+**Why this happens**:
+1. Medusa v2 uses complex package exports with subpath imports (`@medusajs/framework/utils`)
+2. TypeScript's module resolution in Codespaces doesn't fully resolve these paths
+3. The production server builds fresh from git clone, avoiding cached/stale node_modules
+
+**Workarounds**:
+
+1. **Trust the production build**: The Ansible deploy runs the build on the server where it works
+2. **For local validation**, manually check TypeScript syntax (not full build):
+   ```bash
+   # Check for syntax errors only
+   cd backend
+   npx tsc --noEmit --skipLibCheck 2>&1 | grep -v "Cannot find module"
+   ```
+3. **For full local builds**, try a clean install:
+   ```bash
+   cd backend
+   rm -rf node_modules .medusa
+   pnpm install
+   pnpm run build
+   ```
+
+**Permanent fix needed**: Track 1 in `PLATFORM_ENGINEERING_PLAN.md` proposes GitHub Actions CI that runs builds in a clean environment, catching issues before deployment.
+
+---
+
 ### Database connection timeout
 
 **Root cause**: PostgreSQL password contained URL-unsafe characters (`/`, `+`, `=`).
