@@ -34,9 +34,19 @@ if (!resendApiKey) {
 }
 
 // Check for EasyPost configuration
-const easypostApiKey = process.env.EASYPOST_API_KEY
+// Support test/production mode toggle via EASYPOST_MODE env var
+// Test mode uses test API key (EZTK*) for safe label testing without charges
+// Production mode uses production API key (EZAK*) for real shipping labels
+const easypostMode = process.env.EASYPOST_MODE || "production"
+const easypostApiKey = easypostMode === "test"
+  ? process.env.EASYPOST_TEST_API_KEY
+  : process.env.EASYPOST_API_KEY
+
 if (!easypostApiKey) {
-  console.warn("[medusa-config] EASYPOST_API_KEY is not set. Shipping rate calculation will not work.")
+  const keyName = easypostMode === "test" ? "EASYPOST_TEST_API_KEY" : "EASYPOST_API_KEY"
+  console.warn(`[medusa-config] ${keyName} is not set. Shipping rate calculation will not work.`)
+} else {
+  console.log(`[medusa-config] EasyPost mode: ${easypostMode} (key prefix: ${easypostApiKey.substring(0, 4)}...)`)
 }
 
 // Redis URLs for infrastructure modules

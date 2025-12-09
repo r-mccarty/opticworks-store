@@ -264,8 +264,14 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     order: Record<string, unknown> | undefined,
     _fulfillment: Record<string, unknown>
   ): Promise<{ data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] }> {
+    // Debug: Log what data is passed to createFulfillment
+    this.logger.info("[EasyPost] createFulfillment called with data keys: " + Object.keys(data).join(", "))
+    this.logger.info("[EasyPost] createFulfillment data: " + JSON.stringify(data, null, 2))
+
     const shipmentId = data.easypost_shipment_id as string
     const rateId = data.easypost_rate_id as string
+
+    this.logger.info(`[EasyPost] createFulfillment - shipmentId: ${shipmentId || "NOT FOUND"}, rateId: ${rateId || "NOT FOUND"}`)
 
     if (!shipmentId || !rateId) {
       // If we don't have a pre-created shipment, create one now

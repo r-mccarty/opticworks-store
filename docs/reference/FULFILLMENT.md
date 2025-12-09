@@ -98,8 +98,13 @@ Shipping options are created with `price_type: "calculated"` to enable dynamic p
 ### Required
 
 ```bash
-# EasyPost API key (production or test)
-EASYPOST_API_KEY=EZAK...
+# EasyPost API keys
+EASYPOST_API_KEY=EZAK...        # Production key (starts with EZAK)
+EASYPOST_TEST_API_KEY=EZTK...   # Test key (starts with EZTK) - optional
+
+# EasyPost mode toggle (default: "production")
+# Set to "test" to use test API key for safe label testing without charges
+EASYPOST_MODE=production
 
 # Origin warehouse address
 SHIP_FROM_NAME="OpticWorks"
@@ -109,6 +114,17 @@ SHIP_FROM_STATE="CA"
 SHIP_FROM_ZIP="90001"
 SHIP_FROM_PHONE="5551234567"  # Required for FedEx rates
 ```
+
+### Test vs Production Mode
+
+| Mode | API Key Prefix | Labels | Charges | Use Case |
+|------|----------------|--------|---------|----------|
+| `test` | `EZTK*` | VOID (not real) | None | Development, testing fulfillment flow |
+| `production` | `EZAK*` | Real | Charged | Live orders |
+
+To switch modes, set `EASYPOST_MODE` environment variable:
+- In Infisical: Add `easypost_mode: test` or `easypost_mode: production`
+- The backend logs which mode is active on startup: `[medusa-config] EasyPost mode: test (key prefix: EZTK...)`
 
 ### Setting Up EasyPost
 
@@ -348,9 +364,80 @@ return { calculated_amount: 767, ... }
 
 ### Labels Not Generating
 
-1. Verify EasyPost API key is production key (not test)
-2. Check carrier account is connected in EasyPost
-3. Review EasyPost dashboard for transaction logs
+**Symptom**: Clicking "Create Fulfillment" in Medusa Admin fails or no label is generated.
+
+**Check 1: EasyPost ID Persistence**
+
+The provider stores `easypost_shipment_id` and `easypost_rate_id` during checkout. If these IDs don't persist to fulfillment creation, the provider falls back to creating a new shipment (which may use a different rate).
+
+Check backend logs for:
+```
+[EasyPost] createFulfillment - shipmentId: NOT FOUND, rateId: NOT FOUND
+[EasyPost] No pre-created shipment, creating new one for fulfillment
+```
+
+If you see this, the IDs from `calculatePrice()` aren't being persisted to the order's shipping method data.
+
+**Check 2: API Mode**
+
+Check logs to verify which API key is being used:
+```
+[medusa-config] EasyPost mode: production (key prefix: EZAK...)
+```
+
+For testing, use test mode (`EASYPOST_MODE=test`) to avoid charges.
+
+**Check 3: EasyPost Dashboard**
+
+1. Log into EasyPost dashboard
+2. Go to Shipments section
+3. Look for shipments created during checkout
+4. Verify the rate was selected and can be purchased
+
+**Debugging Steps**:
+1. Create a test order through checkout
+2. Check backend logs for `[EasyPost] createFulfillment` messages
+3. Verify what data is passed to `createFulfillment`
+4. If IDs missing, investigate Medusa's shipping_method.data persistence
+
+## Testing Label Generation
+
+### Prerequisites
+
+1. Get EasyPost test API key from dashboard (starts with `EZTK`)
+2. Add to Infisical: `easypost_test_api_key: EZTK...`
+3. Set `easypost_mode: test` in Infisical
+4. Redeploy backend
+
+### Test Workflow
+
+1. **Switch to test mode**:
+   ```bash
+   # Add to Infisical and redeploy
+   easypost_mode: test
+   easypost_test_api_key: EZTK...
+   ```
+
+2. **Create test order**:
+   - Go through checkout with a test address
+   - Complete payment (Stripe test mode)
+   - Order is created
+
+3. **Create fulfillment in Admin**:
+   - Open https://api.optic.works/app
+   - Find the order
+   - Click "Create Fulfillment"
+   - Select items to ship
+   - Submit
+
+4. **Verify label created**:
+   - Check fulfillment data for `tracking_number`, `label_url`
+   - Check backend logs for `[EasyPost] Label purchased: tracking=...`
+   - Labels in test mode are VOID and not charged
+
+### Test Addresses
+
+EasyPost test mode works with any valid US address. The labels generated are marked VOID and cannot be used for actual shipping.
 
 ## Related Documentation
 
