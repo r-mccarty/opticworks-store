@@ -321,7 +321,7 @@ export const useCart = create<CartStore>()(
       },
 
       clearCart: () => {
-        set({ items: [], cartId: null, syncStatus: "idle" })
+        set({ items: [], cartId: null, syncStatus: "idle", paymentSession: null })
       },
 
       getTotalItems: () => {
