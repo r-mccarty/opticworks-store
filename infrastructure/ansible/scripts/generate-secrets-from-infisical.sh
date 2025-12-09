@@ -94,7 +94,26 @@ if [ -z "$POSTGRES_PASSWORD" ] || [ -z "$JWT_SECRET" ] || [ -z "$COOKIE_SECRET" 
     exit 1
 fi
 
-echo "✅ All required secrets fetched successfully"
+# Validate POSTGRES_PASSWORD doesn't contain URL-unsafe characters
+# These cause DATABASE_URL encoding issues that have broken production multiple times
+if [[ "$POSTGRES_PASSWORD" =~ [/+=] ]]; then
+    echo "❌ POSTGRES_PASSWORD contains URL-unsafe characters (/, +, or =)"
+    echo "   Current password: ${POSTGRES_PASSWORD:0:10}..."
+    echo ""
+    echo "   This WILL cause DATABASE_URL encoding issues in production!"
+    echo "   PostgreSQL connections will fail with 'connection timeout' errors."
+    echo ""
+    echo "   To fix, generate a new hex-only password:"
+    echo "     openssl rand -hex 32"
+    echo ""
+    echo "   Then update in Infisical:"
+    echo "     infisical secrets set POSTGRES_PASSWORD=\"<new-password>\" --env=prod \\"
+    echo "       --projectId=42e9e77c-88fa-4cbb-925b-5064c8e3b18c --token=\"\$INFISICAL_SERVICE_TOKEN\""
+    echo ""
+    exit 1
+fi
+
+echo "✅ All required secrets fetched and validated successfully"
 echo ""
 
 # Generate secrets.yml with timestamp

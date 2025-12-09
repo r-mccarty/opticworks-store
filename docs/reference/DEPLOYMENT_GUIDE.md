@@ -138,10 +138,28 @@ curl http://localhost:9000/health
 
 ### Database connection timeout
 
+**Root cause**: PostgreSQL password contained URL-unsafe characters (`/`, `+`, `=`).
+
+**Prevention**: The `generate-secrets-from-infisical.sh` script now validates that `POSTGRES_PASSWORD` contains only hex characters (no special characters that require URL encoding).
+
+**If this error occurs**:
 ```bash
-# Check if password has unencoded special chars
-ssh hetzner-node "grep DATABASE_URL /opt/opticworks/medusa-backend/.env"
-# '/' should be %2F, '=' should be %3D
+# Generate a new hex-only password
+openssl rand -hex 32
+
+# Update in Infisical
+infisical secrets set POSTGRES_PASSWORD="<new-hex-password>" --env=prod \
+  --projectId=42e9e77c-88fa-4cbb-925b-5064c8e3b18c --token="$INFISICAL_SERVICE_TOKEN"
+
+# Regenerate secrets and redeploy
+cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
+```
+
+**Note**: After changing the password, you must also update it in PostgreSQL:
+```bash
+ssh hetzner-node "sudo -u postgres psql -c \"ALTER USER medusa PASSWORD '<new-hex-password>';\""
 ```
 
 ---

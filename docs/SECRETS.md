@@ -182,19 +182,26 @@ pnpm run secrets:pull
 ```
 
 **Backend: "Pg connection failed" / KnexTimeoutError**
+
+This issue was caused by passwords containing URL-unsafe characters (`/`, `+`, `=`).
+
+**Prevention**: `generate-secrets-from-infisical.sh` now validates that `POSTGRES_PASSWORD` is hex-only (no special characters). If you see this error during secret generation, follow the instructions to regenerate the password.
+
 ```bash
-# Likely cause: PASSWORD in DATABASE_URL contains unencoded special chars
-# Passwords with '/' need URL encoding (%2F), '=' needs (%3D)
+# Generate new hex-only password
+openssl rand -hex 32
 
-# Check current value:
-ssh hetzner-node "grep DATABASE_URL /opt/opticworks/medusa-backend/.env"
+# Update in Infisical
+infisical secrets set POSTGRES_PASSWORD="<new-password>" --env=prod \
+  --projectId=42e9e77c-88fa-4cbb-925b-5064c8e3b18c --token="$INFISICAL_SERVICE_TOKEN"
 
-# If slashes aren't encoded (/), fix with:
-# BAD:  postgresql://user:abc/def=@localhost/db
-# GOOD: postgresql://user:abc%2Fdef%3D@localhost/db
+# Regenerate secrets
+cd infrastructure/ansible
+bash scripts/generate-secrets-from-infisical.sh
 
-# Ansible template now handles this automatically via:
-# {{ password | regex_replace('/', '%2F') | urlencode }}
+# Update PostgreSQL and redeploy
+ssh hetzner-node "sudo -u postgres psql -c \"ALTER USER medusa PASSWORD '<new-password>';\""
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
 ```
 
 **Backend: Shell syntax error with angle brackets**
