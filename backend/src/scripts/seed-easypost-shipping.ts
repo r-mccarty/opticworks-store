@@ -19,27 +19,28 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
 
   logger.info("=== Seeding EasyPost Shipping Options ===");
 
-  // Find the US service zone
+  // Find the US service zone by listing all fulfillment sets
   const serviceSets = await fulfillmentModuleService.listFulfillmentSets({
     type: "shipping",
+  }, {
+    relations: ["service_zones"],
   });
 
-  let usServiceZone = null;
+  let usServiceZoneId: string | null = null;
   for (const set of serviceSets) {
-    const zones = await fulfillmentModuleService.listServiceZones({
-      fulfillment_set_id: set.id,
-    });
-    const usZone = zones.find(z => z.name === "United States" || z.name.includes("US"));
+    const usZone = set.service_zones?.find(
+      (z: { name: string }) => z.name === "United States" || z.name.includes("US")
+    );
     if (usZone) {
-      usServiceZone = usZone;
+      usServiceZoneId = usZone.id;
       break;
     }
   }
 
-  if (!usServiceZone) {
+  if (!usServiceZoneId) {
     throw new Error("US service zone not found. Run seed-us-region.ts first.");
   }
-  logger.info(`Found US service zone: ${usServiceZone.id}`);
+  logger.info(`Found US service zone: ${usServiceZoneId}`);
 
   // Find default shipping profile
   const shippingProfiles = await fulfillmentModuleService.listShippingProfiles({
@@ -52,13 +53,15 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
   const shippingProfile = shippingProfiles[0];
   logger.info(`Found shipping profile: ${shippingProfile.id}`);
 
-  // Check for existing EasyPost options
-  const existingOptions = await fulfillmentModuleService.listShippingOptions({
-    provider_id: "fp_easypost_easypost",
-  });
+  // Check for existing EasyPost options by querying the database directly
+  // The Medusa type doesn't expose provider_id filter, so we check after fetching
+  const allOptions = await fulfillmentModuleService.listShippingOptions({});
+  const existingEasyPostOptions = allOptions.filter(
+    (opt: { provider_id?: string }) => opt.provider_id === "fp_easypost_easypost"
+  );
 
-  if (existingOptions.length > 0) {
-    logger.info(`Found ${existingOptions.length} existing EasyPost shipping options.`);
+  if (existingEasyPostOptions.length > 0) {
+    logger.info(`Found ${existingEasyPostOptions.length} existing EasyPost shipping options.`);
     logger.info("Delete them first if you want to recreate.");
     return;
   }
@@ -72,7 +75,7 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
       name: "USPS Ground Advantage",
       price_type: "calculated" as const,
       provider_id: "fp_easypost_easypost",
-      service_zone_id: usServiceZone.id,
+      service_zone_id: usServiceZoneId,
       shipping_profile_id: shippingProfile.id,
       type: {
         label: "USPS Ground",
@@ -94,7 +97,7 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
       name: "USPS Priority Mail",
       price_type: "calculated" as const,
       provider_id: "fp_easypost_easypost",
-      service_zone_id: usServiceZone.id,
+      service_zone_id: usServiceZoneId,
       shipping_profile_id: shippingProfile.id,
       type: {
         label: "USPS Priority",
@@ -116,7 +119,7 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
       name: "FedEx Ground",
       price_type: "calculated" as const,
       provider_id: "fp_easypost_easypost",
-      service_zone_id: usServiceZone.id,
+      service_zone_id: usServiceZoneId,
       shipping_profile_id: shippingProfile.id,
       type: {
         label: "FedEx Ground",
@@ -138,7 +141,7 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
       name: "FedEx 2Day",
       price_type: "calculated" as const,
       provider_id: "fp_easypost_easypost",
-      service_zone_id: usServiceZone.id,
+      service_zone_id: usServiceZoneId,
       shipping_profile_id: shippingProfile.id,
       type: {
         label: "FedEx 2Day",
@@ -160,7 +163,7 @@ export default async function seedEasyPostShipping({ container }: ExecArgs) {
       name: "FedEx Standard Overnight",
       price_type: "calculated" as const,
       provider_id: "fp_easypost_easypost",
-      service_zone_id: usServiceZone.id,
+      service_zone_id: usServiceZoneId,
       shipping_profile_id: shippingProfile.id,
       type: {
         label: "FedEx Overnight",
