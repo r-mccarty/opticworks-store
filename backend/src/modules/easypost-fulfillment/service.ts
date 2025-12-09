@@ -103,13 +103,21 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
 
   /**
    * Validate fulfillment data (shipping address, etc.)
-   * Called when adding a shipping method to a cart
+   * Called when adding a shipping method to a cart.
+   *
+   * IMPORTANT: This method's return value is stored in shipping_method.data
+   * and passed to createFulfillment(). Data set in calculatePrice() is NOT persisted.
+   * Therefore, we create the EasyPost shipment HERE to ensure the shipment_id and
+   * rate_id are available when creating the fulfillment.
    */
   async validateFulfillmentData(
     optionData: Record<string, unknown>,
     data: Record<string, unknown>,
     context: Record<string, unknown>
   ): Promise<Record<string, unknown>> {
+    const optionId = optionData.id as string
+    const carrierConfig = CARRIER_SERVICES[optionId]
+
     // Extract shipping address from context
     const shippingAddress = context.shipping_address as Record<string, unknown> | undefined
 
@@ -120,32 +128,70 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       )
     }
 
-    // Validate address with EasyPost
-    const address: EasyPostAddress = {
+    // Build destination address with phone (required for FedEx)
+    const toAddress: EasyPostAddress = {
       name: shippingAddress.first_name
         ? `${shippingAddress.first_name} ${shippingAddress.last_name || ""}`
-        : undefined,
+        : "Customer",
       street1: shippingAddress.address_1 as string,
       street2: shippingAddress.address_2 as string | undefined,
       city: shippingAddress.city as string,
       state: shippingAddress.province as string,
       zip: shippingAddress.postal_code as string,
       country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
+      phone: (shippingAddress.phone as string) || "0000000000",
     }
 
-    const validation = await this.client.validateAddress(address)
+    // Validate address with EasyPost
+    const validation = await this.client.validateAddress(toAddress)
 
     if (!validation.success) {
       this.logger.warn(`[EasyPost] Address validation failed: ${validation.errors?.join(", ")}`)
       // Don't throw - let the order proceed but log the warning
-      // The address might still be deliverable even if validation fails
     }
 
-    // Return the validated/normalized address data
+    // Create shipment to get rates - this is persisted for later use in createFulfillment
+    const parcel = this.getParcelFromContext(context)
+    let shipmentId: string | undefined
+    let rateId: string | undefined
+    let rateAmount: string | undefined
+
+    if (carrierConfig) {
+      try {
+        this.logger.info(`[EasyPost] Creating shipment in validateFulfillmentData for ${optionId}`)
+        const shipment = await this.client.createShipment(
+          this.originAddress,
+          toAddress,
+          parcel,
+          carrierConfig.carriers
+        )
+
+        shipmentId = shipment.id
+
+        // Find the matching rate for this service
+        const matchingRate = this.findMatchingRate(shipment.rates, optionId)
+        if (matchingRate) {
+          rateId = matchingRate.id
+          rateAmount = matchingRate.rate
+          this.logger.info(`[EasyPost] Shipment created: ${shipmentId}, rate: ${rateId} ($${rateAmount})`)
+        } else {
+          this.logger.warn(`[EasyPost] No matching rate found for ${optionId}`)
+        }
+      } catch (error) {
+        this.logger.error(`[EasyPost] Failed to create shipment in validateFulfillmentData: ${error}`)
+        // Don't throw - we'll fallback to creating shipment in createFulfillment
+      }
+    }
+
+    // Return data that will be stored in shipping_method.data
+    // This data flows to calculatePrice() and createFulfillment()
     return {
       ...data,
-      easypost_address: validation.address || address,
+      easypost_address: validation.address || toAddress,
       address_validated: validation.success,
+      easypost_shipment_id: shipmentId,
+      easypost_rate_id: rateId,
+      easypost_rate_amount: rateAmount,
     }
   }
 
@@ -158,8 +204,14 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
   }
 
   /**
-   * Calculate the shipping price for a given option
-   * This is called when displaying shipping options to the customer
+   * Calculate the shipping price for a given option.
+   *
+   * This is called in two scenarios:
+   * 1. When listing shipping options (before shipping method is added) - data is from shipping option
+   * 2. When refreshing cart (after shipping method is added) - data is from validateFulfillmentData
+   *
+   * If we have a pre-created shipment from validateFulfillmentData, we use its rate.
+   * Otherwise, we create a new shipment to get the rate.
    */
   async calculatePrice(
     optionData: Record<string, unknown>,
@@ -174,7 +226,18 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
     }
 
-    // Extract shipping address from context
+    // Check if we have a pre-created shipment from validateFulfillmentData
+    const preCreatedRate = data?.easypost_rate_amount as string | undefined
+    if (preCreatedRate) {
+      const rateInDollars = parseFloat(preCreatedRate)
+      this.logger.info(`[EasyPost] Using pre-created rate for ${optionId}: $${preCreatedRate}`)
+      return {
+        calculated_amount: rateInDollars,
+        is_calculated_price_tax_inclusive: false,
+      }
+    }
+
+    // No pre-created shipment - need to create one (happens when listing shipping options)
     const shippingAddress = context.shipping_address as Record<string, unknown> | undefined
 
     if (!shippingAddress) {
@@ -182,8 +245,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
     }
 
-    // Build destination address
-    // FedEx requires phone number to return rates - use a placeholder if not provided
+    // Build destination address with phone (required for FedEx)
     const toAddress: EasyPostAddress = {
       name: shippingAddress.first_name
         ? `${shippingAddress.first_name} ${shippingAddress.last_name || ""}`
@@ -194,17 +256,14 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       state: shippingAddress.province as string,
       zip: shippingAddress.postal_code as string,
       country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
-      phone: (shippingAddress.phone as string) || "0000000000", // FedEx requires phone
+      phone: (shippingAddress.phone as string) || "0000000000",
     }
 
-    // Get parcel dimensions from context or use defaults
     const parcel = this.getParcelFromContext(context)
 
-    // Debug log the addresses being sent
-    this.logger.info(`[EasyPost] Creating shipment for ${optionId} with from_phone=${this.originAddress.phone}, to_phone=${toAddress.phone}`)
+    this.logger.info(`[EasyPost] Creating shipment for ${optionId} (no pre-created rate available)`)
 
     try {
-      // Create shipment to get rates
       const shipment = await this.client.createShipment(
         this.originAddress,
         toAddress,
@@ -212,7 +271,6 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
         carrierConfig.carriers
       )
 
-      // Log all rates returned by EasyPost for debugging
       if (shipment.rates.length > 0) {
         const ratesSummary = shipment.rates.map(r => `${r.carrier}/${r.service}=$${r.rate}`).join(', ')
         this.logger.info(`[EasyPost] Rates returned for ${optionId}: ${ratesSummary}`)
@@ -220,30 +278,17 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
         this.logger.warn(`[EasyPost] No rates returned by EasyPost for ${optionId}`)
       }
 
-      // Find the matching rate for this service
       const matchingRate = this.findMatchingRate(shipment.rates, optionId)
 
       if (!matchingRate) {
-        this.logger.warn(`[EasyPost] No matching rate for ${optionId} (looking for carrier: ${carrierConfig.carriers.join(',')})`)
+        this.logger.warn(`[EasyPost] No matching rate for ${optionId}`)
         return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
       }
 
-      // Store the shipment ID and rate ID for later use
-      // This will be passed to createFulfillment
-      if (data) {
-        (data as Record<string, unknown>).easypost_shipment_id = shipment.id
-        ;(data as Record<string, unknown>).easypost_rate_id = matchingRate.id
-      }
-
-      // Medusa v2 stores prices in MAJOR units (dollars), not minor units (cents)
-      // EasyPost returns rate as a string like "7.67" (dollars)
-      // We return it directly as a number without converting to cents
-      // See: https://docs.medusajs.com/learn/introduction/from-v1-to-v2#prices-are-stored-in-major-units
+      // Medusa v2 uses major units (dollars)
       const rateInDollars = parseFloat(matchingRate.rate)
 
-      this.logger.info(
-        `[EasyPost] Calculated rate for ${optionId}: $${matchingRate.rate} (${rateInDollars} major units)`
-      )
+      this.logger.info(`[EasyPost] Calculated rate for ${optionId}: $${matchingRate.rate}`)
 
       return {
         calculated_amount: rateInDollars,
