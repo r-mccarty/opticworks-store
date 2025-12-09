@@ -295,14 +295,17 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
         state: shippingAddress.province as string,
         zip: shippingAddress.postal_code as string,
         country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
+        phone: (shippingAddress.phone as string) || "0000000000", // Required for FedEx
       }
+
+      this.logger.info(`[EasyPost] Fallback shipment creation with to_address: ${JSON.stringify(toAddress)}`)
 
       const parcel = this.calculateParcelFromItems(items)
       const shipment = await this.client.createShipment(
         this.originAddress,
         toAddress,
         parcel,
-        ["USPS", "FedEx"]
+        ["USPS", "FedEx", "FedExDefault"] // Include FedExDefault for EasyPost Wallet
       )
 
       // Use the cheapest rate
