@@ -11,7 +11,14 @@
  *   pm2 stop all                                     # Stop all processes
  *   pm2 monit                                        # Monitor processes
  *
+ * Logging:
+ *   PM2 captures pnpm wrapper output but NOT Medusa application logs.
+ *   We set LOG_FILE env var so Medusa writes logs to a file directly.
+ *   View Medusa application logs: tail -f ./logs/medusa-app.log
+ *   View PM2 wrapper logs: pm2 logs medusa-prod
+ *
  * Reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
+ * Medusa logging: https://docs.medusajs.com/learn/debugging-and-testing/logging
  */
 
 const isProductionTarget = process.env.PM2_TARGET === 'production';
@@ -27,6 +34,9 @@ const devProcess = {
   max_memory_restart: '1G',
   env: {
     NODE_ENV: 'development',
+    // Medusa's LOG_FILE ensures application logs are captured
+    // PM2 only captures pnpm wrapper stdout, not Medusa's internal logger
+    LOG_FILE: './logs/medusa-app.log',
   },
   // Restart configuration for handling crashes
   min_uptime: '30s',
@@ -55,6 +65,9 @@ const prodProcess = {
   max_memory_restart: '2G',
   env: {
     NODE_ENV: 'production',
+    // Medusa's LOG_FILE ensures application logs are captured
+    // PM2 only captures pnpm wrapper stdout, not Medusa's internal logger
+    LOG_FILE: './logs/medusa-app.log',
   },
   // Production restart configuration (more conservative)
   min_uptime: '30s',

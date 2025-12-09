@@ -192,8 +192,8 @@ function transformShippingOption(
 - [x] Update FULFILLMENT.md with two-step API documentation
 - [x] Update CHECKOUT_FLOW.md with calculate endpoint step
 - [x] Create postmortem document
+- [x] Configure Medusa to write logs to file via `LOG_FILE` env var (see `ecosystem.config.js`)
 - [ ] Add integration test for calculated shipping pricing
-- [ ] Configure PM2 to properly capture Medusa stdout/stderr
 - [ ] Consider caching calculated prices to reduce EasyPost API calls
 
 ---

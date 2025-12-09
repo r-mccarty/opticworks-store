@@ -136,6 +136,34 @@ pm2 status                    # Check Medusa
 curl http://localhost:9000/health
 ```
 
+### Viewing Medusa Application Logs
+
+**Important**: PM2 logs (`pm2 logs`) only show pnpm wrapper output, NOT Medusa's
+internal application logs. This is because PM2 → pnpm → medusa doesn't pipe
+stdout properly.
+
+**Solution**: Medusa is configured to write logs to a file via `LOG_FILE` env var.
+
+```bash
+# View Medusa application logs (what you usually want)
+ssh hetzner-node "tail -100 /opt/opticworks/medusa-backend/logs/medusa-app.log"
+
+# Follow logs in real-time
+ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"
+
+# View PM2 wrapper logs (pnpm start/restart info only)
+ssh hetzner-node "pm2 logs medusa-prod --lines 50"
+```
+
+**Log locations on server**:
+| Log File | Contents |
+|----------|----------|
+| `logs/medusa-app.log` | Medusa application logs (EasyPost, Resend, workflows, etc.) |
+| `logs/pm2-prod-out.log` | PM2/pnpm wrapper stdout |
+| `logs/pm2-prod-error.log` | PM2/pnpm wrapper stderr |
+
+**Reference**: [Medusa Logging Documentation](https://docs.medusajs.com/learn/debugging-and-testing/logging)
+
 ### Database connection timeout
 
 **Root cause**: PostgreSQL password contained URL-unsafe characters (`/`, `+`, `=`).
