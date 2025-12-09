@@ -121,19 +121,57 @@ SHIP_FROM_ZIP="90001"
 
 ### 1. Customer Enters Address
 
-When the customer enters their shipping address in checkout, the storefront calls Medusa's shipping options endpoint:
+When the customer enters their shipping address in checkout, the storefront:
+
+1. Updates the cart with the shipping address:
+   ```
+   POST /store/carts/cart_xxx
+   { "shipping_address": { ... } }
+   ```
+
+2. Fetches available shipping options:
+   ```
+   GET /store/shipping-options?cart_id=cart_xxx
+   ```
+
+> **Note**: The shipping options endpoint returns options with `calculated_price: null` for
+> calculated pricing. The actual prices must be fetched separately (see Step 2).
+
+### 2. Frontend Calculates Prices (CRITICAL)
+
+For shipping options with `price_type: "calculated"`, the storefront **must** call a separate
+calculate endpoint for each option to get actual prices:
 
 ```
-GET /store/shipping-options?cart_id=cart_xxx
+POST /store/shipping-options/{option_id}/calculate
+{
+  "cart_id": "cart_xxx"
+}
 ```
 
-### 2. Medusa Calculates Prices
+**Response**:
+```json
+{
+  "shipping_option": {
+    "calculated_price": {
+      "calculated_amount": 621,  // Price in CENTS
+      "is_calculated_price_tax_inclusive": false
+    }
+  }
+}
+```
 
-Medusa calls the EasyPost provider's `calculatePrice()` method for each shipping option. The provider:
-
+This endpoint triggers the EasyPost provider's `calculatePrice()` method, which:
 1. Creates an EasyPost shipment with origin + destination addresses
-2. Gets rates from EasyPost
+2. Gets real-time rates from EasyPost
 3. Returns the calculated price in cents
+
+> **⚠️ REGRESSION PREVENTION**: The `/store/shipping-options` endpoint does NOT return
+> calculated prices for `price_type: "calculated"` options. If you see NaN or $0 prices
+> in the UI, verify the frontend is calling `/store/shipping-options/{id}/calculate`
+> for each calculated option.
+>
+> See `src/hooks/useMedusaShipping.ts` for the correct implementation.
 
 ### 3. Customer Selects Option
 
@@ -237,6 +275,29 @@ Note: The script checks for existing regions and skips if already created.
 1. Ensure Medusa v2.1.1+ (calculatePrice fix)
 2. Verify shipping options have `price_type: "calculated"`
 3. Check EasyPost provider is properly registered
+
+### Shipping Rates Show NaN or $0
+
+**Root Cause**: The frontend is not calling the calculate endpoint for calculated pricing options.
+
+**Fix**: For `price_type: "calculated"` options, the storefront must call:
+```
+POST /store/shipping-options/{option_id}/calculate
+{ "cart_id": "cart_xxx" }
+```
+
+**Verification Steps**:
+1. Check browser console for `[useMedusaShipping] Calculating prices...` logs
+2. Verify API calls to `/store/shipping-options/{id}/calculate` in Network tab
+3. Check response contains `calculated_price.calculated_amount` (in cents)
+4. Ensure frontend converts cents to dollars (`amount / 100`)
+
+**Related Code**:
+- `src/hooks/useMedusaShipping.ts` - Calls calculate endpoint for each option
+- `src/lib/api/medusa.ts` - `calculateShippingOptionPrice()` function
+
+**Postmortem**: This was fixed on 2024-12-09. See git commits `d155b6b` (frontend fix)
+and `d27ea0c` (backend debug cleanup) for the implementation.
 
 ### Labels Not Generating
 

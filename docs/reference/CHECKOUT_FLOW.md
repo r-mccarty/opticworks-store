@@ -163,22 +163,34 @@ The form renders in this order:
 
 **Shipping Rates Flow** (Medusa Fulfillment Provider):
 
-3. When address is complete, fetch shipping options from Medusa
-4. **API Call**: `GET /store/shipping-options?cart_id=xxx`
-   - Medusa internally calls the EasyPost fulfillment provider
-   - Provider's `calculatePrice()` creates EasyPost shipment, gets rates
-   - Returns shipping options with calculated prices
+3. When address is complete, update cart with shipping address:
+   **API Call**: `POST /store/carts/{id}` with `shipping_address`
 
-5. Display options in ShippingSelector, auto-select cheapest
+4. Fetch available shipping options:
+   **API Call**: `GET /store/shipping-options?cart_id=xxx`
+   - Returns shipping options, but `calculated_price: null` for calculated pricing
 
-6. When user selects option:
+5. **For each option with `price_type: "calculated"`**, fetch real-time price:
+   **API Call**: `POST /store/shipping-options/{option_id}/calculate`
+   ```json
+   { "cart_id": "cart_xxx" }
+   ```
+   - Medusa calls EasyPost provider's `calculatePrice()`
+   - Provider creates EasyPost shipment, gets rates
+   - Returns `calculated_amount` in **cents** (e.g., 621 = $6.21)
+
+6. Display options in ShippingSelector with calculated prices, auto-select cheapest
+
+7. When user selects option:
    **API Call**: `POST /store/carts/{id}/shipping-methods`
    - Adds shipping method to cart
    - Cart total automatically includes shipping
 
-> **Architecture Note**: Shipping rates are now calculated server-side through
-> Medusa's fulfillment provider, not via custom storefront API routes.
-> See `docs/reference/FULFILLMENT.md` for implementation details.
+> **⚠️ CRITICAL**: The `/store/shipping-options` endpoint does NOT return prices for
+> calculated options. You MUST call `/store/shipping-options/{id}/calculate` for each
+> option to get actual prices. Skipping this step causes NaN or $0 prices in the UI.
+>
+> See `docs/reference/FULFILLMENT.md` for full implementation details.
 
 ### Step 5: Shipping Rate Selection & Elements Update
 
@@ -305,29 +317,35 @@ User is redirected to `/store/cart/success` with order details.
 ## API Call Sequence (Deferred Intent Pattern)
 
 ```
-1. GET  /store/carts                    (get existing cart or create)
-2. POST /store/carts/{id}/line-items    (if syncing local items)
-   └── No PaymentIntent created yet (deferred pattern)
-3. GET  /store/shipping-options?cart_id=xxx (when address entered)
-   └── Medusa calls EasyPost provider's calculatePrice() for each option
-4. POST /store/carts/{id}/shipping-methods (when shipping selected)
-   └── Adds shipping method, updates cart total
-   └── elements.update({amount}) called to update displayed amount
-5. [On Submit] elements.submit()        (validate form)
-6. POST /store/carts/{id}               (update with email, shipping address)
-7. POST /store/payment-collections      (create payment collection)
-8. POST /store/payment-collections/{id}/payment-sessions (create Stripe session)
-   └── Returns: clientSecret (now with final amount including shipping)
-9. [Stripe] confirmPayment(clientSecret)  (client-side)
-10. POST /store/carts/{id}/complete      (finalize order)
+1.  GET  /store/carts                    (get existing cart or create)
+2.  POST /store/carts/{id}/line-items    (if syncing local items)
+    └── No PaymentIntent created yet (deferred pattern)
+3.  POST /store/carts/{id}               (update with shipping address)
+4.  GET  /store/shipping-options?cart_id=xxx (fetch available options)
+    └── Returns options with calculated_price: null for calculated pricing
+5.  POST /store/shipping-options/{id}/calculate (for EACH calculated option)
+    └── Request: { "cart_id": "cart_xxx" }
+    └── Response: { calculated_price: { calculated_amount: 621 } } (cents)
+    └── Medusa calls EasyPost provider's calculatePrice()
+6.  POST /store/carts/{id}/shipping-methods (when shipping selected)
+    └── Adds shipping method, updates cart total
+    └── elements.update({amount}) called to update displayed amount
+7.  [On Submit] elements.submit()        (validate form)
+8.  POST /store/carts/{id}               (update with email)
+9.  POST /store/payment-collections      (create payment collection)
+10. POST /store/payment-collections/{id}/payment-sessions (create Stripe session)
+    └── Returns: clientSecret (now with final amount including shipping)
+11. [Stripe] confirmPayment(clientSecret)  (client-side)
+12. POST /store/carts/{id}/complete      (finalize order)
 ```
 
-> **Note**: With the deferred intent pattern, the PaymentIntent (steps 7-8) is
+> **Note**: With the deferred intent pattern, the PaymentIntent (steps 9-10) is
 > created at submit time rather than at checkout initialization. This allows
 > the cart total to change (shipping added) without remounting Stripe Elements.
 >
-> Steps 3-4 use Medusa's native shipping APIs. The EasyPost fulfillment
-> provider handles rate calculation transparently.
+> **⚠️ CRITICAL (Step 5)**: For `price_type: "calculated"` options, you MUST call
+> the calculate endpoint to get actual prices. The shipping-options endpoint
+> returns `calculated_price: null`. Skipping step 5 causes NaN prices in UI.
 
 ---
 
@@ -387,6 +405,37 @@ return {
 - EasyPost API key stays in backend, not exposed to Workers
 
 See `docs/reference/FULFILLMENT.md` for full architecture.
+
+### 2a. Calculated Pricing Requires Separate API Call
+
+**Files**:
+- `src/hooks/useMedusaShipping.ts` - Frontend hook that fetches and calculates rates
+- `src/lib/api/medusa.ts` - `calculateShippingOptionPrice()` function
+
+**What**: For `price_type: "calculated"` shipping options, the Medusa
+`/store/shipping-options` endpoint returns `calculated_price: null`. The
+frontend must call a **separate endpoint** for each option to get actual prices:
+
+```typescript
+// In useMedusaShipping.ts fetchRates():
+const transformedRates = await Promise.all(
+  options.map(async (option) => {
+    if (option.price_type === 'calculated') {
+      const calculated = await calculateShippingOptionPrice(option.id, cartId);
+      return transformShippingOption(option, calculated.calculated_amount);
+    }
+    return transformShippingOption(option);
+  })
+);
+```
+
+**Why**: Medusa v2's calculated pricing is a two-step process:
+1. `GET /store/shipping-options` - Returns available options (prices null)
+2. `POST /store/shipping-options/{id}/calculate` - Returns actual price from provider
+
+**⚠️ Regression Risk**: Removing or breaking the calculate calls causes NaN prices.
+This was fixed on 2024-12-09 after shipping rates showed NaN in the UI.
+See git commit `d155b6b` for the fix implementation.
 
 ### 3. Build-Time Environment Variables
 
