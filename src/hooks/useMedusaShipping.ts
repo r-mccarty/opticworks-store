@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useDebouncedCallback } from 'use-debounce';
 import {
   getShippingOptions,
+  calculateShippingOptionPrice,
   addShippingMethod,
   updateCart,
   type MedusaShippingOption,
@@ -124,22 +125,36 @@ function formatEstimatedDelivery(days: number | null): string {
 }
 
 /**
- * Transform Medusa shipping option to normalized ShippingRate format
+ * Transform Medusa shipping option to normalized ShippingRate format.
+ * For calculated pricing, the amountInCents parameter should be provided.
  */
-function transformShippingOption(option: MedusaShippingOption): ShippingRate {
+function transformShippingOption(
+  option: MedusaShippingOption,
+  amountInCents?: number
+): ShippingRate {
   const { carrier, service } = parseCarrierInfo(
     (option.data?.id as string) || option.id,
     option.name
   );
   const estimatedDays = estimateDeliveryDays(option.name);
 
+  // Determine amount: use calculated price if provided, otherwise fall back to option.amount
+  // Convert from cents to dollars if using calculated amount
+  let amount = 0;
+  if (amountInCents !== undefined) {
+    amount = amountInCents / 100; // Convert cents to dollars
+  } else if (option.calculated_price?.calculated_amount !== undefined) {
+    amount = option.calculated_price.calculated_amount / 100;
+  } else if (option.amount !== undefined) {
+    amount = option.amount;
+  }
+
   return {
     id: option.id,
     name: option.name,
     carrier,
     service,
-    // Medusa returns amount in dollars (not cents) for shipping options
-    amount: option.amount,
+    amount,
     currency: 'USD',
     estimatedDays,
     estimatedDelivery: formatEstimatedDelivery(estimatedDays),
@@ -244,13 +259,30 @@ export function useMedusaShipping({
       }
 
       // Fetch shipping options from Medusa
-      // The backend EasyPost provider will calculate rates dynamically
       console.log('[useMedusaShipping] Fetching shipping options for cart:', cartId);
       const options = await getShippingOptions(cartId);
       console.log('[useMedusaShipping] Received', options.length, 'shipping options');
 
-      // Transform to UI format
-      const transformedRates = options.map(transformShippingOption);
+      // For calculated pricing, we need to call the calculate endpoint for each option
+      // This gets real-time rates from EasyPost
+      console.log('[useMedusaShipping] Calculating prices for shipping options...');
+      const transformedRates = await Promise.all(
+        options.map(async (option) => {
+          // Only call calculate for options with calculated pricing
+          if (option.price_type === 'calculated') {
+            try {
+              const calculated = await calculateShippingOptionPrice(option.id, cartId);
+              return transformShippingOption(option, calculated.calculated_amount);
+            } catch (err) {
+              console.warn(`[useMedusaShipping] Failed to calculate price for ${option.name}:`, err);
+              return transformShippingOption(option);
+            }
+          }
+          // For flat pricing, use the existing amount
+          return transformShippingOption(option);
+        })
+      );
+      console.log('[useMedusaShipping] Calculated prices for', transformedRates.length, 'options');
 
       // Sort by price (cheapest first)
       transformedRates.sort((a, b) => a.amount - b.amount);

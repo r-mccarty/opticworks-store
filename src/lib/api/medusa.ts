@@ -456,7 +456,19 @@ export interface MedusaShippingOption {
     description: string
     code: string
   }
-  amount: number
+  // For price_type: "calculated", Medusa returns calculated_price object
+  // For price_type: "flat", Medusa returns prices array
+  calculated_price?: {
+    calculated_amount: number
+    is_calculated_price_tax_inclusive: boolean
+  } | null
+  prices?: Array<{
+    id: string
+    amount: number
+    currency_code: string
+  }>
+  // Legacy field (not used in Medusa v2)
+  amount?: number
 }
 
 /**
@@ -470,6 +482,38 @@ export async function getShippingOptions(cartId: string): Promise<MedusaShipping
   )
   console.log("[medusa] Found", response.shipping_options.length, "shipping options")
   return response.shipping_options
+}
+
+/**
+ * Calculate the price for a shipping option.
+ * For options with price_type="calculated", this calls the fulfillment provider
+ * to get real-time shipping rates.
+ */
+export async function calculateShippingOptionPrice(
+  optionId: string,
+  cartId: string
+): Promise<{ calculated_amount: number; is_calculated_price_tax_inclusive: boolean }> {
+  console.log("[medusa] Calculating shipping price for option:", optionId, "cart:", cartId)
+  const response = await medusaFetch<{
+    shipping_option: {
+      calculated_price: {
+        calculated_amount: number
+        is_calculated_price_tax_inclusive: boolean
+      } | null
+    }
+  }>(`/store/shipping-options/${optionId}/calculate`, {
+    method: "POST",
+    body: JSON.stringify({ cart_id: cartId }),
+  })
+
+  const calculatedPrice = response.shipping_option.calculated_price
+  if (!calculatedPrice) {
+    console.warn("[medusa] No calculated price returned for option:", optionId)
+    return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
+  }
+
+  console.log("[medusa] Calculated price:", calculatedPrice.calculated_amount, "cents")
+  return calculatedPrice
 }
 
 /**
