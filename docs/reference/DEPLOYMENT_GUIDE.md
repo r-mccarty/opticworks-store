@@ -9,17 +9,21 @@ Ansible-based deployment for the Medusa backend on Hetzner Cloud.
 ```bash
 # Full provisioning (first time or recovery)
 cd infrastructure/ansible
-ansible-playbook playbooks/medusa-provision.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-provision.yml
 
 # Code updates only
-ansible-playbook playbooks/medusa-deploy.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
 
 # Setup/update backup system
-ansible-playbook playbooks/backup-setup.yml
+ansible-playbook -i inventory/production.ini playbooks/backup-setup.yml
 
 # Teardown for clean rebuild
-ansible-playbook playbooks/medusa-destroy.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-destroy.yml
 ```
+
+> **Note**: The `-i inventory/production.ini` flag is required because Codespaces
+> uses world-writable directories, causing Ansible to ignore the local `ansible.cfg`
+> for security reasons.
 
 ---
 
@@ -36,7 +40,7 @@ ansible-playbook playbooks/medusa-destroy.yml
 ### Full Provisioning
 
 ```bash
-ansible-playbook playbooks/medusa-provision.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-provision.yml
 ```
 
 **When**: First-time deployment, after infrastructure changes, recovery from drift
@@ -52,7 +56,7 @@ ansible-playbook playbooks/medusa-provision.yml
 ### Code Deployment
 
 ```bash
-ansible-playbook playbooks/medusa-deploy.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
 ```
 
 **When**: Application code updates, Medusa version upgrades
@@ -68,7 +72,7 @@ ansible-playbook playbooks/medusa-deploy.yml
 ### Teardown
 
 ```bash
-ansible-playbook playbooks/medusa-destroy.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-destroy.yml
 ```
 
 **When**: Configuration drift, clean rebuilds
@@ -149,7 +153,7 @@ Automated backups run daily at 3 AM using Restic to Cloudflare R2.
 ### Setup
 
 ```bash
-ansible-playbook playbooks/backup-setup.yml
+ansible-playbook -i inventory/production.ini playbooks/backup-setup.yml
 ```
 
 ### Manual Backup

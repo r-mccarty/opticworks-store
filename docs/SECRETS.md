@@ -88,6 +88,7 @@ cat .env.local | head -5
 | Variable | Purpose |
 |----------|---------|
 | `RESEND_API_KEY` | Resend API for transactional email |
+| `RESEND_FROM_EMAIL` | From address (e.g., `OpticWorks <notifications@notifications.optic.works>`) |
 
 ### Background Jobs (QStash)
 
@@ -130,7 +131,7 @@ Backend secrets are pulled by Ansible during deployment:
 ```bash
 cd infrastructure/ansible
 bash scripts/generate-secrets-from-infisical.sh  # Writes group_vars/secrets.yml
-ansible-playbook playbooks/medusa-deploy.yml
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
 ```
 
 Never edit `group_vars/secrets.yml` directly - regenerate from Infisical.
