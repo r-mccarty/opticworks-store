@@ -205,11 +205,19 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
         carrierConfig.carriers
       )
 
+      // Log all rates returned by EasyPost for debugging
+      if (shipment.rates.length > 0) {
+        const ratesSummary = shipment.rates.map(r => `${r.carrier}/${r.service}=$${r.rate}`).join(', ')
+        this.logger.info(`[EasyPost] Rates returned for ${optionId}: ${ratesSummary}`)
+      } else {
+        this.logger.warn(`[EasyPost] No rates returned by EasyPost for ${optionId}`)
+      }
+
       // Find the matching rate for this service
       const matchingRate = this.findMatchingRate(shipment.rates, optionId)
 
       if (!matchingRate) {
-        this.logger.warn(`[EasyPost] No rate found for ${optionId}`)
+        this.logger.warn(`[EasyPost] No matching rate for ${optionId} (looking for carrier: ${carrierConfig.carriers.join(',')})`)
         return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
       }
 
