@@ -109,9 +109,11 @@ cat .env.local | head -5
 
 | Variable | Purpose |
 |----------|---------|
-| `MAILOSAUR_API_KEY` | Email testing service API key |
-| `MAILOSAUR_SERVER_ID` | Mailosaur server for test emails |
+| `MAILOSAUR_API_KEY` | Mailosaur API key for E2E email verification |
+| `MAILOSAUR_SERVER_ID` | Mailosaur server ID (e.g., `cgbbp7hh`) - emails sent to `*@{server-id}.mailosaur.net` are captured |
 | `CONTEXT7_API_KEY` | Context7 API key |
+
+**Note:** Mailosaur enables E2E tests to verify transactional emails are actually sent. See `docs/reference/E2E_TESTING.md` for usage.
 
 ## Infisical Structure
 
