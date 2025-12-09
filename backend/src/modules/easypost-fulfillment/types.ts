@@ -106,6 +106,7 @@ export interface EasyPostProviderOptions {
   ship_from_city?: string
   ship_from_state?: string
   ship_from_zip?: string
+  ship_from_phone?: string  // FedEx requires phone on origin address
 }
 
 export interface ShippingOptionData {

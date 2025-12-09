@@ -55,6 +55,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     this.client = new EasyPostClient(options.api_key)
 
     // Configure origin/warehouse address
+    // FedEx requires phone number on both addresses to return rates
     this.originAddress = {
       name: options.ship_from_name || "OpticWorks",
       street1: options.ship_from_street1 || "123 Commerce St",
@@ -62,6 +63,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       state: options.ship_from_state || "CA",
       zip: options.ship_from_zip || "90001",
       country: "US",
+      phone: options.ship_from_phone || "0000000000",
     }
 
     this.logger.info("[EasyPost] Fulfillment provider initialized")
@@ -181,6 +183,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     }
 
     // Build destination address
+    // FedEx requires phone number to return rates - use a placeholder if not provided
     const toAddress: EasyPostAddress = {
       name: shippingAddress.first_name
         ? `${shippingAddress.first_name} ${shippingAddress.last_name || ""}`
@@ -191,6 +194,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       state: shippingAddress.province as string,
       zip: shippingAddress.postal_code as string,
       country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
+      phone: (shippingAddress.phone as string) || "0000000000", // FedEx requires phone
     }
 
     // Get parcel dimensions from context or use defaults
