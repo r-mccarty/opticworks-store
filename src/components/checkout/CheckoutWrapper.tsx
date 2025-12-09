@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 import type { Stripe, StripeElementsOptions } from '@stripe/stripe-js';
@@ -8,7 +8,6 @@ import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
 import type { ShippingRate } from '@/hooks/useMedusaShipping';
-import { createMedusaPaymentSession } from '@/lib/api/medusa';
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise: Promise<Stripe | null> = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
@@ -18,18 +17,38 @@ interface CheckoutWrapperProps {
   onError: (error: string) => void;
 }
 
+/**
+ * CheckoutWrapper - Uses Stripe's Deferred Intent Pattern
+ *
+ * This component uses `mode: 'payment'` with `amount` and `currency` instead of
+ * passing a `clientSecret` upfront. This allows the cart total to change (e.g.,
+ * when shipping is selected) without remounting the Elements, which would destroy
+ * form state.
+ *
+ * The PaymentIntent is created at submit time in CheckoutForm when the final
+ * amount (including shipping) is known.
+ *
+ * @see https://docs.stripe.com/payments/accept-a-payment-deferred
+ */
 export default function CheckoutWrapper({
   onSuccess,
   onError
 }: CheckoutWrapperProps) {
-  const { items, getCartId, initializeCart } = useCart();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const { items, getCartId, initializeCart, getTotalPrice } = useCart();
   const [cartId, setCartId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const initializePayment = useCallback(async () => {
-    console.log('[checkout] initializePayment called');
+  // Calculate cart subtotal for Elements initialization (in cents)
+  // This is the amount shown to users before shipping is selected
+  const cartSubtotal = useMemo(() => {
+    const total = getTotalPrice();
+    // Convert to cents and ensure minimum of 50 cents (Stripe requirement)
+    return Math.max(Math.round(total * 100), 50);
+  }, [getTotalPrice]);
+
+  const initializeCheckout = useCallback(async () => {
+    console.log('[checkout] initializeCheckout called (deferred intent pattern)');
 
     if (items.length === 0) {
       setError('Your cart is empty');
@@ -54,39 +73,25 @@ export default function CheckoutWrapper({
       }
 
       console.log('[checkout] Using Medusa cart:', currentCartId);
+      console.log('[checkout] Initial amount (cents):', cartSubtotal);
       setCartId(currentCartId);
 
-      // Create payment session via Medusa (Stripe provider)
-      // Note: Shipping will be handled by the checkout form via EasyPost
-      // The payment intent amount will be updated when shipping is selected
-      console.log('[checkout] Creating Medusa payment session...');
-      const session = await createMedusaPaymentSession(currentCartId);
-      console.log('[checkout] Payment session result:', {
-        sessionId: session.sessionId,
-        provider: session.provider,
-        hasClientSecret: !!session.clientSecret
-      });
-
-      if (!session.clientSecret) {
-        throw new Error('Payment session did not return a client secret.');
-      }
-
-      setClientSecret(session.clientSecret);
+      // With deferred intent pattern, we don't create PaymentIntent here
+      // It will be created at submit time when the final amount is known
       setIsLoading(false);
     } catch (err) {
-      console.error('[checkout] Error initializing payment:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize payment';
+      console.error('[checkout] Error initializing checkout:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize checkout';
       setError(errorMessage);
       setIsLoading(false);
       onError(errorMessage);
     }
-  }, [items, getCartId, initializeCart, onError]);
+  }, [items, getCartId, initializeCart, onError, cartSubtotal]);
 
-  // Handle shipping rate change - refresh payment session to update PaymentIntent amount
-  // When shipping is added, the cart total changes. We need to refresh the payment
-  // session so Stripe's PaymentIntent has the correct amount.
+  // Handle shipping rate change - just log for debugging
+  // The actual amount update happens in CheckoutForm via elements.update()
   const handleShippingChange = useCallback(async (rate: ShippingRate | null) => {
-    if (!cartId || !rate) return;
+    if (!rate) return;
 
     console.log('[checkout] Shipping rate selected:', {
       carrier: rate.carrier,
@@ -94,27 +99,12 @@ export default function CheckoutWrapper({
       amount: rate.amount,
     });
 
-    // The shipping method is already added to the cart by useMedusaShipping.selectRate()
-    // Now we need to refresh the payment session so the PaymentIntent amount is updated
-    // Use forceRefresh=true to skip reusing the existing session and create a new one
-    try {
-      console.log('[checkout] Refreshing payment session after shipping change...');
-      const session = await createMedusaPaymentSession(cartId, true);
+    // With deferred intent pattern, we don't need to refresh the payment session here.
+    // The amount is updated via elements.update() in CheckoutForm, and the actual
+    // PaymentIntent is created at submit time with the final amount.
+  }, []);
 
-      if (session.clientSecret && session.clientSecret !== clientSecret) {
-        console.log('[checkout] Payment session refreshed with new client secret');
-        setClientSecret(session.clientSecret);
-      } else {
-        console.log('[checkout] Payment session client secret unchanged');
-      }
-    } catch (err) {
-      console.error('[checkout] Error refreshing payment session:', err);
-      // Don't fail checkout - the payment might still work if amounts are close
-      // Stripe allows some flexibility in captured vs authorized amounts
-    }
-  }, [cartId, clientSecret]);
-
-  // Validate environment variables
+  // Validate environment variables and initialize checkout
   useEffect(() => {
     if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
       const envError = 'Stripe publishable key not configured.';
@@ -124,10 +114,10 @@ export default function CheckoutWrapper({
       return;
     }
 
-    if (items.length > 0 && !clientSecret) {
-      void initializePayment();
+    if (items.length > 0 && !cartId) {
+      void initializeCheckout();
     }
-  }, [items, clientSecret, initializePayment, onError]);
+  }, [items, cartId, initializeCheckout, onError]);
 
   if (isLoading) {
     return (
@@ -162,11 +152,11 @@ export default function CheckoutWrapper({
     );
   }
 
-  if (!clientSecret || !cartId) {
+  if (!cartId) {
     return (
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
         <p className="text-yellow-800">
-          Unable to initialize payment. Please try again.
+          Unable to initialize checkout. Please try again.
         </p>
         <button
           onClick={() => window.location.reload()}
@@ -178,8 +168,13 @@ export default function CheckoutWrapper({
     );
   }
 
+  // Deferred Intent Pattern: Use mode/amount/currency instead of clientSecret
+  // This allows amount changes (shipping) without remounting Elements
+  // PaymentIntent is created at submit time in CheckoutForm
   const elementsOptions: StripeElementsOptions = {
-    clientSecret,
+    mode: 'payment',
+    amount: cartSubtotal,
+    currency: 'usd',
     appearance: {
       theme: 'stripe',
       variables: {
@@ -190,10 +185,11 @@ export default function CheckoutWrapper({
   };
 
   return (
-    <Elements key={clientSecret} stripe={stripePromise} options={elementsOptions}>
+    // NO key prop - amount changes via elements.update() don't remount
+    <Elements stripe={stripePromise} options={elementsOptions}>
       <CheckoutForm
-        clientSecret={clientSecret}
         cartId={cartId}
+        initialAmount={cartSubtotal}
         onSuccess={onSuccess}
         onError={onError}
         onShippingChange={handleShippingChange}

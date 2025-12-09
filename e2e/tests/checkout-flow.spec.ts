@@ -431,4 +431,143 @@ test.describe('Checkout Flow', () => {
     // This test always passes - it's for debugging
     expect(true).toBe(true);
   });
+
+  test('form state preserved when changing shipping method', async ({ page }, testInfo) => {
+    /**
+     * CRITICAL TEST: Verifies that form state (email, address) is preserved when
+     * the user selects or changes shipping methods.
+     *
+     * This test was added after discovering that the Stripe Elements remount
+     * when clientSecret changes, which destroyed form state. The fix uses
+     * Stripe's Deferred Intent Pattern where Elements is initialized with
+     * mode/amount/currency instead of clientSecret.
+     *
+     * @see docs/postmortems/2025-12-09-checkout-form-reset.md
+     */
+    const consoleLogs = createConsoleCapture(page);
+    const networkLogs = createNetworkLogger(page);
+    const productPage = new ProductPage(page);
+    const cartPage = new CartPage(page);
+    const checkoutPage = new CheckoutPage(page);
+
+    const testEmail = generateTestEmail();
+    console.log(`Using test email: ${testEmail}`);
+
+    // Step 1: Add product to cart
+    logStep(1, 'Adding product to cart');
+    await productPage.goto(testProducts.flagship.slug);
+    await productPage.waitForProduct();
+
+    try {
+      await productPage.addToCart();
+    } catch (error) {
+      console.error('Failed to add product to cart');
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'step1-add-failed');
+      throw error;
+    }
+
+    await page.waitForTimeout(2000);
+
+    // Step 2: Navigate to cart and proceed to checkout
+    logStep(2, 'Navigating to checkout');
+    await cartPage.goto();
+    if (!(await cartPage.hasItems())) {
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'cart-empty');
+      throw new Error('Cart is empty');
+    }
+    await cartPage.proceedToPayment();
+
+    // Step 3: Wait for checkout form
+    logStep(3, 'Waiting for checkout form');
+    try {
+      await checkoutPage.waitForCheckoutReady();
+    } catch (error) {
+      console.error('Checkout form failed to load');
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'checkout-failed');
+      throw error;
+    }
+
+    // Step 4: Fill email FIRST (before shipping rates load)
+    logStep(4, 'Filling email address');
+    await checkoutPage.fillEmail(testEmail);
+
+    // Verify email was entered
+    const emailBeforeAddress = await checkoutPage.emailInput.inputValue();
+    console.log(`Email entered: ${emailBeforeAddress}`);
+    expect(emailBeforeAddress).toBe(testEmail);
+
+    // Step 5: Fill shipping address (this triggers shipping rate fetch)
+    logStep(5, 'Filling shipping address');
+    await checkoutPage.fillShippingAddress(testAddress);
+
+    // Step 6: Wait for shipping rates to load
+    logStep(6, 'Waiting for shipping rates');
+    try {
+      await checkoutPage.waitForShippingRates();
+    } catch (error) {
+      const isDigital = await checkoutPage.isDigitalOnly();
+      if (!isDigital) {
+        await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'shipping-failed');
+        throw new Error('Shipping rates failed to load');
+      }
+      console.log('Order is digital-only, skipping shipping test');
+      return; // Can't test shipping state preservation for digital-only orders
+    }
+
+    const rates = await checkoutPage.getAvailableShippingRates();
+    console.log(`Found ${rates.length} shipping rates:`, rates);
+
+    if (rates.length === 0) {
+      console.log('No shipping rates available, skipping test');
+      return;
+    }
+
+    // Step 7: Select first shipping rate
+    logStep(7, 'Selecting first shipping rate');
+    await checkoutPage.selectShippingRate(rates[0]);
+    await page.waitForTimeout(2000); // Wait for Elements amount update
+
+    // CRITICAL ASSERTION: Email should still be filled after shipping selection
+    const emailAfterFirstSelection = await checkoutPage.emailInput.inputValue();
+    console.log(`Email after first shipping selection: ${emailAfterFirstSelection}`);
+    expect(emailAfterFirstSelection).toBe(testEmail);
+
+    // Step 8: If multiple rates available, change shipping method
+    if (rates.length > 1) {
+      logStep(8, 'Changing to second shipping rate');
+      await checkoutPage.selectShippingRate(rates[1]);
+      await page.waitForTimeout(2000);
+
+      // CRITICAL ASSERTION: Email should STILL be filled after changing shipping
+      const emailAfterSecondSelection = await checkoutPage.emailInput.inputValue();
+      console.log(`Email after second shipping selection: ${emailAfterSecondSelection}`);
+      expect(emailAfterSecondSelection).toBe(testEmail);
+    } else {
+      console.log('Only one shipping rate available, skipping rate change test');
+    }
+
+    // Step 9: Complete checkout to verify form still works
+    logStep(9, 'Completing checkout');
+    await checkoutPage.fillCardDetails(testCards.success);
+    await checkoutPage.submitPayment();
+
+    // Step 10: Verify success
+    logStep(10, 'Verifying success');
+    try {
+      await checkoutPage.waitForSuccess();
+    } catch (error) {
+      console.error('Payment did not succeed');
+      await captureDebugInfo(page, testInfo, consoleLogs, networkLogs, 'success-failed');
+      throw error;
+    }
+
+    await expect(page.locator('[data-testid="order-success"]')).toBeVisible();
+
+    console.log('\n=== Form State Preservation Test PASSED ===\n');
+    console.log('Email was preserved through shipping rate changes:');
+    console.log(`  - After first selection: ${emailAfterFirstSelection}`);
+    if (rates.length > 1) {
+      console.log(`  - After rate change: email preserved`);
+    }
+  });
 });

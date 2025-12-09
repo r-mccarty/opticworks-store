@@ -97,7 +97,7 @@ When "Proceed to Payment" is clicked:
 
 1. `CartPage` sets `showPaymentForm = true`
 2. `CheckoutWrapper` component mounts
-3. **Environment check** (lines 124-131):
+3. **Environment check** (lines 108-115):
    ```tsx
    if (!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) {
      setError('Stripe publishable key not configured.');
@@ -107,16 +107,27 @@ When "Proceed to Payment" is clicked:
    > **KLUDGE**: `NEXT_PUBLIC_*` variables must be inlined at BUILD time, not runtime.
    > Solution: `.env.production` file with public keys (safe to commit).
 
-4. `initializePayment()` is called:
+4. `initializeCheckout()` is called:
+   - Get or create Medusa cart via `getCartId()` / `initializeCart()`
+   - Calculate initial cart amount (subtotal without shipping)
+   - **No PaymentIntent created yet** (deferred intent pattern)
 
-   a. Get or create Medusa cart via `getCartId()` / `initializeCart()`
+5. Render Stripe `<Elements>` provider with `mode: 'payment'` options:
+   ```tsx
+   const elementsOptions: StripeElementsOptions = {
+     mode: 'payment',
+     amount: cartSubtotal,  // in cents
+     currency: 'usd',
+     appearance: { ... },
+   };
+   ```
 
-   b. Call `createMedusaPaymentSession(cartId)`:
-      - **API Call**: `POST /store/payment-collections` → Creates payment collection
-      - **API Call**: `POST /store/payment-collections/{id}/payment-sessions` → Creates Stripe session
-      - Returns `clientSecret` for Stripe Elements
-
-5. Once `clientSecret` is available, render Stripe `<Elements>` provider
+> **IMPORTANT**: We use Stripe's [Deferred Intent Pattern](https://docs.stripe.com/payments/accept-a-payment-deferred)
+> where Elements is initialized with `mode/amount/currency` instead of `clientSecret`.
+> This allows the cart total to change (e.g., shipping added) without remounting
+> Elements, which would destroy form state.
+>
+> See `docs/postmortems/2025-12-09-checkout-form-reset.md` for the bug this solved.
 
 ### Step 3: CheckoutForm Rendering
 
@@ -169,7 +180,7 @@ The form renders in this order:
 > Medusa's fulfillment provider, not via custom storefront API routes.
 > See `docs/reference/FULFILLMENT.md` for implementation details.
 
-### Step 5: Shipping Rate Selection & Payment Update
+### Step 5: Shipping Rate Selection & Elements Update
 
 When shipping option is selected:
 
@@ -185,16 +196,24 @@ When shipping option is selected:
    - Updates cart total (includes shipping)
    - The fulfillment provider's `validateFulfillmentData()` validates the address
 
-3. Refresh payment session if needed to update Payment Intent amount:
-   **API Call**: `POST /store/payment-collections/{id}/payment-sessions`
+3. **Update Elements amount** (no remount!):
+   ```tsx
+   // In CheckoutForm.handleSelectRate()
+   if (elements) {
+     const newAmount = Math.round((subtotal + rate.amount) * 100);
+     elements.update({ amount: newAmount });
+   }
+   ```
 
-> **Simplified**: The old flow required a custom `/api/checkout/update-shipping`
-> route to store EasyPost metadata. Now everything goes through Medusa's native
-> shipping APIs, with the EasyPost provider handling rate calculation internally.
+> **IMPORTANT**: With the deferred intent pattern, we call `elements.update({amount})`
+> instead of refreshing the payment session. This updates the displayed amount
+> without remounting Elements, preserving form state.
+>
+> The PaymentIntent is created at submit time with the final amount (Step 6).
 
-### Step 6: Payment Submission
+### Step 6: Payment Submission (Deferred Intent Pattern)
 
-**File**: `src/components/checkout/CheckoutForm.tsx` (lines 99-215)
+**File**: `src/components/checkout/CheckoutForm.tsx` (lines 112-246)
 
 When user clicks "Pay $X":
 
@@ -204,15 +223,35 @@ When user clicks "Pay $X":
    - Cart ID exists
    - Shipping selected (for physical products)
 
-2. **Update cart with customer info**:
+2. **Step 1: Validate form with `elements.submit()`**:
+   ```typescript
+   const { error: submitError } = await elements.submit();
+   if (submitError) {
+     setMessage(submitError.message);
+     return;
+   }
+   ```
+   > This triggers Stripe's form validation and collects payment method details
+
+3. **Step 2: Update cart with customer info**:
    ```typescript
    await updateCart(cartId, { email, shipping_address: shippingAddress });
    ```
 
-3. **Confirm payment with Stripe**:
+4. **Step 3: Create PaymentIntent NOW** (deferred intent pattern):
+   ```typescript
+   // Create PaymentIntent with final amount (including shipping)
+   const session = await createMedusaPaymentSession(cartId, true);
+   ```
+   - **API Call**: `POST /store/payment-collections` → Creates payment collection
+   - **API Call**: `POST /store/payment-collections/{id}/payment-sessions` → Creates Stripe PaymentIntent
+   - Returns `clientSecret` for confirmation
+
+5. **Step 4: Confirm payment with Stripe**:
    ```typescript
    const { error, paymentIntent } = await stripe.confirmPayment({
      elements,
+     clientSecret: session.clientSecret,  // Pass clientSecret here, not to Elements
      confirmParams: {
        return_url: `${window.location.origin}/store/cart/success`,
        receipt_email: email,
@@ -221,9 +260,13 @@ When user clicks "Pay $X":
    });
    ```
 
-4. **Handle payment result**:
+6. **Handle payment result**:
    - If `succeeded` or `requires_capture`: Complete Medusa cart
    - If error: Display error message
+
+> **Note**: The key difference from the old pattern is that `clientSecret` is
+> obtained at submit time (step 4) and passed to `confirmPayment()` (step 5),
+> rather than being passed to `<Elements>` at mount time.
 
 ### Step 7: Order Completion
 
@@ -259,26 +302,32 @@ User is redirected to `/store/cart/success` with order details.
 
 ---
 
-## API Call Sequence
+## API Call Sequence (Deferred Intent Pattern)
 
 ```
 1. GET  /store/carts                    (get existing cart or create)
 2. POST /store/carts/{id}/line-items    (if syncing local items)
-3. POST /store/payment-collections      (create payment collection)
-4. POST /store/payment-collections/{id}/payment-sessions (create Stripe session)
-   └── Returns: clientSecret
-5. GET  /store/shipping-options?cart_id=xxx (when address entered)
+   └── No PaymentIntent created yet (deferred pattern)
+3. GET  /store/shipping-options?cart_id=xxx (when address entered)
    └── Medusa calls EasyPost provider's calculatePrice() for each option
-6. POST /store/carts/{id}/shipping-methods (when shipping selected)
+4. POST /store/carts/{id}/shipping-methods (when shipping selected)
    └── Adds shipping method, updates cart total
-7. POST /store/payment-collections/{id}/payment-sessions (refresh if needed)
-8. [Stripe] confirmPayment              (client-side)
-9. POST /store/carts/{id}/complete      (finalize order)
+   └── elements.update({amount}) called to update displayed amount
+5. [On Submit] elements.submit()        (validate form)
+6. POST /store/carts/{id}               (update with email, shipping address)
+7. POST /store/payment-collections      (create payment collection)
+8. POST /store/payment-collections/{id}/payment-sessions (create Stripe session)
+   └── Returns: clientSecret (now with final amount including shipping)
+9. [Stripe] confirmPayment(clientSecret)  (client-side)
+10. POST /store/carts/{id}/complete      (finalize order)
 ```
 
-> **Note**: Steps 5-6 use Medusa's native shipping APIs. The EasyPost fulfillment
-> provider handles rate calculation transparently - no custom `/api/shipping/*`
-> routes are needed.
+> **Note**: With the deferred intent pattern, the PaymentIntent (steps 7-8) is
+> created at submit time rather than at checkout initialization. This allows
+> the cart total to change (shipping added) without remounting Stripe Elements.
+>
+> Steps 3-4 use Medusa's native shipping APIs. The EasyPost fulfillment
+> provider handles rate calculation transparently.
 
 ---
 
@@ -412,9 +461,13 @@ the subsequent migration to Medusa fulfillment provider for the proper solution.
 
 | Component | State | Purpose |
 |-----------|-------|---------|
-| CheckoutWrapper | `clientSecret`, `cartId`, `isLoading`, `error` | Payment session |
+| CheckoutWrapper | `cartId`, `isLoading`, `error`, `cartSubtotal` | Checkout initialization |
 | CheckoutForm | `email`, `shippingAddress`, `isProcessing`, `message` | Form state |
 | ShippingSelector | `shippingOptions`, `selectedOption`, `isLoading` | Shipping (from Medusa API) |
+
+> **Note**: With the deferred intent pattern, `clientSecret` is no longer stored
+> in component state. It's obtained at submit time and passed directly to
+> `stripe.confirmPayment()`.
 
 ---
 
@@ -458,6 +511,13 @@ Key test scenarios:
 1. Complete checkout with test card
 2. Declined card shows error
 3. Debug test for initialization issues
+4. **Form state preserved when changing shipping method** - Critical test added to verify the deferred intent pattern fix
+
+> **Test Coverage Improvement**: The "form state preserved" test was added after
+> discovering that the old pattern destroyed form state on shipping changes.
+> It verifies that email remains filled after selecting/changing shipping methods.
+>
+> See `docs/postmortems/2025-12-09-checkout-form-reset.md` for details.
 
 ### Test Helpers
 

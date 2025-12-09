@@ -14,22 +14,36 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
-import { completeCart, updateCart, type MedusaAddress } from '@/lib/api/medusa';
+import { completeCart, updateCart, createMedusaPaymentSession, type MedusaAddress } from '@/lib/api/medusa';
 import { ShippingSelector } from './ShippingSelector';
 import { useMedusaShipping, type ShippingAddress, type ShippingRate } from '@/hooks/useMedusaShipping';
 
 interface CheckoutFormProps {
-  clientSecret: string;
   cartId: string;
+  /** Initial cart amount in cents (from CheckoutWrapper) */
+  initialAmount: number;
   onSuccess: (orderId: string) => void;
   onError: (error: string) => void;
-  /** Called when shipping rate changes, allowing parent to refresh payment intent */
+  /** Called when shipping rate changes for logging/tracking */
   onShippingChange?: (rate: ShippingRate | null) => void;
 }
 
+/**
+ * CheckoutForm - Uses Stripe's Deferred Intent Pattern
+ *
+ * With this pattern:
+ * 1. Elements is initialized with mode/amount/currency (no clientSecret)
+ * 2. When shipping changes, we call elements.update({amount}) to update displayed amount
+ * 3. At submit time, we call elements.submit() to validate, then create the PaymentIntent
+ * 4. Finally, we call stripe.confirmPayment() with the clientSecret from step 3
+ *
+ * This prevents form state loss when the cart total changes (e.g., shipping selected).
+ *
+ * @see https://docs.stripe.com/payments/accept-a-payment-deferred
+ */
 export default function CheckoutForm({
-  clientSecret: _clientSecret, // Provided for interface consistency, used by Elements wrapper
   cartId,
+  initialAmount: _initialAmount, // Used by Elements in CheckoutWrapper, kept for type consistency
   onSuccess,
   onError,
   onShippingChange,
@@ -42,6 +56,9 @@ export default function CheckoutForm({
   const [message, setMessage] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress | null>(null);
+
+  // Calculate subtotal first (needed for handleSelectRate)
+  const subtotal = getTotalPrice();
 
   // Use Medusa shipping hook (fetches from backend EasyPost provider)
   const {
@@ -56,11 +73,20 @@ export default function CheckoutForm({
     address: shippingAddress,
   });
 
-  // Handle shipping rate selection
+  // Handle shipping rate selection - update Elements amount without remounting
   const handleSelectRate = useCallback(async (rate: ShippingRate) => {
     await selectRate(rate);
+
+    // Update Elements with new total (subtotal + shipping) in cents
+    // This updates the displayed amount in PaymentElement without remounting
+    if (elements) {
+      const newAmount = Math.round((subtotal + rate.amount) * 100);
+      elements.update({ amount: newAmount });
+      console.log('[checkout] Updated Elements amount to:', newAmount, 'cents');
+    }
+
     onShippingChange?.(rate);
-  }, [selectRate, onShippingChange]);
+  }, [selectRate, onShippingChange, elements, subtotal]);
 
   // Handle address element changes
   const handleAddressChange = useCallback((event: StripeAddressElementChangeEvent) => {
@@ -82,7 +108,6 @@ export default function CheckoutForm({
   }, []);
 
   // Calculate total including shipping
-  const subtotal = getTotalPrice();
   const shippingCost = selectedRate?.amount ?? 0;
   const total = subtotal + shippingCost;
 
@@ -110,11 +135,22 @@ export default function CheckoutForm({
       return;
     }
 
-    console.log('[checkout] Starting payment confirmation...');
+    console.log('[checkout] Starting payment confirmation (deferred intent pattern)...');
     setIsProcessing(true);
     setMessage(null);
 
     try {
+      // Step 1: Validate form using elements.submit()
+      // This triggers Stripe's form validation and collects payment method details
+      console.log('[checkout] Step 1: Validating form with elements.submit()...');
+      const { error: submitError } = await elements.submit();
+      if (submitError) {
+        console.error('[checkout] Form validation failed:', submitError);
+        setMessage(submitError.message || 'Please check your payment details.');
+        return;
+      }
+      console.log('[checkout] Form validation passed');
+
       // Get the shipping address from Stripe AddressElement
       const addressElement = elements.getElement('address');
       let shippingAddress: MedusaAddress | undefined;
@@ -138,18 +174,25 @@ export default function CheckoutForm({
         }
       }
 
-      // Update cart with email and shipping address
-      console.log('[checkout] Updating cart with email and shipping address...');
+      // Step 2: Update cart with email and shipping address
+      console.log('[checkout] Step 2: Updating cart with email and shipping address...');
       await updateCart(cartId, { email, shipping_address: shippingAddress });
 
-      // Note: Shipping method is already added in CheckoutWrapper before payment session is created
-      // We just update the shipping address here with the real customer address
-      // This doesn't change the cart total, so the Payment Intent remains valid
+      // Step 3: Create PaymentIntent NOW (deferred intent pattern)
+      // This creates the PaymentIntent with the final cart amount (including shipping)
+      console.log('[checkout] Step 3: Creating PaymentIntent with final amount...');
+      const session = await createMedusaPaymentSession(cartId, true);
 
-      // Confirm the payment with Stripe
-      console.log('[checkout] Confirming payment with Stripe...');
+      if (!session.clientSecret) {
+        throw new Error('Failed to create payment session. Please try again.');
+      }
+      console.log('[checkout] PaymentIntent created successfully');
+
+      // Step 4: Confirm the payment with the clientSecret from step 3
+      console.log('[checkout] Step 4: Confirming payment with Stripe...');
       const { error: stripeError, paymentIntent } = await stripe.confirmPayment({
         elements,
+        clientSecret: session.clientSecret, // Pass clientSecret here, not to Elements
         confirmParams: {
           return_url: `${window.location.origin}/store/cart/success`,
           receipt_email: email,
