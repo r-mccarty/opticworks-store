@@ -1,6 +1,6 @@
 # RFD-012: EasyPost Webhook Signature Verification via Hookdeck
 
-**Status**: Accepted - Implementing Revised Option A
+**Status**: Deployed - Awaiting Live Verification
 **Created**: 2025-12-10
 **Author**: Claude (AI Assistant)
 
@@ -243,13 +243,12 @@ function verifyEasyPostSignature(body: string, signature: string | null): boolea
 
 We implement HMAC verification in a Hookdeck transformation using bundled `crypto-js`. This keeps verification at the edge while avoiding the log pollution concern of Option C.
 
-**Deployment Steps**:
+**Deployment Steps** (completed 2025-12-10):
 1. Build transformation: `cd infrastructure/hookdeck-transformations/easypost-verify && npm install && npm run build`
-2. In Hookdeck Dashboard:
-   - Set EasyPost source verification to "None"
-   - Create transformation with bundled code from `dist/index.js`
-   - Set `EASYPOST_WEBHOOK_SECRET` environment variable
-   - Attach transformation to EasyPost → Backend connection
+2. Deployed via Hookdeck API:
+   - Source verification disabled: `PUT /sources/src_g45xw535haf483` with `{"verification": null}`
+   - Transformation created: `POST /transformations` → `trs_YLcJn8BTHz1BLY`
+   - Attached to connection: `PUT /connections/web_0KJhysWUe7uX` with transform rule
 
 See `infrastructure/hookdeck-transformations/README.md` for detailed instructions.
 
@@ -280,3 +279,4 @@ See `infrastructure/hookdeck-transformations/README.md` for detailed instruction
 | 2025-12-10 | Source verification temporarily disabled | Allow webhooks to flow while investigating |
 | 2025-12-10 | Option A (Revised) selected | Hookdeck transforms run after verification; implement custom HMAC check in transformation layer |
 | 2025-12-10 | Implementation created | `infrastructure/hookdeck-transformations/easypost-verify/` with crypto-js bundling |
+| 2025-12-10 | Deployment complete | Transformation `trs_YLcJn8BTHz1BLY` deployed via API; source verification disabled; awaiting first live webhook |
