@@ -1,11 +1,11 @@
 import { defineMiddlewares } from "@medusajs/medusa"
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { json } from "express"
+import express from "express"
 
 /**
  * Custom JSON body parser with raw body capture for webhook signature verification.
  */
-const jsonParserWithRawBody = json({
+const jsonParserWithRawBody = express.json({
   verify: (req, _res, buf) => {
     // Store raw body on request for signature verification
     (req as MedusaRequest & { rawBody?: string }).rawBody = buf.toString("utf8");
