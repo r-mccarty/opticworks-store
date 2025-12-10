@@ -39,10 +39,45 @@ Hookdeck provides:
 
 | Header | Purpose |
 |--------|---------|
-| `X-Hookdeck-Signature` | Hookdeck's own signature |
-| `X-Hookdeck-Verified` | `true` if Hookdeck validated the webhook |
+| `X-Hookdeck-Signature` | HMAC SHA256 signature (base64 encoded) |
+| `X-Hookdeck-Signature-2` | Secondary signature during key rotation |
+| `X-Hookdeck-Verified` | `true` if Hookdeck validated the Stripe signature |
 
-When these headers are present, the webhook route skips Stripe signature verification (Hookdeck already validated).
+### Signature Verification
+
+**Important:** The `X-Hookdeck-Signature` header is verified using `HOOKDECK_WEBHOOK_SECRET` (from Hookdeck dashboard > Settings > Project > Secrets).
+
+**Implementation:** `src/lib/webhook-verification.ts`
+
+```typescript
+// Uses Web Crypto API for Cloudflare Workers compatibility
+export async function verifyHookdeckSignature(
+  body: string,
+  signature: string | null,
+  signature2: string | null
+): Promise<boolean> {
+  const secret = process.env.HOOKDECK_WEBHOOK_SECRET;
+  if (!secret || !signature) return false;
+
+  // Use Web Crypto API (SubtleCrypto) for Cloudflare Workers
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signatureBuffer = await crypto.subtle.sign('HMAC', key, encoder.encode(body));
+  const computedSignature = btoa(String.fromCharCode(...new Uint8Array(signatureBuffer)));
+
+  // Check both signatures for key rotation support
+  return computedSignature === signature || computedSignature === signature2;
+}
+```
+
+When verification passes, you can trust the webhook came from Hookdeck (which already validated Stripe's signature).
 
 ---
 
@@ -50,15 +85,20 @@ When these headers are present, the webhook route skips Stripe signature verific
 
 **File**: `src/app/api/stripe/webhook/route.ts`
 
-### Signature Verification
+### Current Implementation
 
 ```typescript
 // Check if request is from Hookdeck
 const hookdeckSignature = request.headers.get('x-hookdeck-signature')
-const hookdeckVerified = request.headers.get('x-hookdeck-verified')
+const hookdeckSignature2 = request.headers.get('x-hookdeck-signature-2')
 
-if (hookdeckSignature || hookdeckVerified === 'true') {
-  // Hookdeck validated - parse directly
+if (hookdeckSignature) {
+  // Verify Hookdeck signature using HOOKDECK_WEBHOOK_SECRET
+  const isValid = verifyHookdeckSignature(body, hookdeckSignature, hookdeckSignature2)
+  if (!isValid) {
+    return NextResponse.json({ error: 'Invalid Hookdeck signature' }, { status: 401 })
+  }
+  // Hookdeck validated Stripe's signature - parse directly
   event = JSON.parse(body) as Stripe.Event
 } else {
   // Direct from Stripe - verify signature
@@ -131,14 +171,17 @@ Legacy handlers for backward compatibility. Not used in active flow.
 ## Environment Variables
 
 ```bash
-# Production (Stripe Dashboard)
-STRIPE_WEBHOOK_SECRET=whsec_xxx
+# Hookdeck (required for production)
+HOOKDECK_WEBHOOK_SECRET=xxx  # From Hookdeck dashboard > Settings > Project > Secrets
 
-# Development (Stripe CLI)
-STRIPE_WEBHOOK_SECRET_DEV=whsec_xxx
+# Stripe (for direct webhook verification, fallback when not via Hookdeck)
+STRIPE_WEBHOOK_SECRET=whsec_xxx       # Production (Stripe Dashboard)
+STRIPE_WEBHOOK_SECRET_DEV=whsec_xxx   # Development (Stripe CLI)
 ```
 
-The route automatically selects based on `NODE_ENV`.
+The route:
+1. If `x-hookdeck-signature` header present → Verify with `HOOKDECK_WEBHOOK_SECRET`
+2. Otherwise → Verify Stripe signature with `STRIPE_WEBHOOK_SECRET` (or `_DEV` in development)
 
 ---
 
@@ -176,8 +219,8 @@ The webhook route logs extensively:
 
 ```
 🔔 Stripe webhook received
-📡 Request from Hookdeck detected
-✅ Hookdeck event processed: checkout.session.completed (ID: evt_xxx)
+📡 Request from Hookdeck detected, verifying Hookdeck signature...
+✅ Hookdeck signature verified for event: checkout.session.completed (ID: evt_xxx)
 🔄 Processing webhook event: checkout.session.completed
 ✅ Processing completed checkout for customer@example.com
 ```
@@ -186,9 +229,15 @@ The webhook route logs extensively:
 
 ## Common Issues
 
-### 401 Signature Verification Failed
+### 401 Invalid Hookdeck Signature
 
-- Check `STRIPE_WEBHOOK_SECRET` is set correctly
+- Verify `HOOKDECK_WEBHOOK_SECRET` is set correctly in environment
+- Get the secret from Hookdeck dashboard > Settings > Project > Secrets
+- If rotating keys, both `x-hookdeck-signature` and `x-hookdeck-signature-2` are checked
+
+### 401 Stripe Signature Verification Failed
+
+- Check `STRIPE_WEBHOOK_SECRET` is set correctly (for direct Stripe webhooks)
 - Verify Hookdeck is configured in Stripe dashboard
 - Ensure webhook endpoint URL is correct
 

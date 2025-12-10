@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createClient } from '@supabase/supabase-js';
+import { verifyHookdeckSignature } from '@/lib/webhook-verification';
 
 // Transactional emails handled by Medusa backend via Resend
 
@@ -50,13 +51,24 @@ export async function POST(request: NextRequest) {
   try {
     // Check if request is coming from Hookdeck (headers use X- prefix)
     const hookdeckSignature = request.headers.get('x-hookdeck-signature');
-    const hookdeckVerified = request.headers.get('x-hookdeck-verified');
+    const hookdeckSignature2 = request.headers.get('x-hookdeck-signature-2');
 
-    if (hookdeckSignature || hookdeckVerified === 'true') {
-      // Request from Hookdeck - skip Stripe signature verification since Hookdeck already validated
-      console.log('📡 Request from Hookdeck detected, skipping Stripe signature verification');
+    if (hookdeckSignature) {
+      // Verify Hookdeck signature using HOOKDECK_WEBHOOK_SECRET
+      console.log('📡 Request from Hookdeck detected, verifying Hookdeck signature...');
+      const isValid = await verifyHookdeckSignature(body, hookdeckSignature, hookdeckSignature2);
+
+      if (!isValid) {
+        console.error('❌ Invalid Hookdeck signature');
+        return NextResponse.json(
+          { error: 'Invalid Hookdeck signature' },
+          { status: 401 }
+        );
+      }
+
+      // Hookdeck validated Stripe's signature - parse directly
       event = JSON.parse(body) as Stripe.Event;
-      console.log(`✅ Hookdeck event processed: ${event.type} (ID: ${event.id})`);
+      console.log(`✅ Hookdeck signature verified for event: ${event.type} (ID: ${event.id})`);
     } else {
       // Direct from Stripe - verify signature using async method with Web Crypto API
       const webhookSecret = process.env.NODE_ENV === 'development'

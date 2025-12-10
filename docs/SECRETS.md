@@ -77,11 +77,21 @@ cat .env.local | head -5
 | `R2_BACKUP_SECRET_ACCESS_KEY` | R2 secret for backups |
 | `R2_BACKUP_BUCKET_NAME` | Backup bucket name |
 
-### Fulfillment
+### Fulfillment (EasyPost)
 
 | Variable | Purpose |
 |----------|---------|
-| `EASYPOST_API_KEY` | EasyPost API for shipping rates/labels |
+| `EASYPOST_API_KEY` | Production API key (starts with `EZAK`) |
+| `EASYPOST_TEST_API_KEY` | Test API key (starts with `EZTK`) - for development/testing |
+| `EASYPOST_MODE` | Mode toggle: `production` or `test` (controls which key is used) |
+| `SHIP_FROM_NAME` | Origin warehouse name (e.g., `OpticWorks`) |
+| `SHIP_FROM_STREET1` | Origin street address |
+| `SHIP_FROM_CITY` | Origin city |
+| `SHIP_FROM_STATE` | Origin state (2-letter code) |
+| `SHIP_FROM_ZIP` | Origin ZIP code |
+| `SHIP_FROM_PHONE` | Origin phone (required for FedEx rates) |
+
+**Note:** Set `EASYPOST_MODE=test` during development to generate VOID labels without charges. See `docs/reference/FULFILLMENT.md` for full configuration details.
 
 ### Email
 
@@ -89,6 +99,14 @@ cat .env.local | head -5
 |----------|---------|
 | `RESEND_API_KEY` | Resend API for transactional email |
 | `RESEND_FROM_EMAIL` | From address (e.g., `OpticWorks <notifications@notifications.optic.works>`) |
+
+### Webhooks (Hookdeck)
+
+| Variable | Purpose |
+|----------|---------|
+| `HOOKDECK_WEBHOOK_SECRET` | Signing secret for verifying Hookdeck signatures (Settings > Project > Secrets in Hookdeck dashboard) |
+
+**Note:** Hookdeck sits between Stripe and our webhook endpoints, providing retry logic, logging, and validation. The signing secret verifies that webhook requests genuinely originate from Hookdeck.
 
 ### Background Jobs (QStash)
 
@@ -160,6 +178,7 @@ infisical secrets set SECRET_NAME="value" \
 - **API keys**: Quarterly (Stripe, EasyPost, Resend)
 - **Cloudflare credentials**: Quarterly
 - **R2 keys**: Quarterly
+- **Hookdeck signing secret**: Quarterly (rotate in dashboard, update Infisical)
 - **QStash keys**: As needed (NEXT_SIGNING_KEY becomes CURRENT on rotation)
 - **Service tokens**: Yearly
 - **Backup encryption**: Yearly (RESTIC_PASSWORD - requires re-init)

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import { verifyHookdeckSignature } from '@/lib/webhook-verification';
 
 // Cloudflare Workers compatible Stripe initialization
 // Uses FetchHttpClient instead of Node's http module
@@ -35,13 +36,24 @@ export async function POST(request: NextRequest) {
   try {
     // Check if request is coming from Hookdeck (headers use X- prefix)
     const hookdeckSignature = request.headers.get('x-hookdeck-signature');
-    const hookdeckVerified = request.headers.get('x-hookdeck-verified');
+    const hookdeckSignature2 = request.headers.get('x-hookdeck-signature-2');
 
-    if (hookdeckSignature || hookdeckVerified === 'true') {
-      // Request from Hookdeck - skip Stripe signature verification since Hookdeck already validated
-      console.log('📡 Shipping webhook from Hookdeck detected, skipping Stripe signature verification');
+    if (hookdeckSignature) {
+      // Verify Hookdeck signature using HOOKDECK_WEBHOOK_SECRET
+      console.log('📡 Shipping webhook from Hookdeck detected, verifying signature...');
+      const isValid = await verifyHookdeckSignature(body, hookdeckSignature, hookdeckSignature2);
+
+      if (!isValid) {
+        console.error('❌ Invalid Hookdeck signature on shipping webhook');
+        return NextResponse.json(
+          { error: 'Invalid Hookdeck signature' },
+          { status: 401 }
+        );
+      }
+
+      // Hookdeck validated Stripe's signature - parse directly
       event = JSON.parse(body) as Stripe.Event;
-      console.log(`✅ Hookdeck shipping event processed: ${event.type} (ID: ${event.id})`);
+      console.log(`✅ Hookdeck signature verified for shipping event: ${event.type} (ID: ${event.id})`);
     } else {
       // Direct from Stripe - verify signature using async method with Web Crypto API
       const webhookSecret = process.env.NODE_ENV === 'development'
