@@ -4,29 +4,61 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 
 ---
 
-## Contents
+## Core Documentation
+
+| Document | Purpose |
+|----------|---------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | System overview, data flows, external services |
+| [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md) | SSH access, server logs, Medusa Admin API |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Ansible playbooks, backup & recovery |
+| [CLOUDFLARE_API.md](CLOUDFLARE_API.md) | R2, Tunnels, DNS, WAF rate limiting |
+
+---
+
+## Checkout & Payments
+
+| Document | Purpose |
+|----------|---------|
+| [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) | Full checkout process, Stripe deferred intent pattern |
+| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
+| [WEBHOOKS.md](WEBHOOKS.md) | Stripe + EasyPost webhooks via Hookdeck |
+
+---
+
+## Fulfillment
+
+| Document | Purpose |
+|----------|---------|
+| [FULFILLMENT.md](FULFILLMENT.md) | Shipping rates, labels, EasyPost provider (outbound) |
+| [FULFILLMENT_INBOUND.md](FULFILLMENT_INBOUND.md) | Tracker webhooks, status updates (inbound) |
+
+---
+
+## State & API
+
+| Document | Purpose |
+|----------|---------|
+| [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand stores (cart, auth, checkout) |
+| [CUSTOMER_AUTH.md](CUSTOMER_AUTH.md) | Login, registration, sessions |
+| [MEDUSA_ADMIN_API.md](MEDUSA_ADMIN_API.md) | Admin API endpoints reference |
+
+---
+
+## Testing
+
+| Document | Purpose |
+|----------|---------|
+| [E2E_TESTING.md](E2E_TESTING.md) | Playwright, Mailosaur email, Hookdeck webhook testing |
+| [MOBILE_E2E_TESTING_PLAN.md](MOBILE_E2E_TESTING_PLAN.md) | Mobile testing strategy |
+
+---
+
+## Planning
 
 | Document | Purpose |
 |----------|---------|
 | [PHASE4_PLAN.md](PHASE4_PLAN.md) | Current phase tracks and status |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System overview and data flows |
-| [MEDUSA_API.md](MEDUSA_API.md) | Products, carts, orders, shipping API |
-| [CUSTOMER_AUTH.md](CUSTOMER_AUTH.md) | Customer login, registration, sessions |
-| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
-| [WEBHOOKS.md](WEBHOOKS.md) | Stripe webhooks via Hookdeck |
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Ansible playbooks and troubleshooting |
-| [KEY_MANAGEMENT.md](KEY_MANAGEMENT.md) | Complete secrets inventory |
-| [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand store patterns |
-| [E2E_TESTING.md](E2E_TESTING.md) | Playwright test setup |
-
----
-
-## Archived
-
-| Document | Notes |
-|----------|-------|
-| [archived/PHASE3_PLAN.md](archived/PHASE3_PLAN.md) | Completed - full implementation details |
-| [archived/RFD-011-cloudflare-ssr-workaround.md](archived/RFD-011-cloudflare-ssr-workaround.md) | Resolved |
+| [PLATFORM_ENGINEERING_PLAN.md](PLATFORM_ENGINEERING_PLAN.md) | Infrastructure improvements roadmap |
 
 ---
 
@@ -34,21 +66,35 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 
 | Document | Status |
 |----------|--------|
-| [RFD-010-infrastructure-and-testing.md](RFD-010-infrastructure-and-testing.md) | Draft - Terraform migration, email testing |
+| [RFD-010-infrastructure-and-testing.md](RFD-010-infrastructure-and-testing.md) | Draft |
+| [RFD-012-easypost-hookdeck-verification.md](RFD-012-easypost-hookdeck-verification.md) | Deployed |
+
+---
+
+## Archived
+
+Moved to `docs/archived/` - historical reference only.
+
+| Document | Notes |
+|----------|-------|
+| [PHASE3_PLAN.md](../archived/PHASE3_PLAN.md) | Completed |
+| [KEY_MANAGEMENT.md](../archived/KEY_MANAGEMENT.md) | Superseded by `docs/SECRETS.md` |
+| [RFD-011-cloudflare-ssr-workaround.md](../archived/RFD-011-cloudflare-ssr-workaround.md) | Resolved |
 
 ---
 
 ## When to Use
 
-- **PHASE4_PLAN.md** - Understanding current work and priorities
-- **ARCHITECTURE.md** - Debugging integration issues
-- **MEDUSA_API.md** - Product, cart, order API calls
-- **CUSTOMER_AUTH.md** - Auth flows, session issues, protected routes
-- **STRIPE_INTEGRATION.md** - Payment flow debugging
-- **WEBHOOKS.md** - Stripe/Hookdeck webhook issues
-- **DEPLOYMENT_GUIDE.md** - First-time deploys or Ansible issues
-- **KEY_MANAGEMENT.md** - Adding or rotating secrets
-- **STATE_MANAGEMENT.md** - Modifying Zustand stores
-- **E2E_TESTING.md** - Writing or debugging tests
+| Task | Document |
+|------|----------|
+| SSH to server, view logs | [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md) |
+| Debug shipping rates or fulfillment | [FULFILLMENT.md](FULFILLMENT.md) |
+| Understand webhook flow | [WEBHOOKS.md](WEBHOOKS.md) |
+| Debug checkout/payment | [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) |
+| Deploy backend changes | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
+| Manage Cloudflare resources | [CLOUDFLARE_API.md](CLOUDFLARE_API.md) |
+| Write E2E tests | [E2E_TESTING.md](E2E_TESTING.md) |
+| Modify Zustand stores | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) |
+| Add or rotate secrets | [../SECRETS.md](../SECRETS.md) |
 
 For daily development, `CLAUDE.md` has everything you need.

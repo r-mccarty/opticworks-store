@@ -20,22 +20,29 @@ optic.works (Cloudflare Workers)
        |-- Browser requests --> api.optic.works --|
        |                                          |--> Medusa (Hetzner)
        |-- SSR requests ------> medusa.optic.works|
+
+EasyPost --> Hookdeck --> api.optic.works (tracker webhooks)
+Stripe   --> Hookdeck --> optic.works (payment webhooks)
 ```
 
 | Component | Stack |
 |-----------|-------|
 | Storefront | Next.js 15, React 19, Tailwind 4, Shadcn |
 | Backend | Medusa v2, PostgreSQL 17, Redis 7 |
-| Payments | Stripe via Medusa |
-| Email | Resend via Medusa |
+| Payments | Stripe (deferred intent pattern) |
+| Fulfillment | EasyPost (rates, labels, tracking) |
+| Email | Resend |
 | Hosting | Cloudflare Workers + Hetzner Cloud |
 
 ## Deployment
 
 ### Storefront
 
+Auto-deploys on push to `main` via Cloudflare Git integration.
+
 ```bash
-unset NODE_ENV && pnpm run cf:build
+# Manual deploy
+pnpm run cf:build
 pnpm exec wrangler deploy --env production
 ```
 
@@ -43,22 +50,35 @@ pnpm exec wrangler deploy --env production
 
 ```bash
 cd infrastructure/ansible
-ansible-playbook playbooks/medusa-deploy.yml
+export INFISICAL_SERVICE_TOKEN=st.xxx
+bash scripts/generate-secrets-from-infisical.sh
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
 ```
 
-## Project Status
+## Testing
 
-| Phase | Status |
-|-------|--------|
-| 1-3 | Complete (full e-commerce functional) |
-| 4 | In Progress (production polish, fulfillment, docs site) |
+```bash
+pnpm run lint && pnpm run test              # Unit tests
+pnpm exec playwright test --project=chromium # E2E tests
+```
 
-See [docs/reference/PHASE4_PLAN.md](docs/reference/PHASE4_PLAN.md) for current work.
+E2E tests include Mailosaur (email verification) and Hookdeck (webhook verification).
 
-## Reference
+## Documentation
 
 | Document | Purpose |
 |----------|---------|
-| [CLAUDE.md](CLAUDE.md) | AI agent context |
-| [docs/SECRETS.md](docs/SECRETS.md) | Environment variables |
-| [docs/reference/](docs/reference/) | Deep-dive documentation |
+| [CLAUDE.md](CLAUDE.md) | Agent context, workflows, quick reference |
+| [docs/SECRETS.md](docs/SECRETS.md) | All environment variables |
+| [docs/reference/](docs/reference/) | Deep-dive documentation index |
+
+### Key Reference Docs
+
+| Topic | Document |
+|-------|----------|
+| SSH, logs, Admin API | [BACKEND_OPERATIONS.md](docs/reference/BACKEND_OPERATIONS.md) |
+| Shipping & fulfillment | [FULFILLMENT.md](docs/reference/FULFILLMENT.md) |
+| Checkout flow | [CHECKOUT_FLOW.md](docs/reference/CHECKOUT_FLOW.md) |
+| Webhooks | [WEBHOOKS.md](docs/reference/WEBHOOKS.md) |
+| Ansible deployment | [DEPLOYMENT_GUIDE.md](docs/reference/DEPLOYMENT_GUIDE.md) |
+| E2E testing | [E2E_TESTING.md](docs/reference/E2E_TESTING.md) |
