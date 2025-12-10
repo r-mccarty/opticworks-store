@@ -85,6 +85,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 
 | Document | Use When |
 |----------|----------|
+| `docs/reference/BACKEND_OPERATIONS.md` | SSH access, server logs, Medusa Admin API |
 | `docs/reference/FULFILLMENT.md` | Shipping rates, labels, EasyPost provider |
 | `docs/reference/FULFILLMENT_INBOUND.md` | Tracker webhooks, status updates |
 | `docs/reference/CHECKOUT_FLOW.md` | Payment flow, Stripe integration |
