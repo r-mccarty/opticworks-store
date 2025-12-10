@@ -40,7 +40,7 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 |----------|---------|
 | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand stores (cart, auth, checkout) |
 | [CUSTOMER_AUTH.md](CUSTOMER_AUTH.md) | Login, registration, sessions |
-| [MEDUSA_ADMIN_API.md](MEDUSA_ADMIN_API.md) | Admin API endpoints reference |
+| [MEDUSA_API.md](MEDUSA_API.md) | Store API (products, carts, payments) |
 
 ---
 

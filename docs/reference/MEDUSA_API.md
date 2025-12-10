@@ -1,6 +1,8 @@
-# Medusa API Reference
+# Medusa Store API Reference
 
-Storefront integration with Medusa v2 backend.
+Storefront integration with Medusa v2 backend. This covers the **Store API** (`/store/*` endpoints) used by the Next.js frontend.
+
+For Admin API operations (orders, fulfillments), see [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md).
 
 ---
 
