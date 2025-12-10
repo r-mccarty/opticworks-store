@@ -1,10 +1,38 @@
 # Webhooks
 
-Stripe webhook handling via Hookdeck.
+Webhook handling for Stripe and EasyPost via Hookdeck.
 
 ---
 
-## Architecture
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         HOOKDECK GATEWAY                             │
+│  (Buffering, retries, logging, signature verification)               │
+└─────────────────────────────────────────────────────────────────────┘
+          ▲                                        ▲
+          │                                        │
+    ┌─────┴─────┐                           ┌──────┴──────┐
+    │  Stripe   │                           │  EasyPost   │
+    │ Dashboard │                           │  Trackers   │
+    └───────────┘                           └─────────────┘
+          │                                        │
+          ▼                                        ▼
+┌─────────────────────┐               ┌─────────────────────────────┐
+│ Storefront Workers  │               │   Medusa Backend            │
+│ /api/stripe/webhook │               │ /webhooks/easypost-tracker  │
+│                     │               │                             │
+│ checkout.session.*  │               │ tracker.updated events      │
+│ payment_intent.*    │               │ → Update fulfillment status │
+└─────────────────────┘               └─────────────────────────────┘
+```
+
+---
+
+## Stripe Webhooks
+
+### Architecture
 
 ```
 Stripe Dashboard
@@ -251,3 +279,135 @@ The webhook route logs extensively:
 
 - Events include `event.id` for idempotency
 - Store processed event IDs if needed
+
+---
+
+## EasyPost Webhooks
+
+EasyPost sends tracker events when shipment status changes. These events flow through Hookdeck to the Medusa backend.
+
+### Architecture
+
+```
+EasyPost Tracker
+       |
+       | tracker.updated events
+       v
+   Hookdeck
+       |
+       | 1. Verify EasyPost signature (transformation)
+       | 2. Sign with HOOKDECK_WEBHOOK_SECRET
+       v
+api.optic.works/webhooks/easypost-tracker
+       |
+       v
+   Medusa Workflow (handle-easypost-event)
+       |
+       +-- pre_transit    --> No action (label created)
+       +-- in_transit     --> Mark shipped
+       +-- out_for_delivery --> No action (future: SMS)
+       +-- delivered      --> Mark delivered
+       +-- failure        --> Log error
+```
+
+### Hookdeck Transformation
+
+EasyPost webhook signature verification is handled by a **Hookdeck transformation** (not the Medusa backend). This prevents invalid events from ever reaching our backend.
+
+**Location**: `infrastructure/hookdeck-transformations/easypost-verify-signature.js`
+
+**How it works**:
+1. EasyPost sends event with `x-easypost-hmac-sha256` header
+2. Hookdeck transformation verifies signature using `EASYPOST_WEBHOOK_SECRET`
+3. If valid, event is forwarded to Medusa
+4. If invalid, event is rejected (never reaches backend)
+
+**Configuration**: The `EASYPOST_WEBHOOK_SECRET` is set in Hookdeck Dashboard > Transformations > easypost-verify > Environment Variables (NOT in Infisical).
+
+See `infrastructure/hookdeck-transformations/README.md` and [RFD-012](./RFD-012-easypost-hookdeck-verification.md) for details.
+
+### Payload Structure
+
+```json
+{
+  "description": "tracker.updated",
+  "mode": "test",
+  "result": {
+    "tracking_code": "EZ1000000001",
+    "status": "in_transit",
+    "shipment_id": "shp_xxx",
+    "carrier": "USPS",
+    "public_url": "https://track.easypost.com/..."
+  }
+}
+```
+
+### Medusa Backend Route
+
+**File**: `backend/src/api/webhooks/easypost-tracker/route.ts`
+
+The route:
+1. Verifies `x-hookdeck-signature` header (trusts Hookdeck validated EasyPost)
+2. Filters for `tracker.updated` events only
+3. Looks up fulfillment by `tracking_code` or `shipment_id`
+4. Triggers workflow to update fulfillment status
+
+### Idempotency
+
+The backend handles duplicate events gracefully:
+- Checks `fulfillment.shipped_at` before marking as shipped
+- Checks `fulfillment.data.delivery_status` before marking as delivered
+- If `delivered` arrives before `in_transit`, handles both sequentially
+
+### Testing with Magic Codes
+
+In `EASYPOST_MODE=test`, use magic tracking codes that automatically cycle through statuses:
+
+| Code | Behavior |
+|------|----------|
+| `EZ1000000001` | Transitions to `delivered` |
+| `EZ2000000002` | Transitions to `in_transit` |
+| `EZ3000000003` | Transitions to `failure` |
+| `EZ4000000004` | Stays in `pre_transit` |
+| `EZ5000000005` | Transitions to `out_for_delivery` |
+
+### Environment Variables
+
+| Variable | Location | Purpose |
+|----------|----------|---------|
+| `EASYPOST_WEBHOOK_SECRET` | **Hookdeck transformation env** | EasyPost signature verification |
+| `HOOKDECK_WEBHOOK_SECRET` | **Infisical** | Hookdeck signature verification (Medusa) |
+| `EASYPOST_MODE` | **Infisical** | `test` or `production` |
+
+### Debugging
+
+```bash
+# View recent EasyPost events in Hookdeck
+source .env.local && curl -s "https://api.hookdeck.com/2024-03-01/events?limit=5" \
+  -H "Authorization: Bearer $HOOKDECK_API_KEY" | jq '.models[] | {id, response_status, created_at}'
+
+# Check Medusa logs for webhook processing
+ssh hetzner-node "grep easypost /opt/opticworks/medusa-backend/logs/medusa-app.log | tail -20"
+
+# Verify fulfillment status in Medusa Admin
+curl -s "https://api.optic.works/admin/fulfillments/{id}" \
+  -H "Authorization: Bearer $ADMIN_TOKEN" | jq '.fulfillment.data'
+```
+
+### Common Issues
+
+**401 from Medusa (but Hookdeck shows delivered)**
+- Verify `HOOKDECK_WEBHOOK_SECRET` is set in Medusa environment
+- Check transformation is passing the signed payload correctly
+
+**Fulfillment Not Found**
+- Backend returns `200 OK` to prevent Hookdeck retries
+- Check tracking code matches `fulfillment.data.tracking_number`
+- Check shipment ID matches `fulfillment.data.easypost_shipment_id`
+
+**Events Not Received**
+- Check Hookdeck dashboard for delivery status
+- Verify EasyPost tracker was created (check EasyPost dashboard)
+- In test mode, only magic codes generate automatic events
+
+See `docs/reference/FULFILLMENT_INBOUND.md` for full inbound architecture details.

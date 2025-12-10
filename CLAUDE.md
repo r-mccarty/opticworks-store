@@ -2,119 +2,94 @@
 
 E-commerce platform: Next.js 15 + Medusa v2 + Stripe + Cloudflare Workers.
 
-## Commands
+## Quick Commands
 
 ```bash
 pnpm run dev                        # Dev server (localhost:3000)
 pnpm run lint && pnpm run test      # Pre-commit checks
-pnpm run cf:build                   # Cloudflare Workers build (runs next build internally)
+pnpm run secrets:pull               # Pull secrets from Infisical
+pnpm exec playwright test --project=chromium  # E2E tests
 ```
 
 ## Structure
 
 ```
-src/
-├── app/                # Next.js App Router (pages, API routes)
-├── components/         # React components (ui/, checkout/, products/)
-├── hooks/              # Zustand stores (useCart, useAuth)
-└── lib/api/            # Medusa API client
-
-backend/                # Medusa v2 (standalone, not in pnpm workspace)
-infrastructure/ansible/ # Hetzner deployment
-e2e/                    # Playwright tests
+src/app/              # Next.js App Router
+src/components/       # React components
+src/hooks/            # Zustand stores (useCart, useAuth)
+src/lib/api/          # Medusa API client
+backend/              # Medusa v2 backend (standalone)
+infrastructure/ansible/  # Hetzner deployment
+e2e/                  # Playwright tests
 ```
 
 ## Constraints
 
 - **pnpm only** - no npm/yarn
 - **No `any` types** - strict TypeScript
-- **Never commit secrets** - `.env.local`, `backend/.env`
+- **Never commit secrets** - use Infisical (`docs/SECRETS.md`)
 - **Backend changes via Ansible** - no direct SSH edits
 
-## Key Files
+## Frontend Workflow
 
-| File | Purpose |
-|------|---------|
-| `src/lib/api/medusa.ts` | All Medusa API calls |
-| `src/hooks/useCart.ts` | Cart state (hybrid local + Medusa) |
-| `src/hooks/useAuth.ts` | Customer authentication |
-| `backend/medusa-config.ts` | Backend configuration |
-| `backend/src/modules/easypost-fulfillment/` | EasyPost fulfillment provider |
-| `wrangler.jsonc` | Cloudflare Workers config |
+1. Develop: `pnpm dev`
+2. Test: `pnpm lint && pnpm test`
+3. Build: `pnpm run cf:build`
+4. Deploy: Push to `main` → Cloudflare auto-deploys
+5. E2E: `pnpm exec playwright test --project=chromium`
 
-## Fulfillment
+## Backend Workflow
 
-Shipping rates and label generation use **Medusa's fulfillment module with EasyPost provider**.
+```bash
+cd infrastructure/ansible
+export INFISICAL_SERVICE_TOKEN=st.xxx
+bash scripts/generate-secrets-from-infisical.sh
+ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
+```
 
-| Layer | Responsibility |
-|-------|----------------|
-| Backend | EasyPost provider calculates rates, generates labels |
-| Storefront | Calls Medusa shipping APIs, displays options |
-| Admin | Manages fulfillments, triggers label generation |
+Full provisioning: `playbooks/medusa-provision.yml`
+Teardown: `playbooks/medusa-destroy.yml`
 
-Shipping options use `price_type: "calculated"` - prices are fetched from EasyPost in real-time based on customer address.
+## Debugging & Monitoring
 
-See `docs/reference/FULFILLMENT.md` for full architecture details.
+| Task | Command/Method |
+|------|----------------|
+| Medusa logs | `ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"` |
+| PM2 status | `ssh hetzner-node "pm2 status"` |
+| Backend health | `curl https://api.optic.works/health` |
+| Webhook logs | Hookdeck Admin API (`e2e/fixtures/hookdeck-utils.ts`) |
+| Email delivery | Mailosaur API (`e2e/fixtures/email-utils.ts`) |
+| Cloudflare resources | See `docs/reference/CLOUDFLARE_API.md` |
 
 ## Architecture
 
 ```
-optic.works (Workers) --> api.optic.works --> Medusa (Hetzner)
-                      --> medusa.optic.works (SSR bypass)
+optic.works (Workers) → api.optic.works → Medusa (Hetzner)
+                      → medusa.optic.works (SSR bypass)
+
+EasyPost → Hookdeck → Medusa webhooks (tracker.updated events)
+Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 ```
 
-SSR uses `medusa.optic.works` to avoid Cloudflare edge hairpin issues.
+## Key Integrations
 
-## Development Workflow
-
-1. Develop locally with `pnpm dev`
-2. Run `pnpm lint && pnpm test` before committing
-3. Push to feature branch → Cloudflare automatically verifies build
-4. Create PR to `main` → Cloudflare build check must pass
-5. Merge to `main` → Cloudflare auto-deploys to production
-
-## Deployment
-
-```bash
-# Storefront - auto-deploys on push to main via Cloudflare
-# Manual deploy (from local machine with sufficient RAM):
-pnpm run cf:deploy:production
-
-# Backend (Ansible)
-cd infrastructure/ansible
-ansible-playbook playbooks/medusa-deploy.yml
-```
-
-## Secrets
-
-```bash
-pnpm run secrets:pull   # Pulls from Infisical to .env.local
-```
-
-Key variables: `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
-
-## Build Workarounds
-
-| Issue | Solution |
-|-------|----------|
-| Medusa unavailable at build | Static product fallback |
-| Product pages SSG fails | `force-dynamic` export |
-| Stripe SDK at build | Lazy init with `getStripe()` |
-
-## Current State
-
-- **Phase 3 Complete**: Products, cart, checkout, auth, email, E2E tests
-- **Phase 4 Active**: Production products, design system, FedEx fulfillment, docs site
-
-See `docs/reference/PHASE4_PLAN.md` for current tracks.
+| System | Purpose | Docs |
+|--------|---------|------|
+| EasyPost | Shipping rates, labels, tracking | `docs/reference/FULFILLMENT.md` |
+| Hookdeck | Webhook gateway (Stripe + EasyPost) | `docs/reference/WEBHOOKS.md` |
+| Stripe | Payments (deferred intent pattern) | `docs/reference/CHECKOUT_FLOW.md` |
+| Infisical | Secrets management | `docs/SECRETS.md` |
+| Mailosaur | E2E email testing | `docs/reference/E2E_TESTING.md` |
 
 ## Reference Docs
 
 | Document | Use When |
 |----------|----------|
-| `docs/reference/ARCHITECTURE.md` | System overview |
-| `docs/reference/PHASE4_PLAN.md` | Current implementation |
-| `docs/reference/FULFILLMENT.md` | Shipping rates, EasyPost, label generation |
-| `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible deployment, backup & recovery |
-| `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS programmatic access |
-| `docs/SECRETS.md` | Environment variables |
+| `docs/reference/FULFILLMENT.md` | Shipping rates, labels, EasyPost provider |
+| `docs/reference/FULFILLMENT_INBOUND.md` | Tracker webhooks, status updates |
+| `docs/reference/CHECKOUT_FLOW.md` | Payment flow, Stripe integration |
+| `docs/reference/WEBHOOKS.md` | Stripe + EasyPost webhook handling |
+| `docs/reference/E2E_TESTING.md` | Playwright, Mailosaur, Hookdeck testing |
+| `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible playbooks, backup & recovery |
+| `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS, rate limiting |
+| `docs/SECRETS.md` | All environment variables |
