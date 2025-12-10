@@ -7,35 +7,38 @@ System architecture for the OpticWorks e-commerce platform.
 ## System Diagram
 
 ```
-                          INTERNET
-                             |
-                    +--------+--------+
-                    |                 |
-                    v                 v
-             Cloudflare WAF      Hookdeck
-             (Rate Limiting)     (webhooks)
+                              INTERNET
+                                 |
+                    +------------+------------+
+                    |            |            |
+                    v            v            v
+             Cloudflare WAF   Hookdeck    EasyPost
+             (Rate Limiting)  (webhooks)  (shipping)
+                    |            |            |
+         +---------+    +-------+-------+    |
+         |              |               |    |
+         v              v               v    v
+   Cloudflare Workers   |         Cloudflare Tunnel
+   (optic.works)        |         (api.optic.works)
+   OpenNext + Next.js   |         (medusa.optic.works)
+         |              |               |
+         |   Stripe webhooks    EasyPost webhooks
+         |   (checkout.*)       (tracker.updated)
+         |              |               |
+         v              v               v
+   HETZNER CLOUD ←------+---------------+
+   +------------------------------------------+
+   |              Medusa Backend              |
+   |   PostgreSQL 17  |  Redis 7.x  |  PM2   |
+   |                                         |
+   |   EasyPost Fulfillment Provider         |
+   |   (rates, labels, tracking)             |
+   +------------------------------------------+
                     |
-         +-------------------+-------------------+
-         |                   |                   |
-         v                   v                   v
-   Cloudflare Workers   Cloudflare Tunnel    Cloudflare KV
-   (optic.works)        (api.optic.works)    (shipping cache)
-   OpenNext + Next.js   (medusa.optic.works)
-         |                   |
-         |                   |
-         +-------------------+-------------------+
-         |                                       |
-         v                                       v
-   HETZNER CLOUD                            Upstash QStash
-   +-------------------------+              (background jobs)
-   |     Medusa Backend      |
-   |   PostgreSQL 17         |
-   |   Redis 7.x             |
-   +-------------------------+
-         |           |
-         v           v
-      Stripe     EasyPost
-               (shipping rates)
+         +---------+---------+
+         v                   v
+      Stripe              EasyPost
+   (payments)        (rates, labels)
 ```
 
 ---
@@ -96,8 +99,15 @@ User pays --> stripe.confirmPayment() --> completeCart()
 ### Webhooks
 
 ```
-Stripe --> Hookdeck --> optic.works/api/stripe/webhook
+Stripe   --> Hookdeck --> optic.works/api/stripe/webhook
+                          (checkout.session.completed, payment_intent.*)
+
+EasyPost --> Hookdeck --> api.optic.works/webhooks/easypost-tracker
+             (transformation verifies signature)
+                          (tracker.updated → update fulfillment status)
 ```
+
+See [WEBHOOKS.md](WEBHOOKS.md) for full webhook architecture.
 
 ### Shipping Rates (Medusa Backend Provider)
 
@@ -132,6 +142,52 @@ User enters address --> useMedusaShipping (500ms debounce)
 2. **Frontend Debouncing** - 500ms delay before API call
 3. **Backend Rate Limiting** - Medusa middleware
 4. **EasyPost Circuit Breaker** - Backend provider fallback to flat rates
+
+### Fulfillment (Outbound)
+
+```
+Admin creates fulfillment in Medusa Admin
+                |
+                v
+EasyPost Provider createFulfillment()
+                |
+                v
+EasyPost API: Buy label with pre-created rate
+                |
+                v
+Store tracking_number, label_url in fulfillment.data
+                |
+                v
+EasyPost creates Tracker automatically
+```
+
+See [FULFILLMENT.md](FULFILLMENT.md) for outbound fulfillment details.
+
+### Tracking Updates (Inbound)
+
+```
+EasyPost Tracker status changes
+                |
+                v
+EasyPost fires tracker.updated webhook
+                |
+                v
+Hookdeck receives, transformation verifies signature
+                |
+                v
+api.optic.works/webhooks/easypost-tracker
+                |
+                v
+Medusa workflow: handle-easypost-event
+                |
+    +-----------+-----------+
+    |           |           |
+    v           v           v
+in_transit   delivered   failure
+(mark shipped) (mark delivered) (log error)
+```
+
+See [FULFILLMENT_INBOUND.md](FULFILLMENT_INBOUND.md) for inbound architecture.
 
 ---
 
@@ -173,17 +229,22 @@ See [CLOUDFLARE_API.md](CLOUDFLARE_API.md) for programmatic access.
 
 | Service | Purpose | Fallback |
 |---------|---------|----------|
-| **EasyPost** | Real-time shipping rates | Mock rates |
+| **EasyPost** | Shipping rates, labels, tracking | Mock rates (test mode) |
 | **Stripe** | Payment processing | N/A |
-| **Hookdeck** | Webhook routing | N/A |
-| **Upstash QStash** | Background jobs (future) | Sync processing |
+| **Hookdeck** | Webhook gateway (Stripe + EasyPost) | N/A |
+| **Resend** | Transactional email | N/A |
+| **Infisical** | Secrets management | N/A |
+| **Mailosaur** | E2E email testing | Skip email tests |
 
 ---
 
 ## Related Docs
 
-- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Ansible playbooks
-- [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) - Payment flow
-- [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) - Zustand patterns
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Ansible playbooks, backup & recovery
+- [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) - Payment flow, Stripe deferred intent
+- [FULFILLMENT.md](FULFILLMENT.md) - Shipping rates, labels (outbound)
+- [FULFILLMENT_INBOUND.md](FULFILLMENT_INBOUND.md) - Tracker webhooks (inbound)
+- [WEBHOOKS.md](WEBHOOKS.md) - Stripe + EasyPost webhook handling
+- [E2E_TESTING.md](E2E_TESTING.md) - Playwright, Mailosaur, Hookdeck testing
 - [CLOUDFLARE_API.md](CLOUDFLARE_API.md) - API access, WAF rules, KV
-- [FULFILLMENT.md](FULFILLMENT.md) - Shipping rates, EasyPost integration
+- [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) - Zustand patterns
