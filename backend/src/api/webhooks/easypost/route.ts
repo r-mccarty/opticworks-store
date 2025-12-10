@@ -19,8 +19,13 @@ export async function POST(req: MedusaRequest, res: MedusaResponse) {
 
   logger.info("[easypost-webhook] Received webhook request");
 
-  // Get raw body for signature verification
-  const rawBody = JSON.stringify(req.body);
+  // Get raw body for signature verification (captured by middleware)
+  const capturedRawBody = (req as MedusaRequest & { rawBody?: string }).rawBody;
+  const rawBody = capturedRawBody || JSON.stringify(req.body);
+
+  if (!capturedRawBody) {
+    logger.warn("[easypost-webhook] Raw body not captured by middleware, using JSON.stringify fallback");
+  }
 
   // Development mode bypass (per FULFILLMENT_INBOUND spec)
   const isDev = process.env.NODE_ENV === "development";

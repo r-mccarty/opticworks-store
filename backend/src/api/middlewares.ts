@@ -1,4 +1,27 @@
 import { defineMiddlewares } from "@medusajs/medusa"
+import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
+import { json } from "express"
+
+/**
+ * Custom JSON body parser with raw body capture for webhook signature verification.
+ */
+const jsonParserWithRawBody = json({
+  verify: (req, _res, buf) => {
+    // Store raw body on request for signature verification
+    (req as MedusaRequest & { rawBody?: string }).rawBody = buf.toString("utf8");
+  },
+})
+
+/**
+ * Wrapper middleware to apply custom JSON parser.
+ */
+function webhookBodyParser(
+  req: MedusaRequest,
+  res: MedusaResponse,
+  next: MedusaNextFunction
+) {
+  jsonParserWithRawBody(req, res, next);
+}
 
 /**
  * Custom Middlewares
@@ -7,8 +30,14 @@ import { defineMiddlewares } from "@medusajs/medusa"
  * at infrastructure/workers/api-cors/ which intercepts OPTIONS requests before
  * they reach Medusa.
  *
- * This file can be used for any additional custom middleware if needed.
+ * Webhook routes use custom body parser to capture raw body for signature verification.
  */
 export default defineMiddlewares({
-  routes: [],
+  routes: [
+    {
+      matcher: "/webhooks/*",
+      bodyParser: false, // Disable default body parser
+      middlewares: [webhookBodyParser],
+    },
+  ],
 })
