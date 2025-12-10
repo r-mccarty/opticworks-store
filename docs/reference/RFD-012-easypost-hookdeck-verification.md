@@ -1,6 +1,6 @@
 # RFD-012: EasyPost Webhook Signature Verification via Hookdeck
 
-**Status**: Draft - Requesting Feedback
+**Status**: Accepted - Implementing Revised Option A
 **Created**: 2025-12-10
 **Author**: Claude (AI Assistant)
 
@@ -67,22 +67,44 @@ The signature is valid - Hookdeck just can't parse it due to the `hmac-sha256-he
 
 ## Options Considered
 
-### Option A: Hookdeck Transformation (Preferred if Available)
+### Option A: Hookdeck Transformation (**SELECTED**)
 
-**Concept**: Use Hookdeck's transformation feature to modify the header before verification.
+**Concept**: Use Hookdeck's transformation feature to implement custom HMAC verification.
 
-**Status**: Under investigation - need to determine if Hookdeck supports pre-verification transformations.
+**Status**: ✅ **Accepted** - Implementation in progress.
+
+**Key Finding**: Hookdeck executes Source Verification *before* Transformations. We cannot strip the prefix to make native verification pass. Instead, we:
+1. Disable native Source Verification
+2. Implement HMAC verification manually in a transformation using `crypto-js`
+3. Throw an error on invalid signature (marks event as Failed, stops delivery)
+
+**Architecture**:
+```
+EasyPost ──[X-Hmac-Signature]──> Hookdeck (Verification: None)
+                                     │
+                                     ▼
+                              Transformation
+                              (Custom HMAC Check)
+                                     │
+                            ┌────────┴────────┐
+                            │                 │
+                      Valid Signature    Invalid Signature
+                            │                 │
+                            ▼                 ▼
+                    Deliver to Backend   Mark Failed
+```
+
+**Implementation**: `infrastructure/hookdeck-transformations/easypost-verify/`
 
 **Advantages**:
 - Keeps verification at the edge (Hookdeck layer)
-- Clean logs - invalid requests rejected before logging
-- No additional infrastructure
+- Clean logs - invalid requests marked as Failed before delivery
+- No additional infrastructure (no Cloudflare Worker needed)
+- Full control over verification logic
 
 **Disadvantages**:
-- May not be supported by Hookdeck
-- Adds configuration complexity
-
-**Action Item**: Contact Hookdeck support or investigate transformation capabilities.
+- Requires bundling `crypto-js` (Hookdeck runtime lacks Node.js crypto)
+- Slightly more complex deployment (webpack build step)
 
 ---
 
@@ -206,30 +228,38 @@ function verifyEasyPostSignature(body: string, signature: string | null): boolea
 
 | Option | Verification Location | Clean Logs | Infrastructure | Complexity |
 |--------|----------------------|------------|----------------|------------|
-| A. Hookdeck Transform | Edge | Yes | None | Low |
+| **A. Hookdeck Transform** | **Edge** | **Yes** | **None** | **Medium** |
 | B. Cloudflare Proxy | Edge | Yes | Worker | Medium |
 | C. Backend Verify | Backend | No | None | Low |
 | D. Native Integration | Edge | Yes | None | None (if available) |
 
----
-
-## Recommendation
-
-**Investigate in order**:
-
-1. **Option A** - Check if Hookdeck transformations can modify headers pre-verification
-2. **Option D** - Submit feature request to Hookdeck for native EasyPost support
-3. **Option B** - Implement Cloudflare Worker proxy as fallback
-4. **Option C** - Backend verification only as last resort (log pollution concern)
+**Note**: Option A complexity increased from "Low" to "Medium" due to required webpack bundling for crypto-js.
 
 ---
 
-## Open Questions
+## Decision
 
-1. Does Hookdeck support pre-verification transformations?
-2. Is there a Hookdeck feature request channel for native integrations?
-3. Are there other EasyPost users on Hookdeck who've solved this?
-4. Could EasyPost be configured to send signatures without the prefix? (Unlikely - it's their standard format)
+**Selected**: Option A (Revised) - Custom Verification Transformation
+
+We implement HMAC verification in a Hookdeck transformation using bundled `crypto-js`. This keeps verification at the edge while avoiding the log pollution concern of Option C.
+
+**Deployment Steps**:
+1. Build transformation: `cd infrastructure/hookdeck-transformations/easypost-verify && npm install && npm run build`
+2. In Hookdeck Dashboard:
+   - Set EasyPost source verification to "None"
+   - Create transformation with bundled code from `dist/index.js`
+   - Set `EASYPOST_WEBHOOK_SECRET` environment variable
+   - Attach transformation to EasyPost → Backend connection
+
+See `infrastructure/hookdeck-transformations/README.md` for detailed instructions.
+
+---
+
+## Resolved Questions
+
+1. ~~Does Hookdeck support pre-verification transformations?~~ **No** - Transformations run after verification
+2. ~~Could we strip the prefix before verification?~~ **No** - But we can implement custom verification in a transformation
+3. ~~Are there other EasyPost users on Hookdeck?~~ **Unknown** - But our custom solution works regardless
 
 ---
 
@@ -248,4 +278,5 @@ function verifyEasyPostSignature(body: string, signature: string | null): boolea
 |------|----------|-----------|
 | 2025-12-10 | RFD created | Document verification failure and options |
 | 2025-12-10 | Source verification temporarily disabled | Allow webhooks to flow while investigating |
-| TBD | Approach selected | Pending investigation and feedback |
+| 2025-12-10 | Option A (Revised) selected | Hookdeck transforms run after verification; implement custom HMAC check in transformation layer |
+| 2025-12-10 | Implementation created | `infrastructure/hookdeck-transformations/easypost-verify/` with crypto-js bundling |

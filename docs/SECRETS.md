@@ -109,6 +109,12 @@ cat .env.local | head -5
 
 **Note:** Hookdeck sits between Stripe/EasyPost and our webhook endpoints, providing retry logic, logging, and validation. The signing secret verifies that webhook requests genuinely originate from Hookdeck. The API key enables E2E tests to verify webhook delivery.
 
+#### Hookdeck Transformation Environment
+
+The EasyPost verification transformation requires `EASYPOST_WEBHOOK_SECRET` to be set in the Hookdeck transformation environment (not Infisical). This is configured in Hookdeck Dashboard > Transformations > easypost-verify > Environment Variables.
+
+See [RFD-012](reference/RFD-012-easypost-hookdeck-verification.md) and `infrastructure/hookdeck-transformations/README.md` for details.
+
 ### Background Jobs (QStash)
 
 | Variable | Purpose |
