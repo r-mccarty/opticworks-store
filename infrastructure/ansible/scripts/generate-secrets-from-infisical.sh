@@ -84,6 +84,9 @@ EASYPOST_API_KEY=$(get_secret "EASYPOST_API_KEY" "false")
 EASYPOST_TEST_API_KEY=$(get_secret "EASYPOST_TEST_API_KEY" "false")
 EASYPOST_MODE=$(get_secret "EASYPOST_MODE" "false")
 
+# Webhook Verification (Hookdeck)
+HOOKDECK_WEBHOOK_SECRET=$(get_secret "HOOKDECK_WEBHOOK_SECRET" "false")
+
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
 # Default from email if not set
@@ -170,6 +173,9 @@ restic_password: "$RESTIC_PASSWORD"
 easypost_api_key: "$EASYPOST_API_KEY"
 easypost_test_api_key: "$EASYPOST_TEST_API_KEY"
 easypost_mode: "$EASYPOST_MODE"
+
+# Webhook Verification (Hookdeck)
+hookdeck_webhook_secret: "$HOOKDECK_WEBHOOK_SECRET"
 EOF
 
 echo "✅ Secrets file synced: $SECRETS_FILE"
