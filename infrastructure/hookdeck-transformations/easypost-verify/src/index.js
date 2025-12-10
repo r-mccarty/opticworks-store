@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
 
-addHandler('verify-easypost', (request, context) => {
+addHandler('transform', (request, context) => {
   const headers = request.headers;
   const signatureHeader = headers['x-hmac-signature'];
 
