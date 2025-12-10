@@ -20,12 +20,6 @@ export const testProducts = {
   },
 };
 
-export const testCustomer = {
-  email: `e2e-test-${Date.now()}@optic.works`,
-  firstName: 'E2E',
-  lastName: 'Test',
-};
-
 /**
  * Test user credentials for authentication tests.
  * Note: These accounts need to be pre-created in Medusa for login tests.
@@ -88,9 +82,31 @@ export const testCards = {
 
 /**
  * Generate a unique test email for each run.
+ * Uses Mailosaur when configured, falls back to @optic.works otherwise.
  */
 export function generateTestEmail(): string {
-  return `e2e-test-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@optic.works`;
+  const serverId = process.env.MAILOSAUR_SERVER_ID;
+  const uniqueId = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
+  if (serverId) {
+    // Route to Mailosaur for email verification
+    return `${uniqueId}@${serverId}.mailosaur.net`;
+  }
+
+  // Fallback when Mailosaur not configured
+  return `${uniqueId}@optic.works`;
+}
+
+/**
+ * Generate test customer data with a unique Mailosaur-routed email.
+ * Call this function each time you need fresh customer data.
+ */
+export function getTestCustomer() {
+  return {
+    email: generateTestEmail(),
+    firstName: 'E2E',
+    lastName: 'Test',
+  };
 }
 
 /**
@@ -108,17 +124,9 @@ export const mailosaurConfig = {
   serverId: process.env.MAILOSAUR_SERVER_ID || '',
   /**
    * Generate a unique email address that routes to Mailosaur for testing.
-   * Format: {unique-id}@{server-id}.mailosaur.net
+   * This is an alias for generateTestEmail() which now uses Mailosaur by default.
    */
-  generateEmail: (): string => {
-    const serverId = process.env.MAILOSAUR_SERVER_ID;
-    if (!serverId) {
-      console.warn('[Mailosaur] MAILOSAUR_SERVER_ID not set, falling back to optic.works domain');
-      return generateTestEmail();
-    }
-    const uniqueId = `e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    return `${uniqueId}@${serverId}.mailosaur.net`;
-  },
+  generateEmail: (): string => generateTestEmail(),
 };
 
 /**

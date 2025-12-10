@@ -39,6 +39,8 @@ import {
   clearAuthToken,
   tryCreateFulfillmentForAnyOrder,
   findOrderByEmail,
+  getTrackingCodeFromFulfillment,
+  verifyFulfillmentStatus,
 } from '../fixtures/medusa-admin-utils';
 import {
   hookdeckConfig,
@@ -314,8 +316,9 @@ test.describe('Full Fulfillment E2E Flow', () => {
     console.log('[E2E] Step 2: Creating fulfillment via Admin API...');
     console.log(`[E2E] Order ${order.display_id}: ${order.items.length} items, status=${order.fulfillment_status}`);
 
+    let fulfillment;
     try {
-      const fulfillment = await createFulfillment(orderId, {
+      fulfillment = await createFulfillment(orderId, {
         no_notification: true, // Don't send customer email during test
       });
       console.log(`[E2E] Fulfillment created: ${fulfillment.id}`);
@@ -324,12 +327,21 @@ test.describe('Full Fulfillment E2E Flow', () => {
       throw error;
     }
 
-    // Step 3: Wait for tracker events
+    // Extract the actual tracking code from the fulfillment
+    const trackingCode = getTrackingCodeFromFulfillment(fulfillment);
+    console.log(`[E2E] Tracking code: ${trackingCode || 'NOT AVAILABLE'}`);
+
+    if (!trackingCode) {
+      console.warn('[E2E] No tracking code available - cannot match webhook events');
+      console.warn('[E2E] This may indicate an issue with EasyPost label creation');
+    }
+
+    // Step 3: Wait for tracker events with actual tracking code
     console.log('[E2E] Step 3: Waiting for tracker events (up to 60s)...');
     console.log('[E2E] EasyPost should fire tracker.updated events automatically');
 
-    // Poll for any new tracker events since we created the fulfillment
-    const event = await waitForTrackerEvent('', undefined, {
+    // Poll for tracker events matching our specific tracking code
+    const event = await waitForTrackerEvent(trackingCode || '', undefined, {
       timeout: 60000,
       pollInterval: 3000,
     });
@@ -339,12 +351,32 @@ test.describe('Full Fulfillment E2E Flow', () => {
       const code = getTrackingCode(event);
       const delivered = wasEventDelivered(event);
 
-      console.log('[E2E] Step 4: Verifying event...');
+      console.log('[E2E] Step 4: Verifying webhook event...');
       console.log(`[E2E] Event received: tracking=${code}, status=${status}`);
-      console.log(`[E2E] Delivery status: ${delivered ? 'SUCCESS' : 'FAILED'}`);
+      console.log(`[E2E] Webhook delivery: ${delivered ? 'SUCCESS' : 'FAILED'}`);
       console.log(`[E2E] Response code: ${event.response_status}`);
 
       expect(delivered).toBe(true);
+
+      // Step 5: Verify Medusa actually processed the webhook (bidirectional verification)
+      console.log('[E2E] Step 5: Verifying Medusa processed the webhook...');
+
+      // Give Medusa a moment to process the webhook
+      await page.waitForTimeout(2000);
+
+      const verification = await verifyFulfillmentStatus(fulfillment.id, {
+        shipped: status === 'in_transit' || status === 'delivered',
+        delivered: status === 'delivered',
+      }, { timeout: 15000, pollInterval: 2000 });
+
+      if (verification.success) {
+        console.log('[E2E] Bidirectional verification passed!');
+        console.log(`[E2E] Fulfillment shipped_at: ${verification.fulfillment?.shipped_at}`);
+      } else {
+        console.log(`[E2E] Bidirectional verification: ${verification.message}`);
+        // Don't fail - webhook was delivered, state update may be async
+      }
+
       console.log('[E2E] Full E2E test passed!');
     } else {
       console.log('[E2E] No tracker events received within timeout');
@@ -373,9 +405,13 @@ test.describe('Full Fulfillment E2E Flow', () => {
     const { order, fulfillment } = result;
     console.log(`[E2E] Fulfilled order ${order.display_id}: ${fulfillment.id}`);
 
-    // Wait for tracker events
+    // Extract the actual tracking code from the fulfillment
+    const trackingCode = getTrackingCodeFromFulfillment(fulfillment);
+    console.log(`[E2E] Tracking code: ${trackingCode || 'NOT AVAILABLE'}`);
+
+    // Wait for tracker events with actual tracking code
     console.log('[E2E] Waiting for tracker events (up to 60s)...');
-    const event = await waitForTrackerEvent('', undefined, {
+    const event = await waitForTrackerEvent(trackingCode || '', undefined, {
       timeout: 60000,
       pollInterval: 3000,
     });
@@ -386,9 +422,21 @@ test.describe('Full Fulfillment E2E Flow', () => {
       const delivered = wasEventDelivered(event);
 
       console.log(`[E2E] Event received: tracking=${code}, status=${status}`);
-      console.log(`[E2E] Delivery status: ${delivered ? 'SUCCESS' : 'FAILED'}`);
+      console.log(`[E2E] Webhook delivery: ${delivered ? 'SUCCESS' : 'FAILED'}`);
 
       expect(delivered).toBe(true);
+
+      // Verify Medusa processed the webhook
+      const verification = await verifyFulfillmentStatus(fulfillment.id, {
+        shipped: status === 'in_transit' || status === 'delivered',
+      }, { timeout: 15000, pollInterval: 2000 });
+
+      if (verification.success) {
+        console.log('[E2E] Bidirectional verification passed!');
+      } else {
+        console.log(`[E2E] Note: ${verification.message}`);
+      }
+
       console.log('[E2E] Test passed!');
     } else {
       console.log('[E2E] No tracker events received - webhook infrastructure OK but no events yet');

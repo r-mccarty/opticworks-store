@@ -141,3 +141,70 @@ export async function deleteAllMessages(): Promise<void> {
 export function isMailosaurConfigured(): boolean {
   return Boolean(mailosaurConfig.apiKey && mailosaurConfig.serverId);
 }
+
+/**
+ * List recent messages from Mailosaur (useful for debugging).
+ *
+ * @param limit - Maximum number of messages to retrieve (default: 10)
+ * @returns Array of recent messages, or empty if Mailosaur not configured
+ */
+export async function listRecentMessages(limit = 10): Promise<EmailMessage[]> {
+  const client = createMailosaurClient();
+  if (!client) {
+    return [];
+  }
+
+  try {
+    const result = await client.messages.list(mailosaurConfig.serverId, {
+      page: 0,
+      itemsPerPage: limit,
+    });
+    return (result.items || []) as EmailMessage[];
+  } catch (error) {
+    console.error('[Mailosaur] Failed to list messages:', error);
+    return [];
+  }
+}
+
+/**
+ * Verify an email was delivered to a specific address.
+ * Useful for quick verification without asserting on content.
+ *
+ * @param sentTo - Email address to check
+ * @param options - Optional timeout settings
+ * @returns true if email was delivered, false otherwise
+ */
+export async function verifyEmailDelivered(
+  sentTo: string,
+  options: { timeout?: number } = {}
+): Promise<boolean> {
+  try {
+    const email = await waitForEmail(sentTo, { timeout: options.timeout || 30000 });
+    return email !== null;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Get all emails sent to a specific address (useful for testing multiple emails).
+ *
+ * @param sentTo - Email address to check
+ * @returns Array of emails sent to the address
+ */
+export async function getEmailsFor(sentTo: string): Promise<EmailMessage[]> {
+  const client = createMailosaurClient();
+  if (!client) {
+    return [];
+  }
+
+  try {
+    const result = await client.messages.search(mailosaurConfig.serverId, {
+      sentTo,
+    });
+    return (result.items || []) as EmailMessage[];
+  } catch (error) {
+    console.error('[Mailosaur] Failed to search messages:', error);
+    return [];
+  }
+}

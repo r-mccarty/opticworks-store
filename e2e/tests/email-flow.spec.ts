@@ -72,7 +72,16 @@ test.describe("Email Notifications", () => {
     await checkoutPage.fillEmail(testEmail);
     await checkoutPage.fillShippingAddress(testAddress);
 
-    // Step 4: Fill payment and submit
+    // Step 4: Select shipping rate (required for checkout)
+    console.log("[Email Test] Selecting shipping rate...");
+    await checkoutPage.waitForShippingRates();
+    const rates = await checkoutPage.getAvailableShippingRates();
+    if (rates.length > 0) {
+      await checkoutPage.selectShippingRate(rates[0]);
+      await page.waitForTimeout(2000); // Allow rate selection to process
+    }
+
+    // Step 5: Fill payment and submit
     console.log("[Email Test] Completing payment...");
     await checkoutPage.waitForStripeElements();
     await checkoutPage.fillCardDetails(testCards.success);
@@ -174,6 +183,15 @@ test.describe("Email Notifications", () => {
     await checkoutPage.waitForCheckoutReady();
     await checkoutPage.fillEmail(testEmail);
     await checkoutPage.fillShippingAddress(testAddress);
+
+    // Select shipping rate
+    await checkoutPage.waitForShippingRates();
+    const rates = await checkoutPage.getAvailableShippingRates();
+    if (rates.length > 0) {
+      await checkoutPage.selectShippingRate(rates[0]);
+      await page.waitForTimeout(2000);
+    }
+
     await checkoutPage.waitForStripeElements();
     await checkoutPage.fillCardDetails(testCards.success);
     await checkoutPage.submitPayment();
@@ -235,6 +253,15 @@ test.describe("Email Notifications (Mailosaur not configured)", () => {
     await checkoutPage.waitForCheckoutReady();
     await checkoutPage.fillEmail(testEmail);
     await checkoutPage.fillShippingAddress(testAddress);
+
+    // Select shipping rate
+    await checkoutPage.waitForShippingRates();
+    const rates = await checkoutPage.getAvailableShippingRates();
+    if (rates.length > 0) {
+      await checkoutPage.selectShippingRate(rates[0]);
+      await page.waitForTimeout(2000);
+    }
+
     await checkoutPage.waitForStripeElements();
     await checkoutPage.fillCardDetails(testCards.success);
     await checkoutPage.submitPayment();

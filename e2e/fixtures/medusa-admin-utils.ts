@@ -30,15 +30,29 @@ export interface MedusaOrder {
     shipping_option_id: string;
     data: Record<string, unknown>;
   }>;
+  fulfillments?: MedusaFulfillment[];
+}
+
+export interface EasyPostFulfillmentData {
+  easypost_shipment_id?: string;
+  tracking_code?: string;
+  tracking_url?: string;
+  label_url?: string;
+  label_format?: string;
+  carrier?: string;
+  service?: string;
+  delivery_status?: string;
+  delivered_at?: string;
 }
 
 export interface MedusaFulfillment {
   id: string;
-  order_id: string;
-  provider_id: string;
-  tracking_numbers: string[];
-  tracking_links: Array<{ url: string }>;
-  data: Record<string, unknown>;
+  order_id?: string;
+  provider_id?: string;
+  tracking_numbers?: string[];
+  tracking_links?: Array<{ url: string }>;
+  labels?: Array<{ tracking_number: string; tracking_url?: string; label_url?: string }>;
+  data: EasyPostFulfillmentData | Record<string, unknown>;
   shipped_at: string | null;
   delivered_at: string | null;
 }
@@ -145,8 +159,8 @@ export async function listOrders(options: {
   const params = new URLSearchParams();
   if (options.status) params.set('status', options.status);
   if (options.limit) params.set('limit', options.limit.toString());
-  // Medusa v2 requires explicit field selection - include email and essential fields
-  params.set('fields', 'id,display_id,status,fulfillment_status,email,items,shipping_address,shipping_methods');
+  // Medusa v2 requires explicit field selection - include email, essential fields, and fulfillments
+  params.set('fields', 'id,display_id,status,fulfillment_status,email,items,shipping_address,shipping_methods,fulfillments.*');
 
   const query = params.toString();
   const endpoint = `/admin/orders${query ? `?${query}` : ''}`;
@@ -199,8 +213,9 @@ export async function findOrderByEmail(
  * Get a specific order by ID.
  */
 export async function getOrder(orderId: string): Promise<MedusaOrder> {
+  // Request fulfillments with all their fields including data
   const response = await adminFetch<{ order: MedusaOrder }>(
-    `/admin/orders/${orderId}`
+    `/admin/orders/${orderId}?fields=*,fulfillments.*`
   );
   return response.order;
 }
@@ -228,7 +243,7 @@ export async function createFulfillment(
     quantity: item.quantity,
   }));
 
-  const response = await adminFetch<{ order: MedusaOrder }>(
+  await adminFetch<{ order: MedusaOrder }>(
     `/admin/orders/${orderId}/fulfillments`,
     {
       method: 'POST',
@@ -240,24 +255,37 @@ export async function createFulfillment(
     }
   );
 
-  // The fulfillment should be in the response
-  // Get the latest fulfillment from the order
+  // Fetch the updated order with fulfillments to get the actual fulfillment data
   const updatedOrder = await getOrder(orderId);
 
   console.log(`[Admin] Fulfillment created for order ${orderId}`);
   console.log(`[Admin] Order fulfillment status: ${updatedOrder.fulfillment_status}`);
 
-  // Return a fulfillment-like object from what we know
-  return {
-    id: `ful_${orderId}`,
-    order_id: orderId,
-    provider_id: 'easypost',
-    tracking_numbers: [],
-    tracking_links: [],
-    data: {},
-    shipped_at: null,
-    delivered_at: null,
-  };
+  // Extract the latest fulfillment from the order
+  const fulfillments = updatedOrder.fulfillments || [];
+  if (fulfillments.length === 0) {
+    console.warn(`[Admin] No fulfillments found on order after creation - fetching directly`);
+    // Try to get fulfillments through a separate endpoint
+    const orderFulfillments = await getOrderFulfillments(orderId);
+    if (orderFulfillments.length > 0) {
+      const latestFulfillment = orderFulfillments[orderFulfillments.length - 1];
+      const data = latestFulfillment.data as EasyPostFulfillmentData;
+      console.log(`[Admin] Fulfillment ${latestFulfillment.id}: tracking_code=${data.tracking_code || 'N/A'}`);
+      return latestFulfillment;
+    }
+    throw new Error('Fulfillment was created but could not be retrieved');
+  }
+
+  // Get the most recent fulfillment (last in the array)
+  const latestFulfillment = fulfillments[fulfillments.length - 1];
+  const data = latestFulfillment.data as EasyPostFulfillmentData;
+
+  console.log(`[Admin] Fulfillment ${latestFulfillment.id}:`);
+  console.log(`[Admin]   tracking_code: ${data.tracking_code || 'N/A'}`);
+  console.log(`[Admin]   easypost_shipment_id: ${data.easypost_shipment_id || 'N/A'}`);
+  console.log(`[Admin]   carrier: ${data.carrier || 'N/A'}`);
+
+  return latestFulfillment;
 }
 
 /**
@@ -334,6 +362,114 @@ export async function getOrderFulfillments(orderId: string): Promise<MedusaFulfi
     `/admin/orders/${orderId}/fulfillments`
   );
   return response.fulfillments || [];
+}
+
+/**
+ * Get a specific fulfillment by ID.
+ */
+export async function getFulfillment(fulfillmentId: string): Promise<MedusaFulfillment> {
+  console.log(`[Admin] Fetching fulfillment ${fulfillmentId}...`);
+  const response = await adminFetch<{ fulfillment: MedusaFulfillment }>(
+    `/admin/fulfillments/${fulfillmentId}`
+  );
+  return response.fulfillment;
+}
+
+/**
+ * Verify fulfillment status after webhook processing.
+ * Polls the fulfillment until expected state is reached or timeout.
+ */
+export async function verifyFulfillmentStatus(
+  fulfillmentId: string,
+  expected: {
+    shipped?: boolean;
+    delivered?: boolean;
+  },
+  options: { timeout?: number; pollInterval?: number } = {}
+): Promise<{ success: boolean; fulfillment: MedusaFulfillment | null; message: string }> {
+  const { timeout = 30000, pollInterval = 3000 } = options;
+  const startTime = Date.now();
+
+  console.log(`[Admin] Verifying fulfillment ${fulfillmentId} status...`);
+  console.log(`[Admin] Expected: shipped=${expected.shipped}, delivered=${expected.delivered}`);
+
+  while (Date.now() - startTime < timeout) {
+    try {
+      const fulfillment = await getFulfillment(fulfillmentId);
+      const data = fulfillment.data as EasyPostFulfillmentData;
+
+      const isShipped = fulfillment.shipped_at !== null;
+      const isDelivered = fulfillment.delivered_at !== null || data.delivery_status === 'delivered';
+
+      console.log(`[Admin] Current state: shipped_at=${fulfillment.shipped_at}, delivered_at=${fulfillment.delivered_at}`);
+
+      // Check if we meet all expected conditions
+      let allConditionsMet = true;
+
+      if (expected.shipped !== undefined && isShipped !== expected.shipped) {
+        allConditionsMet = false;
+      }
+
+      if (expected.delivered !== undefined && isDelivered !== expected.delivered) {
+        allConditionsMet = false;
+      }
+
+      if (allConditionsMet) {
+        console.log(`[Admin] Fulfillment status verified successfully`);
+        return {
+          success: true,
+          fulfillment,
+          message: `Fulfillment ${fulfillmentId} matches expected state`,
+        };
+      }
+
+      console.log(`[Admin] Status not yet reached, waiting ${pollInterval}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    } catch (error) {
+      console.error(`[Admin] Error fetching fulfillment: ${error}`);
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+  }
+
+  // Final check after timeout
+  try {
+    const fulfillment = await getFulfillment(fulfillmentId);
+    return {
+      success: false,
+      fulfillment,
+      message: `Timeout: fulfillment did not reach expected state within ${timeout}ms`,
+    };
+  } catch {
+    return {
+      success: false,
+      fulfillment: null,
+      message: `Timeout and failed to fetch final state`,
+    };
+  }
+}
+
+/**
+ * Get the tracking code from a fulfillment.
+ * Checks both the data.tracking_code and labels array.
+ */
+export function getTrackingCodeFromFulfillment(fulfillment: MedusaFulfillment): string | null {
+  // First check data.tracking_code (EasyPost stores it here)
+  const data = fulfillment.data as EasyPostFulfillmentData;
+  if (data.tracking_code) {
+    return data.tracking_code;
+  }
+
+  // Fallback to labels array
+  if (fulfillment.labels && fulfillment.labels.length > 0) {
+    return fulfillment.labels[0].tracking_number;
+  }
+
+  // Fallback to tracking_numbers array
+  if (fulfillment.tracking_numbers && fulfillment.tracking_numbers.length > 0) {
+    return fulfillment.tracking_numbers[0];
+  }
+
+  return null;
 }
 
 /**
