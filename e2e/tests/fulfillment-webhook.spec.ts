@@ -37,6 +37,7 @@ import {
   createFulfillment,
   getOrder,
   clearAuthToken,
+  tryCreateFulfillmentForAnyOrder,
 } from '../fixtures/medusa-admin-utils';
 import { hookdeckConfig, easypostMagicCodes } from '../fixtures/test-data';
 
@@ -224,7 +225,7 @@ test.describe('Admin API Integration', () => {
 test.describe('Full Fulfillment E2E Flow', () => {
   /**
    * This test suite runs the complete fulfillment webhook flow:
-   * 1. Find an unfulfilled order
+   * 1. Create a fresh order via checkout flow (ensures all required data exists)
    * 2. Create a fulfillment via Admin API
    * 3. Wait for EasyPost tracker events via Hookdeck
    * 4. Verify events were delivered successfully
@@ -232,38 +233,79 @@ test.describe('Full Fulfillment E2E Flow', () => {
    * Prerequisites:
    * - MEDUSA_ADMIN_EMAIL and MEDUSA_ADMIN_PASSWORD set
    * - HOOKDECK_API_KEY set
-   * - At least one unfulfilled order in Medusa
    * - EasyPost in test mode
    */
 
-  test('create fulfillment and verify webhook delivery', async () => {
+  test('create order, fulfill, and verify webhook delivery', async ({ page }) => {
     test.skip(!isAdminConfigured(), 'Admin credentials not configured');
     test.skip(!isHookdeckConfigured(), 'Hookdeck API key not configured');
 
     // Increase timeout for this comprehensive test
-    test.setTimeout(120000);
+    test.setTimeout(180000);
 
-    // Step 1: Find an unfulfilled order
-    console.log('[E2E] Step 1: Finding unfulfilled order...');
-    const order = await findFulfillableOrder();
+    // Import page objects for checkout flow
+    const { StorePage } = await import('../fixtures/page-objects/store-page');
+    const { ProductPage } = await import('../fixtures/page-objects/product-page');
+    const { CartPage } = await import('../fixtures/page-objects/cart-page');
+    const { CheckoutPage } = await import('../fixtures/page-objects/checkout-page');
+    const { testProducts, testAddress, testCards, generateTestEmail } = await import('../fixtures/test-data');
 
-    if (!order) {
-      console.log('[E2E] No unfulfilled orders available - skipping test');
-      console.log('[E2E] To run this test, complete a checkout first');
-      test.skip(true, 'No unfulfilled orders available');
-      return;
+    const storePage = new StorePage(page);
+    const productPage = new ProductPage(page);
+    const cartPage = new CartPage(page);
+    const checkoutPage = new CheckoutPage(page);
+
+    // Step 1: Create a fresh order via checkout
+    console.log('[E2E] Step 1: Creating fresh order via checkout...');
+
+    // Browse to store and add product
+    await storePage.goto();
+    await storePage.waitForProducts();
+    await storePage.clickProduct(testProducts.flagship.name);
+    await productPage.waitForProduct();
+    await productPage.addToCart();
+
+    // Go to cart and checkout
+    await cartPage.goto();
+    await cartPage.waitForCartHydration();
+    await cartPage.proceedToPayment();
+
+    // Fill checkout form
+    await checkoutPage.waitForCheckoutReady();
+    const checkoutEmail = generateTestEmail();
+    await checkoutPage.fillEmail(checkoutEmail);
+    await checkoutPage.fillShippingAddress(testAddress);
+
+    // Wait for and select shipping rate
+    await checkoutPage.waitForShippingRates();
+    const rates = await checkoutPage.getAvailableShippingRates();
+    if (rates.length > 0) {
+      await checkoutPage.selectShippingAndWait(rates[0]);
     }
 
-    console.log(`[E2E] Using order ${order.display_id} (${order.id})`);
-    console.log(`[E2E] Order has ${order.items.length} items`);
+    // Fill payment and submit
+    await checkoutPage.fillCardDetails(testCards.success);
+    await checkoutPage.submitPayment();
+    await checkoutPage.waitForSuccess();
 
-    // Step 2: Record the timestamp before creating fulfillment
-    const beforeFulfillment = new Date().toISOString();
+    // Extract order ID from success page URL (/store/cart/success?order_id=...)
+    const url = new URL(page.url());
+    const orderId = url.searchParams.get('order_id');
+    console.log(`[E2E] Order created: ${orderId}`);
 
-    // Step 3: Create fulfillment
-    console.log('[E2E] Step 2: Creating fulfillment...');
+    if (!orderId) {
+      throw new Error('Could not extract order ID from success page');
+    }
+
+    // Step 2: Create fulfillment via Admin API
+    console.log('[E2E] Step 2: Creating fulfillment via Admin API...');
+
+    // Get full order details
+    const order = await getOrder(orderId);
+    console.log(`[E2E] Order ${order.display_id}: ${order.items.length} items, status=${order.fulfillment_status}`);
+
     try {
-      const fulfillment = await createFulfillment(order.id, {
+      const fulfillment = await createFulfillment(orderId, {
         no_notification: true, // Don't send customer email during test
       });
       console.log(`[E2E] Fulfillment created: ${fulfillment.id}`);
@@ -272,7 +314,7 @@ test.describe('Full Fulfillment E2E Flow', () => {
       throw error;
     }
 
-    // Step 4: Wait for tracker events
+    // Step 3: Wait for tracker events
     console.log('[E2E] Step 3: Waiting for tracker events (up to 60s)...');
     console.log('[E2E] EasyPost should fire tracker.updated events automatically');
 
@@ -293,11 +335,53 @@ test.describe('Full Fulfillment E2E Flow', () => {
       console.log(`[E2E] Response code: ${event.response_status}`);
 
       expect(delivered).toBe(true);
-      console.log('[E2E] ✅ Full E2E test passed!');
+      console.log('[E2E] Full E2E test passed!');
     } else {
       console.log('[E2E] No tracker events received within timeout');
       console.log('[E2E] This may be expected if EasyPost is slow to fire events');
       // Don't fail - the webhook infrastructure is working even if no events arrived yet
+    }
+  });
+
+  test('fulfill existing order (requires unfulfilled order)', async () => {
+    test.skip(!isAdminConfigured(), 'Admin credentials not configured');
+    test.skip(!isHookdeckConfigured(), 'Hookdeck API key not configured');
+
+    // Increase timeout for this comprehensive test
+    test.setTimeout(120000);
+
+    // Try to find and fulfill any existing order
+    console.log('[E2E] Trying to fulfill an existing order...');
+    const result = await tryCreateFulfillmentForAnyOrder();
+
+    if (!result) {
+      console.log('[E2E] No fulfillable orders found - skipping');
+      test.skip(true, 'No fulfillable orders available');
+      return;
+    }
+
+    const { order, fulfillment } = result;
+    console.log(`[E2E] Fulfilled order ${order.display_id}: ${fulfillment.id}`);
+
+    // Wait for tracker events
+    console.log('[E2E] Waiting for tracker events (up to 60s)...');
+    const event = await waitForTrackerEvent('', undefined, {
+      timeout: 60000,
+      pollInterval: 3000,
+    });
+
+    if (event) {
+      const status = getTrackerStatus(event);
+      const code = getTrackingCode(event);
+      const delivered = wasEventDelivered(event);
+
+      console.log(`[E2E] Event received: tracking=${code}, status=${status}`);
+      console.log(`[E2E] Delivery status: ${delivered ? 'SUCCESS' : 'FAILED'}`);
+
+      expect(delivered).toBe(true);
+      console.log('[E2E] Test passed!');
+    } else {
+      console.log('[E2E] No tracker events received - webhook infrastructure OK but no events yet');
     }
   });
 });

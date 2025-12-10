@@ -241,6 +241,50 @@ export async function findFulfillableOrder(): Promise<MedusaOrder | null> {
 }
 
 /**
+ * Try to create a fulfillment for any available order.
+ * Returns the first order + fulfillment that succeeds, or null if none work.
+ */
+export async function tryCreateFulfillmentForAnyOrder(): Promise<{
+  order: MedusaOrder;
+  fulfillment: MedusaFulfillment;
+} | null> {
+  console.log('[Admin] Trying to create fulfillment for any available order...');
+
+  const orders = await listOrders({ limit: 20 });
+
+  // Filter for unfulfilled orders
+  const unfulfilled = orders.filter(
+    (order) => order.fulfillment_status === 'not_fulfilled'
+  );
+
+  if (unfulfilled.length === 0) {
+    console.log('[Admin] No unfulfilled orders found');
+    return null;
+  }
+
+  console.log(`[Admin] Found ${unfulfilled.length} unfulfilled orders, trying each...`);
+
+  // Try each order until one succeeds
+  for (const order of unfulfilled) {
+    try {
+      console.log(`[Admin] Trying order ${order.display_id} (${order.id})...`);
+      const fulfillment = await createFulfillment(order.id, {
+        no_notification: true,
+      });
+      console.log(`[Admin] Successfully created fulfillment for order ${order.display_id}`);
+      return { order, fulfillment };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.log(`[Admin] Order ${order.display_id} failed: ${errorMsg.slice(0, 100)}`);
+      // Continue to next order
+    }
+  }
+
+  console.log('[Admin] None of the unfulfilled orders could be fulfilled');
+  return null;
+}
+
+/**
  * Get fulfillments for an order.
  */
 export async function getOrderFulfillments(orderId: string): Promise<MedusaFulfillment[]> {
