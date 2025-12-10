@@ -136,7 +136,7 @@ async function adminFetch<T>(
 
 /**
  * List orders from the Admin API.
- * Note: Medusa v2 may have different filter parameters than v1
+ * Note: Medusa v2 Admin API has limited filter options, so we fetch more and filter in-memory
  */
 export async function listOrders(options: {
   status?: string;
@@ -145,12 +145,54 @@ export async function listOrders(options: {
   const params = new URLSearchParams();
   if (options.status) params.set('status', options.status);
   if (options.limit) params.set('limit', options.limit.toString());
+  // Medusa v2 requires explicit field selection - include email and essential fields
+  params.set('fields', 'id,display_id,status,fulfillment_status,email,items,shipping_address,shipping_methods');
 
   const query = params.toString();
   const endpoint = `/admin/orders${query ? `?${query}` : ''}`;
 
   const response = await adminFetch<{ orders: MedusaOrder[] }>(endpoint);
   return response.orders;
+}
+
+/**
+ * Find an order by email address with polling.
+ * Note: Medusa v2 doesn't support email filter, so we fetch recent orders and filter in-memory.
+ * Includes retry logic since order creation may be async.
+ */
+export async function findOrderByEmail(
+  email: string,
+  options: { timeout?: number; pollInterval?: number } = {}
+): Promise<MedusaOrder | null> {
+  const { timeout = 30000, pollInterval = 2000 } = options;
+  const startTime = Date.now();
+
+  console.log(`[Admin] Finding order by email: ${email} (timeout: ${timeout}ms)...`);
+
+  while (Date.now() - startTime < timeout) {
+    // Fetch recent orders and filter by email
+    const orders = await listOrders({ limit: 50 });
+    console.log(`[Admin] Fetched ${orders.length} orders, searching for email match...`);
+
+    const order = orders.find((o) => o.email === email);
+
+    if (order) {
+      console.log(`[Admin] Found order ${order.display_id} (${order.id})`);
+      return order;
+    }
+
+    // Log some emails for debugging
+    if (orders.length > 0) {
+      const sampleEmails = orders.slice(0, 3).map((o) => o.email);
+      console.log(`[Admin] Sample emails: ${sampleEmails.join(', ')}`);
+    }
+
+    console.log(`[Admin] Order not found yet, retrying in ${pollInterval}ms...`);
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
+  }
+
+  console.log('[Admin] Timeout: No order found for email');
+  return null;
 }
 
 /**

@@ -38,8 +38,20 @@ import {
   getOrder,
   clearAuthToken,
   tryCreateFulfillmentForAnyOrder,
+  findOrderByEmail,
 } from '../fixtures/medusa-admin-utils';
-import { hookdeckConfig, easypostMagicCodes } from '../fixtures/test-data';
+import {
+  hookdeckConfig,
+  easypostMagicCodes,
+  testProducts,
+  testAddress,
+  testCards,
+  generateTestEmail,
+} from '../fixtures/test-data';
+import { StorePage } from '../fixtures/page-objects/store-page';
+import { ProductPage } from '../fixtures/page-objects/product-page';
+import { CartPage } from '../fixtures/page-objects/cart-page';
+import { CheckoutPage } from '../fixtures/page-objects/checkout-page';
 
 test.describe('Fulfillment Webhook Integration', () => {
   test.beforeAll(() => {
@@ -243,13 +255,6 @@ test.describe('Full Fulfillment E2E Flow', () => {
     // Increase timeout for this comprehensive test
     test.setTimeout(180000);
 
-    // Import page objects for checkout flow
-    const { StorePage } = await import('../fixtures/page-objects/store-page');
-    const { ProductPage } = await import('../fixtures/page-objects/product-page');
-    const { CartPage } = await import('../fixtures/page-objects/cart-page');
-    const { CheckoutPage } = await import('../fixtures/page-objects/checkout-page');
-    const { testProducts, testAddress, testCards, generateTestEmail } = await import('../fixtures/test-data');
-
     const storePage = new StorePage(page);
     const productPage = new ProductPage(page);
     const cartPage = new CartPage(page);
@@ -280,7 +285,9 @@ test.describe('Full Fulfillment E2E Flow', () => {
     await checkoutPage.waitForShippingRates();
     const rates = await checkoutPage.getAvailableShippingRates();
     if (rates.length > 0) {
-      await checkoutPage.selectShippingAndWait(rates[0]);
+      await checkoutPage.selectShippingRate(rates[0]);
+      // Wait for the shipping selection to process
+      await page.waitForTimeout(2000);
     }
 
     // Fill payment and submit
@@ -288,20 +295,23 @@ test.describe('Full Fulfillment E2E Flow', () => {
     await checkoutPage.submitPayment();
     await checkoutPage.waitForSuccess();
 
-    // Extract order ID from success page URL (/store/cart/success?order_id=...)
-    const url = new URL(page.url());
-    const orderId = url.searchParams.get('order_id');
-    console.log(`[E2E] Order created: ${orderId}`);
+    console.log(`[E2E] Checkout complete, finding order by email: ${checkoutEmail}...`);
+
+    // Find the order by the unique email we used for checkout (with polling)
+    const order = await findOrderByEmail(checkoutEmail, { timeout: 30000, pollInterval: 3000 });
+    if (!order) {
+      throw new Error(`No order found for email: ${checkoutEmail}`);
+    }
+
+    const orderId = order.id;
+    console.log(`[E2E] Order found: ${orderId} (display_id: ${order.display_id})`);
 
     if (!orderId) {
-      throw new Error('Could not extract order ID from success page');
+      throw new Error('Could not get order ID from Admin API');
     }
 
     // Step 2: Create fulfillment via Admin API
     console.log('[E2E] Step 2: Creating fulfillment via Admin API...');
-
-    // Get full order details
-    const order = await getOrder(orderId);
     console.log(`[E2E] Order ${order.display_id}: ${order.items.length} items, status=${order.fulfillment_status}`);
 
     try {
