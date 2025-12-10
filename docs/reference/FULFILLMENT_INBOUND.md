@@ -1,4 +1,3 @@
-```markdown
 # Inbound Architecture: Shipment Tracking & Event Handling
 
 **Context:** OpticWorks Fulfillment Module
@@ -106,4 +105,3 @@ The agent must reason through the codebase to implement the following:
 4.  **Testing Strategy:**
     *   **Magic Codes:** In `EASYPOST_MODE=test`, standard addresses do not generate tracking events. The implementation must be tested using EasyPost magic codes (e.g., `EZ1000000001`) which automatically cycle statuses.
     *   **Mocking:** For local development, the API route should allow bypassing signature validation if `NODE_ENV=development` and a specific flag is present, to facilitate `curl` testing.
-```
