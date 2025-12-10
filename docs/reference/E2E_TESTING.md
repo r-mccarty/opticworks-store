@@ -13,8 +13,11 @@ pnpm exec playwright test --project=chromium
 # Specific file
 pnpm exec playwright test e2e/tests/auth-flow.spec.ts --project=chromium
 
-# Email tests (requires Mailosaur credentials)
-source .env.local && pnpm exec playwright test email-flow.spec.ts
+# Email tests (requires Mailosaur credentials in .env.local)
+pnpm exec playwright test email-flow.spec.ts
+
+# Webhook tests (requires Hookdeck credentials in .env.local)
+pnpm exec playwright test fulfillment-webhook.spec.ts
 
 # UI mode (debugging)
 pnpm exec playwright test --ui
@@ -23,6 +26,8 @@ pnpm exec playwright test --ui
 pnpm exec playwright show-report
 ```
 
+> **Note**: Environment variables are loaded automatically from `.env.local` - no need to `source` it.
+
 ---
 
 ## Structure
@@ -30,22 +35,25 @@ pnpm exec playwright show-report
 ```
 e2e/
 ├── fixtures/
-│   ├── page-objects/       # AuthPage, CartPage, CheckoutPage, etc.
-│   ├── test-data.ts        # Products, test cards, addresses, mailosaurConfig
-│   ├── email-utils.ts      # Mailosaur client and email verification helpers
-│   └── debug-utils.ts      # Screenshot/log capture
+│   ├── page-objects/         # AuthPage, CartPage, CheckoutPage, etc.
+│   ├── test-data.ts          # Products, test cards, addresses, configs
+│   ├── email-utils.ts        # Mailosaur client and email verification
+│   ├── hookdeck-utils.ts     # Hookdeck API for webhook verification
+│   ├── medusa-admin-utils.ts # Admin API for fulfillment testing
+│   └── debug-utils.ts        # Screenshot/log capture
 ├── helpers/
-│   ├── console-capture.ts  # Console log capture for debugging
-│   ├── network-logger.ts   # Network request/response logging
-│   ├── storage-inspector.ts # LocalStorage inspection and clearing
-│   └── debug-utils.ts      # Screenshot and debug info capture
+│   ├── console-capture.ts    # Console log capture for debugging
+│   ├── network-logger.ts     # Network request/response logging
+│   ├── storage-inspector.ts  # LocalStorage inspection and clearing
+│   └── debug-utils.ts        # Screenshot and debug info capture
 └── tests/
     ├── auth-flow.spec.ts
     ├── store-navigation.spec.ts
     ├── add-to-cart.spec.ts
     ├── checkout-flow.spec.ts
-    ├── checkout-shipping.spec.ts  # Shipping rate selection tests
-    ├── email-flow.spec.ts   # Email verification tests (Mailosaur)
+    ├── checkout-shipping.spec.ts    # Shipping rate selection tests
+    ├── email-flow.spec.ts           # Email verification (Mailosaur)
+    ├── fulfillment-webhook.spec.ts  # Webhook verification (Hookdeck)
     └── full-journey.spec.ts
 ```
 
@@ -61,8 +69,12 @@ testProducts.flagship  // Bed Presence Sensor Kit - $239
 testCards.success      // 4242424242424242
 testCards.decline      // 4000000000000002
 
-// Unique email
-generateTestEmail()    // e2e-test-{timestamp}@optic.works
+// Unique email (routes to Mailosaur when configured)
+generateTestEmail()    // e2e-{timestamp}@{serverId}.mailosaur.net
+                       // Falls back to @optic.works if Mailosaur not configured
+
+// Test customer with Mailosaur email
+getTestCustomer()      // { email, firstName, lastName }
 ```
 
 ---
@@ -96,6 +108,9 @@ checkoutPage.waitForSuccess()
 - Retries: 1
 - Timeout: 60s
 - Video/Trace: on-first-retry
+- Environment: `.env.local` loaded automatically via dotenv
+
+The `playwright.config.ts` loads environment variables from `.env.local`, so you don't need to `source` it manually.
 
 ---
 
@@ -172,14 +187,15 @@ await checkoutPage.selectShippingAndWait(rateId);
 
 ## Email Testing with Mailosaur
 
-E2E tests can verify that transactional emails (order confirmations, welcome emails) are actually sent and contain the expected content using [Mailosaur](https://mailosaur.com/).
+**All E2E tests now use Mailosaur by default** when configured. This means every order placed during testing will have its emails captured and available for verification.
 
 ### How It Works
 
-1. **Mailosaur provides test email addresses**: Each test generates a unique email like `e2e-{timestamp}@{server-id}.mailosaur.net`
+1. **All tests use Mailosaur addresses**: `generateTestEmail()` returns `e2e-{timestamp}@{server-id}.mailosaur.net` when Mailosaur is configured
 2. **Emails route to Mailosaur inbox**: Resend delivers to Mailosaur's servers
 3. **Tests poll for email arrival**: Using the Mailosaur API with configurable timeout
 4. **Content verification**: Tests verify subject, body content, and links
+5. **Fallback behavior**: When Mailosaur is not configured, emails go to `@optic.works`
 
 ### Configuration
 
@@ -197,10 +213,13 @@ Required environment variables (stored in Infisical, pulled via `pnpm run secret
 pnpm run secrets:pull
 
 # Run email tests
-source .env.local && pnpm exec playwright test email-flow.spec.ts
+pnpm exec playwright test email-flow.spec.ts
 
 # Run specific email test
-source .env.local && pnpm exec playwright test email-flow.spec.ts --grep "order confirmation"
+pnpm exec playwright test email-flow.spec.ts --grep "order confirmation"
+
+# Verify email delivery for any test order
+pnpm exec playwright test checkout-flow.spec.ts  # Emails go to Mailosaur automatically
 ```
 
 ### Email Test Fixtures
@@ -245,6 +264,9 @@ const trackingLink = extractLinkFromEmail(email, 'Track Order');
 | `extractAllLinks(email)` | Get all links from email |
 | `deleteAllMessages()` | Clear Mailosaur inbox between tests |
 | `isMailosaurConfigured()` | Check if credentials are set |
+| `listRecentMessages(limit)` | List recent messages (debugging) |
+| `verifyEmailDelivered(sentTo, options)` | Quick check if email was delivered |
+| `getEmailsFor(sentTo)` | Get all emails for an address |
 
 ### Graceful Degradation
 
@@ -334,10 +356,13 @@ Required environment variables (stored in Infisical, pulled via `pnpm run secret
 pnpm run secrets:pull
 
 # Run webhook tests
-source .env.local && pnpm exec playwright test fulfillment-webhook.spec.ts
+pnpm exec playwright test fulfillment-webhook.spec.ts
 
 # Run specific test
-source .env.local && pnpm exec playwright test fulfillment-webhook.spec.ts --grep "tracker event"
+pnpm exec playwright test fulfillment-webhook.spec.ts --grep "tracker event"
+
+# Full E2E flow (checkout → fulfillment → webhook verification)
+pnpm exec playwright test fulfillment-webhook.spec.ts --grep "create order, fulfill"
 ```
 
 ### EasyPost Magic Tracking Codes
@@ -387,6 +412,44 @@ easypostMagicCodes.failure      // 'EZ3000000003'
 | `can retrieve recent EasyPost tracker events` | Lists recent tracker events |
 | `webhook endpoint responds to tracker.updated events` | Verifies backend rejects unsigned requests |
 | `tracker event is delivered successfully to backend` | Checks recent events were delivered with 2xx |
+| `create order, fulfill, and verify webhook delivery` | Full E2E: checkout → fulfill → webhook → verify state |
+| `fulfill existing order` | Fulfill an existing unfulfilled order |
+
+### Medusa Admin API Utilities (`e2e/fixtures/medusa-admin-utils.ts`)
+
+These utilities allow tests to interact with the Medusa backend as an admin user.
+
+| Function | Purpose |
+|----------|---------|
+| `authenticateAdmin()` | Get admin auth token |
+| `listOrders(options)` | List orders with filters |
+| `getOrder(orderId)` | Get specific order with fulfillments |
+| `findOrderByEmail(email)` | Find order by customer email (with polling) |
+| `createFulfillment(orderId, options)` | Create fulfillment (triggers EasyPost) |
+| `getFulfillment(fulfillmentId)` | Get specific fulfillment |
+| `verifyFulfillmentStatus(id, expected)` | Poll until fulfillment reaches expected state |
+| `getTrackingCodeFromFulfillment(f)` | Extract tracking code from fulfillment data |
+| `findFulfillableOrder()` | Find an unfulfilled order |
+| `tryCreateFulfillmentForAnyOrder()` | Try to fulfill any available order |
+
+**Configuration**: Requires `MEDUSA_ADMIN_EMAIL` and `MEDUSA_ADMIN_PASSWORD` in environment.
+
+### Bidirectional Verification
+
+The webhook tests now include **bidirectional verification**:
+
+1. **Forward**: Verify Hookdeck received and delivered the webhook event
+2. **Backward**: Query Medusa to verify fulfillment state was actually updated
+
+```typescript
+// After webhook event is delivered
+const verification = await verifyFulfillmentStatus(fulfillment.id, {
+  shipped: true,  // Expect shipped_at to be set
+  delivered: false,
+}, { timeout: 15000 });
+
+expect(verification.success).toBe(true);
+```
 
 ### Graceful Degradation
 
