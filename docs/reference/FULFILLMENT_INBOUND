@@ -52,7 +52,6 @@ graph LR
 
 ## 5. Data Protocols (The "Truth")
 
-Since the agent cannot access external documentation, rely on these schemas.
 
 ### A. The Ingress Payload (from Hookdeck)
 Hookdeck passes the EasyPost body through. The structure is:
