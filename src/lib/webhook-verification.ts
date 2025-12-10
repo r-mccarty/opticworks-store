@@ -29,17 +29,10 @@ export async function verifyHookdeckSignature(
     return false;
   }
 
-  console.log('🔑 HOOKDECK_WEBHOOK_SECRET length:', secret.length);
-  console.log('🔑 HOOKDECK_WEBHOOK_SECRET first 10 chars:', secret.substring(0, 10));
-
   if (!signature) {
     console.error('❌ No Hookdeck signature provided');
     return false;
   }
-
-  console.log('📝 Signature received:', signature);
-  console.log('📝 Body length:', body.length);
-  console.log('📝 Body first 100 chars:', body.substring(0, 100));
 
   try {
     // Use Web Crypto API for Cloudflare Workers compatibility
@@ -63,10 +56,6 @@ export async function verifyHookdeckSignature(
     const computedSignature = btoa(
       String.fromCharCode(...new Uint8Array(signatureBuffer))
     );
-
-    console.log('🔐 Computed signature:', computedSignature);
-    console.log('🔐 Expected signature:', signature);
-    console.log('🔐 Match:', computedSignature === signature);
 
     // Compare with provided signatures (check both for key rotation support)
     if (computedSignature === signature) {
