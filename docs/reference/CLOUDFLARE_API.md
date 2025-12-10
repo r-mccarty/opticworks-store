@@ -262,6 +262,50 @@ curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets/$
 
 ---
 
+## Workers Secrets Management
+
+### Important: Git Integration vs CLI Secrets
+
+When using Cloudflare's **Git integration** (auto-deploy on push to main), secrets must be configured in the **Cloudflare Dashboard**, NOT via `wrangler secret put`.
+
+| Deployment Method | Where to Set Secrets |
+|-------------------|---------------------|
+| `wrangler deploy` (CLI) | `wrangler secret put SECRET_NAME` |
+| Git Integration (auto-deploy) | Dashboard → Workers → Settings → Variables |
+
+**The Problem**: `wrangler secret list` will show secrets set via CLI, but Git-deployed workers won't have access to them. They use a separate secrets store.
+
+### Setting Secrets for Git-Deployed Workers
+
+1. Go to **Cloudflare Dashboard** → **Workers & Pages**
+2. Select **opticworks-store**
+3. Go to **Settings** → **Variables**
+4. Under **Environment Variables**, add secrets with "Encrypt" enabled
+5. Select **Production** environment
+
+### Current Required Secrets
+
+| Secret | Purpose |
+|--------|---------|
+| `HOOKDECK_WEBHOOK_SECRET` | Verify webhook signatures from Hookdeck |
+| `STRIPE_SECRET_KEY` | Stripe API authentication |
+| `EASYPOST_API_KEY` | EasyPost shipping API |
+| `SHIP_FROM_ZIP` | Origin ZIP for shipping calculations |
+
+### Verifying Secrets Are Loaded
+
+Check Worker logs for secret availability:
+```bash
+npx wrangler tail --env production --format pretty
+```
+
+If a secret is missing, you'll see errors like:
+```
+(error) ❌ HOOKDECK_WEBHOOK_SECRET not configured
+```
+
+---
+
 ## KV Namespaces
 
 ### Current Namespaces
