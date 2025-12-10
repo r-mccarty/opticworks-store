@@ -53,7 +53,7 @@ const parseEasyPostPayloadStep = createStep(
 
 interface FulfillmentRecord {
   id: string;
-  data: Record<string, unknown>;
+  data: Record<string, unknown> | null;
   shipped_at: string | null;
   delivered_at: string | null;
   labels: Array<{ tracking_number: string }>;
@@ -78,11 +78,12 @@ const lookupFulfillmentStep = createStep(
       const fulfillments = await fulfillmentService.listFulfillments({});
 
       // Find matching fulfillment
-      const fulfillment = fulfillments.find((f: FulfillmentRecord) => {
-        const data = f.data as Record<string, unknown>;
+      const fulfillment = fulfillments.find((f) => {
+        const data = f.data as Record<string, unknown> | null;
+        if (!data) return false;
         return (
-          data?.tracking_code === input.trackingCode ||
-          data?.easypost_shipment_id === input.shipmentId
+          data.tracking_code === input.trackingCode ||
+          data.easypost_shipment_id === input.shipmentId
         );
       });
 
