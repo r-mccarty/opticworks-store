@@ -290,3 +290,122 @@ source .env.local && curl -X DELETE "https://mailosaur.com/api/messages?server=$
 3. Resend delivers email to Mailosaur's SMTP servers
 4. E2E test polls Mailosaur API until email arrives
 5. Test verifies email content and passes/fails
+
+---
+
+## Webhook Testing with Hookdeck
+
+E2E tests can verify that inbound webhooks (EasyPost tracker events) are properly received and processed using the Hookdeck Admin API.
+
+### How It Works
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   E2E Test      │     │   EasyPost      │     │   Hookdeck      │
+│   (Playwright)  │────▶│   (Test Mode)   │────▶│   (Receives)    │
+└─────────────────┘     └─────────────────┘     └────────┬────────┘
+        │                                                 │
+        │ Poll for event                                  │ Forward
+        ▼                                                 ▼
+┌─────────────────┐                              ┌─────────────────┐
+│   Hookdeck      │                              │   Medusa        │
+│   API           │                              │   Backend       │
+└─────────────────┘                              └─────────────────┘
+```
+
+1. E2E test creates a fulfillment with an EasyPost magic tracking code
+2. EasyPost automatically fires tracker events (magic codes cycle through statuses)
+3. Hookdeck receives the event and forwards to Medusa backend
+4. E2E test polls Hookdeck API to verify event was received and delivered
+5. Test can also query Medusa to verify fulfillment status was updated
+
+### Configuration
+
+Required environment variables (stored in Infisical, pulled via `pnpm run secrets:pull`):
+
+| Variable | Purpose |
+|----------|---------|
+| `HOOKDECK_API_KEY` | Hookdeck Admin API key for querying events |
+
+### Running Webhook Tests
+
+```bash
+# Pull secrets first (includes Hookdeck credentials)
+pnpm run secrets:pull
+
+# Run webhook tests
+source .env.local && pnpm exec playwright test fulfillment-webhook.spec.ts
+
+# Run specific test
+source .env.local && pnpm exec playwright test fulfillment-webhook.spec.ts --grep "tracker event"
+```
+
+### EasyPost Magic Tracking Codes
+
+In test mode (`EASYPOST_MODE=test`), these codes automatically cycle through statuses:
+
+| Code | Behavior |
+|------|----------|
+| `EZ1000000001` | Automatically transitions to `delivered` |
+| `EZ2000000002` | Automatically transitions to `in_transit` |
+| `EZ3000000003` | Automatically transitions to `failure` |
+| `EZ4000000004` | Stays in `pre_transit` |
+| `EZ5000000005` | Automatically transitions to `out_for_delivery` |
+
+### Hookdeck Utilities (`e2e/fixtures/hookdeck-utils.ts`)
+
+| Function | Purpose |
+|----------|---------|
+| `listEvents(options)` | List recent events from Hookdeck |
+| `getEvent(eventId)` | Get a specific event by ID |
+| `waitForEvent(matcher, options)` | Poll until a matching event is found |
+| `waitForTrackerEvent(trackingCode, status)` | Wait for a specific tracker event |
+| `wasEventDelivered(event)` | Check if event got 2xx response |
+| `getTrackerStatus(event)` | Extract tracking status from event |
+| `getTrackingCode(event)` | Extract tracking code from event |
+| `isHookdeckConfigured()` | Check if API key is set |
+
+### Test Fixtures (`e2e/fixtures/test-data.ts`)
+
+```typescript
+// Hookdeck configuration
+import { hookdeckConfig } from '../fixtures/test-data';
+hookdeckConfig.apiKey  // HOOKDECK_API_KEY from env
+
+// EasyPost magic codes
+import { easypostMagicCodes } from '../fixtures/test-data';
+easypostMagicCodes.delivered    // 'EZ1000000001'
+easypostMagicCodes.inTransit    // 'EZ2000000002'
+easypostMagicCodes.failure      // 'EZ3000000003'
+```
+
+### Available Webhook Tests
+
+| Test | Description |
+|------|-------------|
+| `Hookdeck API is accessible` | Verifies API key works |
+| `can retrieve recent EasyPost tracker events` | Lists recent tracker events |
+| `webhook endpoint responds to tracker.updated events` | Verifies backend rejects unsigned requests |
+| `tracker event is delivered successfully to backend` | Checks recent events were delivered with 2xx |
+
+### Graceful Degradation
+
+When Hookdeck is not configured:
+- Webhook tests are automatically skipped
+- No test failures due to missing credentials
+- Console warning indicates tests were skipped
+
+### Debugging Webhook Issues
+
+```bash
+# List recent events via API
+source .env.local && curl -s "https://api.hookdeck.com/2024-03-01/events?limit=5" \
+  -H "Authorization: Bearer $HOOKDECK_API_KEY" | jq '.models[] | {id, response_status, created_at}'
+
+# Get specific event details
+source .env.local && curl -s "https://api.hookdeck.com/2024-03-01/events/{event-id}" \
+  -H "Authorization: Bearer $HOOKDECK_API_KEY" | jq '.'
+
+# Check Medusa logs for webhook processing
+ssh hetzner-node "grep easypost-webhook /opt/opticworks/medusa-backend/logs/medusa-app.log | tail -20"
+```

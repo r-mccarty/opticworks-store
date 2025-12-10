@@ -105,8 +105,9 @@ cat .env.local | head -5
 | Variable | Purpose |
 |----------|---------|
 | `HOOKDECK_WEBHOOK_SECRET` | Signing secret for verifying Hookdeck signatures (Settings > Project > Secrets in Hookdeck dashboard) |
+| `HOOKDECK_API_KEY` | Admin API key for querying events/deliveries (used in E2E tests) |
 
-**Note:** Hookdeck sits between Stripe and our webhook endpoints, providing retry logic, logging, and validation. The signing secret verifies that webhook requests genuinely originate from Hookdeck.
+**Note:** Hookdeck sits between Stripe/EasyPost and our webhook endpoints, providing retry logic, logging, and validation. The signing secret verifies that webhook requests genuinely originate from Hookdeck. The API key enables E2E tests to verify webhook delivery.
 
 ### Background Jobs (QStash)
 

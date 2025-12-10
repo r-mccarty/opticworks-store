@@ -120,3 +120,37 @@ export const mailosaurConfig = {
     return `${uniqueId}@${serverId}.mailosaur.net`;
   },
 };
+
+/**
+ * Hookdeck configuration for webhook event verification in E2E tests.
+ * Hookdeck buffers and logs webhook events, allowing verification that
+ * inbound webhooks were received and delivered.
+ *
+ * Required environment variables:
+ * - HOOKDECK_API_KEY: Hookdeck Admin API key for querying events
+ *
+ * @see https://hookdeck.com/docs/api
+ */
+export const hookdeckConfig = {
+  apiKey: process.env.HOOKDECK_API_KEY || '',
+  baseUrl: 'https://api.hookdeck.com/2024-03-01',
+};
+
+/**
+ * EasyPost magic tracking codes for testing.
+ * In test mode, these codes automatically cycle through tracking statuses.
+ *
+ * @see https://www.easypost.com/docs/api#trackers
+ */
+export const easypostMagicCodes = {
+  /** Automatically transitions to delivered */
+  delivered: 'EZ1000000001',
+  /** Automatically transitions to in_transit */
+  inTransit: 'EZ2000000002',
+  /** Automatically transitions to failure */
+  failure: 'EZ3000000003',
+  /** Stays in pre_transit */
+  preTransit: 'EZ4000000004',
+  /** Automatically transitions to out_for_delivery */
+  outForDelivery: 'EZ5000000005',
+};
