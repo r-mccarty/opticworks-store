@@ -8,7 +8,7 @@ import { ShoppingCartIcon, UserCircleIcon } from "@heroicons/react/24/outline"
 import Link from "next/link"
 import React from "react"
 import { SolarLogo } from "../../../public/SolarLogo"
-import { Button } from "@/components/ui/button"
+import { Button } from "../Button"
 import { useCart } from "@/hooks/useCart"
 import { useAuth } from "@/hooks/useAuth"
 
