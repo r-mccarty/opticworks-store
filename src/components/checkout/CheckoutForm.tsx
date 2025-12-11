@@ -354,37 +354,37 @@ export default function CheckoutForm({
             </div>
           ))}
           <div className="border-t pt-2 mt-2">
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm" data-testid="order-summary-subtotal">
               <span>Subtotal</span>
-              <span>${subtotal.toLocaleString()}</span>
+              <span data-testid="subtotal-amount">${subtotal.toLocaleString()}</span>
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm" data-testid="order-summary-shipping">
               <span>Shipping</span>
               {isDigitalOnly ? (
-                <span className="text-green-600">Digital Delivery</span>
+                <span className="text-green-600" data-testid="shipping-digital">Digital Delivery</span>
               ) : selectedRate ? (
-                <span className={shippingCost === 0 ? 'text-green-600' : ''}>
+                <span className={shippingCost === 0 ? 'text-green-600' : ''} data-testid="shipping-amount">
                   {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
                 </span>
               ) : (
-                <span className="text-gray-400">Select shipping</span>
+                <span className="text-gray-400" data-testid="shipping-pending">Select shipping</span>
               )}
             </div>
-            <div className="flex justify-between text-sm">
+            <div className="flex justify-between text-sm" data-testid="order-summary-tax">
               <span>Tax</span>
               {ratesLoading ? (
-                <span className="text-gray-400">Calculating...</span>
+                <span className="text-gray-400" data-testid="tax-calculating">Calculating...</span>
               ) : taxAmount > 0 ? (
-                <span>${taxAmount.toFixed(2)}</span>
+                <span data-testid="tax-amount">${taxAmount.toFixed(2)}</span>
               ) : selectedRate ? (
-                <span className="text-gray-400">$0.00</span>
+                <span className="text-gray-400" data-testid="tax-zero">$0.00</span>
               ) : (
-                <span className="text-gray-400">Enter address</span>
+                <span className="text-gray-400" data-testid="tax-pending">Enter address</span>
               )}
             </div>
-            <div className="flex justify-between font-semibold mt-2">
+            <div className="flex justify-between font-semibold mt-2" data-testid="order-summary-total">
               <span>Total</span>
-              <span>${total.toFixed(2)}</span>
+              <span data-testid="total-amount">${total.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>

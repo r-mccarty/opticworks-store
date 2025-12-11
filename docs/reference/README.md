@@ -21,6 +21,7 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 |----------|---------|
 | [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) | Full checkout process, Stripe deferred intent pattern |
 | [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
+| [STRIPE_TAX.md](STRIPE_TAX.md) | Automated sales tax calculation via Stripe Tax |
 | [WEBHOOKS.md](WEBHOOKS.md) | Stripe + EasyPost webhooks via Hookdeck |
 
 ---
@@ -49,6 +50,7 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 | Document | Purpose |
 |----------|---------|
 | [E2E_TESTING.md](E2E_TESTING.md) | Playwright, Mailosaur email, Hookdeck webhook testing |
+| [QA_ARTIFACTS.md](QA_ARTIFACTS.md) | QA artifact generation for test debugging |
 | [MOBILE_E2E_TESTING_PLAN.md](MOBILE_E2E_TESTING_PLAN.md) | Mobile testing strategy |
 
 ---
@@ -91,9 +93,11 @@ Moved to `docs/archived/` - historical reference only.
 | Debug shipping rates or fulfillment | [FULFILLMENT.md](FULFILLMENT.md) |
 | Understand webhook flow | [WEBHOOKS.md](WEBHOOKS.md) |
 | Debug checkout/payment | [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) |
+| Debug tax calculation | [STRIPE_TAX.md](STRIPE_TAX.md) |
 | Deploy backend changes | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
 | Manage Cloudflare resources | [CLOUDFLARE_API.md](CLOUDFLARE_API.md) |
 | Write E2E tests | [E2E_TESTING.md](E2E_TESTING.md) |
+| Debug test failures | [QA_ARTIFACTS.md](QA_ARTIFACTS.md) |
 | Modify Zustand stores | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) |
 | Add or rotate secrets | [../SECRETS.md](../SECRETS.md) |
 

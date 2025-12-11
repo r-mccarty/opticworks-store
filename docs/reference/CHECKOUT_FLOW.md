@@ -550,6 +550,59 @@ All checkout operations log to console with `[checkout]` prefix:
 
 ---
 
+## Tax Integration
+
+Sales tax is calculated automatically via Stripe Tax when a shipping address is provided.
+
+### Tax Flow
+
+1. **Address entered**: Customer completes shipping address in Stripe AddressElement
+2. **Shipping selected**: `addShippingMethod()` updates cart with shipping
+3. **Cart fetched**: `getCart()` returns updated cart with `tax_total` (calculated by Stripe Tax provider)
+4. **Tax displayed**: `taxAmount` state updated in CheckoutForm Order Summary
+5. **Elements updated**: `elements.update({amount})` includes subtotal + shipping + tax
+6. **Order placed**: `stripe-tax-commit` subscriber commits transaction to Stripe Tax dashboard
+
+### Tax Display States
+
+| State | Display | Trigger |
+|-------|---------|---------|
+| No address | "Enter address" | Before address entered |
+| Calculating | "Calculating..." | During shipping rate fetch |
+| Tax calculated | "$XX.XX" | After cart.tax_total received |
+| Zero tax | "$0.00" | Tax-free state (Oregon, Delaware) |
+
+### State Flow
+
+```
+Address complete → useMedusaShipping.fetchRates()
+                   ↓
+              selectRate() → addShippingMethod() → getCart()
+                                                   ↓
+                                            cart.tax_total
+                                                   ↓
+                            setTaxAmount() → CheckoutForm displays tax
+                                                   ↓
+                              elements.update({amount: subtotal + shipping + tax})
+```
+
+### Order Summary Verification
+
+The Order Summary displays subtotal, shipping, tax, and total. These should satisfy:
+
+```
+total = subtotal + shipping + tax
+```
+
+Tests verify this math using `checkoutPage.verifyOrderSummaryMath()`.
+
+### Cross-References
+
+- [STRIPE_TAX.md](./STRIPE_TAX.md) - Backend Stripe Tax provider implementation
+- [E2E_TESTING.md](./E2E_TESTING.md#tax-calculation-tests) - Tax integration E2E tests
+
+---
+
 ## Testing
 
 ### E2E Tests

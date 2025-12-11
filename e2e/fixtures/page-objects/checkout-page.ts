@@ -27,6 +27,12 @@ export class CheckoutPage {
   readonly shippingRatesError: Locator;
   readonly shippingDigital: Locator;
 
+  // Order summary locators
+  readonly orderSummarySubtotal: Locator;
+  readonly orderSummaryShipping: Locator;
+  readonly orderSummaryTax: Locator;
+  readonly orderSummaryTotal: Locator;
+
   constructor(page: Page) {
     this.page = page;
     this.checkoutForm = page.locator('[data-testid="checkout-form"]');
@@ -42,6 +48,12 @@ export class CheckoutPage {
     this.shippingRatesList = page.locator('[data-testid="shipping-rates-list"]');
     this.shippingRatesError = page.locator('[data-testid="shipping-rates-error"]');
     this.shippingDigital = page.locator('[data-testid="shipping-selector-digital"]');
+
+    // Order summary locators
+    this.orderSummarySubtotal = page.locator('[data-testid="order-summary-subtotal"]');
+    this.orderSummaryShipping = page.locator('[data-testid="order-summary-shipping"]');
+    this.orderSummaryTax = page.locator('[data-testid="order-summary-tax"]');
+    this.orderSummaryTotal = page.locator('[data-testid="order-summary-total"]');
   }
 
   /**
@@ -542,5 +554,155 @@ export class CheckoutPage {
   async selectShippingAndWait(rateId: string): Promise<void> {
     await this.selectShippingRate(rateId);
     await this.waitForPaymentSessionRefresh();
+  }
+
+  // ===== Tax/Order Summary Methods =====
+
+  /**
+   * Get the tax amount displayed in the order summary.
+   * Returns the numeric value in dollars, or null if tax is not yet calculated.
+   */
+  async getTaxAmount(): Promise<number | null> {
+    // Check for tax-calculating state
+    const calculating = this.page.locator('[data-testid="tax-calculating"]');
+    if (await calculating.isVisible().catch(() => false)) {
+      console.log('[CheckoutPage] Tax is still calculating');
+      return null;
+    }
+
+    // Check for tax-pending state (no address yet)
+    const pending = this.page.locator('[data-testid="tax-pending"]');
+    if (await pending.isVisible().catch(() => false)) {
+      console.log('[CheckoutPage] Tax pending (no address entered)');
+      return null;
+    }
+
+    // Check for tax-zero state
+    const zero = this.page.locator('[data-testid="tax-zero"]');
+    if (await zero.isVisible().catch(() => false)) {
+      console.log('[CheckoutPage] Tax is $0.00');
+      return 0;
+    }
+
+    // Try to get the actual tax amount
+    const taxAmount = this.page.locator('[data-testid="tax-amount"]');
+    if (await taxAmount.isVisible().catch(() => false)) {
+      const text = await taxAmount.textContent();
+      if (text) {
+        const match = text.match(/\$?([\d,.]+)/);
+        if (match) {
+          const amount = parseFloat(match[1].replace(',', ''));
+          console.log(`[CheckoutPage] Tax amount: $${amount}`);
+          return amount;
+        }
+      }
+    }
+
+    console.log('[CheckoutPage] Could not determine tax amount');
+    return null;
+  }
+
+  /**
+   * Wait for tax calculation to complete.
+   * Waits until tax is no longer in "Calculating..." state.
+   */
+  async waitForTaxCalculation(timeout = 15000): Promise<void> {
+    console.log('[CheckoutPage] Waiting for tax calculation...');
+
+    const calculating = this.page.locator('[data-testid="tax-calculating"]');
+
+    // First check if it's currently calculating
+    if (await calculating.isVisible().catch(() => false)) {
+      console.log('[CheckoutPage] Tax is calculating, waiting...');
+      await calculating.waitFor({ state: 'hidden', timeout });
+    }
+
+    // Verify we're now in a calculated state (either tax-amount or tax-zero)
+    const taxAmount = this.page.locator('[data-testid="tax-amount"]');
+    const taxZero = this.page.locator('[data-testid="tax-zero"]');
+
+    await Promise.race([
+      taxAmount.waitFor({ state: 'visible', timeout: 5000 }),
+      taxZero.waitFor({ state: 'visible', timeout: 5000 }),
+    ]).catch(() => {
+      // May still be in pending state if no shipping selected
+      console.log('[CheckoutPage] Tax may be pending (no shipping selected)');
+    });
+
+    console.log('[CheckoutPage] Tax calculation complete');
+  }
+
+  /**
+   * Check if tax is in a calculated state (not loading/pending).
+   */
+  async isTaxCalculated(): Promise<boolean> {
+    const taxAmount = this.page.locator('[data-testid="tax-amount"]');
+    const taxZero = this.page.locator('[data-testid="tax-zero"]');
+
+    const hasAmount = await taxAmount.isVisible().catch(() => false);
+    const hasZero = await taxZero.isVisible().catch(() => false);
+
+    return hasAmount || hasZero;
+  }
+
+  /**
+   * Get the subtotal from the order summary.
+   */
+  async getSubtotal(): Promise<number> {
+    const subtotalEl = this.page.locator('[data-testid="subtotal-amount"]');
+    const text = await subtotalEl.textContent();
+
+    if (!text) return 0;
+
+    const match = text.match(/\$?([\d,.]+)/);
+    return match ? parseFloat(match[1].replace(',', '')) : 0;
+  }
+
+  /**
+   * Get the total from the order summary.
+   */
+  async getTotal(): Promise<number> {
+    const totalEl = this.page.locator('[data-testid="total-amount"]');
+    const text = await totalEl.textContent();
+
+    if (!text) return 0;
+
+    const match = text.match(/\$?([\d,.]+)/);
+    return match ? parseFloat(match[1].replace(',', '')) : 0;
+  }
+
+  /**
+   * Verify that order summary totals are mathematically correct.
+   * Returns the values and whether the math checks out.
+   */
+  async verifyOrderSummaryMath(): Promise<{
+    subtotal: number;
+    shipping: number;
+    tax: number;
+    total: number;
+    isCorrect: boolean;
+  }> {
+    const subtotal = await this.getSubtotal();
+    const shipping = await this.getShippingCost();
+    const tax = (await this.getTaxAmount()) ?? 0;
+    const total = await this.getTotal();
+
+    // Handle shipping = -1 (not selected yet)
+    const effectiveShipping = shipping === -1 ? 0 : shipping;
+
+    const expectedTotal = subtotal + effectiveShipping + tax;
+    const isCorrect = Math.abs(expectedTotal - total) < 0.01; // Allow for rounding
+
+    console.log(
+      `[CheckoutPage] Order summary: subtotal=$${subtotal}, shipping=$${effectiveShipping}, tax=$${tax}, total=$${total}, expected=$${expectedTotal.toFixed(2)}, isCorrect=${isCorrect}`
+    );
+
+    return {
+      subtotal,
+      shipping: effectiveShipping,
+      tax,
+      total,
+      isCorrect,
+    };
   }
 }

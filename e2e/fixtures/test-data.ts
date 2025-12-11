@@ -46,6 +46,53 @@ export const testAddress = {
 };
 
 /**
+ * Tax-specific test addresses for Stripe Tax integration testing.
+ * These addresses represent different tax scenarios:
+ * - California: High tax state (~8.75%)
+ * - Oregon: No sales tax ($0)
+ * - Minnesota: Origin state for shipping (~7.88%)
+ * - Delaware: No sales tax ($0)
+ */
+export const taxTestAddresses = {
+  // California - high tax state (~8.75% in San Francisco)
+  california: {
+    name: 'E2E Tax Test CA',
+    line1: '1 Market Street',
+    city: 'San Francisco',
+    state: 'CA',
+    postalCode: '94105',
+    country: 'US',
+  },
+  // Oregon - no sales tax
+  oregon: {
+    name: 'E2E Tax Test OR',
+    line1: '1000 SW Broadway',
+    city: 'Portland',
+    state: 'OR',
+    postalCode: '97205',
+    country: 'US',
+  },
+  // Minnesota - origin state for shipping (~7.88%)
+  minnesota: {
+    name: 'E2E Tax Test MN',
+    line1: '90 S 7th St',
+    city: 'Minneapolis',
+    state: 'MN',
+    postalCode: '55402',
+    country: 'US',
+  },
+  // Delaware - no sales tax
+  delaware: {
+    name: 'E2E Tax Test DE',
+    line1: '1313 N Market St',
+    city: 'Wilmington',
+    state: 'DE',
+    postalCode: '19801',
+    country: 'US',
+  },
+};
+
+/**
  * Stripe test cards.
  * @see https://docs.stripe.com/testing#cards
  */

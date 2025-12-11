@@ -215,6 +215,7 @@ test.describe("Email Notifications", () => {
       // Verify order totals are present (not specific values due to tax variations)
       expect(emailContainsText(email, "Subtotal")).toBe(true);
       expect(emailContainsText(email, "Shipping")).toBe(true);
+      expect(emailContainsText(email, "Tax")).toBe(true);
       expect(emailContainsText(email, "Total")).toBe(true);
 
       // Verify support link exists

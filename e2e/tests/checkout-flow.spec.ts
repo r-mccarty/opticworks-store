@@ -114,6 +114,15 @@ test.describe('Checkout Flow', () => {
       // Verify shipping cost shows in order summary
       const shippingCost = await checkoutPage.getShippingCost();
       console.log(`Shipping cost: ${shippingCost >= 0 ? '$' + shippingCost : 'pending'}`);
+
+      // Wait for tax calculation and verify order summary math
+      await checkoutPage.waitForTaxCalculation();
+      const taxAmount = await checkoutPage.getTaxAmount();
+      console.log(`Tax amount: ${taxAmount !== null ? '$' + taxAmount : 'not calculated'}`);
+
+      const orderMath = await checkoutPage.verifyOrderSummaryMath();
+      console.log(`Order summary math: ${orderMath.isCorrect ? 'CORRECT' : 'INCORRECT'}`);
+      expect(orderMath.isCorrect).toBe(true);
     } catch (error) {
       console.warn('Shipping rates loading issue:', error);
       // Check if it's digital-only (no shipping needed)

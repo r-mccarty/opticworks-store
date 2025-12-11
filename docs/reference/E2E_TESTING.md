@@ -34,6 +34,10 @@ pnpm exec playwright show-report
 
 ```
 e2e/
+├── artifacts/                # QA artifacts (gitignored)
+│   ├── *.json                # Structured test artifacts
+│   ├── *.txt                 # Human-readable reports
+│   └── screenshots/          # Test screenshots
 ├── fixtures/
 │   ├── page-objects/         # AuthPage, CartPage, CheckoutPage, etc.
 │   ├── test-data.ts          # Products, test cards, addresses, configs
@@ -43,15 +47,17 @@ e2e/
 │   └── debug-utils.ts        # Screenshot/log capture
 ├── helpers/
 │   ├── console-capture.ts    # Console log capture for debugging
-│   ├── network-logger.ts     # Network request/response logging
+│   ├── network-logger.ts     # Network request/response + tax tracking
 │   ├── storage-inspector.ts  # LocalStorage inspection and clearing
-│   └── debug-utils.ts        # Screenshot and debug info capture
+│   ├── debug-utils.ts        # Screenshot and debug info capture
+│   └── qa-artifact-logger.ts # QA artifact generation system
 └── tests/
     ├── auth-flow.spec.ts
     ├── store-navigation.spec.ts
     ├── add-to-cart.spec.ts
     ├── checkout-flow.spec.ts
     ├── checkout-shipping.spec.ts    # Shipping rate selection tests
+    ├── checkout-tax.spec.ts         # Stripe Tax integration tests
     ├── email-flow.spec.ts           # Email verification (Mailosaur)
     ├── fulfillment-webhook.spec.ts  # Webhook verification (Hookdeck)
     └── full-journey.spec.ts
@@ -121,6 +127,183 @@ The `playwright.config.ts` loads environment variables from `.env.local`, so you
 **Stripe iframes**: Use `CheckoutPage` helpers for frame handling
 
 **Cart hydration**: Wait for Zustand to load from localStorage
+
+---
+
+## Tax Calculation Tests
+
+The `checkout-tax.spec.ts` file contains tests for Stripe Tax integration.
+
+### Running Tax Tests
+
+```bash
+# All tax tests
+pnpm exec playwright test checkout-tax.spec.ts --project=chromium
+
+# Specific test
+pnpm exec playwright test checkout-tax.spec.ts --grep "tax is calculated" --project=chromium
+```
+
+### Available Tax Tests
+
+| Test | Description |
+|------|-------------|
+| `tax is calculated after address entry` | Verifies tax appears after complete address and shipping selection |
+| `tax-free state shows zero tax` | Oregon/Delaware show $0.00 (not "Enter address") |
+| `total includes tax correctly` | Verifies subtotal + shipping + tax = total |
+| `complete checkout with tax verification` | Full checkout flow with tax verification |
+
+### Tax Test Addresses
+
+| State | Address | Expected Tax |
+|-------|---------|--------------|
+| California (94105) | San Francisco | ~8.75% |
+| Oregon (97205) | Portland | $0.00 (no sales tax) |
+| Minnesota (55402) | Minneapolis | ~7.88% (origin state) |
+| Delaware (19801) | Wilmington | $0.00 (no sales tax) |
+
+### CheckoutPage Tax Methods
+
+```typescript
+// Wait for tax to calculate
+await checkoutPage.waitForTaxCalculation();
+
+// Get tax amount (null if not calculated, 0 if tax-free)
+const tax = await checkoutPage.getTaxAmount();
+
+// Check if tax is in a calculated state
+const isCalculated = await checkoutPage.isTaxCalculated();
+
+// Verify order summary math (subtotal + shipping + tax = total)
+const math = await checkoutPage.verifyOrderSummaryMath();
+expect(math.isCorrect).toBe(true);
+
+// Get individual amounts
+const subtotal = await checkoutPage.getSubtotal();
+const total = await checkoutPage.getTotal();
+```
+
+### Tax Display States
+
+The Order Summary shows different tax states:
+
+| State | Display | data-testid |
+|-------|---------|-------------|
+| No address | "Enter address" | `tax-pending` |
+| Calculating | "Calculating..." | `tax-calculating` |
+| Tax calculated | "$XX.XX" | `tax-amount` |
+| Zero tax | "$0.00" | `tax-zero` |
+
+### Cross-References
+
+- [STRIPE_TAX.md](./STRIPE_TAX.md) - Backend tax implementation
+- [CHECKOUT_FLOW.md](./CHECKOUT_FLOW.md) - Full checkout flow documentation
+
+---
+
+## QA Artifacts
+
+Every test run generates detailed QA artifacts for debugging and verification.
+
+### Artifact Location
+
+- **Directory**: `e2e/artifacts/` (gitignored)
+- **JSON**: `{test-name}-{timestamp}.json` - Structured data
+- **Report**: `{test-name}-{timestamp}.txt` - Human-readable report
+- **Screenshots**: `e2e/artifacts/screenshots/{test-name}-{step}.png`
+
+### Using QA Logger
+
+```typescript
+import { createQAArtifactLogger } from '../helpers/qa-artifact-logger';
+
+test('my test', async ({ page }, testInfo) => {
+  const qaLogger = createQAArtifactLogger(testInfo.title, testInfo.file);
+
+  // Log checkpoints
+  qaLogger.checkpoint('Add product to cart', { product: 'Widget' });
+
+  // Capture screenshots at key moments
+  await qaLogger.captureScreenshot(page, 'after-address');
+
+  // Record tax calculation details
+  qaLogger.setTaxCalculation({
+    address: { city: 'San Francisco', state: 'CA', postalCode: '94105', country: 'US' },
+    subtotal: 239.00,
+    shippingCost: 6.21,
+    taxAmount: 21.45,
+    taxRate: 8.75,
+  });
+
+  // Record order summary verification
+  qaLogger.setOrderSummary({
+    items: [{ name: 'Sensor Kit', quantity: 1, price: 239 }],
+    subtotal: 239.00,
+    shipping: 6.21,
+    tax: 21.45,
+    total: 266.66,
+    verificationPassed: true,
+  });
+
+  // On error
+  qaLogger.logError('checkout', error);
+
+  // Finalize (writes files)
+  qaLogger.finalize('pass'); // or 'fail' or 'skip'
+});
+```
+
+### Artifact Contents
+
+**JSON Artifact** (`*.json`):
+- Test metadata (name, file, timestamp, duration)
+- Checkpoints with timestamps and data
+- API calls with request/response bodies
+- Tax calculation details
+- Order summary verification
+- Screenshots paths
+- Errors with stack traces
+
+**Human-Readable Report** (`*.txt`):
+```
+================================================================================
+QA ARTIFACT REPORT
+================================================================================
+Test: checkout-tax.spec.ts > tax is calculated after address entry
+Date: 2025-12-11T14:30:45.123Z
+Duration: 45.2 seconds
+Outcome: PASS
+
+================================================================================
+CHECKPOINTS
+================================================================================
+[1] Add product to cart (+0.0s)
+    Product: Bed Presence Sensor Kit ($239.00)
+...
+
+================================================================================
+TAX CALCULATION DETAILS
+================================================================================
+Address: San Francisco, CA 94105, US
+Subtotal: $239.00
+Shipping: $6.21
+Tax Amount: $21.45
+Tax Rate: 8.75%
+
+================================================================================
+ORDER SUMMARY VERIFICATION
+================================================================================
+Subtotal:  $239.00
+Shipping:  $6.21
+Tax:       $21.45
+Total:     $266.66
+Math Check: PASS
+================================================================================
+```
+
+### Cross-References
+
+- [QA_ARTIFACTS.md](./QA_ARTIFACTS.md) - Full artifact system documentation
 
 ---
 

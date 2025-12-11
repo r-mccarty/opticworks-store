@@ -16,6 +16,20 @@ export interface NetworkLogs {
   all: NetworkEntry[];
   apiCalls: NetworkEntry[];
   failures: NetworkEntry[];
+  taxData: TaxApiData[];
+}
+
+/**
+ * Tax-related data extracted from API responses.
+ */
+export interface TaxApiData {
+  timestamp: Date;
+  cartId?: string;
+  taxTotal?: number;
+  total?: number;
+  subtotal?: number;
+  shippingTotal?: number;
+  source: 'cart' | 'order';
 }
 
 /**
@@ -27,6 +41,7 @@ export function createNetworkLogger(page: Page): NetworkLogs {
     all: [],
     apiCalls: [],
     failures: [],
+    taxData: [],
   };
 
   const pendingRequests = new Map<string, { entry: NetworkEntry; startTime: number }>();
@@ -85,6 +100,31 @@ export function createNetworkLogger(page: Page): NetworkLogs {
       console.log(
         `[API RESPONSE] ${response.status()} ${request.method()} ${url} (${pending.entry.duration}ms)`
       );
+
+      // Extract tax data from cart/order responses
+      if (pending.entry.responseBody && (url.includes('/carts') || url.includes('/orders'))) {
+        try {
+          const responseJson = JSON.parse(pending.entry.responseBody);
+          const data = responseJson.cart || responseJson.order;
+          if (data && typeof data.tax_total === 'number') {
+            const taxData: TaxApiData = {
+              timestamp: new Date(),
+              cartId: data.id,
+              taxTotal: data.tax_total,
+              total: data.total,
+              subtotal: data.subtotal,
+              shippingTotal: data.shipping_total,
+              source: responseJson.cart ? 'cart' : 'order',
+            };
+            logs.taxData.push(taxData);
+            console.log(
+              `[TAX DATA] ${taxData.source}: tax_total=$${taxData.taxTotal}, total=$${taxData.total}, subtotal=$${taxData.subtotal}, shipping=$${taxData.shippingTotal}`
+            );
+          }
+        } catch {
+          // Ignore JSON parse errors
+        }
+      }
 
       if (response.status() >= 400) {
         logs.failures.push(pending.entry);
@@ -153,6 +193,31 @@ export function getApiCallSummary(logs: NetworkLogs): string {
       const status = call.status ?? 'pending';
       const duration = call.duration ? `${call.duration}ms` : '';
       return `${call.method} ${call.url}: ${status} ${duration}`;
+    })
+    .join('\n');
+}
+
+/**
+ * Get the latest tax data from network logs.
+ */
+export function getLatestTaxData(logs: NetworkLogs): TaxApiData | null {
+  if (logs.taxData.length === 0) {
+    return null;
+  }
+  return logs.taxData[logs.taxData.length - 1];
+}
+
+/**
+ * Get a summary of all tax data captured.
+ */
+export function getTaxDataSummary(logs: NetworkLogs): string {
+  if (logs.taxData.length === 0) {
+    return 'No tax data captured';
+  }
+
+  return logs.taxData
+    .map((data, index) => {
+      return `[${index + 1}] ${data.source}: tax=$${data.taxTotal}, total=$${data.total}, subtotal=$${data.subtotal}, shipping=$${data.shippingTotal}`;
     })
     .join('\n');
 }
