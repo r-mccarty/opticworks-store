@@ -80,22 +80,56 @@ test.describe('Stripe Tax Integration', () => {
       console.log(`Found ${rates.length} shipping rates`);
       expect(rates.length).toBeGreaterThan(0);
 
-      // Select first rate
-      qaLogger.checkpoint('Select shipping rate', { rateId: rates[0] });
-      logStep(8, 'Selecting shipping rate');
+      // The hook auto-selects the cheapest rate and adds it to cart
+      // Wait for the auto-selection's shipping-methods call to complete
+      // (This happens asynchronously when rates are fetched)
+      qaLogger.checkpoint('Wait for auto-selection to complete');
+      logStep(8, 'Waiting for auto-selection shipping method to be added');
+
+      // Wait for the shipping method to be added (auto-selection) by watching for the API response
+      // The frontend makes this call asynchronously after fetching rates
+      try {
+        await page.waitForResponse(
+          (resp) => resp.url().includes('/shipping-methods') && resp.status() === 200,
+          { timeout: 10000 }
+        );
+        console.log('[Test] Auto-selection shipping method call completed');
+      } catch {
+        console.log('[Test] Shipping method may have already been added');
+      }
+
+      // Wait for React state to update from the shipping-methods response
+      await page.waitForTimeout(3000);
+
+      // Now explicitly select/confirm the first rate to trigger full selectRate flow
+      qaLogger.checkpoint('Confirm shipping rate', { rateId: rates[0] });
+      logStep(9, 'Confirming shipping rate selection');
       await checkoutPage.selectShippingAndWait(rates[0]);
 
-      // Step 7: Wait for tax calculation
+      // Step 7: Wait for tax calculation with extended polling for taxable states
       qaLogger.checkpoint('Wait for tax calculation');
-      logStep(9, 'Waiting for tax calculation');
+      logStep(9, 'Waiting for tax calculation (with extended polling for CA tax)');
+
+      // First wait for basic tax calculation state
       await checkoutPage.waitForTaxCalculation();
+
+      // Then poll for positive tax since California should have tax > 0
+      // This handles async tax calculation from Stripe Tax API
+      const hasTax = await checkoutPage.waitForPositiveTax(30000, 2000);
 
       // Step 8: Verify tax is calculated (California should have tax > 0)
       const taxAmount = await checkoutPage.getTaxAmount();
       console.log(`Tax amount: ${taxAmount !== null ? '$' + taxAmount : 'not calculated'}`);
+      console.log(`Has positive tax: ${hasTax}`);
       await qaLogger.captureScreenshot(page, 'after-tax-calculation');
 
       // Assert tax is calculated and greater than 0 for California
+      if (!hasTax) {
+        // Log additional debug info before failing
+        console.log('Tax data summary:', getTaxDataSummary(networkLogs));
+        const pageContent = await page.content();
+        console.log('Order summary HTML:', pageContent.match(/<div[^>]*data-testid="order-summary[^"]*"[^>]*>[\s\S]*?<\/div>/g)?.[0] || 'Not found');
+      }
       expect(taxAmount).not.toBeNull();
       expect(taxAmount).toBeGreaterThan(0);
 

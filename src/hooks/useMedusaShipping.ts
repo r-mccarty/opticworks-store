@@ -323,10 +323,17 @@ export function useMedusaShipping({
         setSelectedRate(cheapest);
         console.log('[useMedusaShipping] Auto-selecting cheapest rate:', cheapest.name);
 
-        // Add shipping method to cart via API
-        // This is async but we don't wait - the user can still change selection
+        // Add shipping method to cart via API and extract tax from response
         addShippingMethod(cartId, cheapest.id)
-          .then(() => console.log('[useMedusaShipping] Auto-selected shipping method added to cart'))
+          .then((cart) => {
+            console.log('[useMedusaShipping] Auto-selected shipping method added to cart');
+            // Extract tax from the response - addShippingMethod returns the updated cart
+            if (cart && typeof cart.tax_total === 'number') {
+              setTaxAmount(cart.tax_total);
+              setCart(cart);
+              console.log('[useMedusaShipping] Tax set from auto-selection:', cart.tax_total);
+            }
+          })
           .catch((err) => console.error('[useMedusaShipping] Error auto-adding shipping method:', err));
       }
 

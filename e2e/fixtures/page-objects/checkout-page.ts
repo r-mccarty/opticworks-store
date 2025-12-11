@@ -440,7 +440,7 @@ export class CheckoutPage {
 
   /**
    * Select a specific shipping rate by ID.
-   * Waits for the shipping-methods API call to complete.
+   * Waits for the shipping-methods API call and subsequent cart refresh.
    */
   async selectShippingRate(rateId: string): Promise<void> {
     console.log(`[CheckoutPage] Selecting shipping rate: ${rateId}`);
@@ -462,12 +462,38 @@ export class CheckoutPage {
 
     if (response) {
       console.log('[CheckoutPage] Shipping method API call completed:', response.status());
+
+      // Try to parse the response to see the tax data
+      try {
+        const responseData = await response.json();
+        if (responseData.cart) {
+          console.log(`[CheckoutPage] Cart from shipping response: tax_total=${responseData.cart.tax_total}, total=${responseData.cart.total}`);
+        }
+      } catch {
+        // Response body not available
+      }
     } else {
       console.log('[CheckoutPage] No shipping-methods API call detected (may already be selected)');
     }
 
-    // Additional wait to ensure state updates propagate
-    await this.page.waitForTimeout(500);
+    // Wait for the React hook to potentially call getCart and update state
+    // The useMedusaShipping hook calls getCart after addShippingMethod
+    try {
+      await this.page.waitForResponse(
+        (resp) => resp.url().includes('/store/carts/') &&
+                  !resp.url().includes('/shipping-methods') &&
+                  !resp.url().includes('/line-items') &&
+                  resp.request().method() === 'GET' &&
+                  resp.status() === 200,
+        { timeout: 5000 }
+      );
+      console.log('[CheckoutPage] Cart refresh after shipping completed');
+    } catch {
+      console.log('[CheckoutPage] No cart GET request detected after shipping selection');
+    }
+
+    // Additional wait to ensure React state updates propagate
+    await this.page.waitForTimeout(1000);
 
     console.log('[CheckoutPage] Shipping rate selected');
   }
@@ -630,6 +656,46 @@ export class CheckoutPage {
     });
 
     console.log('[CheckoutPage] Tax calculation complete');
+  }
+
+  /**
+   * Wait for tax to be calculated with a positive amount (for taxable states).
+   * Polls the UI until tax-amount element shows a value > 0, or times out.
+   * Use this for states like California that should have tax.
+   */
+  async waitForPositiveTax(timeout = 30000, pollInterval = 1000): Promise<boolean> {
+    console.log('[CheckoutPage] Waiting for positive tax amount...');
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeout) {
+      // Check if tax-amount is visible with a positive value
+      const taxEl = this.page.locator('[data-testid="tax-amount"]');
+      if (await taxEl.isVisible().catch(() => false)) {
+        const text = await taxEl.textContent();
+        if (text) {
+          const match = text.match(/\$?([\d,.]+)/);
+          if (match) {
+            const amount = parseFloat(match[1].replace(',', ''));
+            if (amount > 0) {
+              console.log(`[CheckoutPage] Positive tax found: $${amount}`);
+              return true;
+            }
+          }
+        }
+      }
+
+      // Check if still calculating
+      const calculating = this.page.locator('[data-testid="tax-calculating"]');
+      if (await calculating.isVisible().catch(() => false)) {
+        console.log('[CheckoutPage] Tax still calculating...');
+      }
+
+      // Wait before polling again
+      await this.page.waitForTimeout(pollInterval);
+    }
+
+    console.log('[CheckoutPage] Timeout waiting for positive tax');
+    return false;
   }
 
   /**
