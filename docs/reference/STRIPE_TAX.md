@@ -209,15 +209,35 @@ Expected: `"provider_id": "tp_stripe-tax_stripe-tax"`
 
 ## Frontend Integration
 
-The frontend displays tax in two places:
+The frontend displays tax using **Medusa cart as the single source of truth** (Dec 2024 update).
 
-1. **CartPage.tsx**: Shows tax from `useCheckoutState().taxAmount`
-2. **CheckoutForm.tsx**: Shows tax in Order Summary section
+### Tax Display Flow
 
-Tax is fetched after shipping is selected via `useMedusaShipping` hook, which:
-- Adds shipping method to cart
-- Fetches updated cart with `tax_total`
-- Updates `taxAmount` state
+1. **CheckoutForm.tsx**: Shows tax in Order Summary section
+   ```typescript
+   // Use Medusa's authoritative values when available
+   const displayTax = medusaCart?.tax_total ?? taxAmount;
+   const total = medusaCart?.total ?? (subtotal + shippingCost + taxAmount);
+   ```
+
+2. **useMedusaShipping hook**: Fetches tax after shipping selection
+   - Adds shipping method to cart
+   - Fetches updated cart with `tax_total` calculated by Stripe Tax provider
+   - Updates `taxAmount` in useCheckoutState for fallback display
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `src/components/checkout/CheckoutForm.tsx` | Displays tax in Order Summary |
+| `src/hooks/useMedusaShipping.ts` | Fetches cart with tax after shipping selection |
+| `src/hooks/useCheckoutState.ts` | Stores `taxAmount` for display (simplified Dec 2024) |
+
+### Single Source of Truth (Dec 2024)
+
+Tax values come from `medusaCart.tax_total` after shipping is selected. The
+frontend no longer calculates totals - all values (subtotal, tax, shipping, total)
+are sourced from the Medusa cart response which includes Stripe Tax calculations.
 
 ## Testing
 

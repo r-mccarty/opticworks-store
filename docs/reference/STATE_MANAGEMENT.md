@@ -9,11 +9,15 @@ Zustand-based state management with hybrid local + server persistence.
 | Layer | Storage | Scope |
 |-------|---------|-------|
 | UI state | Zustand (memory) | Single session |
-| Cart | Zustand + localStorage + Medusa API | Cross-device |
+| Cart | Zustand + localStorage + cookies + Medusa API | Cross-device + SSR |
 | Auth | Zustand + localStorage + httpOnly cookies | Cross-device |
 | Checkout | Zustand (memory) | Single session |
 | Support | Zustand + localStorage | Single device |
 | Shipping | React hooks (useState) | Component scope |
+
+> **Dec 2024 Update**: Cart now uses cookies for SSR support. The cart ID is
+> stored in a `medusa_cart_id` cookie that the server reads during SSR to
+> pre-fetch cart data, eliminating hydration mismatches.
 
 ---
 
@@ -53,12 +57,13 @@ interface CartStore {
 
 | Action | Behavior |
 |--------|----------|
-| `addToCart(product, variantId)` | Optimistic update → Medusa sync |
+| `addToCart(product, variantId)` | Optimistic update → Medusa sync → cookie sync |
 | `removeFromCart(productId)` | Optimistic update → Medusa sync |
 | `updateQuantity(productId, qty)` | Optimistic update → Medusa sync |
-| `initializeCart()` | Restore or create Medusa cart |
+| `initializeCart()` | Restore or create Medusa cart → cookie sync |
 | `syncWithMedusa()` | Fetch latest cart state |
-| `clearCart()` | Clear local + reset cartId |
+| `clearCart()` | Clear local + reset cartId + clear cookie |
+| `hydrateFromServer(cart)` | Hydrate Zustand from SSR cart data (Dec 2024) |
 
 ### Persistence
 
@@ -130,17 +135,15 @@ partialize: (state) => ({
 
 **File**: `src/hooks/useCheckoutState.ts`
 
-Ephemeral checkout form state. Not persisted.
+Ephemeral checkout form state. Not persisted. **Simplified in Dec 2024** to remove
+unused fields - totals are now sourced from Medusa cart (single source of truth).
 
 ### State
 
 ```typescript
 interface CheckoutState {
-  taxAmount: number
-  isCalculatingTax: boolean
-  shippingAddress: ShippingAddress | null
-  subtotal: number
-  total: number
+  taxAmount: number          // Tax amount from Medusa (for display)
+  isCalculatingTax: boolean  // Loading state for tax calculation
 }
 ```
 
@@ -148,10 +151,16 @@ interface CheckoutState {
 
 | Action | Behavior |
 |--------|----------|
-| `setTaxAmount(amount)` | Set tax → recalculate total |
-| `setSubtotal(subtotal)` | Set subtotal → recalculate total |
-| `setShippingAddress(address)` | Store address |
+| `setTaxAmount(amount)` | Set tax amount for display |
+| `setIsCalculatingTax(bool)` | Set tax loading state |
 | `reset()` | Clear all state |
+
+### Removed Fields (Dec 2024)
+
+The following fields were removed as they were never used:
+- `subtotal`, `total` - Now sourced from `medusaCart.subtotal`, `medusaCart.total`
+- `shippingAddress` - Stored in CheckoutForm component state
+- `setSubtotal()`, `updateTotal()` - Never called
 
 ---
 

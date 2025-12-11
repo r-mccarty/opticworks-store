@@ -74,20 +74,35 @@ See `docs/reference/FULFILLMENT.md` for full fulfillment architecture details.
 
 ## Step-by-Step Flow
 
-### Step 1: Cart Page Initialization
+### Step 1: Cart Page Initialization (SSR-Enabled)
 
-**File**: `src/components/store/CartPage.tsx`
+**Files**:
+- `src/app/store/cart/page.tsx` (Server Component)
+- `src/components/store/CartPage.tsx` (Client Component)
 
 1. User views cart at `/store/cart`
-2. `CartPage` component mounts
-3. Hydration guard prevents SSR mismatch:
+2. **Server Component** (`page.tsx`) fetches cart via SSR:
    ```tsx
-   const [isMounted, setIsMounted] = useState(false);
-   useEffect(() => setIsMounted(true), []);
-   if (!isMounted) return <Loading />; // Prevents hydration error
+   // Server Component - fetches cart before render
+   const initialCart = await getCartSSR();  // Uses cart ID from cookie
+   return <CartPage initialCart={initialCart} />;
    ```
-4. Cart items loaded from Zustand store (`useCart` hook)
+3. **Client Component** (`CartPage.tsx`) hydrates from server data:
+   ```tsx
+   // No more hydration guard needed - cart data from SSR
+   useEffect(() => {
+     if (initialCart) {
+       hydrateFromServer(initialCart);  // Sync Zustand with SSR data
+     }
+     setIsHydrated(true);
+   }, [initialCart]);
+   ```
+4. Cart items displayed immediately (no loading spinner)
 5. User clicks "Proceed to Payment" button
+
+> **Architecture Note (Dec 2024)**: Cart page now uses SSR pattern. The server
+> component fetches the cart using a cookie-stored cart ID, eliminating the
+> previous hydration mismatch issues that required a loading guard.
 
 ### Step 2: CheckoutWrapper Initialization
 
@@ -280,9 +295,11 @@ When user clicks "Pay $X":
 > obtained at submit time (step 4) and passed to `confirmPayment()` (step 5),
 > rather than being passed to `<Elements>` at mount time.
 
-### Step 7: Order Completion
+### Step 7: Order Completion (with Polling)
 
-**File**: `src/components/checkout/CheckoutForm.tsx` (lines 180-201)
+**Files**:
+- `src/components/checkout/CheckoutForm.tsx`
+- `src/lib/api/order-polling.ts`
 
 On successful payment:
 
@@ -293,20 +310,36 @@ On successful payment:
 2. Clear local cart state
 3. Call `onSuccess(orderId)` callback
 
-**Fallback behavior** (lines 193-200):
+**Polling Fallback** (if completeCart fails but payment succeeded):
 ```typescript
 } catch (completeError) {
-  // Payment succeeded but order creation failed
-  // The order should be created by webhook, so redirect anyway
-  setMessage('Payment successful! Finalizing your order...');
-  setTimeout(() => {
-    window.location.href = `/store/cart/success?payment_intent=${paymentIntent.id}`;
-  }, 2000);
+  // Payment succeeded but completeCart failed
+  // Poll for order creation by webhook (up to 30 seconds)
+  setMessage('Payment received! Finalizing your order...');
+
+  const pollResult = await pollForOrder(cartId, paymentIntent.id, {
+    maxAttempts: 10,
+    intervalMs: 3000,
+    onProgress: (attempt, max) => {
+      setMessage(`Finalizing your order... (${attempt}/${max})`);
+    },
+  });
+
+  if (pollResult.found) {
+    // Webhook created the order - redirect to success
+    window.location.href = `/store/cart/success?order_id=${pollResult.orderId}`;
+  } else {
+    // Order still processing - inform user and redirect
+    setMessage('Your order is being processed. Check email for confirmation.');
+    window.location.href = `/store/cart/success?payment_intent=${paymentIntent.id}&status=pending`;
+  }
 }
 ```
-> **KLUDGE**: If Medusa cart completion fails, we still redirect to success
-> because Stripe webhook should create the order. The 2-second delay gives
-> time for the webhook to process.
+
+> **Architecture Note (Dec 2024)**: The previous 2-second blind redirect was
+> replaced with a deterministic polling mechanism. This polls the cart's
+> `completed_at` field to detect when the webhook has created the order,
+> providing better user feedback and reliability.
 
 ### Step 8: Success Page
 
@@ -451,36 +484,30 @@ available at runtime. Cloudflare Workers runtime secrets don't work for these.
 
 **Solution**: Created `.env.production` with public keys (safe to commit).
 
-### 4. Cart Completion Fallback
+### 4. ~~Cart Completion Fallback~~ (RESOLVED - Dec 2024)
 
-**File**: `src/components/checkout/CheckoutForm.tsx` (lines 193-200)
+**Status**: Replaced with order polling mechanism.
 
-```typescript
-} catch (completeError) {
-  // Payment succeeded but order creation failed
-  setMessage('Payment successful! Finalizing your order...');
-  setTimeout(() => {
-    window.location.href = `/store/cart/success?payment_intent=${paymentIntent.id}`;
-  }, 2000);
-}
-```
+The previous 2-second blind redirect has been replaced with a deterministic
+polling mechanism that checks for order creation up to 30 seconds. See Step 7
+above for the new implementation.
 
-**Why**: Medusa cart completion can fail due to network issues, but the payment
-has already succeeded in Stripe. The webhook will eventually create the order.
+**Files**:
+- `src/components/checkout/CheckoutForm.tsx` - Uses polling
+- `src/lib/api/order-polling.ts` - Polling utility
 
-### 5. Hydration Guard in CartPage
+### 5. ~~Hydration Guard in CartPage~~ (RESOLVED - Dec 2024)
 
-**File**: `src/components/store/CartPage.tsx` (lines 25-69)
+**Status**: Replaced with SSR cart loading.
 
-```typescript
-const [isMounted, setIsMounted] = useState(false);
-useEffect(() => setIsMounted(true), []);
-if (!isMounted) return <Loading />;
-```
+The hydration guard is no longer needed because the cart page now uses
+Server-Side Rendering to fetch the cart before the client component mounts.
 
-**Why**: Zustand cart state comes from localStorage, which differs between
-server (empty) and client (populated). Without this guard, React throws a
-hydration mismatch error.
+**Files**:
+- `src/app/store/cart/page.tsx` - Server component fetches cart
+- `src/lib/api/medusa-server.ts` - SSR cart fetching
+- `src/lib/cart/cookies.server.ts` - Cart ID cookie (server-side)
+- `src/lib/cart/cookies.ts` - Cart ID cookie (client-side)
 
 ### 6. Previous Infinite Loop Bug (Resolved)
 
@@ -502,9 +529,40 @@ the subsequent migration to Medusa fulfillment provider for the proper solution.
 
 | Store | File | Purpose |
 |-------|------|---------|
-| `useCart` | `src/hooks/useCart.ts` | Cart items, quantities, Medusa cart ID |
-| `useCheckoutState` | `src/hooks/useCheckoutState.ts` | Tax calculation state |
+| `useCart` | `src/hooks/useCart.ts` | Cart items, quantities, Medusa cart ID, SSR hydration |
+| `useCheckoutState` | `src/hooks/useCheckoutState.ts` | Tax display state (simplified) |
 | `useAuth` | `src/hooks/useAuth.ts` | Customer authentication |
+
+### useCart SSR Support (Dec 2024)
+
+The cart store now supports SSR hydration:
+```typescript
+// New methods added:
+hydrateFromServer(cart: MedusaCart)  // Hydrate Zustand from SSR data
+
+// Cookie sync for SSR:
+setCartIdCookieClient(cartId)        // Syncs cart ID to cookie
+clearCartIdCookieClient()            // Clears cart ID cookie
+```
+
+### useCheckoutState (Simplified Dec 2024)
+
+The checkout state store was simplified to remove unused fields:
+```typescript
+// Current state (simplified):
+interface CheckoutState {
+  taxAmount: number
+  isCalculatingTax: boolean
+  setTaxAmount: (amount: number) => void
+  setIsCalculatingTax: (calculating: boolean) => void
+  reset: () => void
+}
+
+// Removed fields (never used):
+// - subtotal, total (calculated from Medusa cart)
+// - shippingAddress (stored in component state)
+// - setSubtotal(), updateTotal() (never called)
+```
 
 ### Local Component State
 
@@ -517,6 +575,17 @@ the subsequent migration to Medusa fulfillment provider for the proper solution.
 > **Note**: With the deferred intent pattern, `clientSecret` is no longer stored
 > in component state. It's obtained at submit time and passed directly to
 > `stripe.confirmPayment()`.
+
+### Single Source of Truth (Dec 2024)
+
+Totals are now sourced from Medusa's authoritative values:
+```typescript
+// In CheckoutForm - use Medusa cart values when available
+const shippingCost = medusaCart?.shipping_total ?? selectedRate?.amount ?? 0;
+const displaySubtotal = medusaCart?.subtotal ?? subtotal;
+const displayTax = medusaCart?.tax_total ?? taxAmount;
+const total = medusaCart?.total ?? (subtotal + shippingCost + taxAmount);
+```
 
 ---
 
