@@ -207,11 +207,60 @@ Medusa uses `promiseAll` which has [known issues](https://github.com/medusajs/me
 
 ---
 
+## The Commit Dependency Chain
+
+The tax commit (recording the transaction in Stripe for reporting) depends on successful persistence:
+
+```
+1. getTaxLines() → Provider calculates tax, returns lines with metadata
+   ↓
+2. setTaxLinesForItemsStep → Should store tax lines on cart
+   ↓ (THIS IS BROKEN)
+3. Cart completion → Tax lines copied to order
+   ↓
+4. order.placed event → Commit subscriber fires
+   ↓
+5. Subscriber reads tax_lines[].metadata.stripe_calculation_id
+   ↓
+6. stripe.tax.transactions.createFromCalculation() → Recorded in Stripe
+```
+
+**Current State**: Step 2 is failing, so steps 3-6 can't work.
+
+### Commit Subscriber Log Analysis
+
+```
+[stripe-tax-commit] Processing order: order_01KC5GW2Q5PHVH9SZ3D1Q1387J
+[stripe-tax-commit] No Stripe calculation IDs found for order 59, skipping commit
+```
+
+This confirms tax lines aren't being stored - the subscriber is correctly implemented but has no data to work with.
+
+---
+
 ## Test After Fix
 
 After deploying the shipping-only fix (`e74b0dd`), a test checkout should show:
-1. Backend logs: Tax calculated with no errors
-2. Cart API: `tax_total` > 0 for CA/FL/MN addresses
-3. Order: Tax lines persisted
 
-If `tax_total` is still 0 after fix, the issue is deeper in Medusa's workflow orchestration.
+### Expected Success Flow
+1. **Backend logs - Calculation**: `[stripe-tax] Calculation created: taxcalc_xxx, tax_amount: 3480`
+2. **Backend logs - Commit**: `[stripe-tax-commit] Order XX: 1 items with 1 tax lines, 1 shipping methods with 1 tax lines`
+3. **Backend logs - Commit**: `[stripe-tax-commit] Committed calculation taxcalc_xxx for order XX`
+4. **Medusa Admin**: Order shows `tax_total > 0`
+5. **Stripe Dashboard**: Tax > Transactions shows the committed transaction
+
+### If Still Broken
+If logs show `0 items with 0 tax lines`, the persistence issue is in Medusa's workflow, not our provider.
+
+---
+
+## Quick Validation Checklist
+
+| Check | Expected | Actual |
+|-------|----------|--------|
+| Tax calculated | `tax_amount: 3480` in logs | ✅ Yes |
+| Shipping error | No `Missing required param` | ✅ Fixed |
+| Tax lines stored | `1 items with 1 tax lines` in commit log | ❓ Pending test |
+| tax_total > 0 | Order shows ~$35 tax | ❓ Pending test |
+| Commit executed | `Committed calculation taxcalc_xxx` | ❓ Pending test |
+| Stripe Dashboard | Transaction visible | ❓ Pending test |

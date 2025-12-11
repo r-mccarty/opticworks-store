@@ -68,6 +68,17 @@ export default async function stripeTaxCommitHandler({
       return
     }
 
+    // Debug: Log what we found on the order
+    const itemCount = order.items?.length ?? 0
+    const itemTaxLineCount = order.items?.reduce((sum, item) => sum + (item.tax_lines?.length ?? 0), 0) ?? 0
+    const shippingCount = order.shipping_methods?.length ?? 0
+    const shippingTaxLineCount = order.shipping_methods?.reduce((sum, m) => sum + (m.tax_lines?.length ?? 0), 0) ?? 0
+
+    logger.info(
+      `[stripe-tax-commit] Order ${order.display_id}: ${itemCount} items with ${itemTaxLineCount} tax lines, ` +
+      `${shippingCount} shipping methods with ${shippingTaxLineCount} tax lines`
+    )
+
     // Extract unique stripe_calculation_ids from tax line metadata
     const calculationIds = new Set<string>()
 
