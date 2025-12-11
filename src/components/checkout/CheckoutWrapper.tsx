@@ -122,28 +122,28 @@ export default function CheckoutWrapper({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-12" data-testid="checkout-loading">
-        <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p className="text-lg">Preparing your checkout...</p>
-        <p className="text-sm text-gray-500 mt-2">Creating secure payment session...</p>
+        <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
+        <p className="text-lg text-foreground">Preparing your checkout...</p>
+        <p className="text-sm text-foreground-muted mt-2">Creating secure payment session...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center" data-testid="checkout-error">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Checkout Error</h3>
-        <p className="text-red-700 mb-4">{error}</p>
-        <div className="space-x-2">
+      <div className="bg-error-muted border border-error/30 rounded-xl p-6 text-center" data-testid="checkout-error">
+        <h3 className="text-lg font-semibold text-error mb-2">Checkout Error</h3>
+        <p className="text-error/80 mb-4">{error}</p>
+        <div className="flex gap-3 justify-center">
           <button
             onClick={() => window.location.reload()}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
+            className="bg-error text-error-foreground px-4 py-2 rounded-lg hover:bg-error-hover transition-colors font-medium"
           >
             Retry
           </button>
           <button
             onClick={() => window.history.back()}
-            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
+            className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary-hover transition-colors font-medium"
           >
             Go Back
           </button>
@@ -154,13 +154,13 @@ export default function CheckoutWrapper({
 
   if (!cartId) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-        <p className="text-yellow-800">
+      <div className="bg-warning-muted border border-warning/30 rounded-xl p-6 text-center">
+        <p className="text-warning">
           Unable to initialize checkout. Please try again.
         </p>
         <button
           onClick={() => window.location.reload()}
-          className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition-colors"
+          className="mt-4 bg-warning text-warning-foreground px-4 py-2 rounded-lg hover:bg-warning-hover transition-colors font-medium"
         >
           Retry
         </button>
@@ -176,10 +176,15 @@ export default function CheckoutWrapper({
     amount: cartSubtotal,
     currency: 'usd',
     appearance: {
-      theme: 'stripe',
+      theme: 'night',
       variables: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-        colorPrimary: '#16a34a',
+        fontFamily: 'ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif',
+        colorPrimary: '#f97316',
+        colorBackground: '#0a0c10',
+        colorText: '#f8fafc',
+        colorTextSecondary: 'rgba(248, 250, 252, 0.7)',
+        colorDanger: '#ef4444',
+        borderRadius: '0.75rem',
       },
     },
   };

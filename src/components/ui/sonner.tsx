@@ -1,28 +1,39 @@
-"use client"
+"use client";
 
-import { Toaster as Sonner } from "sonner"
+import { Toaster as Sonner } from "sonner";
 
-type ToasterProps = React.ComponentProps<typeof Sonner>
+type ToasterProps = React.ComponentProps<typeof Sonner>;
 
+/**
+ * Toast notifications using OpticWorks design tokens
+ * Dark-mode only
+ */
 const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
-      theme="light"
+      theme="dark"
       className="toaster group font-colfax"
       toastOptions={{
         classNames: {
           toast:
-            "group toast group-[.toaster]:bg-white group-[.toaster]:text-neutral-950 group-[.toaster]:border-neutral-200 group-[.toaster]:shadow-lg dark:group-[.toaster]:bg-neutral-950 dark:group-[.toaster]:text-neutral-50 dark:group-[.toaster]:border-neutral-800",
-          description: "group-[.toast]:text-neutral-500 dark:group-[.toast]:text-neutral-400",
+            "group toast group-[.toaster]:bg-background-elevated group-[.toaster]:text-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl",
+          description: "group-[.toast]:text-foreground-muted",
           actionButton:
-            "group-[.toast]:bg-neutral-900 group-[.toast]:text-neutral-50 dark:group-[.toast]:bg-neutral-50 dark:group-[.toast]:text-neutral-900",
+            "group-[.toast]:bg-primary group-[.toast]:text-primary-foreground",
           cancelButton:
-            "group-[.toast]:bg-neutral-100 group-[.toast]:text-neutral-500 dark:group-[.toast]:bg-neutral-800 dark:group-[.toast]:text-neutral-400",
+            "group-[.toast]:bg-secondary group-[.toast]:text-secondary-foreground",
+          success:
+            "group-[.toaster]:bg-success-muted group-[.toaster]:border-success/30 group-[.toaster]:text-success",
+          error:
+            "group-[.toaster]:bg-error-muted group-[.toaster]:border-error/30 group-[.toaster]:text-error",
+          warning:
+            "group-[.toaster]:bg-warning-muted group-[.toaster]:border-warning/30 group-[.toaster]:text-warning",
+          info: "group-[.toaster]:bg-info-muted group-[.toaster]:border-info/30 group-[.toaster]:text-info",
         },
       }}
       {...props}
     />
-  )
-}
+  );
+};
 
-export { Toaster }
+export { Toaster };

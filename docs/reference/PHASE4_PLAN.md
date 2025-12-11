@@ -10,7 +10,7 @@
 | Track | Status | Description |
 |-------|--------|-------------|
 | 1 | Pending | Production product catalog (real products, images, pricing) |
-| 2 | Pending | Design system + UI overhaul (Shadcn/Radix theming) |
+| 2 | **In Progress** | Design system + UI overhaul (Shadcn/Radix theming) - Foundation complete, page updates pending |
 | 3 | **Near Complete** | Fulfillment module (EasyPost + inventory tracking) |
 | 4 | **Complete** | Consumer documentation site (docs.optic.works) |
 | 5 | Pending | Usability testing + accessibility audit |
@@ -69,38 +69,68 @@ curl -H "x-publishable-api-key: $PUBKEY" \
 
 **Goal**: Professional, cohesive visual design with consistent component library.
 
+**Status**: In Progress (Foundation complete, page-level updates pending)
+
 ### Design System Components
 
-| Component | Current | Target |
-|-----------|---------|--------|
-| Color palette | Ad-hoc Tailwind | Defined brand tokens |
-| Typography | Geist font | Typography scale + hierarchy |
-| Spacing | Inconsistent | 4px grid system |
-| Components | Mixed Shadcn/custom | Unified Radix + Shadcn |
-| Dark mode | Partial | Complete implementation |
+| Component | Current | Target | Status |
+|-----------|---------|--------|--------|
+| Color palette | Ad-hoc Tailwind | Defined brand tokens | **Complete** |
+| Typography | Geist font | Typography scale + hierarchy | **Complete** |
+| Spacing | Inconsistent | 4px grid system | **Complete** |
+| Components | Mixed Shadcn/custom | Unified Radix + Shadcn | **Complete** |
+| Dark mode | Partial | Dark-only implementation | **Complete** |
 
-### Tasks
+### Completed Tasks (Dec 2025)
 
-- [ ] Define brand color palette (primary, secondary, accent, semantic)
-- [ ] Create typography scale in `tailwind.config.ts`
-- [ ] Audit and standardize all Shadcn components
-- [ ] Implement consistent spacing system
-- [ ] Complete dark mode support
+- [x] Define brand color palette (primary, secondary, accent, semantic) in `globals.css`
+- [x] Create typography scale in `tailwind.config.ts`
+- [x] Audit and standardize all 12 Shadcn components
+- [x] Implement consistent spacing system
+- [x] Dark-mode only implementation (removed light mode)
+- [x] Consolidate button systems (deprecated Tremor Button)
+- [x] Fix checkout flow UI (ShippingSelector, CheckoutForm, CheckoutWrapper)
+- [x] Create design system documentation (`docs/design-system/`)
+- [x] Stripe Elements dark theme integration
+
+### Pending Tasks
+
+- [ ] Update page-level components (~20+ files with hardcoded colors)
 - [ ] Design product cards, CTAs, and hero sections
 - [ ] Mobile-first responsive polish
 - [ ] Loading states and skeleton screens
 
 ### Key Files
 
-- `src/app/globals.css` - CSS variables and base styles
-- `src/components/ui/` - Shadcn components
-- `tailwind.config.ts` - Theme configuration
+**Design System Foundation:**
+- `src/app/globals.css` - CSS custom properties (colors, radius, shadows, spacing)
+- `tailwind.config.ts` - Theme configuration with token mappings
+- `src/components/ui/button.tsx` - Unified button component
+
+**Updated Components:**
+- `src/components/ui/*.tsx` - All 12 shadcn components updated
+- `src/components/checkout/ShippingSelector.tsx` - Fixed readability issues
+- `src/components/checkout/CheckoutForm.tsx` - Design token integration
+- `src/components/checkout/CheckoutWrapper.tsx` - Dark Stripe Elements
+
+**Documentation:**
+- `docs/design-system/README.md` - Quick start guide
+- `docs/design-system/DESIGN_TOKENS.md` - Full token reference
+- `docs/design-system/COMPONENTS.md` - Component usage guide
+- `docs/design-system/MIGRATION.md` - Migration guide for existing code
+
+### Design Decisions
+
+- **Dark Mode Only**: Single theme, no `dark:` prefixes needed
+- **Orange Accent**: Primary color is orange (#f97316)
+- **Modern Rounded**: Large border radius (rounded-xl, rounded-2xl)
+- **Semantic Tokens**: Colors named by purpose (foreground, success, error)
 
 ### Deliverables
 
-- Style guide document
-- Component storybook (optional)
-- Before/after screenshots
+- [x] Style guide document (`docs/design-system/`)
+- [ ] Component storybook (optional)
+- [ ] Before/after screenshots
 
 ---
 

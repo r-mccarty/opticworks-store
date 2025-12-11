@@ -3,6 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, Truck, Package, Zap, Check } from 'lucide-react';
 import type { ShippingRate } from '@/hooks/useMedusaShipping';
+import { cn } from '@/lib/utils';
 
 interface ShippingSelectorProps {
   rates: ShippingRate[];
@@ -18,18 +19,17 @@ interface ShippingSelectorProps {
 }
 
 /**
- * Get carrier icon
+ * Get carrier icon with design system colors
  */
 function CarrierIcon({ carrier }: { carrier: string }) {
-  // Could use actual carrier logos here
   switch (carrier.toUpperCase()) {
     case 'FEDEX':
-      return <Zap className="h-5 w-5 text-purple-600" />;
+      return <Zap className="h-5 w-5 text-info" />;
     case 'UPS':
-      return <Package className="h-5 w-5 text-amber-700" />;
+      return <Package className="h-5 w-5 text-warning" />;
     case 'USPS':
     default:
-      return <Truck className="h-5 w-5 text-blue-600" />;
+      return <Truck className="h-5 w-5 text-primary" />;
   }
 }
 
@@ -48,6 +48,7 @@ function formatPrice(amount: number, currency: string = 'USD'): string {
 
 /**
  * Shipping option selector component
+ * Uses OpticWorks design tokens - dark mode only
  */
 export function ShippingSelector({
   rates,
@@ -60,22 +61,23 @@ export function ShippingSelector({
   freeShippingThreshold = 200,
 }: ShippingSelectorProps) {
   const freeShippingEligible = subtotal >= freeShippingThreshold;
+
   // Digital-only orders don't need shipping
   if (isDigitalOnly) {
     return (
       <Card data-testid="shipping-selector-digital">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
+            <Package className="h-5 w-5 text-primary" />
             Delivery
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-2 text-green-600">
+          <div className="flex items-center gap-2 text-success">
             <Check className="h-5 w-5" />
-            <span>Digital delivery - No shipping required</span>
+            <span className="font-medium">Digital delivery - No shipping required</span>
           </div>
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-foreground-muted">
             You&apos;ll receive download links via email after purchase.
           </p>
         </CardContent>
@@ -87,43 +89,54 @@ export function ShippingSelector({
     <Card data-testid="shipping-selector">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Truck className="h-5 w-5" />
+          <Truck className="h-5 w-5 text-primary" />
           Shipping Method
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Free shipping banner */}
         {freeShippingEligible && (
-          <div className="rounded-md bg-green-50 p-3 text-sm text-green-800 dark:bg-green-900/20 dark:text-green-400">
-            <span className="font-medium">Free shipping applied!</span> Your order qualifies for free standard shipping.
+          <div className="flex items-center gap-2 rounded-xl bg-success-muted border border-success/30 p-4 text-success">
+            <Check className="h-5 w-5 flex-shrink-0" />
+            <div>
+              <span className="font-medium">Free shipping applied!</span>
+              <span className="ml-1 text-success/80">Your order qualifies for free standard shipping.</span>
+            </div>
           </div>
         )}
         {!freeShippingEligible && subtotal > 0 && (
-          <div className="rounded-md bg-blue-50 p-3 text-sm text-blue-800 dark:bg-blue-900/20 dark:text-blue-400">
-            Add ${(freeShippingThreshold - subtotal).toFixed(2)} more to qualify for free shipping.
+          <div className="flex items-center gap-2 rounded-xl bg-info-muted border border-info/30 p-4 text-info">
+            <Truck className="h-5 w-5 flex-shrink-0" />
+            <span>
+              Add <span className="font-semibold">${(freeShippingThreshold - subtotal).toFixed(2)}</span> more to qualify for free shipping.
+            </span>
           </div>
         )}
 
         {/* Loading state */}
         {isLoading && (
           <div className="flex items-center justify-center py-8" data-testid="shipping-rates-loading">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-            <span className="ml-2 text-gray-500">Calculating shipping rates...</span>
+            <Loader2 className="h-6 w-6 animate-spin text-foreground-muted" />
+            <span className="ml-3 text-foreground-muted">Calculating shipping rates...</span>
           </div>
         )}
 
         {/* Error state */}
         {error && !isLoading && (
-          <div className="rounded-md bg-red-50 p-4 text-sm text-red-800 dark:bg-red-900/20 dark:text-red-400" data-testid="shipping-rates-error">
-            <p className="font-medium">Unable to calculate shipping</p>
-            <p className="mt-1">{error}</p>
+          <div
+            className="rounded-xl bg-error-muted border border-error/30 p-4"
+            data-testid="shipping-rates-error"
+          >
+            <p className="font-medium text-error">Unable to calculate shipping</p>
+            <p className="mt-1 text-sm text-error/80">{error}</p>
           </div>
         )}
 
         {/* No rates available */}
         {!isLoading && !error && rates.length === 0 && (
-          <div className="py-4 text-center text-gray-500">
-            Enter your shipping address to see available options.
+          <div className="py-6 text-center text-foreground-muted">
+            <Truck className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p>Enter your shipping address to see available options.</p>
           </div>
         )}
 
@@ -137,13 +150,14 @@ export function ShippingSelector({
                 <label
                   key={rate.id}
                   data-testid={`shipping-rate-${rate.id}`}
-                  className={`
-                    relative flex cursor-pointer rounded-lg border p-4 transition-all
-                    ${isSelected
-                      ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 dark:bg-blue-900/20'
-                      : 'border-gray-200 hover:border-gray-300 dark:border-gray-700 dark:hover:border-gray-600'
-                    }
-                  `}
+                  className={cn(
+                    // Base styles
+                    "relative flex cursor-pointer rounded-xl border-2 p-4 transition-all duration-200",
+                    // Selected vs unselected
+                    isSelected
+                      ? "border-primary bg-primary-muted shadow-glow-primary"
+                      : "border-border hover:border-border-hover hover:bg-background-subtle"
+                  )}
                 >
                   <input
                     type="radio"
@@ -155,35 +169,37 @@ export function ShippingSelector({
                     data-testid={`shipping-radio-${rate.id}`}
                   />
 
-                  <div className="flex w-full items-start gap-4">
+                  <div className="flex w-full items-center gap-4">
                     {/* Carrier icon */}
-                    <div className="flex-shrink-0 pt-0.5">
+                    <div className={cn(
+                      "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
+                      isSelected ? "bg-primary/20" : "bg-background-muted"
+                    )}>
                       <CarrierIcon carrier={rate.carrier} />
                     </div>
 
                     {/* Rate details */}
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900 dark:text-gray-100">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-foreground">
                           {rate.name}
                         </span>
                         {/* Badges */}
                         {rate.badges?.map((badge) => (
                           <span
                             key={badge}
-                            className={`
-                              inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium
-                              ${badge === 'Fastest'
-                                ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                              }
-                            `}
+                            className={cn(
+                              "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                              badge === 'Fastest'
+                                ? "bg-warning-muted text-warning border border-warning/30"
+                                : "bg-success-muted text-success border border-success/30"
+                            )}
                           >
                             {badge}
                           </span>
                         ))}
                       </div>
-                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                      <p className="mt-1 text-sm text-foreground-muted">
                         {rate.estimatedDelivery}
                       </p>
                     </div>
@@ -191,13 +207,12 @@ export function ShippingSelector({
                     {/* Price */}
                     <div className="flex-shrink-0 text-right">
                       <span
-                        className={`
-                          text-lg font-semibold
-                          ${rate.amount === 0
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-gray-900 dark:text-gray-100'
-                          }
-                        `}
+                        className={cn(
+                          "text-lg font-semibold",
+                          rate.amount === 0
+                            ? "text-success"
+                            : "text-foreground"
+                        )}
                       >
                         {formatPrice(rate.amount, rate.currency)}
                       </span>
@@ -205,8 +220,10 @@ export function ShippingSelector({
 
                     {/* Selected indicator */}
                     {isSelected && (
-                      <div className="absolute right-4 top-4">
-                        <Check className="h-5 w-5 text-blue-500" />
+                      <div className="flex-shrink-0">
+                        <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary">
+                          <Check className="h-4 w-4 text-primary-foreground" />
+                        </div>
                       </div>
                     )}
                   </div>

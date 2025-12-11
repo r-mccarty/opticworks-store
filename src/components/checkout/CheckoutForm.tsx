@@ -346,45 +346,45 @@ export default function CheckoutForm({
         <CardHeader>
           <CardTitle>Order Summary</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3">
           {items.map((item) => (
-            <div key={item.id} className="flex justify-between text-sm">
+            <div key={item.id} className="flex justify-between text-sm text-foreground-muted">
               <span>{item.name} x {item.quantity}</span>
               <span>${(item.price * item.quantity).toLocaleString()}</span>
             </div>
           ))}
-          <div className="border-t pt-2 mt-2">
+          <div className="border-t border-border pt-3 mt-3 space-y-2">
             <div className="flex justify-between text-sm" data-testid="order-summary-subtotal">
-              <span>Subtotal</span>
-              <span data-testid="subtotal-amount">${subtotal.toLocaleString()}</span>
+              <span className="text-foreground-muted">Subtotal</span>
+              <span className="text-foreground" data-testid="subtotal-amount">${subtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm" data-testid="order-summary-shipping">
-              <span>Shipping</span>
+              <span className="text-foreground-muted">Shipping</span>
               {isDigitalOnly ? (
-                <span className="text-green-600" data-testid="shipping-digital">Digital Delivery</span>
+                <span className="text-success" data-testid="shipping-digital">Digital Delivery</span>
               ) : selectedRate ? (
-                <span className={shippingCost === 0 ? 'text-green-600' : ''} data-testid="shipping-amount">
+                <span className={shippingCost === 0 ? 'text-success' : 'text-foreground'} data-testid="shipping-amount">
                   {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
                 </span>
               ) : (
-                <span className="text-gray-400" data-testid="shipping-pending">Select shipping</span>
+                <span className="text-foreground-subtle" data-testid="shipping-pending">Select shipping</span>
               )}
             </div>
             <div className="flex justify-between text-sm" data-testid="order-summary-tax">
-              <span>Tax</span>
+              <span className="text-foreground-muted">Tax</span>
               {ratesLoading ? (
-                <span className="text-gray-400" data-testid="tax-calculating">Calculating...</span>
+                <span className="text-foreground-subtle" data-testid="tax-calculating">Calculating...</span>
               ) : taxAmount > 0 ? (
-                <span data-testid="tax-amount">${taxAmount.toFixed(2)}</span>
+                <span className="text-foreground" data-testid="tax-amount">${taxAmount.toFixed(2)}</span>
               ) : selectedRate ? (
-                <span className="text-gray-400" data-testid="tax-zero">$0.00</span>
+                <span className="text-foreground-subtle" data-testid="tax-zero">$0.00</span>
               ) : (
-                <span className="text-gray-400" data-testid="tax-pending">Enter address</span>
+                <span className="text-foreground-subtle" data-testid="tax-pending">Enter address</span>
               )}
             </div>
-            <div className="flex justify-between font-semibold mt-2" data-testid="order-summary-total">
-              <span>Total</span>
-              <span data-testid="total-amount">${total.toFixed(2)}</span>
+            <div className="flex justify-between font-semibold text-lg pt-2 border-t border-border" data-testid="order-summary-total">
+              <span className="text-foreground">Total</span>
+              <span className="text-foreground" data-testid="total-amount">${total.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>
@@ -393,10 +393,10 @@ export default function CheckoutForm({
       {/* Error/Status Message */}
       {message && (
         <div
-          className={`p-4 rounded-md ${
+          className={`p-4 rounded-xl border ${
             message.includes('successful') || message.includes('processing')
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
+              ? 'bg-success-muted text-success border-success/30'
+              : 'bg-error-muted text-error border-error/30'
           }`}
           data-testid="checkout-message"
         >
@@ -408,8 +408,9 @@ export default function CheckoutForm({
       <Button
         type="submit"
         disabled={isProcessing || !stripe || !elements || (!isDigitalOnly && !selectedRate)}
-        className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 text-xl shadow-lg hover:shadow-xl transition-all duration-200"
-        size="lg"
+        variant="success"
+        size="xl"
+        className="w-full"
         data-testid="pay-button"
       >
         {isProcessing ? (
@@ -423,7 +424,7 @@ export default function CheckoutForm({
       </Button>
 
       {/* Security Notice */}
-      <p className="text-sm text-gray-600 text-center">
+      <p className="text-sm text-foreground-muted text-center">
         Your payment is secured by Stripe. We never store your card details.
       </p>
     </form>
