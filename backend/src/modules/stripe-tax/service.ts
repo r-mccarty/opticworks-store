@@ -103,13 +103,12 @@ class StripeTaxProviderService implements ITaxProvider {
       return zeroLines
     }
 
-    // If no items to tax, return zero taxes for shipping only
-    // Stripe Tax API requires at least one line item
+    // If no items to tax, return empty array
+    // Stripe Tax API requires at least one line item, and shipping-only
+    // tax will be calculated when we have items + shipping together
     if (itemLines.length === 0) {
-      this.logger.info("[stripe-tax] No items to tax, returning zero tax lines for shipping")
-      const zeroLines = this.buildZeroTaxLines(itemLines, shippingLines)
-      this.logger.info(`[stripe-tax] Returning ${zeroLines.length} zero shipping tax lines`)
-      return zeroLines
+      this.logger.info("[stripe-tax] No items to tax, returning empty array (shipping tax included in item calculation)")
+      return []
     }
 
     try {
