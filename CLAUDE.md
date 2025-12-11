@@ -78,6 +78,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | EasyPost | Shipping rates, labels, tracking | `docs/reference/FULFILLMENT.md` |
 | Hookdeck | Webhook gateway (Stripe + EasyPost) | `docs/reference/WEBHOOKS.md` |
 | Stripe | Payments (deferred intent pattern) | `docs/reference/CHECKOUT_FLOW.md` |
+| Stripe Tax | Automated sales tax calculation | `docs/reference/STRIPE_TAX.md` |
 | Infisical | Secrets management | `docs/SECRETS.md` |
 | Mailosaur | E2E email testing | `docs/reference/E2E_TESTING.md` |
 
@@ -89,6 +90,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | `docs/reference/FULFILLMENT.md` | Shipping rates, labels, EasyPost provider |
 | `docs/reference/FULFILLMENT_INBOUND.md` | Tracker webhooks, status updates |
 | `docs/reference/CHECKOUT_FLOW.md` | Payment flow, Stripe integration |
+| `docs/reference/STRIPE_TAX.md` | Sales tax calculation, Stripe Tax provider |
 | `docs/reference/WEBHOOKS.md` | Stripe + EasyPost webhook handling |
 | `docs/reference/E2E_TESTING.md` | Playwright, Mailosaur, Hookdeck testing |
 | `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible playbooks, backup & recovery |
