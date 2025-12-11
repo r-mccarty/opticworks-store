@@ -141,20 +141,29 @@ if (pollResult.found) { /* redirect to success */ }
   - Calls `hydrateFromServer()` when initialCart provided
   - Loading state rarely shows now (only if SSR fails)
 
-### Phase 5: Testing & Validation - IN PROGRESS
+### Phase 5: Testing & Validation - COMPLETE
 
 #### Automated Tests - COMPLETE
 - **Lint:** PASS (2 pre-existing warnings)
 - **Unit Tests:** PASS (5/5)
 - **Build:** PASS
 
-#### E2E Tests - PENDING
-- Requires full environment with Medusa backend
-- Manual testing recommended before production deployment
+#### E2E Tests - PASS
+- **Command:** `pnpm exec playwright test --project=chromium --reporter=list`
+- **Result:** 48 tests passed using 1 worker
+- **Key flows verified:**
+  - Product page navigation
+  - Add to cart (creates Medusa cart, adds line item)
+  - Cart sync with Medusa (subtotal=$239, sync status works)
+  - Cart page navigation
+  - Cart ID cookie now synced for SSR
+
+#### Deployment - COMPLETE
+- **Commit:** `2cfbde1` - feat: Implement architecture audit phases 1-4
+- **Cloudflare:** Auto-deployed to production
 
 ### Next Steps
-- [ ] Run E2E tests: `pnpm exec playwright test --project=chromium`
-- [ ] Manual checkout flow testing
+- [ ] Manual checkout flow testing (user)
 - [ ] Phase 6: Documentation & Maintenance
 
 ---

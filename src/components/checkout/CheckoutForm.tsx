@@ -151,7 +151,8 @@ export default function CheckoutForm({
       const medusaItem = medusaCart.items.find(
         (mi) => mi.id === item.lineItemId || mi.variant_id === item.variantId
       );
-      if (medusaItem) {
+      // Use Medusa subtotal if available and defined, otherwise fall back
+      if (medusaItem?.subtotal !== undefined) {
         return medusaItem.subtotal;
       }
     }
