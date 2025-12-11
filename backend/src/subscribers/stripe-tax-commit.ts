@@ -31,15 +31,20 @@ export default async function stripeTaxCommitHandler({
 
   try {
     // Fetch order with tax lines from items and shipping methods
+    // Include code field which contains the encoded calculation ID
     const { data: orders } = await query.graph({
       entity: "order",
       fields: [
         "id",
         "display_id",
         "items.id",
-        "items.tax_lines.*",
+        "items.tax_lines.id",
+        "items.tax_lines.code",
+        "items.tax_lines.metadata",
         "shipping_methods.id",
-        "shipping_methods.tax_lines.*",
+        "shipping_methods.tax_lines.id",
+        "shipping_methods.tax_lines.code",
+        "shipping_methods.tax_lines.metadata",
       ],
       filters: { id: data.id },
     })
@@ -51,6 +56,7 @@ export default async function stripeTaxCommitHandler({
         id: string
         tax_lines?: Array<{
           id: string
+          code?: string
           metadata?: Record<string, unknown>
         }>
       }>
@@ -58,6 +64,7 @@ export default async function stripeTaxCommitHandler({
         id: string
         tax_lines?: Array<{
           id: string
+          code?: string
           metadata?: Record<string, unknown>
         }>
       }>
@@ -79,15 +86,22 @@ export default async function stripeTaxCommitHandler({
       `${shippingCount} shipping methods with ${shippingTaxLineCount} tax lines`
     )
 
-    // Extract unique stripe_calculation_ids from tax line metadata
+    // Extract unique stripe_calculation_ids from tax line code field
+    // Format: "stripe-tax:taxcalc_xxx" (encoded in code since Medusa drops metadata)
     const calculationIds = new Set<string>()
 
     // Check item tax lines
     for (const item of order.items ?? []) {
       for (const taxLine of item.tax_lines ?? []) {
-        const calcId = taxLine.metadata?.stripe_calculation_id
-        if (typeof calcId === "string" && calcId.startsWith("taxcalc_")) {
+        // Try code field first (new format: "stripe-tax:taxcalc_xxx")
+        if (taxLine.code?.startsWith("stripe-tax:taxcalc_")) {
+          const calcId = taxLine.code.replace("stripe-tax:", "")
           calculationIds.add(calcId)
+        }
+        // Fallback to metadata (in case it's preserved somehow)
+        const metaCalcId = taxLine.metadata?.stripe_calculation_id
+        if (typeof metaCalcId === "string" && metaCalcId.startsWith("taxcalc_")) {
+          calculationIds.add(metaCalcId)
         }
       }
     }
@@ -95,9 +109,13 @@ export default async function stripeTaxCommitHandler({
     // Check shipping method tax lines
     for (const method of order.shipping_methods ?? []) {
       for (const taxLine of method.tax_lines ?? []) {
-        const calcId = taxLine.metadata?.stripe_calculation_id
-        if (typeof calcId === "string" && calcId.startsWith("taxcalc_")) {
+        if (taxLine.code?.startsWith("stripe-tax:taxcalc_")) {
+          const calcId = taxLine.code.replace("stripe-tax:", "")
           calculationIds.add(calcId)
+        }
+        const metaCalcId = taxLine.metadata?.stripe_calculation_id
+        if (typeof metaCalcId === "string" && metaCalcId.startsWith("taxcalc_")) {
+          calculationIds.add(metaCalcId)
         }
       }
     }

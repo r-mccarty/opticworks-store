@@ -286,12 +286,15 @@ class StripeTaxProviderService implements ITaxProvider {
         stripe_scope: "product",
       }
 
+      // Encode calculation ID in code field since Medusa drops metadata during normalization
+      const codeWithCalcId = `stripe-tax:${calculation.id}`
+
       taxLines.push({
         line_item_id: medusaItem.line_item.id,
         rate_id: medusaItem.rates[0]?.id ?? undefined,
         rate: rate,
         name: "Sales Tax",
-        code: "stripe-tax",
+        code: codeWithCalcId,
         provider_id: StripeTaxProviderService.identifier,
         metadata: metadata as unknown as Record<string, unknown>,
       } as TaxTypes.ItemTaxLineDTO)
