@@ -91,10 +91,25 @@ class StripeTaxProviderService implements ITaxProvider {
   ): Promise<(TaxTypes.ItemTaxLineDTO | TaxTypes.ShippingTaxLineDTO)[]> {
     const address = context.address
 
+    this.logger.info(
+      `[stripe-tax] getTaxLines called with ${itemLines.length} items, ${shippingLines.length} shipping lines, address: ${address?.country_code || "none"}/${address?.province_code || "none"}`
+    )
+
     // Require address for tax calculation
     if (!address?.country_code) {
       this.logger.warn("[stripe-tax] No address provided, returning zero taxes")
-      return this.buildZeroTaxLines(itemLines, shippingLines)
+      const zeroLines = this.buildZeroTaxLines(itemLines, shippingLines)
+      this.logger.info(`[stripe-tax] Returning ${zeroLines.length} zero tax lines`)
+      return zeroLines
+    }
+
+    // If no items to tax, return zero taxes for shipping only
+    // Stripe Tax API requires at least one line item
+    if (itemLines.length === 0) {
+      this.logger.info("[stripe-tax] No items to tax, returning zero tax lines for shipping")
+      const zeroLines = this.buildZeroTaxLines(itemLines, shippingLines)
+      this.logger.info(`[stripe-tax] Returning ${zeroLines.length} zero shipping tax lines`)
+      return zeroLines
     }
 
     try {
@@ -119,18 +134,26 @@ class StripeTaxProviderService implements ITaxProvider {
       )
 
       // Map Stripe response to Medusa tax lines
-      return this.mapCalculationToTaxLines(
+      const taxLines = this.mapCalculationToTaxLines(
         calculation,
         itemLines,
         shippingLines
       )
+
+      this.logger.info(
+        `[stripe-tax] Returning ${taxLines.length} tax lines: ${JSON.stringify(taxLines.map(tl => ({ id: "line_item_id" in tl ? tl.line_item_id : tl.shipping_line_id, rate: tl.rate, name: tl.name })))}`
+      )
+
+      return taxLines
     } catch (error) {
       this.logger.error(
         `[stripe-tax] Failed to calculate taxes: ${error instanceof Error ? error.message : error}`
       )
 
       // Return zero taxes on error (fail-open for better UX)
-      return this.buildZeroTaxLines(itemLines, shippingLines)
+      const zeroLines = this.buildZeroTaxLines(itemLines, shippingLines)
+      this.logger.info(`[stripe-tax] Returning ${zeroLines.length} zero tax lines (error fallback)`)
+      return zeroLines
     }
   }
 
