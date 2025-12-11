@@ -69,6 +69,13 @@ MEDUSA_SECRET_KEY=$(get_secret "MEDUSA_SECRET_KEY" "false")
 STRIPE_API_KEY=$(get_secret "STRIPE_SECRET_KEY" "false")
 STRIPE_WEBHOOK_SECRET=$(get_secret "STRIPE_WEBHOOK_SECRET" "false")
 
+# Tax (Stripe Tax)
+STRIPE_TAX_FROM_COUNTRY=$(get_secret "STRIPE_TAX_FROM_COUNTRY" "false")
+STRIPE_TAX_FROM_STATE=$(get_secret "STRIPE_TAX_FROM_STATE" "false")
+STRIPE_TAX_FROM_POSTAL=$(get_secret "STRIPE_TAX_FROM_POSTAL" "false")
+STRIPE_TAX_FROM_CITY=$(get_secret "STRIPE_TAX_FROM_CITY" "false")
+STRIPE_TAX_SKIP_COMMIT=$(get_secret "STRIPE_TAX_SKIP_COMMIT" "false")
+
 # Notifications (Resend)
 RESEND_API_KEY=$(get_secret "RESEND_API_KEY" "false")
 RESEND_FROM_EMAIL=$(get_secret "RESEND_FROM_EMAIL" "false")
@@ -149,6 +156,13 @@ cloudflare_tunnel_credentials: |
 # Stripe Payment
 stripe_api_key: "$STRIPE_API_KEY"
 stripe_webhook_secret: "$STRIPE_WEBHOOK_SECRET"
+
+# Stripe Tax
+stripe_tax_from_country: "$STRIPE_TAX_FROM_COUNTRY"
+stripe_tax_from_state: "$STRIPE_TAX_FROM_STATE"
+stripe_tax_from_postal: "$STRIPE_TAX_FROM_POSTAL"
+stripe_tax_from_city: "$STRIPE_TAX_FROM_CITY"
+stripe_tax_skip_commit: "$STRIPE_TAX_SKIP_COMMIT"
 
 # Resend Email
 resend_api_key: "$RESEND_API_KEY"
