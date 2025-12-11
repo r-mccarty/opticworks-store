@@ -1,53 +1,37 @@
 import { create } from 'zustand';
-import type { ShippingAddress } from '@/types/checkout';
 
+/**
+ * Minimal checkout state for cross-component communication.
+ *
+ * NOTE: This store only holds UI state for propagating tax info to CartPage.
+ * All authoritative values (subtotal, total, tax_total, shipping_total) come
+ * from the Medusa cart via useMedusaShipping hook in CheckoutForm.
+ *
+ * @see Phase 2 of Architecture Audit - simplified from original implementation
+ */
 interface CheckoutState {
+  /** Tax amount from Medusa (propagated for CartPage display) */
   taxAmount: number;
+  /** Whether tax is currently being calculated */
   isCalculatingTax: boolean;
-  shippingAddress: ShippingAddress | null;
-  subtotal: number;
-  total: number;
+  /** Set tax amount (called by CheckoutForm after shipping selection) */
   setTaxAmount: (amount: number) => void;
+  /** Set calculating state (for loading UI) */
   setIsCalculatingTax: (calculating: boolean) => void;
-  setShippingAddress: (address: ShippingAddress | null) => void;
-  setSubtotal: (subtotal: number) => void;
-  updateTotal: () => void;
+  /** Reset state (called on payment success) */
   reset: () => void;
 }
 
-export const useCheckoutState = create<CheckoutState>((set, get) => ({
+export const useCheckoutState = create<CheckoutState>((set) => ({
   taxAmount: 0,
   isCalculatingTax: false,
-  shippingAddress: null,
-  subtotal: 0,
-  total: 0,
-  
-  setTaxAmount: (amount: number) => {
-    set({ taxAmount: amount });
-    get().updateTotal();
-  },
-  
-  setIsCalculatingTax: (calculating: boolean) => 
-    set({ isCalculatingTax: calculating }),
-  
-  setShippingAddress: (address: ShippingAddress | null) => 
-    set({ shippingAddress: address }),
-  
-  setSubtotal: (subtotal: number) => {
-    set({ subtotal });
-    get().updateTotal();
-  },
-  
-  updateTotal: () => {
-    const { subtotal, taxAmount } = get();
-    set({ total: subtotal + taxAmount });
-  },
-  
+
+  setTaxAmount: (amount: number) => set({ taxAmount: amount }),
+
+  setIsCalculatingTax: (calculating: boolean) => set({ isCalculatingTax: calculating }),
+
   reset: () => set({
     taxAmount: 0,
     isCalculatingTax: false,
-    shippingAddress: null,
-    subtotal: 0,
-    total: 0,
   }),
 }));

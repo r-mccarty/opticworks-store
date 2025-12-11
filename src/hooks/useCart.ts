@@ -15,7 +15,9 @@ import {
   removeLineItem as medusaRemoveLineItem,
   getDefaultRegionId,
   type MedusaLineItem,
+  type MedusaCart,
 } from '@/lib/api/medusa'
+import { setCartIdCookieClient, clearCartIdCookieClient } from '@/lib/cart/cookies'
 
 interface CartStore {
   // State
@@ -43,6 +45,8 @@ interface CartStore {
   initializeCart: () => Promise<void>
   syncWithMedusa: () => Promise<void>
   getCartId: () => string | null
+  /** Hydrate cart from SSR data (for SSR cart loading) */
+  hydrateFromServer: (cart: MedusaCart) => void
 }
 
 const CART_STORAGE_VERSION = 2 // Bumped for Medusa cart support
@@ -156,6 +160,8 @@ export const useCart = create<CartStore>()(
             items: [],
             syncStatus: "synced"
           })
+          // Sync cart ID to cookie for SSR
+          setCartIdCookieClient(newCart.id)
         } catch (error) {
           console.error("[cart] Failed to initialize cart:", error)
           set({
@@ -250,6 +256,8 @@ export const useCart = create<CartStore>()(
             const newCart = await medusaCreateCart(regionId)
             cartId = newCart.id
             set({ cartId, regionId })
+            // Sync cart ID to cookie for SSR
+            setCartIdCookieClient(cartId)
           }
 
           // Add to Medusa cart
@@ -322,12 +330,19 @@ export const useCart = create<CartStore>()(
 
       clearCart: () => {
         set({ items: [], cartId: null, syncStatus: "idle", paymentSession: null })
+        // Clear cart ID from cookie
+        clearCartIdCookieClient()
       },
 
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0)
       },
 
+      /**
+       * Get total price from local cart items (optimistic/fallback).
+       * NOTE: For authoritative totals, use medusaCart.subtotal from useMedusaShipping
+       * after shipping is selected. This is used for quick display before checkout.
+       */
       getTotalPrice: () => {
         return get().items.reduce((total, item) => total + (item.price * item.quantity), 0)
       },
@@ -352,6 +367,28 @@ export const useCart = create<CartStore>()(
 
       getCartId: () => {
         return get().cartId
+      },
+
+      /**
+       * Hydrate cart from SSR data.
+       * Called when initialCart is provided from server-side rendering.
+       * Syncs cart ID with cookie for future SSR requests.
+       */
+      hydrateFromServer: (cart: MedusaCart) => {
+        console.log('[cart] Hydrating from SSR data, items:', cart.items?.length ?? 0)
+
+        const items = cart.items.map((item) => transformMedusaLineItem(item, productCache))
+
+        set({
+          items,
+          cartId: cart.id,
+          regionId: cart.region_id,
+          syncStatus: "synced",
+          syncError: null,
+        })
+
+        // Sync cart ID to cookie for future SSR requests
+        setCartIdCookieClient(cart.id)
       },
     }),
     persistOptions

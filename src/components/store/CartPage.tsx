@@ -13,18 +13,36 @@ import { useState, useEffect } from "react"
 import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 import { useCheckoutState } from "@/hooks/useCheckoutState"
 import { summarizeSpecifications } from "@/lib/cart/utils"
+import type { MedusaCart } from "@/lib/api/medusa"
 
-export function CartPage() {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, setPaymentSession } = useCart()
+interface CartPageProps {
+  /** Initial cart data from SSR (eliminates hydration mismatch) */
+  initialCart?: MedusaCart | null
+}
+
+/**
+ * Cart page component with SSR support.
+ *
+ * When initialCart is provided (from server), it hydrates the cart store
+ * without the need for a loading spinner, eliminating hydration mismatch.
+ *
+ * @see Phase 4 of Architecture Audit
+ */
+export function CartPage({ initialCart }: CartPageProps) {
+  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, setPaymentSession, hydrateFromServer } = useCart()
   const { taxAmount, isCalculatingTax, reset: resetCheckout } = useCheckoutState()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
-  const [isMounted, setIsMounted] = useState(false)
+  const [isHydrated, setIsHydrated] = useState(!!initialCart)
 
-  // Prevent hydration mismatch by only rendering after client-side mount
+  // Hydrate cart store from server data (eliminates loading spinner)
   useEffect(() => {
-    setIsMounted(true)
-  }, [])
+    if (initialCart && hydrateFromServer) {
+      hydrateFromServer(initialCart)
+    }
+    // Mark as hydrated after first render (handles case where initialCart is null)
+    setIsHydrated(true)
+  }, [initialCart, hydrateFromServer])
 
   const handlePaymentSuccess = (sessionId: string) => {
     console.log('Payment successful, setting session:', sessionId)
@@ -48,8 +66,9 @@ export function CartPage() {
     setShowPaymentForm(true)
   }
 
-  // Show loading state during hydration to prevent mismatch
-  if (!isMounted) {
+  // Show loading state only when SSR data not available and client not yet hydrated
+  // With SSR cart loading, this should rarely show
+  if (!isHydrated) {
     return (
       <main className="relative">
         <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">

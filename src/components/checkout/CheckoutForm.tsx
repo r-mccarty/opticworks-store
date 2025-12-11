@@ -16,6 +16,7 @@ import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
 import { useCheckoutState } from '@/hooks/useCheckoutState';
 import { completeCart, updateCart, createMedusaPaymentSession, type MedusaAddress } from '@/lib/api/medusa';
+import { pollForOrder, getPollingResultMessage } from '@/lib/api/order-polling';
 import { ShippingSelector } from './ShippingSelector';
 import { useMedusaShipping, type ShippingAddress, type ShippingRate } from '@/hooks/useMedusaShipping';
 
@@ -63,7 +64,7 @@ export default function CheckoutForm({
   const subtotal = getTotalPrice();
 
   // Use Medusa shipping hook (fetches from backend EasyPost provider)
-  // Also returns taxAmount after shipping selection
+  // Returns cart with authoritative totals after shipping selection
   const {
     rates,
     selectedRate,
@@ -71,6 +72,7 @@ export default function CheckoutForm({
     error: ratesError,
     isDigitalOnly,
     taxAmount,
+    cart: medusaCart,  // Authoritative cart data after shipping selection
     selectRate,
   } = useMedusaShipping({
     cartId,
@@ -104,14 +106,17 @@ export default function CheckoutForm({
     onShippingChange?.(rate);
   }, [selectRate, onShippingChange, elements, subtotal, taxAmount]);
 
-  // Update Elements amount when tax changes
+  // Update Elements amount when cart totals change (using Medusa's authoritative values)
   useEffect(() => {
-    if (elements && selectedRate && taxAmount > 0) {
-      const newAmount = Math.round((subtotal + selectedRate.amount + taxAmount) * 100);
+    if (elements && selectedRate) {
+      // Use Medusa cart's authoritative total when available, otherwise calculate locally
+      const amountInDollars = medusaCart?.total ?? (subtotal + selectedRate.amount + taxAmount);
+      const newAmount = Math.round(amountInDollars * 100);
       elements.update({ amount: newAmount });
-      console.log('[checkout] Updated Elements amount with tax:', newAmount, 'cents');
+      console.log('[checkout] Updated Elements amount:', newAmount, 'cents',
+        medusaCart ? '(from Medusa cart.total)' : '(local calculation)');
     }
-  }, [elements, subtotal, selectedRate, taxAmount]);
+  }, [elements, subtotal, selectedRate, taxAmount, medusaCart]);
 
   // Handle address element changes
   const handleAddressChange = useCallback((event: StripeAddressElementChangeEvent) => {
@@ -133,8 +138,26 @@ export default function CheckoutForm({
   }, []);
 
   // Calculate total including shipping and tax
-  const shippingCost = selectedRate?.amount ?? 0;
-  const total = subtotal + shippingCost + taxAmount;
+  // Use Medusa cart's authoritative values when available
+  const shippingCost = medusaCart?.shipping_total ?? selectedRate?.amount ?? 0;
+  const displaySubtotal = medusaCart?.subtotal ?? subtotal;
+  const displayTax = medusaCart?.tax_total ?? taxAmount;
+  const total = medusaCart?.total ?? (subtotal + shippingCost + taxAmount);
+
+  // Helper to get item subtotal from Medusa cart (authoritative) or calculate locally
+  const getItemSubtotal = (item: typeof items[0]): number => {
+    if (medusaCart?.items) {
+      // Match by lineItemId or variantId
+      const medusaItem = medusaCart.items.find(
+        (mi) => mi.id === item.lineItemId || mi.variant_id === item.variantId
+      );
+      if (medusaItem) {
+        return medusaItem.subtotal;
+      }
+    }
+    // Fallback to local calculation
+    return item.price * item.quantity;
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -251,11 +274,31 @@ export default function CheckoutForm({
         } catch (completeError) {
           console.error('[checkout] Error completing cart:', completeError);
           // Payment succeeded but order creation failed
-          // The order should be created by webhook, so redirect anyway
-          setMessage('Payment successful! Finalizing your order...');
-          setTimeout(() => {
-            window.location.href = `/store/cart/success?payment_intent=${paymentIntent.id}`;
-          }, 2000);
+          // Poll for order creation by webhook (more robust than blind redirect)
+          setMessage('Payment received! Finalizing your order...');
+
+          const pollResult = await pollForOrder(cartId, paymentIntent.id, {
+            maxAttempts: 10,
+            intervalMs: 3000,
+            onProgress: (attempt, max) => {
+              setMessage(`Payment received! Finalizing your order... (${attempt}/${max})`);
+            },
+          });
+
+          if (pollResult.found && pollResult.orderId) {
+            // Order was created by webhook - success!
+            clearCart();
+            onSuccess(pollResult.orderId);
+          } else {
+            // Order not found after polling - show informative message
+            // The order may still be created; user should check email
+            setMessage(getPollingResultMessage(pollResult));
+            console.log('[checkout] Polling result:', pollResult);
+            // Redirect to success page after short delay - order confirmation will be sent via email
+            setTimeout(() => {
+              window.location.href = `/store/cart/success?payment_intent=${paymentIntent.id}&status=pending`;
+            }, 3000);
+          }
         }
       } else if (paymentIntent?.status === 'processing') {
         setMessage('Payment is processing. You will receive confirmation shortly.');
@@ -350,13 +393,13 @@ export default function CheckoutForm({
           {items.map((item) => (
             <div key={item.id} className="flex justify-between text-sm">
               <span>{item.name} x {item.quantity}</span>
-              <span>${(item.price * item.quantity).toLocaleString()}</span>
+              <span>${getItemSubtotal(item).toLocaleString()}</span>
             </div>
           ))}
           <div className="border-t pt-2 mt-2">
             <div className="flex justify-between text-sm" data-testid="order-summary-subtotal">
               <span>Subtotal</span>
-              <span data-testid="subtotal-amount">${subtotal.toLocaleString()}</span>
+              <span data-testid="subtotal-amount">${displaySubtotal.toLocaleString()}</span>
             </div>
             <div className="flex justify-between text-sm" data-testid="order-summary-shipping">
               <span>Shipping</span>
@@ -374,8 +417,8 @@ export default function CheckoutForm({
               <span>Tax</span>
               {ratesLoading ? (
                 <span className="text-gray-400" data-testid="tax-calculating">Calculating...</span>
-              ) : taxAmount > 0 ? (
-                <span data-testid="tax-amount">${taxAmount.toFixed(2)}</span>
+              ) : displayTax > 0 ? (
+                <span data-testid="tax-amount">${displayTax.toFixed(2)}</span>
               ) : selectedRate ? (
                 <span className="text-gray-400" data-testid="tax-zero">$0.00</span>
               ) : (
