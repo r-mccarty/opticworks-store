@@ -93,6 +93,18 @@ cat .env.local | head -5
 
 **Note:** Set `EASYPOST_MODE=test` during development to generate VOID labels without charges. See `docs/reference/FULFILLMENT.md` for full configuration details.
 
+### Tax (Stripe Tax)
+
+| Variable | Purpose |
+|----------|---------|
+| `STRIPE_TAX_FROM_COUNTRY` | Ship-from country code (ISO 2-letter, e.g., `US`) |
+| `STRIPE_TAX_FROM_STATE` | Ship-from state/province (e.g., `CA`) |
+| `STRIPE_TAX_FROM_POSTAL` | Ship-from postal code (e.g., `94104`) |
+| `STRIPE_TAX_FROM_CITY` | Ship-from city (optional) |
+| `STRIPE_TAX_SKIP_COMMIT` | Skip committing transactions (set to `true` for local dev) |
+
+**Note:** Stripe Tax uses `STRIPE_API_KEY` (same as payments). The `FROM_*` address is used for origin-based tax calculation. Stripe determines nexus automatically from your Stripe Tax dashboard settings.
+
 ### Email
 
 | Variable | Purpose |
