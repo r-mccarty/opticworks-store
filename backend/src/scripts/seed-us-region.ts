@@ -79,7 +79,7 @@ export default async function seedUSRegion({ container }: ExecArgs) {
     input: [
       {
         country_code: "us",
-        provider_id: "tp_stripe-tax",
+        provider_id: "tp_stripe-tax_stripe-tax",
       },
     ],
   });
