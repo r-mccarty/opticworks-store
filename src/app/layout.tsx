@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
+import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 
 import { Toaster } from "@/components/ui/sonner"
@@ -7,7 +8,6 @@ import Footer from "@/components/ui/Footer"
 import { MenuBar } from "@/components/menu-bar"
 import { ThemeProvider } from "@/components/theme-provider"
 import { siteConfig } from "./siteConfig"
-import { GoogleAnalytics } from "@/components/GoogleAnalytics"
 
 // Define Barlow font
 const barlowFont = localFont({
@@ -49,6 +49,8 @@ const colfaxFont = localFont({
   variable: "--font-colfax",
   display: "swap",
 })
+
+const monoFont = GeistMono
 
 
 const featureFont = localFont({
@@ -117,15 +119,25 @@ export const metadata: Metadata = {
   },
 }
 
+export const dynamic = "force-dynamic"
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
-        <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
+    <html
+      lang="en"
+      className={`${barlowFont.variable} ${colfaxFont.variable} ${monoFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="relative min-h-screen overflow-x-hidden scroll-auto bg-[var(--optic-bg)] font-colfax text-white antialiased selection:bg-amber-200/20 selection:text-amber-300">
+        <div className="pointer-events-none fixed inset-0 -z-10 opacity-70" aria-hidden>
+          <div className="absolute inset-x-0 top-[-20%] mx-auto h-[520px] w-[720px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(255,153,0,0.22),_transparent_62%)] blur-[160px]" />
+          <div className="absolute inset-y-10 left-[-10%] h-[420px] w-[420px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(255,255,255,0.08),_transparent_60%)] blur-[130px]" />
+          <div className="absolute inset-y-32 right-[-14%] h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle_at_center,_rgba(255,153,0,0.18),_transparent_60%)] blur-[140px]" />
+        </div>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />
           {children}
