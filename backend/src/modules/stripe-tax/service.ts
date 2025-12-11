@@ -125,12 +125,14 @@ class StripeTaxProviderService implements ITaxProvider {
       )
 
       // Call Stripe Tax API
+      // Note: Must expand line_items to get them in the response
       const calculation = await this.stripe.tax.calculations.create(
-        calculationParams
+        calculationParams,
+        { expand: ["line_items"] }
       )
 
       this.logger.info(
-        `[stripe-tax] Calculation created: ${calculation.id}, tax_amount: ${calculation.tax_amount_exclusive}`
+        `[stripe-tax] Calculation created: ${calculation.id}, tax_amount: ${calculation.tax_amount_exclusive}, line_items: ${calculation.line_items?.data?.length ?? 0}`
       )
 
       // Map Stripe response to Medusa tax lines
