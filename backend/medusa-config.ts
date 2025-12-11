@@ -49,6 +49,17 @@ if (!easypostApiKey) {
   console.log(`[medusa-config] EasyPost mode: ${easypostMode} (key prefix: ${easypostApiKey.substring(0, 4)}...)`)
 }
 
+// Stripe Tax configuration (ship-from address for tax calculations)
+const stripeTaxFromCountry = process.env.STRIPE_TAX_FROM_COUNTRY
+const stripeTaxFromState = process.env.STRIPE_TAX_FROM_STATE
+const stripeTaxFromPostal = process.env.STRIPE_TAX_FROM_POSTAL
+const stripeTaxFromCity = process.env.STRIPE_TAX_FROM_CITY
+const stripeTaxSkipCommit = process.env.STRIPE_TAX_SKIP_COMMIT === "true"
+
+if (!stripeTaxFromCountry || !stripeTaxFromPostal) {
+  console.warn("[medusa-config] STRIPE_TAX_FROM_COUNTRY or STRIPE_TAX_FROM_POSTAL not set. Stripe Tax will not work.")
+}
+
 // Redis URLs for infrastructure modules
 const redisUrl = process.env.REDIS_URL ?? "redis://localhost:6379"
 const redisCacheUrl = process.env.REDIS_CACHE_URL ?? redisUrl
@@ -130,6 +141,28 @@ module.exports = defineConfig({
               apiKey: stripeApiKey ?? "sk_test_missing",
               webhookSecret: stripeWebhookSecret ?? "whsec_missing",
               capture: true,
+            },
+          },
+        ],
+      },
+    },
+
+    // ===== Tax Module (Stripe Tax) =====
+    {
+      key: Modules.TAX,
+      resolve: "@medusajs/medusa/tax",
+      options: {
+        providers: [
+          {
+            resolve: "./src/modules/stripe-tax",
+            id: "stripe-tax",
+            options: {
+              api_key: stripeApiKey,
+              from_country: stripeTaxFromCountry,
+              from_state: stripeTaxFromState,
+              from_postal: stripeTaxFromPostal,
+              from_city: stripeTaxFromCity,
+              skip_commit: stripeTaxSkipCommit,
             },
           },
         ],
