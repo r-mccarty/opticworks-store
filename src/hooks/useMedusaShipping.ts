@@ -7,8 +7,10 @@ import {
   calculateShippingOptionPrice,
   addShippingMethod,
   updateCart,
+  getCart,
   type MedusaShippingOption,
   type MedusaAddress,
+  type MedusaCart,
 } from '@/lib/api/medusa';
 
 /**
@@ -53,6 +55,10 @@ interface UseMedusaShippingReturn {
   isLoading: boolean;
   error: string | null;
   isDigitalOnly: boolean;
+  /** Cart data after shipping selection (includes tax_total) */
+  cart: MedusaCart | null;
+  /** Tax amount in dollars (major units) */
+  taxAmount: number;
   selectRate: (rate: ShippingRate) => Promise<void>;
   refetch: () => Promise<void>;
 }
@@ -224,6 +230,8 @@ export function useMedusaShipping({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDigitalOnly] = useState(false); // TODO: Detect from cart items
+  const [cart, setCart] = useState<MedusaCart | null>(null);
+  const [taxAmount, setTaxAmount] = useState<number>(0);
 
   // Track current request to cancel stale ones
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -375,7 +383,7 @@ export function useMedusaShipping({
 
   /**
    * Select a shipping rate and add it to the cart via Medusa API.
-   * This updates the cart total to include shipping.
+   * This updates the cart total to include shipping and triggers tax calculation.
    */
   const selectRate = useCallback(async (rate: ShippingRate) => {
     if (!cartId) {
@@ -388,9 +396,19 @@ export function useMedusaShipping({
 
     try {
       // Add shipping method to cart via Medusa API
-      // This updates the cart total to include shipping
+      // This updates the cart total to include shipping and triggers tax calculation
       await addShippingMethod(cartId, rate.id);
       console.log('[useMedusaShipping] Shipping method added to cart');
+
+      // Fetch updated cart to get tax_total
+      // After shipping is added, Medusa should calculate taxes for the complete cart
+      const updatedCart = await getCart(cartId);
+      setCart(updatedCart);
+
+      // Extract tax_total (already in dollars/major units)
+      const tax = updatedCart.tax_total ?? 0;
+      setTaxAmount(tax);
+      console.log('[useMedusaShipping] Cart updated - tax_total:', tax, 'total:', updatedCart.total);
     } catch (err) {
       console.error('[useMedusaShipping] Error adding shipping method:', err);
       // Don't clear selection - let checkout continue
@@ -404,6 +422,8 @@ export function useMedusaShipping({
     isLoading,
     error,
     isDigitalOnly,
+    cart,
+    taxAmount,
     selectRate,
     refetch: fetchRates,
   };

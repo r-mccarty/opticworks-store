@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, FormEvent } from 'react';
+import { useState, useCallback, useEffect, FormEvent } from 'react';
 import {
   PaymentElement,
   AddressElement,
@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
+import { useCheckoutState } from '@/hooks/useCheckoutState';
 import { completeCart, updateCart, createMedusaPaymentSession, type MedusaAddress } from '@/lib/api/medusa';
 import { ShippingSelector } from './ShippingSelector';
 import { useMedusaShipping, type ShippingAddress, type ShippingRate } from '@/hooks/useMedusaShipping';
@@ -51,6 +52,7 @@ export default function CheckoutForm({
   const stripe = useStripe();
   const elements = useElements();
   const { items, getTotalPrice, clearCart } = useCart();
+  const { setTaxAmount: setGlobalTaxAmount, setIsCalculatingTax } = useCheckoutState();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -61,32 +63,55 @@ export default function CheckoutForm({
   const subtotal = getTotalPrice();
 
   // Use Medusa shipping hook (fetches from backend EasyPost provider)
+  // Also returns taxAmount after shipping selection
   const {
     rates,
     selectedRate,
     isLoading: ratesLoading,
     error: ratesError,
     isDigitalOnly,
+    taxAmount,
     selectRate,
   } = useMedusaShipping({
     cartId,
     address: shippingAddress,
   });
 
+  // Update global checkout state when tax changes (for CartPage display)
+  useEffect(() => {
+    setGlobalTaxAmount(taxAmount);
+  }, [taxAmount, setGlobalTaxAmount]);
+
+  // Set calculating tax when loading shipping (tax is calculated with shipping)
+  useEffect(() => {
+    setIsCalculatingTax(ratesLoading);
+  }, [ratesLoading, setIsCalculatingTax]);
+
   // Handle shipping rate selection - update Elements amount without remounting
   const handleSelectRate = useCallback(async (rate: ShippingRate) => {
     await selectRate(rate);
 
-    // Update Elements with new total (subtotal + shipping) in cents
-    // This updates the displayed amount in PaymentElement without remounting
+    // Update Elements with new total (subtotal + shipping + tax) in cents
+    // Tax is now included in the total after selectRate updates it
+    // Note: We use taxAmount from state which may not be updated yet,
+    // so we'll update Elements again after tax is calculated
     if (elements) {
-      const newAmount = Math.round((subtotal + rate.amount) * 100);
+      const newAmount = Math.round((subtotal + rate.amount + taxAmount) * 100);
       elements.update({ amount: newAmount });
-      console.log('[checkout] Updated Elements amount to:', newAmount, 'cents');
+      console.log('[checkout] Updated Elements amount to:', newAmount, 'cents (tax:', taxAmount, ')');
     }
 
     onShippingChange?.(rate);
-  }, [selectRate, onShippingChange, elements, subtotal]);
+  }, [selectRate, onShippingChange, elements, subtotal, taxAmount]);
+
+  // Update Elements amount when tax changes
+  useEffect(() => {
+    if (elements && selectedRate && taxAmount > 0) {
+      const newAmount = Math.round((subtotal + selectedRate.amount + taxAmount) * 100);
+      elements.update({ amount: newAmount });
+      console.log('[checkout] Updated Elements amount with tax:', newAmount, 'cents');
+    }
+  }, [elements, subtotal, selectedRate, taxAmount]);
 
   // Handle address element changes
   const handleAddressChange = useCallback((event: StripeAddressElementChangeEvent) => {
@@ -107,9 +132,9 @@ export default function CheckoutForm({
     }
   }, []);
 
-  // Calculate total including shipping
+  // Calculate total including shipping and tax
   const shippingCost = selectedRate?.amount ?? 0;
-  const total = subtotal + shippingCost;
+  const total = subtotal + shippingCost + taxAmount;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -345,9 +370,21 @@ export default function CheckoutForm({
                 <span className="text-gray-400">Select shipping</span>
               )}
             </div>
+            <div className="flex justify-between text-sm">
+              <span>Tax</span>
+              {ratesLoading ? (
+                <span className="text-gray-400">Calculating...</span>
+              ) : taxAmount > 0 ? (
+                <span>${taxAmount.toFixed(2)}</span>
+              ) : selectedRate ? (
+                <span className="text-gray-400">$0.00</span>
+              ) : (
+                <span className="text-gray-400">Enter address</span>
+              )}
+            </div>
             <div className="flex justify-between font-semibold mt-2">
               <span>Total</span>
-              <span>${total.toLocaleString()}</span>
+              <span>${total.toFixed(2)}</span>
             </div>
           </div>
         </CardContent>
@@ -381,7 +418,7 @@ export default function CheckoutForm({
             Processing Payment...
           </>
         ) : (
-          `Pay $${total.toLocaleString()}`
+          `Pay $${total.toFixed(2)}`
         )}
       </Button>
 
