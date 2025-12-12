@@ -100,6 +100,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | `docs/reference/STRIPE_TAX.md` | Sales tax calculation, Stripe Tax provider |
 | `docs/reference/WEBHOOKS.md` | Stripe + EasyPost webhook handling |
 | `docs/reference/E2E_TESTING.md` | Playwright, Mailosaur, Hookdeck testing |
+| `docs/reference/E2E_DEBUGGING.md` | Debugging failed tests, correlation IDs |
 | `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible playbooks, backup & recovery |
 | `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS, rate limiting |
 | `docs/reference/OBSERVABILITY.md` | Sentry setup, Cloudflare monitoring |

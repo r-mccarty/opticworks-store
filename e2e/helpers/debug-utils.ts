@@ -2,17 +2,25 @@ import { Page, TestInfo } from '@playwright/test';
 import { ConsoleLogs } from './console-capture';
 import { NetworkLogs } from './network-logger';
 import { getAllStorage } from './storage-inspector';
+import {
+  TestCorrelation,
+  getCorrelationSummary,
+  logCorrelationOnFailure,
+} from './correlation-id';
 
 /**
  * Capture comprehensive debug information and attach to test report.
  * Call this on test failure to get full context for debugging.
+ *
+ * @param correlation - Optional correlation context for backend log tracing
  */
 export async function captureDebugInfo(
   page: Page,
   testInfo: TestInfo,
   consoleLogs: ConsoleLogs,
   networkLogs: NetworkLogs,
-  label: string
+  label: string,
+  correlation?: TestCorrelation
 ): Promise<void> {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const prefix = `${label}-${timestamp}`;
@@ -86,6 +94,23 @@ export async function captureDebugInfo(
     console.log('✓ HTML snapshot captured');
   } catch (error) {
     console.error('✗ HTML snapshot capture failed:', error);
+  }
+
+  // 7. Correlation ID summary (if provided)
+  if (correlation) {
+    try {
+      const summary = getCorrelationSummary(correlation);
+      await testInfo.attach(`${prefix}-correlation`, {
+        body: summary,
+        contentType: 'text/plain',
+      });
+      console.log('✓ Correlation summary captured');
+
+      // Log prominent failure banner with correlation ID
+      logCorrelationOnFailure(correlation);
+    } catch (error) {
+      console.error('✗ Correlation summary capture failed:', error);
+    }
   }
 
   console.log(`\n========== END DEBUG INFO: ${label} ==========\n`);
