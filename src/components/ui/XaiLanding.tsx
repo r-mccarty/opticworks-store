@@ -13,6 +13,13 @@ import Link from "next/link"
 import { FadeContainer, FadeDiv } from "../Fade"
 import { Button } from "./button"
 
+const shellPadding = "px-5 sm:px-8 lg:px-10"
+const sectionSpacing = "space-y-14 sm:space-y-16"
+const cardGlass =
+  "rounded-3xl border border-white/10 bg-white/5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur"
+const subheading =
+  "text-sm uppercase tracking-[0.24em] text-white/60"
+
 const featureSignals = [
   {
     title: "Multi-sensor fusion",
@@ -63,8 +70,8 @@ export function XaiLanding() {
     <div className="relative overflow-hidden bg-[#05060a] text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(120,119,198,0.18),transparent_25%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.18),transparent_22%),radial-gradient(circle_at_50%_80%,rgba(14,165,233,0.12),transparent_28%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0)_20%,rgba(255,255,255,0)_80%,rgba(255,255,255,0.08)_100%)] opacity-30" />
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-20 px-4 pb-24 pt-16 sm:px-6 lg:px-8">
-        <FadeContainer className="space-y-10">
+      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-16 pb-24 pt-16">
+        <FadeContainer className={`${sectionSpacing} ${shellPadding}`}>
           <FadeDiv className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-sm text-white/80">
             <span className="flex items-center gap-2 font-semibold tracking-tight text-cyan-300">
               <RiAiGenerate className="size-4" />
@@ -107,8 +114,8 @@ export function XaiLanding() {
           </FadeDiv>
         </FadeContainer>
 
-        <FadeContainer className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <FadeDiv className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur">
+        <FadeContainer className={`grid gap-6 ${shellPadding} ${sectionSpacing} lg:grid-cols-[1.1fr_0.9fr]`}>
+          <FadeDiv className={`relative overflow-hidden ${cardGlass} p-8`}>
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(56,189,248,0.2),transparent_35%)]" />
             <div className="relative flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/50">
               <span>Signal trace</span>
@@ -140,8 +147,8 @@ export function XaiLanding() {
           </FadeDiv>
 
           <FadeDiv className="grid content-between gap-6">
-            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
-              <p className="text-sm uppercase tracking-[0.2em] text-white/50">Precision, not just presence</p>
+            <div className={`${cardGlass} p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)]`}>
+              <p className={subheading}>Precision, not just presence</p>
               <h2 className="mt-3 text-2xl font-semibold text-white">A Grok-like layer between your rooms and your automations</h2>
               <p className="mt-3 text-white/70">
                 The interface stays simple: black, sharp gradients, minimal chrome. The engine underneath reconciles noisy input into
@@ -163,7 +170,7 @@ export function XaiLanding() {
           </FadeDiv>
         </FadeContainer>
 
-        <FadeContainer className="grid gap-6 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-[0_35px_90px_rgba(0,0,0,0.45)] lg:grid-cols-3">
+        <FadeContainer className={`grid gap-6 ${shellPadding} ${cardGlass} p-8 lg:grid-cols-3`}>
           {featureSignals.map((feature) => (
             <FadeDiv key={feature.title} className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/40 p-6">
               <div className="flex items-center gap-3 text-lg font-semibold text-white">
@@ -179,9 +186,9 @@ export function XaiLanding() {
           ))}
         </FadeContainer>
 
-        <FadeContainer className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+        <FadeContainer className={`grid gap-6 ${shellPadding} ${sectionSpacing} lg:grid-cols-[1.1fr_0.9fr]`}>
           <FadeDiv className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/0 to-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
-            <p className="text-sm uppercase tracking-[0.2em] text-white/50">Catalog</p>
+            <p className={subheading}>Catalog</p>
             <h2 className="mt-3 text-3xl font-semibold text-white">Hardware that matches the interface</h2>
             <p className="mt-3 text-white/70">
               Every device ships with firmware tuned for the presence engine and a UI that mirrors x.ai—clean edges, bold type, and calm gradients.
@@ -212,7 +219,7 @@ export function XaiLanding() {
 
           <FadeDiv className="relative overflow-hidden rounded-3xl border border-white/10 bg-[#0b0c12] p-8 shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_20%,rgba(56,189,248,0.2),transparent_40%)]" />
-            <p className="relative text-sm uppercase tracking-[0.2em] text-white/50">Lab notes</p>
+            <p className={`relative ${subheading}`}>Lab notes</p>
             <h3 className="relative mt-3 text-2xl font-semibold text-white">How we keep presence trustworthy</h3>
             <ul className="relative mt-4 space-y-3 text-white/70">
               {labNotes.map((note) => (
@@ -236,9 +243,9 @@ export function XaiLanding() {
           </FadeDiv>
         </FadeContainer>
 
-        <FadeContainer className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-slate-900 p-8 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+        <FadeContainer className={`${shellPadding} overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-slate-900 p-8 shadow-[0_40px_100px_rgba(0,0,0,0.5)]`}>
           <FadeDiv className="flex flex-col gap-4 text-center">
-            <p className="text-sm uppercase tracking-[0.3em] text-white/60">Ready to automate with confidence</p>
+            <p className="text-sm uppercase tracking-[0.24em] text-white/60">Ready to automate with confidence</p>
             <h2 className="text-3xl font-semibold text-white sm:text-4xl">Join the presence network built with x.ai precision</h2>
             <p className="text-white/70">
               Ship sensors that think like Grok and pair seamlessly with your smart home. Clear UI, visible reasoning, and automations that respect context.
