@@ -11,11 +11,22 @@
  *   pm2 stop all                                     # Stop all processes
  *   pm2 monit                                        # Monitor processes
  *
- * Logging:
- *   PM2 captures pnpm wrapper output but NOT Medusa application logs.
- *   We set LOG_FILE env var so Medusa writes logs to a file directly.
- *   View Medusa application logs: tail -f ./logs/medusa-app.log
- *   View PM2 wrapper logs: pm2 logs medusa-prod
+ * Logging (Structured JSON via Pino):
+ *   Development: Pretty-printed colored logs to stdout
+ *   Production: JSON format to stdout AND file (for log aggregation)
+ *
+ *   Environment variables:
+ *   - LOG_LEVEL: debug|info|warn|error (default: debug in dev, info in prod)
+ *   - LOG_FILE: Path to write JSON logs (production only)
+ *
+ *   View logs:
+ *   - Development: pnpm dev (pretty-printed in terminal)
+ *   - Production JSON: tail -f ./logs/medusa-app.log | pnpm pino-pretty
+ *   - PM2 wrapper logs: pm2 logs medusa-prod
+ *
+ * Log format (production):
+ *   {"level":30,"time":"2024-01-15T10:30:00.000Z","service":"medusa-backend",
+ *    "correlationId":"abc123","method":"POST","path":"/store/carts","msg":"Request"}
  *
  * Reference: https://pm2.keymetrics.io/docs/usage/application-declaration/
  * Medusa logging: https://docs.medusajs.com/learn/debugging-and-testing/logging
@@ -34,9 +45,8 @@ const devProcess = {
   max_memory_restart: '1G',
   env: {
     NODE_ENV: 'development',
-    // Medusa's LOG_FILE ensures application logs are captured
-    // PM2 only captures pnpm wrapper stdout, not Medusa's internal logger
-    LOG_FILE: './logs/medusa-app.log',
+    // Development: Pretty-printed logs to stdout (no file)
+    LOG_LEVEL: 'debug',
   },
   // Restart configuration for handling crashes
   min_uptime: '30s',
@@ -65,8 +75,8 @@ const prodProcess = {
   max_memory_restart: '2G',
   env: {
     NODE_ENV: 'production',
-    // Medusa's LOG_FILE ensures application logs are captured
-    // PM2 only captures pnpm wrapper stdout, not Medusa's internal logger
+    // Production: JSON logs to stdout + file for log aggregation
+    LOG_LEVEL: 'info',
     LOG_FILE: './logs/medusa-app.log',
   },
   // Production restart configuration (more conservative)

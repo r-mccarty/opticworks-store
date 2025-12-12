@@ -1,4 +1,5 @@
 import { loadEnv, defineConfig, Modules } from '@medusajs/framework/utils'
+import { logger } from './src/lib/logger'
 
 loadEnv(process.env.NODE_ENV || 'development', process.cwd())
 
@@ -67,6 +68,8 @@ const redisEventsUrl = process.env.REDIS_EVENTS_URL ?? redisUrl
 const redisWorkflowUrl = process.env.REDIS_WORKFLOW_URL ?? redisUrl
 
 module.exports = defineConfig({
+  // Custom structured logger (Pino-based)
+  logger,
   projectConfig: {
     databaseUrl: ensure("DATABASE_URL", "postgres://medusa:medusa@localhost:5432/medusa"),
     http: {

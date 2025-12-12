@@ -9,6 +9,7 @@ OpticWorks uses a **hybrid monitoring approach** that leverages the strengths of
 | Layer | Tool | What It Captures |
 |-------|------|------------------|
 | Medusa Backend | **Sentry** | API errors, workflow failures, DB issues, distributed traces |
+| Medusa Backend | **Pino (Structured Logging)** | JSON request logs, correlation IDs, performance metrics |
 | Client-Side JS | **Sentry** | React errors, user sessions, source-mapped stack traces |
 | Edge/Workers | **Cloudflare** | Request metrics, latency, CPU time, error rates |
 | Infrastructure | **Cloudflare** | Cold starts, cache hits, bandwidth |
@@ -44,7 +45,13 @@ OpticWorks uses a **hybrid monitoring approach** that leverages the strengths of
 │  │   (server-side)  │    │  (tracing)       │                   │
 │  └──────────────────┘    └──────────────────┘                   │
 │                                                                  │
+│  ┌──────────────────┐    ┌──────────────────┐                   │
+│  │  Pino Logger     │    │  Correlation IDs │                   │
+│  │  (JSON logs)     │    │  (x-correlation) │                   │
+│  └──────────────────┘    └──────────────────┘                   │
+│                                                                  │
 │  Captures: API errors, workflow traces, DB queries, Redis ops    │
+│  Logs: Structured JSON with request timing, context, correlation │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -163,24 +170,129 @@ This streams live logs from your Worker, including:
 - Console.log output
 - Uncaught exceptions
 
-## PM2 Logging (Backend)
+## Structured Logging (Backend)
 
-The Medusa backend uses PM2 for process management with file-based logging:
+The Medusa backend uses **Pino** for structured JSON logging with correlation ID support.
+
+### Features
+
+- **JSON format** in production for log aggregation tools
+- **Pretty-printed** colored output in development
+- **Correlation IDs** for request tracing across services
+- **Automatic request/response logging** with timing
+- **Sentry integration** - correlation IDs linked to Sentry errors
+- **Sensitive data redaction** - passwords, tokens, API keys filtered
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `backend/src/lib/logger.ts` | Pino logger implementation |
+| `backend/src/api/middlewares.ts` | Request logging middleware |
+| `backend/medusa-config.ts` | Logger configuration |
+| `backend/ecosystem.config.js` | PM2 log file configuration |
+
+### Log Format
+
+**Development (pretty-printed):**
+```
+[2024-01-15 10:30:00] INFO: POST /store/carts
+    correlationId: "m1abc123"
+    method: "POST"
+    path: "/store/carts"
+    type: "request"
+    phase: "start"
+```
+
+**Production (JSON):**
+```json
+{"level":30,"time":"2024-01-15T10:30:00.000Z","service":"medusa-backend","env":"production","correlationId":"m1abc123","method":"POST","path":"/store/carts","type":"request","phase":"start","msg":"POST /store/carts"}
+```
+
+### Correlation IDs
+
+Every request gets a unique correlation ID that:
+- Is returned in the `x-correlation-id` response header
+- Appears in all log entries for that request
+- Is attached to Sentry errors for cross-referencing
+- Can be passed from upstream (accepts `x-correlation-id` or `x-request-id` headers)
+
+**Tracing a request:**
+```bash
+# Find all logs for a specific request
+grep "m1abc123" /opt/opticworks/medusa-backend/logs/medusa-app.log
+
+# In Sentry, filter by tag: correlation_id:m1abc123
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `LOG_LEVEL` | `debug` (dev) / `info` (prod) | Minimum log level |
+| `LOG_FILE` | none (dev) / `./logs/medusa-app.log` (prod) | Write logs to file |
+| `NODE_ENV` | `development` | Controls pretty vs JSON output |
+
+### Log Levels
+
+| Level | Value | Use Case |
+|-------|-------|----------|
+| `error` | 50 | Errors requiring attention |
+| `warn` | 40 | Warnings, degraded functionality |
+| `info` | 30 | Normal operations, requests |
+| `debug` | 20 | Detailed debugging info |
+| `trace` | 10 | Very verbose tracing |
+
+### Using the Logger in Code
+
+```typescript
+// In API routes - use Medusa's injected logger
+export async function POST(req: MedusaRequest, res: MedusaResponse) {
+  const logger = req.scope.resolve("logger")
+  logger.info("Processing order")
+  logger.error("Payment failed", new Error("Card declined"))
+}
+
+// In modules/services - inject via constructor
+import { Logger } from "@medusajs/framework/types"
+
+class MyService {
+  constructor({ logger }: { logger: Logger }) {
+    this.logger = logger
+  }
+}
+
+// For structured context (advanced) - use createChildLogger
+import { createChildLogger } from "../lib/logger"
+
+const orderLogger = createChildLogger({ module: "orders" })
+orderLogger.pino.info({ orderId: "123", total: 99.99 }, "Order created")
+```
+
+### PM2 Log Locations
+
+The Medusa backend uses PM2 for process management:
 
 **Log locations:**
 ```
-/opt/opticworks/medusa-backend/logs/medusa-app.log  # Application logs
-/opt/opticworks/medusa-backend/pm2-error.log        # PM2 errors
-/opt/opticworks/medusa-backend/pm2-out.log          # PM2 stdout
+/opt/opticworks/medusa-backend/logs/medusa-app.log  # Structured JSON logs
+/opt/opticworks/medusa-backend/logs/pm2-prod-error.log  # PM2 errors
+/opt/opticworks/medusa-backend/logs/pm2-prod-out.log    # PM2 stdout
 ```
 
 **View logs:**
 ```bash
-# Via SSH
+# Raw JSON logs
 ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"
 
+# Pretty-print JSON logs
+ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log" | pnpm pino-pretty
+
 # Via PM2
-ssh hetzner-node "pm2 logs medusa"
+ssh hetzner-node "pm2 logs medusa-prod"
+
+# Filter by correlation ID
+ssh hetzner-node "grep 'm1abc123' /opt/opticworks/medusa-backend/logs/medusa-app.log | pnpm pino-pretty"
 ```
 
 **Log rotation:** Handled by PM2's built-in rotation (configured in `ecosystem.config.js`)
@@ -301,12 +413,18 @@ Configure in Cloudflare Dashboard → Notifications:
 ### Backend Error
 
 1. Check Sentry → Issues for the error
-2. Review stack trace and request context
-3. Check PM2 logs for additional context:
+2. Note the `correlation_id` tag in Sentry
+3. Find related logs using correlation ID:
    ```bash
-   ssh hetzner-node "pm2 logs medusa --lines 100"
+   # Find all logs for this request
+   ssh hetzner-node "grep 'CORRELATION_ID' /opt/opticworks/medusa-backend/logs/medusa-app.log | pnpm pino-pretty"
    ```
-4. For workflow errors, check Sentry Performance → Traces
+4. Review stack trace and request context in Sentry
+5. For workflow errors, check Sentry Performance → Traces
+6. Check PM2 wrapper logs if needed:
+   ```bash
+   ssh hetzner-node "pm2 logs medusa-prod --lines 100"
+   ```
 
 ## Cost Considerations
 
@@ -318,6 +436,8 @@ Configure in Cloudflare Dashboard → Notifications:
 | Cloudflare Logpush | Pay-as-you-go | Only if needed |
 
 ## Sensitive Data Filtering
+
+### Sentry (Error Tracking)
 
 Both Sentry configs filter sensitive data:
 
@@ -334,3 +454,19 @@ Both Sentry configs filter sensitive data:
 - Request bodies (may contain PII)
 
 To add custom filtering, update `beforeSend` in the Sentry configs.
+
+### Pino Logger (Structured Logs)
+
+The Pino logger automatically redacts sensitive fields:
+
+**Redacted fields (removed from logs):**
+- `password`
+- `token`
+- `api_key` / `apiKey`
+- `authorization`
+- `cookie`
+- `req.headers.authorization`
+- `req.headers.cookie`
+- `res.headers.set-cookie`
+
+To add custom redaction, update the `redact` config in `backend/src/lib/logger.ts`.

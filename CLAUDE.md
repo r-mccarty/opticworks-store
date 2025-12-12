@@ -57,7 +57,8 @@ Teardown: `playbooks/medusa-destroy.yml`
 | Backend errors | Sentry dashboard (`opticworks-backend` project) |
 | Frontend errors | Sentry dashboard (`opticworks-storefront` project) |
 | Edge metrics | Cloudflare Dashboard → Workers & Pages → Analytics |
-| Medusa logs | `ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"` |
+| Medusa logs (JSON) | `ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"` |
+| Medusa logs (pretty) | `ssh hetzner-node "tail -f ..." \| pnpm pino-pretty` |
 | PM2 status | `ssh hetzner-node "pm2 status"` |
 | Backend health | `curl https://api.optic.works/health` |
 | Webhook logs | Hookdeck Admin API (`e2e/fixtures/hookdeck-utils.ts`) |
@@ -101,5 +102,6 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | `docs/reference/E2E_TESTING.md` | Playwright, Mailosaur, Hookdeck testing |
 | `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible playbooks, backup & recovery |
 | `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS, rate limiting |
-| `docs/reference/OBSERVABILITY.md` | Sentry setup, Cloudflare monitoring, logging |
+| `docs/reference/OBSERVABILITY.md` | Sentry setup, Cloudflare monitoring |
+| `docs/reference/LOGGING.md` | Structured logging, Pino, correlation IDs |
 | `docs/SECRETS.md` | All environment variables |
