@@ -17,7 +17,7 @@ Zustand-based state management with hybrid local + server persistence.
 
 > **Dec 2024 Update**: Cart now uses cookies for SSR support. The cart ID is
 > stored in a `medusa_cart_id` cookie that the server reads during SSR to
-> pre-fetch cart data, eliminating hydration mismatches.
+> pre-fetch cart data via SSR, eliminating hydration mismatches.
 
 ---
 
@@ -269,7 +269,7 @@ All stores log to console with prefixes:
 
 1. **Selective persistence** - Only persist necessary data (not loading states)
 2. **Optimistic updates** - Update Zustand first, then sync with server
-3. **Handle hydration** - Account for SSR/client differences
+3. **Handle hydration** - SSR cart fetches first; client state should validate cached cart IDs and start fresh if missing/complete.
 4. **Exclude UI state** - Don't persist modals, loading flags
 5. **Version migrations** - Use `version` and `migrate` for schema changes
 6. **Fresh customer data** - Don't persist customer object, fetch on auth check

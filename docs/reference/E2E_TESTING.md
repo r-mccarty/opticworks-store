@@ -126,7 +126,7 @@ The `playwright.config.ts` loads environment variables from `.env.local`, so you
 
 **Stripe iframes**: Use `CheckoutPage` helpers for frame handling
 
-**Cart hydration**: Wait for Zustand to load from localStorage
+**Cart hydration**: SSR now hydrates cart; no client-only wait needed. If cart ID missing, UI creates a new cart automatically.
 
 ---
 
