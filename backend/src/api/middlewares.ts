@@ -1,6 +1,5 @@
 import { defineMiddlewares, authenticate } from "@medusajs/framework/http"
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import express from "express"
 import * as Sentry from "@sentry/node"
 import { generateCorrelationId, createChildLogger } from "../lib/logger"
 
@@ -12,24 +11,39 @@ interface ExtendedRequest {
 }
 
 /**
- * Custom JSON body parser with raw body capture for webhook signature verification.
+ * Raw body capture middleware for webhook signature verification.
+ * Captures the raw request body before JSON parsing.
  */
-const jsonParserWithRawBody = express.json({
-  verify: (req, _res, buf) => {
-    // Store raw body on request for signature verification
-    (req as MedusaRequest & ExtendedRequest).rawBody = buf.toString("utf8");
-  },
-})
-
-/**
- * Wrapper middleware to apply custom JSON parser.
- */
-function webhookBodyParser(
+function captureRawBody(
   req: MedusaRequest,
   res: MedusaResponse,
   next: MedusaNextFunction
 ) {
-  jsonParserWithRawBody(req, res, next);
+  const extReq = req as MedusaRequest & ExtendedRequest
+
+  // If body is already parsed (shouldn't happen on webhook routes), skip
+  if (req.body) {
+    next()
+    return
+  }
+
+  let rawBody = ""
+
+  req.on("data", (chunk: Buffer) => {
+    rawBody += chunk.toString("utf8")
+  })
+
+  req.on("end", () => {
+    extReq.rawBody = rawBody
+    // Parse the JSON ourselves since we disabled bodyParser
+    try {
+      req.body = JSON.parse(rawBody)
+    } catch (e) {
+      // Invalid JSON - will be caught by route handler
+      req.body = {}
+    }
+    next()
+  })
 }
 
 /**
@@ -159,7 +173,7 @@ export default defineMiddlewares({
     {
       matcher: "/webhooks/*",
       bodyParser: false, // Disable default body parser
-      middlewares: [webhookBodyParser],
+      middlewares: [captureRawBody],
     },
     // Protected customer routes (require authentication)
     {
