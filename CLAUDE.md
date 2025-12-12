@@ -54,12 +54,17 @@ Teardown: `playbooks/medusa-destroy.yml`
 
 | Task | Command/Method |
 |------|----------------|
+| Backend errors | Sentry dashboard (`opticworks-backend` project) |
+| Frontend errors | Sentry dashboard (`opticworks-storefront` project) |
+| Edge metrics | Cloudflare Dashboard → Workers & Pages → Analytics |
 | Medusa logs | `ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"` |
 | PM2 status | `ssh hetzner-node "pm2 status"` |
 | Backend health | `curl https://api.optic.works/health` |
 | Webhook logs | Hookdeck Admin API (`e2e/fixtures/hookdeck-utils.ts`) |
 | Email delivery | Mailosaur API (`e2e/fixtures/email-utils.ts`) |
 | Cloudflare resources | See `docs/reference/CLOUDFLARE_API.md` |
+
+See `docs/reference/OBSERVABILITY.md` for full monitoring strategy.
 
 ## Architecture
 
@@ -79,6 +84,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | Hookdeck | Webhook gateway (Stripe + EasyPost) | `docs/reference/WEBHOOKS.md` |
 | Stripe | Payments (deferred intent pattern) | `docs/reference/CHECKOUT_FLOW.md` |
 | Stripe Tax | Automated sales tax calculation | `docs/reference/STRIPE_TAX.md` |
+| Sentry | Error tracking (backend + client-side) | `docs/reference/OBSERVABILITY.md` |
 | Infisical | Secrets management | `docs/SECRETS.md` |
 | Mailosaur | E2E email testing | `docs/reference/E2E_TESTING.md` |
 
@@ -95,4 +101,5 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | `docs/reference/E2E_TESTING.md` | Playwright, Mailosaur, Hookdeck testing |
 | `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible playbooks, backup & recovery |
 | `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS, rate limiting |
+| `docs/reference/OBSERVABILITY.md` | Sentry setup, Cloudflare monitoring, logging |
 | `docs/SECRETS.md` | All environment variables |

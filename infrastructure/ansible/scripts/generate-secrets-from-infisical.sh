@@ -94,6 +94,9 @@ EASYPOST_MODE=$(get_secret "EASYPOST_MODE" "false")
 # Webhook Verification (Hookdeck)
 HOOKDECK_WEBHOOK_SECRET=$(get_secret "HOOKDECK_WEBHOOK_SECRET" "false")
 
+# Error Tracking (Sentry)
+SENTRY_DSN=$(get_secret "SENTRY_DSN" "false")
+
 # Default admin email if not set
 MEDUSA_ADMIN_EMAIL="${MEDUSA_ADMIN_EMAIL:-admin@optic.works}"
 # Default from email if not set
@@ -190,6 +193,9 @@ easypost_mode: "$EASYPOST_MODE"
 
 # Webhook Verification (Hookdeck)
 hookdeck_webhook_secret: "$HOOKDECK_WEBHOOK_SECRET"
+
+# Error Tracking (Sentry)
+sentry_dsn: "$SENTRY_DSN"
 EOF
 
 echo "✅ Secrets file synced: $SECRETS_FILE"

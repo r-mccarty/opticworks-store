@@ -41,6 +41,7 @@
     "@react-three/drei": "^10.7.4",
     "@react-three/fiber": "^9.3.0",
     "@remixicon/react": "^4.6.0",
+    "@sentry/nextjs": "^10.30.0",
     "@stripe/react-stripe-js": "^3.9.2",
     "@stripe/stripe-js": "^7.9.0",
     "@supabase/supabase-js": "^2.56.0",
