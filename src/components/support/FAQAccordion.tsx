@@ -74,7 +74,7 @@ function FAQContent() {
   }
 
   return (
-    <section className="py-24 sm:py-32">
+    <section className="py-24 sm:py-32 bg-background text-foreground">
       <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         {/* Search and Filters */}
         <FadeDiv>
@@ -82,21 +82,21 @@ function FAQContent() {
             {/* Search Bar */}
             <div className="relative">
               <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <RiSearchLine className="h-5 w-5 text-gray-400" />
+                <RiSearchLine className="h-5 w-5 text-muted-foreground" />
               </div>
               <Input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search frequently asked questions..."
-                className="block w-full rounded-lg border-gray-300 bg-white py-3 pl-10 pr-12 text-gray-900 placeholder:text-gray-400 focus:border-blue-600 focus:ring-blue-600"
+                className="block w-full h-12 pl-10 pr-12"
               />
               {searchQuery && (
                 <button
                   onClick={clearSearch}
                   className="absolute inset-y-0 right-0 flex items-center pr-3"
                 >
-                  <RiCloseLine className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                  <RiCloseLine className="h-5 w-5 text-muted-foreground hover:text-foreground" />
                 </button>
               )}
             </div>
@@ -121,7 +121,7 @@ function FAQContent() {
 
             {/* Results Count */}
             {(searchQuery || selectedCategory !== 'all') && (
-              <div className="text-sm text-gray-600">
+              <div className="text-sm text-muted-foreground">
                 {filteredFAQs.length} question{filteredFAQs.length !== 1 ? 's' : ''} found
                 {searchQuery && (
                   <span> for &quot;{searchQuery}&quot;</span>
@@ -136,11 +136,11 @@ function FAQContent() {
           {filteredFAQs.length === 0 ? (
             <FadeDiv>
               <div className="text-center py-12">
-                <RiSearchLine className="mx-auto h-12 w-12 text-gray-300" />
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
+                <RiSearchLine className="mx-auto h-12 w-12 text-muted-foreground" />
+                <h3 className="mt-4 text-lg font-medium text-foreground">
                   No questions found
                 </h3>
-                <p className="mt-2 text-sm text-gray-500">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Try a different search term or browse all categories.
                 </p>
                 <Button
@@ -159,9 +159,9 @@ function FAQContent() {
                   open={openItems.includes(faq.id)}
                   onOpenChange={() => toggleItem(faq.id)}
                 >
-                  <div className="rounded-lg border border-gray-200 bg-white shadow-sm">
-                    <CollapsibleTrigger className="flex w-full items-center justify-between p-6 text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-inset">
-                      <span className="font-medium text-gray-900 pr-4">
+                  <div className="rounded-lg border border-border bg-card shadow-elevation-1">
+                    <CollapsibleTrigger className="flex w-full items-center justify-between p-6 text-left hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]">
+                      <span className="font-medium text-foreground pr-4">
                         {faq.question}
                       </span>
                       <div className="flex items-center space-x-2">
@@ -178,8 +178,8 @@ function FAQContent() {
                       </div>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
-                      <div className="border-t border-gray-100 px-6 py-4">
-                        <div className="prose prose-sm max-w-none text-gray-600">
+                      <div className="border-t border-border px-6 py-4">
+                        <div className="prose prose-sm max-w-none text-muted-foreground">
                           {faq.answer}
                         </div>
                         {faq.tags.length > 0 && (
@@ -188,7 +188,7 @@ function FAQContent() {
                               <Badge
                                 key={tag}
                                 variant="secondary"
-                                className="text-xs cursor-pointer hover:bg-blue-100"
+                                className="text-xs cursor-pointer hover:bg-muted"
                                 onClick={() => setSearchQuery(tag)}
                               >
                                 {tag}
@@ -207,15 +207,15 @@ function FAQContent() {
 
         {/* Still Need Help Section */}
         <FadeDiv>
-          <div className="mt-16 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-100 p-8 text-center">
-            <h3 className="text-xl font-semibold text-gray-900">
+          <div className="mt-16 rounded-2xl border border-border bg-card p-8 text-center shadow-elevation-1">
+            <h3 className="text-xl font-semibold text-foreground">
               Didn&apos;t find what you&apos;re looking for?
             </h3>
-            <p className="mt-2 text-gray-600">
-              Our support team is ready to help with any specific questions
+            <p className="mt-2 text-muted-foreground">
+              Our support team is ready to help with any specific questions.
             </p>
             <div className="mt-6">
-              <Button asChild className="bg-blue-600 hover:bg-blue-700">
+              <Button asChild>
                 <a href="/support/contact">
                   Contact Support
                 </a>
@@ -230,7 +230,7 @@ function FAQContent() {
 
 export function FAQAccordion() {
   return (
-    <Suspense fallback={<div className="py-24 text-center">Loading...</div>}>
+    <Suspense fallback={<div className="py-24 text-center text-muted-foreground">Loading...</div>}>
       <FAQContent />
     </Suspense>
   )

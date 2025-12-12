@@ -38,17 +38,15 @@ function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-zinc-300">
-          Email
-        </Label>
+        <Label htmlFor="email">Email</Label>
         <Input
           id="email"
           name="email"
@@ -57,19 +55,16 @@ function LoginForm() {
           value={formData.email}
           onChange={handleChange}
           placeholder="john@example.com"
-          className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
           autoComplete="email"
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password" className="text-zinc-300">
-            Password
-          </Label>
+          <Label htmlFor="password">Password</Label>
           <Link
             href="/auth/forgot-password"
-            className="text-sm text-zinc-400 hover:text-white"
+            className="text-sm text-muted-foreground hover:text-foreground"
           >
             Forgot password?
           </Link>
@@ -82,7 +77,6 @@ function LoginForm() {
           value={formData.password}
           onChange={handleChange}
           placeholder="Enter your password"
-          className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
           autoComplete="current-password"
         />
       </div>
@@ -90,14 +84,14 @@ function LoginForm() {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-white text-black hover:bg-zinc-200"
+        className="w-full"
       >
         {isLoading ? "Signing in..." : "Sign In"}
       </Button>
 
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
-        <Link href="/auth/register" className="text-white hover:underline">
+        <Link href="/auth/register" className="text-foreground hover:underline">
           Create one
         </Link>
       </p>
@@ -107,18 +101,22 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-24">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
-          <p className="text-zinc-400">
-            Sign in to your OpticWorks account
+          <h1 className="text-3xl font-semibold mb-2 text-foreground">
+            Welcome back
+          </h1>
+          <p className="text-muted-foreground">
+            Sign in to track orders and manage devices.
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-zinc-400 text-center">Loading...</div>}>
-          <LoginForm />
-        </Suspense>
+        <div className="rounded-lg border border-border bg-card p-6 shadow-elevation-1">
+          <Suspense fallback={<div className="text-muted-foreground text-center">Loading...</div>}>
+            <LoginForm />
+          </Suspense>
+        </div>
       </div>
     </main>
   )

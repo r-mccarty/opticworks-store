@@ -11,10 +11,10 @@ import ThreeDErrorBoundary from '@/components/3d/ErrorBoundary'
 const Tesla3DViewer = dynamic(() => import('@/components/3d/Tesla3DViewer'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+    <div className="flex h-96 w-full items-center justify-center rounded-lg bg-muted/30">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
-        <p className="text-gray-600">Loading 3D Model...</p>
+        <div className="mx-auto mb-4 h-8 w-8 animate-spin rounded-full border-b-2 border-primary" />
+        <p className="text-muted-foreground">Loading 3D Model...</p>
       </div>
     </div>
   )
@@ -24,15 +24,15 @@ export default function Tesla3DSection() {
   const [show3D, setShow3D] = useState(false)
 
   const VideoPlaceholder = () => (
-    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+    <div className="flex aspect-video items-center justify-center rounded-lg bg-muted/30">
       <div className="text-center">
-        <div className="w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-4">
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground">
+          <svg className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
             <path d="M8 5v14l11-7z"/>
           </svg>
         </div>
-        <p className="text-gray-600 font-medium">3-Minute Installation Video</p>
-        <p className="text-sm text-gray-500 mb-4">Click to watch the complete process</p>
+        <p className="font-medium text-muted-foreground">3-Minute Installation Video</p>
+        <p className="mb-4 text-sm text-muted-foreground">Click to watch the complete process</p>
         <Button 
           onClick={() => setShow3D(true)}
           variant="outline"
@@ -57,17 +57,15 @@ export default function Tesla3DSection() {
             <div className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  <h3 className="mb-2 text-lg font-semibold text-foreground">
                     Interactive 3D Tesla Model Y
                   </h3>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-muted-foreground">
                     Explore the tinting process in 3D. Use the controls to apply tint and highlight windows.
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Badge className="bg-orange-100 text-orange-800">
-                    Interactive
-                  </Badge>
+                  <Badge variant="secondary">Interactive</Badge>
                   <Button 
                     onClick={() => setShow3D(false)}
                     variant="outline"

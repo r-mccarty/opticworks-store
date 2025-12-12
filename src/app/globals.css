@@ -1,6 +1,44 @@
 @import "tailwindcss";
 
 @theme {
+  /* OpticWorks Design Tokens (light defaults) */
+  --color-background: oklch(0.985 0.005 255);
+  --color-foreground: oklch(0.18 0.02 260);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: var(--color-foreground);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: var(--color-foreground);
+  --color-muted: oklch(0.96 0.01 255);
+  --color-muted-foreground: oklch(0.52 0.02 260);
+  --color-border: oklch(0.9 0.01 255);
+  --color-input: oklch(0.9 0.01 255);
+  --color-ring: oklch(0.69 0.18 55);
+  --color-primary: oklch(0.69 0.18 55);
+  --color-primary-foreground: oklch(0.98 0.005 255);
+  --color-secondary: oklch(0.82 0.19 145);
+  --color-secondary-foreground: oklch(0.18 0.02 260);
+  --color-accent: oklch(0.93 0.02 255);
+  --color-accent-foreground: var(--color-foreground);
+  --color-destructive: oklch(0.63 0.22 29);
+  --color-destructive-foreground: oklch(0.98 0.005 255);
+
+  --radius-xs: 0.5rem;
+  --radius-sm: 0.75rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+
+  --shadow-elevation-1: 0 1px 2px oklch(0 0 0 / 0.06), 0 6px 16px oklch(0 0 0 / 0.04);
+  --shadow-elevation-2: 0 2px 4px oklch(0 0 0 / 0.08), 0 12px 32px oklch(0 0 0 / 0.06);
+  --shadow-elevation-3: 0 4px 8px oklch(0 0 0 / 0.12), 0 20px 48px oklch(0 0 0 / 0.08);
+
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --font-sans: var(--font-colfax), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-feature), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
   --animate-hide: hide 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-down-and-fade: slideDownAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
   --animate-slide-left-and-fade: slideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -186,13 +224,51 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+    --color-background: oklch(0.13 0.02 260);
+    --color-foreground: oklch(0.96 0.005 255);
+    --color-card: oklch(0.17 0.02 260);
+    --color-card-foreground: var(--color-foreground);
+    --color-popover: oklch(0.17 0.02 260);
+    --color-popover-foreground: var(--color-foreground);
+    --color-muted: oklch(0.22 0.02 260);
+    --color-muted-foreground: oklch(0.72 0.02 255);
+    --color-border: oklch(0.28 0.02 260);
+    --color-input: oklch(0.28 0.02 260);
+    --color-ring: oklch(0.75 0.18 55);
+    --color-primary: oklch(0.75 0.18 55);
+    --color-primary-foreground: oklch(0.15 0.02 260);
+    --color-secondary: oklch(0.85 0.2 145);
+    --color-secondary-foreground: oklch(0.15 0.02 260);
+    --color-accent: oklch(0.26 0.02 260);
+    --color-accent-foreground: var(--color-foreground);
+    --color-destructive: oklch(0.68 0.22 29);
+    --color-destructive-foreground: oklch(0.13 0.02 260);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    text-rendering: geometricPrecision;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
+    color: var(--color-primary);
+  }
 
   *,
   ::after,
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
+    border-color: var(--color-border, currentColor);
   }
 }
 

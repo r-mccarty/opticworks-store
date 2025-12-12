@@ -162,15 +162,15 @@ export function CartPage({ initialCart }: CartPageProps) {
   // With SSR cart loading, this should rarely show
   if (!isHydrated) {
     return (
-      <main className="relative">
+      <main className="relative bg-background text-foreground">
         <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
           <div className="mx-auto max-w-4xl">
             <div className="text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Loading Cart...
               </h1>
               <div className="mt-8 flex justify-center">
-                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
               </div>
             </div>
           </div>
@@ -181,14 +181,14 @@ export function CartPage({ initialCart }: CartPageProps) {
 
   if (items.length === 0) {
     return (
-      <main className="relative">
+      <main className="relative bg-background text-foreground">
         <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
           <div className="mx-auto max-w-4xl">
             <FadeDiv className="text-center">
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Your Cart is Empty
               </h1>
-              <p className="mt-4 text-lg text-gray-600">
+              <p className="mt-4 text-lg text-muted-foreground">
                 Start shopping to add OpticWorks presence sensors, mounts, and dashboards to your cart.
               </p>
               <Button asChild className="mt-8">
@@ -220,11 +220,11 @@ export function CartPage({ initialCart }: CartPageProps) {
     : (showPaymentForm && summaryTax !== null ? getTotalPrice() + summaryTax : null)
 
   return (
-    <main className="relative">
+    <main className="relative bg-background text-foreground">
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FadeDiv>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-8">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl mb-8">
               Shopping Cart
             </h1>
           </FadeDiv>
@@ -243,7 +243,7 @@ export function CartPage({ initialCart }: CartPageProps) {
                         <div className="flex justify-center">
                           <Link
                             href={`/products/${items[0].id}`}
-                            className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-xl overflow-hidden bg-gray-100"
+                            className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48 rounded-lg overflow-hidden bg-muted"
                           >
                             <Image
                               src={items[0].image}
@@ -257,42 +257,44 @@ export function CartPage({ initialCart }: CartPageProps) {
                         
                         {/* Product Information */}
                         <div className="text-center space-y-4">
-                          <h3 className="text-xl lg:text-2xl font-bold text-gray-900">
+                          <h3 className="text-xl lg:text-2xl font-semibold text-foreground">
                             <Link href={`/products/${items[0].id}`} className="hover:underline">
                               {items[0].name}
                             </Link>
                           </h3>
                           
                           {/* Rich Specifications */}
-                          <div className="bg-gray-50 rounded-lg p-4 text-left">
-                            <h4 className="font-semibold text-gray-900 mb-3">Specifications</h4>
+                          <div className="bg-muted/60 rounded-md p-4 text-left">
+                            <h4 className="font-semibold text-foreground mb-3">Specifications</h4>
                             {featuredSpecs.length > 0 ? (
-                              <div className="grid grid-cols-1 gap-2 text-sm text-gray-600 sm:grid-cols-2">
+                              <div className="grid grid-cols-1 gap-2 text-sm text-muted-foreground sm:grid-cols-2">
                                 {featuredSpecs.map((spec) => (
                                   <div key={spec.label} className="flex justify-between gap-4">
                                     <span>{spec.label}:</span>
-                                    <span className="font-medium text-right">{spec.value}</span>
+                                    <span className="font-medium text-right text-foreground">
+                                      {spec.value}
+                                    </span>
                                   </div>
                                 ))}
                               </div>
                             ) : (
-                              <p className="text-sm text-gray-600">
+                              <p className="text-sm text-muted-foreground">
                                 Detailed specifications are available on the product page.
                               </p>
                             )}
                           </div>
                           
                           {/* Product Description */}
-                          <div className="text-sm text-gray-600 leading-relaxed text-left">
+                          <div className="text-sm text-muted-foreground leading-relaxed text-left">
                             {items[0].description}
                           </div>
                         </div>
                       </div>
                       
                       {/* Controls Section */}
-                      <div className="mt-8 pt-6 border-t border-gray-200 space-y-4">
+                      <div className="mt-8 pt-6 border-t border-border space-y-4">
                         <div className="flex items-center justify-center space-x-4">
-                          <div className="flex items-center border border-gray-300 rounded-lg">
+                          <div className="flex items-center border border-border rounded-lg bg-card">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -321,7 +323,7 @@ export function CartPage({ initialCart }: CartPageProps) {
                             variant="ghost"
                             size="sm"
                             onClick={() => removeFromCart(items[0].id)}
-                            className="text-red-600 hover:text-red-700 h-10 px-4"
+                            className="text-destructive hover:text-destructive/80 h-10 px-4"
                           >
                             <TrashIcon className="h-5 w-5 mr-2" />
                             Remove
@@ -330,10 +332,10 @@ export function CartPage({ initialCart }: CartPageProps) {
                         
                         {/* Pricing */}
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-semibold text-foreground">
                             ${(items[0].price * items[0].quantity).toLocaleString()}
                           </div>
-                          <div className="text-sm text-gray-500 mt-1">
+                          <div className="text-sm text-muted-foreground mt-1">
                             ${items[0].price} each {items[0].quantity > 1 && `× ${items[0].quantity}`}
                           </div>
                         </div>
@@ -351,12 +353,12 @@ export function CartPage({ initialCart }: CartPageProps) {
                       <CardContent className="p-6">
                         <div className="flex items-start space-x-4 sm:space-x-6">
                           <Link
-                            href={`/products/${item.id}`}
-                            className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0"
-                          >
-                            <Image
-                              src={item.image}
-                              alt={item.name}
+                              href={`/products/${item.id}`}
+                              className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-md overflow-hidden bg-muted flex-shrink-0"
+                            >
+                              <Image
+                                src={item.image}
+                                alt={item.name}
                               fill
                               className="object-cover"
                               sizes="(max-width: 640px) 64px, 80px"
@@ -364,23 +366,23 @@ export function CartPage({ initialCart }: CartPageProps) {
                           </Link>
 
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-gray-900 truncate">
+                            <h3 className="text-lg font-semibold text-foreground truncate">
                               <Link href={`/products/${item.id}`} className="hover:underline">
                                 {item.name}
                               </Link>
                             </h3>
                             {specSummary ? (
-                              <p className="text-sm text-gray-600 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 {specSummary}
                               </p>
                             ) : (
-                              <p className="text-sm text-gray-600 mt-1">
+                              <p className="text-sm text-muted-foreground mt-1">
                                 Full specifications available on the product page.
                               </p>
                             )}
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-3 gap-3">
                               <div className="flex items-center space-x-3">
-                                <div className="flex items-center border border-gray-300 rounded-md">
+                                <div className="flex items-center border border-border rounded-md bg-card">
                                   <Button
                                     variant="ghost"
                                     size="sm"
@@ -409,17 +411,17 @@ export function CartPage({ initialCart }: CartPageProps) {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => removeFromCart(item.id)}
-                                  className="text-red-600 hover:text-red-700"
+                                  className="text-destructive hover:text-destructive/80"
                                 >
                                   <TrashIcon className="h-4 w-4" />
                                 </Button>
                               </div>
                               
                               <div className="text-right sm:text-right">
-                                <div className="text-lg font-semibold text-gray-900">
+                                <div className="text-lg font-semibold text-foreground">
                                   ${(item.price * item.quantity).toLocaleString()}
                                 </div>
-                                <div className="text-sm text-gray-500">
+                                <div className="text-sm text-muted-foreground">
                                   ${item.price} each
                                 </div>
                               </div>
@@ -465,8 +467,8 @@ export function CartPage({ initialCart }: CartPageProps) {
                         <span>
                           {showPaymentForm ? (
                           isCalculatingTax ? (
-                            <div className="flex items-center text-xs">
-                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse mr-1"></div>
+                              <div className="flex items-center text-xs text-muted-foreground">
+                                <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse mr-1" />
                               Calculating...
                             </div>
                           ) : summaryTax !== null ? (
@@ -498,7 +500,7 @@ export function CartPage({ initialCart }: CartPageProps) {
                   <Card>
                     <CardContent className="pt-6">
                       <Button
-                        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+                        className="w-full text-lg"
                         size="lg"
                         onClick={handleProceedToPayment}
                         disabled={isCheckingOut}

@@ -44,38 +44,39 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
   const currentPrice = selectedVariant?.price || product.price
 
   return (
-    <div className="py-16">
+    <section className="py-20">
       <div className="px-6 lg:px-8">
         <div className="mx-auto max-w-4xl">
           <FadeDiv>
-            <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white overflow-hidden">
-              <CardContent className="p-12 text-center">
-                <h2 className="text-4xl font-bold mb-4">
-                  Ready to trust your bedtime automations?
+            <Card className="overflow-hidden border-border bg-card shadow-elevation-2">
+              <CardContent className="p-10 text-center">
+                <h2 className="text-3xl font-semibold text-foreground mb-4 sm:text-4xl">
+                  Ready to build presence‑aware automations?
                 </h2>
-                <p className="text-xl text-orange-100 mb-8 max-w-2xl mx-auto">
-                  The Bed Presence Sensor kit ships flashed, calibrated, and paired with
-                  our dashboards so you can stop hunting for reliable occupancy hacks.
+                <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+                  Every Presence Lab kit ships flashed, calibrated, and paired with our
+                  spatial dashboards so you can go from unboxing to reliable automation
+                  in minutes.
                 </p>
 
                 {/* Variant Selector (if applicable) */}
                 {product.variants && (
                   <div className="mb-8">
-                    <h3 className="text-lg font-semibold mb-4 text-orange-100">
+                    <h3 className="text-lg font-semibold mb-4 text-foreground">
                       Selected Option:
                     </h3>
-                    <div className="bg-white/10 rounded-lg p-4 max-w-md mx-auto">
+                    <div className="bg-muted/60 rounded-md p-4 max-w-md mx-auto text-left">
                       <div className="flex items-center justify-between">
                         <div className="text-left">
-                          <div className="font-medium">
+                          <div className="font-medium text-foreground">
                             {selectedVariant?.name || product.variants[0].name}
                           </div>
-                          <div className="text-sm text-orange-100">
+                          <div className="text-sm text-muted-foreground">
                             {selectedVariant?.description || product.variants[0].description}
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold">
+                          <div className="text-2xl font-semibold text-foreground">
                             ${currentPrice}
                           </div>
                         </div>
@@ -87,11 +88,11 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
                 {/* Price */}
                 {!product.variants && (
                   <div className="mb-8">
-                    <div className="text-4xl font-bold mb-2">
+                    <div className="text-4xl font-semibold text-foreground mb-2">
                       ${currentPrice}
                     </div>
                     {product.originalPrice && (
-                      <div className="text-xl text-orange-200 line-through">
+                      <div className="text-xl text-muted-foreground line-through">
                         ${product.originalPrice}
                       </div>
                     )}
@@ -104,7 +105,7 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
                     onClick={handleAddToCart}
                     disabled={!product.inStock || isAddingToCart}
                     size="lg"
-                    className="bg-white text-orange-600 hover:bg-orange-50 h-14 px-8 text-lg font-semibold"
+                    className="h-14 px-8 text-lg font-semibold"
                     data-testid="add-to-cart-cta"
                   >
                     <ShoppingCartIcon className="w-6 h-6 mr-3" />
@@ -113,34 +114,34 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
                 </div>
 
                 {/* Trust Badges */}
-                <div className="flex flex-wrap items-center justify-center gap-6 text-orange-100">
+                <div className="flex flex-wrap items-center justify-center gap-6 text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <TruckIcon className="w-5 h-5" />
+                    <TruckIcon className="w-5 h-5 text-foreground" />
                     <span>Ships in 2 business days</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ShieldCheckIcon className="w-5 h-5" />
+                    <ShieldCheckIcon className="w-5 h-5 text-foreground" />
                     <span>2-year hardware warranty</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <CheckCircleIcon className="w-5 h-5" />
+                    <CheckCircleIcon className="w-5 h-5 text-foreground" />
                     <span>Local-only processing</span>
                   </div>
                 </div>
 
                 {/* Additional Benefits */}
                 <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="font-semibold mb-1">15-minute setup</div>
-                    <div className="text-orange-100">From unboxing to calibration</div>
+                  <div className="bg-muted/60 rounded-md p-4">
+                    <div className="font-semibold text-foreground mb-1">15‑minute setup</div>
+                    <div className="text-muted-foreground">From unboxing to calibration</div>
                   </div>
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="font-semibold mb-1">4-state engine</div>
-                    <div className="text-orange-100">Debounce, hysteresis, z-scores</div>
+                  <div className="bg-muted/60 rounded-md p-4">
+                    <div className="font-semibold text-foreground mb-1">Spatial presence engine</div>
+                    <div className="text-muted-foreground">Debounce, hysteresis, z‑scores</div>
                   </div>
-                  <div className="bg-white/10 rounded-lg p-4">
-                    <div className="font-semibold mb-1">100% local processing</div>
-                    <div className="text-orange-100">No cameras. No cloud.</div>
+                  <div className="bg-muted/60 rounded-md p-4">
+                    <div className="font-semibold text-foreground mb-1">100% local processing</div>
+                    <div className="text-muted-foreground">No cameras. No cloud.</div>
                   </div>
                 </div>
               </CardContent>
@@ -161,16 +162,16 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
                 </Button>
               </div>
               
-              <div className="mt-6 text-sm text-gray-600">
+              <div className="mt-6 text-sm text-muted-foreground">
                 <p>
                   Still have questions?{" "}
-                  <a href="#faq" className="text-orange-600 hover:text-orange-700 font-medium">
+                  <a href="#faq" className="text-foreground hover:underline font-medium">
                     Check our FAQ
                   </a>{" "}
                   or
                   <a
                     href="/support"
-                    className="text-orange-600 hover:text-orange-700 font-medium ml-1"
+                    className="text-foreground hover:underline font-medium ml-1"
                   >
                     contact our support team
                   </a>
@@ -181,6 +182,6 @@ export function FinalCTA({ product, selectedVariant }: FinalCTAProps) {
           </FadeDiv>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

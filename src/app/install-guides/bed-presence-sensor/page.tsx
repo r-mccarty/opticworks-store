@@ -289,22 +289,22 @@ function PhaseCard({ phase, index }: { phase: InstallationPhase; index: number }
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay: index * 0.1 }}
       viewport={{ once: true, amount: 0.4 }}
-      className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white/70 p-8 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.45)] backdrop-blur"
+      className="relative overflow-hidden rounded-3xl border border-border bg-card/70 p-8 shadow-elevation-2 backdrop-blur"
     >
       <div className="flex items-center gap-4">
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-slate-900 text-slate-50">
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-foreground text-background">
           <Icon className="size-6" />
         </span>
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Phase {index + 1}</p>
-          <h3 className="text-xl font-semibold text-slate-900">{phase.title}</h3>
-          <p className="mt-1 text-sm text-slate-500">{phase.subtitle}</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Phase {index + 1}</p>
+          <h3 className="text-xl font-semibold text-foreground">{phase.title}</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{phase.subtitle}</p>
         </div>
       </div>
-      <ul className="mt-6 space-y-3 text-sm text-slate-600">
+      <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
         {phase.points.map((point) => (
           <li key={point} className="flex gap-3">
-            <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-slate-900/10 text-slate-900">
+            <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-muted text-foreground">
               •
             </span>
             <span>{point}</span>
@@ -325,9 +325,9 @@ export default function BedPresenceGuide() {
         eyebrow: "Before you begin",
         title: "Prerequisites & orientation",
         content: (
-          <div className="space-y-6 text-sm text-slate-300">
+          <div className="space-y-6 text-sm text-background/80 dark:text-muted-foreground">
             <div>
-              <h4 className="text-base font-semibold text-white">Foundational requirements</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">Foundational requirements</h4>
               <ul className="mt-3 space-y-2 pl-4">
                 <li>• Home Assistant installed and operating on your network</li>
                 <li>• ESPHome integration enabled (dashboard or CLI)</li>
@@ -336,7 +336,7 @@ export default function BedPresenceGuide() {
               </ul>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-white">Why this kit is different</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">Why this kit is different</h4>
               <ul className="mt-3 space-y-2 pl-4">
                 <li>• <strong>Statistical intelligence:</strong> Adaptive z-score baselining with drift monitoring</li>
                 <li>• <strong>Four-state verification:</strong> Idle → Micro-motion → Occupied → Clear Delay</li>
@@ -352,23 +352,23 @@ export default function BedPresenceGuide() {
         eyebrow: "Software setup",
         title: "Provision firmware the OpticWorks way",
         content: (
-          <div className="space-y-6 text-sm text-slate-300">
+          <div className="space-y-6 text-sm text-background/80 dark:text-muted-foreground">
             <div>
-              <h4 className="text-base font-semibold text-white">ESPHome Dashboard — recommended</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">ESPHome Dashboard — recommended</h4>
               <ol className="mt-3 space-y-2 list-decimal pl-5">
                 <li>Open the ESPHome dashboard inside Home Assistant.</li>
                 <li>
                   Clone the reference profile:
-                  <code className="mx-2 rounded bg-white/10 px-2 py-1 text-xs text-slate-200">git clone https://github.com/r-mccarty/bed-presence-sensor.git</code>
+                  <code className="mx-2 rounded bg-white/10 px-2 py-1 text-xs text-background/80 dark:text-muted-foreground">git clone https://github.com/r-mccarty/bed-presence-sensor.git</code>
                 </li>
-                <li>Create a <code className="rounded bg-white/10 px-1 py-0.5 text-xs text-slate-200">secrets.yaml</code> with Wi-Fi credentials.</li>
+                <li>Create a <code className="rounded bg-white/10 px-1 py-0.5 text-xs text-background/80 dark:text-muted-foreground">secrets.yaml</code> with Wi-Fi credentials.</li>
                 <li>Select &ldquo;NEW DEVICE&rdquo;, choose the connected USB port, and allow compilation (5–10 minutes).</li>
                 <li>Once flashed, the device advertises to Home Assistant automatically.</li>
               </ol>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-white">ESPHome CLI — for power users</h4>
-              <div className="mt-3 space-y-2 rounded-2xl bg-white/10 p-4 font-mono text-xs text-slate-200">
+              <h4 className="text-base font-semibold text-background dark:text-foreground">ESPHome CLI — for power users</h4>
+              <div className="mt-3 space-y-2 rounded-2xl bg-white/10 p-4 font-mono text-xs text-background/80 dark:text-muted-foreground">
                 <p>pip install esphome</p>
                 <p>git clone https://github.com/r-mccarty/bed-presence-sensor.git</p>
                 <p>cd bed-presence-sensor/esphome</p>
@@ -384,9 +384,9 @@ export default function BedPresenceGuide() {
         eyebrow: "Calibration",
         title: "Capture the perfect baseline",
         content: (
-          <div className="grid gap-8 text-sm text-slate-300 lg:grid-cols-2">
+          <div className="grid gap-8 text-sm text-background/80 dark:text-muted-foreground lg:grid-cols-2">
             <div>
-              <h4 className="text-base font-semibold text-white">Procedure</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">Procedure</h4>
               <ol className="mt-3 space-y-2 list-decimal pl-5">
                 {calibrationFlow.procedure.map((item) => (
                   <li key={item}>{item}</li>
@@ -394,7 +394,7 @@ export default function BedPresenceGuide() {
               </ol>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-white">Verification</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">Verification</h4>
               <ol className="mt-3 space-y-2 list-decimal pl-5">
                 {calibrationFlow.verification.map((item) => (
                   <li key={item}>{item}</li>
@@ -409,28 +409,28 @@ export default function BedPresenceGuide() {
         eyebrow: "Operational intelligence",
         title: "Understand the sensor's language",
         content: (
-          <div className="grid gap-8 text-sm text-slate-300 lg:grid-cols-2">
+          <div className="grid gap-8 text-sm text-background/80 dark:text-muted-foreground lg:grid-cols-2">
             <div>
-              <h4 className="text-base font-semibold text-white">Primary entities</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">Primary entities</h4>
               <ul className="mt-3 space-y-3">
                 {telemetryEntities.map((entity) => (
                   <li key={entity.name} className="rounded-2xl bg-white/10 p-3">
-                    <p className="font-semibold text-white">{entity.name}</p>
-                    <p className="mt-1 text-xs text-slate-300">{entity.description}</p>
+                    <p className="font-semibold text-background dark:text-foreground">{entity.name}</p>
+                    <p className="mt-1 text-xs text-background/80 dark:text-muted-foreground">{entity.description}</p>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-base font-semibold text-white">Tuning controls</h4>
+              <h4 className="text-base font-semibold text-background dark:text-foreground">Tuning controls</h4>
               <ul className="mt-3 space-y-3">
                 {tuningControls.map((control) => (
                   <li key={control.label} className="rounded-2xl border border-white/20 bg-white/10 p-3 shadow-sm">
-                    <div className="flex items-center justify-between text-sm font-semibold text-white">
+                    <div className="flex items-center justify-between text-sm font-semibold text-background dark:text-foreground">
                       <span>{control.label}</span>
-                      <span className="text-xs uppercase tracking-[0.2em] text-slate-300">{control.value}</span>
+                      <span className="text-xs uppercase tracking-[0.2em] text-background/70 dark:text-muted-foreground">{control.value}</span>
                     </div>
-                    <p className="mt-2 text-xs text-slate-300">{control.description}</p>
+                    <p className="mt-2 text-xs text-background/80 dark:text-muted-foreground">{control.description}</p>
                   </li>
                 ))}
               </ul>
@@ -445,23 +445,23 @@ export default function BedPresenceGuide() {
   const activeContent = knowledgeSections.find((section) => section.id === activeSection)
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-slate-950 text-slate-100">
+    <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       <div className="pointer-events-none absolute inset-0">
-        <MotionOrb className="left-1/2 top-10 h-72 w-72 -translate-x-1/2 bg-indigo-500/40" duration={16} />
-        <MotionOrb className="right-10 top-32 h-64 w-64 bg-emerald-500/30" duration={18} delay={2} />
-        <MotionOrb className="left-[-6rem] top-64 h-80 w-80 bg-cyan-500/20" duration={20} delay={4} />
+        <MotionOrb className="left-1/2 top-10 h-72 w-72 -translate-x-1/2 bg-primary/40" duration={16} />
+        <MotionOrb className="right-10 top-32 h-64 w-64 bg-primary/25" duration={18} delay={2} />
+        <MotionOrb className="left-[-6rem] top-64 h-80 w-80 bg-primary/15" duration={20} delay={4} />
       </div>
 
-      <section className="relative pt-32 pb-24">
+      <section className="relative pt-32 pb-24 bg-foreground text-background dark:bg-background dark:text-foreground">
         <FadeContainer className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
           <FadeDiv className="max-w-3xl">
             <Badge className="mb-6 border border-white/30 bg-white/10 text-xs font-semibold uppercase tracking-[0.35em] text-white/70 backdrop-blur">
               Install Guide · Presence Suite
             </Badge>
-            <h1 className="text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-tight text-background sm:text-5xl font-display dark:text-foreground">
               Bed Presence Sensor Installation
             </h1>
-            <p className="mt-6 text-lg text-slate-200">
+            <p className="mt-6 text-lg text-background/80 dark:text-muted-foreground">
               Transform any bed into a privacy-first presence surface. This guide walks you from industrial design–grade mounting
               through calibration, telemetry literacy, and the subtle tuning that makes OpticWorks presence feel invisible —
               until you need it.
@@ -477,11 +477,11 @@ export default function BedPresenceGuide() {
                 transition={{ delay: index * 0.15, duration: 0.6 }}
                 className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/10 p-6 backdrop-blur"
               >
-                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-200/70">
+                <div className="text-xs font-semibold uppercase tracking-[0.3em] text-background/70 dark:text-foreground/70">
                   {highlight.label}
                 </div>
                 <div className="mt-3 text-2xl font-semibold text-white">{highlight.value}</div>
-                <p className="mt-3 text-sm text-slate-200/80">{highlight.description}</p>
+                <p className="mt-3 text-sm text-background/80 dark:text-muted-foreground">{highlight.description}</p>
                 <span className="pointer-events-none absolute -right-20 -top-20 h-40 w-40 rounded-full bg-white/10" />
               </motion.div>
             ))}
@@ -490,7 +490,7 @@ export default function BedPresenceGuide() {
           <motion.svg
             aria-hidden
             viewBox="0 0 600 400"
-            className="pointer-events-none absolute right-0 top-10 hidden h-[340px] w-[460px] text-sky-300/50 lg:block"
+            className="pointer-events-none absolute right-0 top-10 hidden h-[340px] w-[460px] text-primary/30 lg:block"
           >
             <defs>
               <linearGradient id="hero-line" x1="0" x2="1" y1="0" y2="1">
@@ -515,12 +515,12 @@ export default function BedPresenceGuide() {
         </FadeContainer>
       </section>
 
-      <section className="relative z-10 -mt-12 rounded-t-[48px] bg-white/95 pb-24 pt-20 text-slate-900 shadow-[0_-40px_120px_-80px_rgba(15,23,42,0.7)]">
+      <section className="relative z-10 -mt-12 rounded-t-[48px] bg-background pb-24 pt-20 text-foreground shadow-elevation-2">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6">
           <FadeDiv className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">Experience Blueprint</p>
-            <h2 className="mt-3 text-3xl font-semibold text-slate-900 sm:text-4xl">Crafted installation flow</h2>
-            <p className="mt-4 text-base text-slate-600">
+            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">Experience Blueprint</p>
+            <h2 className="mt-3 text-3xl font-semibold sm:text-4xl font-display">Crafted installation flow</h2>
+            <p className="mt-4 text-base text-muted-foreground">
               Each phase stacks engineering precision with spa-grade finish. Follow the progression for a flawless, invisible
               deployment that feels native to your bedroom architecture.
             </p>
@@ -534,31 +534,31 @@ export default function BedPresenceGuide() {
         </FadeContainer>
       </section>
 
-      <section className="relative z-10 bg-slate-50 py-24">
+      <section className="relative z-10 bg-muted/20 py-24">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-[2fr,1fr]">
-            <Card className="border-slate-200 bg-white/90 shadow-xl">
+            <Card className="border-border bg-card shadow-elevation-2">
               <CardHeader>
-                <CardTitle className="text-slate-900">Installation timeline</CardTitle>
+                <CardTitle className="text-foreground">Installation timeline</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="relative pl-6">
-                  <span className="absolute left-[1.125rem] top-1 h-full w-[2px] bg-gradient-to-b from-slate-900 via-indigo-500/40 to-transparent" />
+                  <span className="absolute left-[1.125rem] top-1 h-full w-[2px] bg-gradient-to-b from-foreground via-primary/40 to-transparent" />
                   <ul className="space-y-8">
                     {timelineSteps.map((step, index) => (
                       <motion.li
                         key={step.title}
-                        className="relative rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                        className="relative rounded-3xl border border-border bg-card p-6 shadow-elevation-1"
                         initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: index * 0.08 }}
                         viewport={{ once: true, amount: 0.4 }}
                       >
-                        <span className="absolute -left-[39px] top-6 flex size-8 items-center justify-center rounded-full border border-slate-200 bg-slate-900 text-sm font-semibold text-white">
+                        <span className="absolute -left-[39px] top-6 flex size-8 items-center justify-center rounded-full border border-border bg-foreground text-sm font-semibold text-background">
                           {index + 1}
                         </span>
-                        <h3 className="text-lg font-semibold text-slate-900">{step.title}</h3>
-                        <p className="mt-2 text-sm text-slate-600">{step.description}</p>
+                        <h3 className="text-lg font-semibold text-foreground">{step.title}</h3>
+                        <p className="mt-2 text-sm text-muted-foreground">{step.description}</p>
                       </motion.li>
                     ))}
                   </ul>
@@ -566,21 +566,23 @@ export default function BedPresenceGuide() {
               </CardContent>
             </Card>
 
-            <Card className="border-slate-200 bg-white/90 shadow-xl">
+            <Card className="border-border bg-card shadow-elevation-2">
               <CardHeader>
-                <CardTitle className="text-slate-900">Launch checklist</CardTitle>
+                <CardTitle className="text-foreground">Launch checklist</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-slate-600">
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
                 {quickChecks.map((item) => (
                   <div key={item} className="flex items-start gap-3">
-                    <span className="mt-1 inline-flex size-6 flex-none items-center justify-center rounded-full bg-emerald-500/10 text-sm font-semibold text-emerald-600">
+                    <span className="mt-1 inline-flex size-6 flex-none items-center justify-center rounded-full bg-muted text-sm font-semibold text-primary">
                       ✓
                     </span>
                     <p>{item}</p>
                   </div>
                 ))}
-                <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-4 text-xs text-emerald-900">
-                  Expose <code className="rounded bg-emerald-100 px-1 py-0.5">presence_reason</code> and <code className="rounded bg-emerald-100 px-1 py-0.5">absolute_clear_timer</code> on your dashboard to observe the 4-state engine evolving in real time.
+                <div className="rounded-3xl border border-border bg-muted/30 p-4 text-xs text-muted-foreground">
+                  Expose <code className="rounded bg-muted px-1 py-0.5">presence_reason</code> and{" "}
+                  <code className="rounded bg-muted px-1 py-0.5">absolute_clear_timer</code> on your dashboard to observe the
+                  4‑state engine evolving in real time.
                 </div>
               </CardContent>
             </Card>
@@ -588,37 +590,37 @@ export default function BedPresenceGuide() {
         </FadeContainer>
       </section>
 
-      <section className="relative z-10 bg-white py-24">
+      <section className="relative z-10 bg-background py-24">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-12 lg:grid-cols-[1.4fr,1fr]">
             <div>
-              <h2 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Hardware & physical architecture</h2>
-              <p className="mt-4 text-base text-slate-600">
+              <h2 className="text-3xl font-semibold sm:text-4xl font-display">Hardware & physical architecture</h2>
+              <p className="mt-4 text-base text-muted-foreground">
                 Premium sensing demands premium placement. Assemble the kit below, then use the placement guide to tuck the
                 hardware away without sacrificing fidelity.
               </p>
               <div className="mt-8 grid gap-5 sm:grid-cols-2">
                 {hardwareInventory.map((item) => (
-                  <div key={item.name} className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-400">{item.cost}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-slate-900">{item.name}</h3>
-                    <p className="mt-2 text-sm text-slate-600">{item.description}</p>
-                    <p className="mt-3 text-xs text-slate-500">{item.notes}</p>
+                  <div key={item.name} className="rounded-3xl border border-border bg-card p-5 shadow-elevation-1">
+                    <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">{item.cost}</p>
+                    <h3 className="mt-2 text-lg font-semibold text-foreground">{item.name}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>
+                    <p className="mt-3 text-xs text-muted-foreground">{item.notes}</p>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="rounded-[32px] border border-slate-200 bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-900 p-8 text-slate-100 shadow-[0_40px_80px_-60px_rgba(15,23,42,0.7)]">
+            <div className="rounded-[32px] border border-border bg-gradient-to-br from-slate-900 via-slate-900 to-indigo-900 p-8 text-white shadow-[0_40px_80px_-60px_rgba(15,23,42,0.7)]">
               <h3 className="text-xl font-semibold">Placement essentials</h3>
-              <p className="mt-3 text-sm text-slate-300">
+              <p className="mt-3 text-sm text-white/70">
                 Think like an industrial designer: you&apos;re creating an invisible halo that cradles the sleeper.
               </p>
               <dl className="mt-8 space-y-5">
                 {placementEssentials.map((item) => (
                   <div key={item.label} className="rounded-2xl border border-white/20 bg-white/5 p-4">
-                    <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-200">{item.label}</dt>
+                    <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-white/80">{item.label}</dt>
                     <dd className="mt-1 text-lg font-semibold text-white">{item.detail}</dd>
-                    <p className="mt-2 text-xs text-slate-200/70">{item.note}</p>
+                    <p className="mt-2 text-xs text-white/70">{item.note}</p>
                   </div>
                 ))}
               </dl>
@@ -627,13 +629,13 @@ export default function BedPresenceGuide() {
         </FadeContainer>
       </section>
 
-      <section className="relative z-10 bg-slate-900 py-24 text-slate-100">
+      <section className="relative z-10 bg-foreground py-24 text-background dark:bg-background dark:text-foreground">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="flex flex-wrap items-center justify-between gap-6">
             <div className="max-w-2xl">
-              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-300">Knowledge console</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-background/70 dark:text-muted-foreground">Knowledge console</p>
               <h2 className="mt-3 text-3xl font-semibold sm:text-4xl">Deep control without the guesswork</h2>
-              <p className="mt-4 text-base text-slate-300">
+              <p className="mt-4 text-base text-background/80 dark:text-muted-foreground">
                 Tap through each capsule to unlock expertise for every phase — from prerequisites to telemetry nuance. The
                 content below mirrors our in-house install playbooks.
               </p>
@@ -647,8 +649,8 @@ export default function BedPresenceGuide() {
                   className={cn(
                     "rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.25em] transition",
                     activeSection === section.id
-                      ? "bg-white text-slate-900 shadow-[0_10px_30px_-20px_rgba(148,163,184,1)]"
-                      : "text-slate-200 hover:text-white"
+                      ? "bg-background text-foreground shadow-elevation-2 dark:bg-foreground dark:text-background"
+                      : "text-background/70 hover:text-background dark:text-muted-foreground dark:hover:text-foreground"
                   )}
                 >
                   {section.eyebrow}
@@ -672,25 +674,25 @@ export default function BedPresenceGuide() {
         </FadeContainer>
       </section>
 
-      <section className="relative z-10 bg-slate-50 py-24">
+      <section className="relative z-10 bg-muted/20 py-24">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-2">
             <div>
-              <h2 className="text-3xl font-semibold text-slate-900 sm:text-4xl">Diagnostics playbook</h2>
-              <p className="mt-4 text-base text-slate-600">
+              <h2 className="text-3xl font-semibold sm:text-4xl font-display">Diagnostics playbook</h2>
+              <p className="mt-4 text-base text-muted-foreground">
                 If something feels off, move methodically. Each scenario below contains the exact fixes our field engineering
                 team runs through during concierge installs.
               </p>
             </div>
-            <div className="rounded-[32px] border border-slate-200 bg-white/90 p-8 shadow-xl">
+            <div className="rounded-[32px] border border-border bg-card p-8 shadow-elevation-2">
               <div className="space-y-8">
                 {diagnostics.map((item) => (
-                  <div key={item.title} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 className="text-lg font-semibold text-slate-900">{item.title}</h3>
-                    <ul className="mt-3 space-y-2 text-sm text-slate-600">
+                  <div key={item.title} className="rounded-3xl border border-border bg-card p-6 shadow-elevation-1">
+                    <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
+                    <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                       {item.steps.map((step) => (
                         <li key={step} className="flex gap-3">
-                          <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-slate-900/10 text-slate-900">
+                          <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-muted text-foreground">
                             •
                           </span>
                           <span>{step}</span>
@@ -705,15 +707,15 @@ export default function BedPresenceGuide() {
         </FadeContainer>
       </section>
 
-      <section className="relative z-10 bg-white py-24">
-        <FadeContainer className="mx-auto max-w-5xl px-4 text-slate-900 sm:px-6">
-          <Card className="border-slate-200 bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-900 text-white shadow-[0_50px_100px_-80px_rgba(15,23,42,1)]">
+      <section className="relative z-10 bg-background py-24">
+        <FadeContainer className="mx-auto max-w-5xl px-4 sm:px-6">
+          <Card className="border-border bg-gradient-to-br from-slate-900 via-indigo-900 to-blue-900 text-white shadow-[0_50px_100px_-80px_rgba(15,23,42,1)]">
             <CardHeader>
               <CardTitle className="text-3xl font-semibold">What you&apos;ll unlock</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6 sm:grid-cols-2">
               {achievements.map((item) => (
-                <div key={item} className="flex items-start gap-3 text-sm text-slate-100">
+                <div key={item} className="flex items-start gap-3 text-sm text-white/90">
                   <span className="mt-1 inline-flex size-6 flex-none items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white">
                     ✓
                   </span>

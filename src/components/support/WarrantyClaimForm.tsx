@@ -107,23 +107,23 @@ export function WarrantyClaimForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200 text-center">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 mb-4">
-          <svg className="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+      <div className="rounded-xl border border-border bg-card p-8 shadow-elevation-1 text-center">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
+          <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <h3 className="text-lg font-semibold text-foreground mb-2">
           Warranty Claim Submitted!
         </h3>
-        <p className="text-gray-600 mb-4">
+        <p className="text-muted-foreground mb-4">
           We&apos;ve received your warranty claim and will review it within 24 hours.
         </p>
-        <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 mb-6">
-          <p className="text-sm text-orange-800">
+        <div className="bg-muted/60 border border-border rounded-lg p-4 mb-6">
+          <p className="text-sm text-foreground">
             <strong>Claim Reference:</strong> WC-{Date.now().toString().slice(-8)}
           </p>
-          <p className="text-sm text-orange-600 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Save this reference number for your records
           </p>
         </div>
@@ -135,10 +135,10 @@ export function WarrantyClaimForm() {
   }
 
   return (
-    <div className="rounded-2xl bg-white p-8 shadow-sm ring-1 ring-gray-200">
+    <div className="rounded-xl border border-border bg-card p-8 shadow-elevation-1">
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-2">Warranty Claim Form</h2>
-        <p className="text-sm text-gray-600">
+        <h2 className="text-xl font-semibold text-foreground mb-2">Warranty Claim Form</h2>
+        <p className="text-sm text-muted-foreground">
           Please provide detailed information about the issue. Photos are required for processing your claim.
         </p>
       </div>
@@ -147,7 +147,7 @@ export function WarrantyClaimForm() {
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Personal Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Contact Information</h3>
+            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">Contact Information</h3>
             
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <FormField
@@ -212,7 +212,7 @@ export function WarrantyClaimForm() {
 
           {/* Purchase Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Purchase Information</h3>
+            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">Purchase Information</h3>
             
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <FormField
@@ -247,7 +247,7 @@ export function WarrantyClaimForm() {
 
           {/* Setup Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Setup Information</h3>
+            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">Setup Information</h3>
             
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
               <FormField
@@ -318,7 +318,7 @@ export function WarrantyClaimForm() {
 
           {/* Issue Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Issue Details</h3>
+            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">Issue Details</h3>
             
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <FormField
@@ -405,8 +405,8 @@ export function WarrantyClaimForm() {
 
           {/* Photo Upload */}
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">Photo Evidence</h3>
-            <p className="text-sm text-gray-600">
+            <h3 className="text-lg font-medium text-foreground border-b border-border pb-2">Photo Evidence</h3>
+            <p className="text-sm text-muted-foreground">
               <RiCameraLine className="inline w-4 h-4 mr-1" />
               Please upload clear photos showing the issue. Multiple angles are helpful.
             </p>
@@ -414,14 +414,14 @@ export function WarrantyClaimForm() {
             <div className="flex items-center justify-center w-full">
               <label 
                 htmlFor="photo-upload" 
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-orange-300 border-dashed rounded-lg cursor-pointer bg-orange-50 hover:bg-orange-100"
+                className="flex flex-col items-center justify-center w-full h-40 border-2 border-border border-dashed rounded-lg cursor-pointer bg-muted/60 hover:bg-muted"
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <RiUploadLine className="w-10 h-10 mb-3 text-orange-500" />
-                  <p className="mb-2 text-sm text-orange-700">
+                  <RiUploadLine className="w-10 h-10 mb-3 text-primary" />
+                  <p className="mb-2 text-sm text-foreground">
                     <span className="font-semibold">Click to upload photos</span> or drag and drop
                   </p>
-                  <p className="text-xs text-orange-600">PNG, JPG up to 10MB each (max 10 photos)</p>
+                  <p className="text-xs text-muted-foreground">PNG, JPG up to 10MB each (max 10 photos)</p>
                 </div>
                 <input 
                   id="photo-upload" 
@@ -439,7 +439,7 @@ export function WarrantyClaimForm() {
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
                 {uploadedPhotos.map((photo, index) => (
                   <div key={index} className="relative group">
-                    <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                    <div className="aspect-square bg-muted rounded-lg flex items-center justify-center">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img 
                         src={URL.createObjectURL(photo)} 
@@ -450,11 +450,11 @@ export function WarrantyClaimForm() {
                     <button
                       type="button"
                       onClick={() => removePhoto(index)}
-                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                     >
                       <RiDeleteBinLine className="w-3 h-3" />
                     </button>
-                    <p className="mt-1 text-xs text-gray-500 truncate">{photo.name}</p>
+                    <p className="mt-1 text-xs text-muted-foreground truncate">{photo.name}</p>
                   </div>
                 ))}
               </div>
@@ -462,7 +462,7 @@ export function WarrantyClaimForm() {
 
             {uploadedPhotos.length === 0 && (
               <div className="text-center py-4">
-                <p className="text-sm text-red-600">
+                <p className="text-sm text-destructive">
                   ⚠️ Photos are required to process warranty claims
                 </p>
               </div>
@@ -470,10 +470,10 @@ export function WarrantyClaimForm() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex justify-end pt-6 border-t">
+          <div className="flex justify-end pt-6 border-t border-border">
             <Button 
               type="submit" 
-              className="bg-orange-600 hover:bg-orange-700 px-8"
+              className="px-8"
               disabled={isSubmitting || uploadedPhotos.length === 0}
             >
               {isSubmitting ? "Submitting Claim..." : "Submit Warranty Claim"}

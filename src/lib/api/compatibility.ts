@@ -89,7 +89,7 @@ const stubCompatibilityData: Record<string, ProductCompatibility> = {
     vehicleId: 'tesla-model-y-2025',
     compatibility: 'perfect',
     installationDifficulty: 'beginner',
-    notes: 'Precision pre-cut specifically for 2025+ Model Y Juniper generation',
+    notes: 'Factory‑tuned for 2025+ Model Y cabin geometry with direct‑fit mounts',
     installationTime: '30-45 minutes',
     requiredTools: ['Included squeegee', 'Included spray bottle', 'Microfiber cloth']
   },
@@ -98,8 +98,8 @@ const stubCompatibilityData: Record<string, ProductCompatibility> = {
     vehicleId: 'tesla-model-y-2024',
     compatibility: 'good',
     installationDifficulty: 'intermediate',
-    notes: '2024 Model Y has slightly different window curves - minor trimming may be required',
-    specificIssues: ['May require minor edge trimming for perfect fit'],
+    notes: '2024 Model Y uses earlier cabin geometry — minor mount offset may be required',
+    specificIssues: ['May require a slight bracket offset to avoid occlusion'],
     installationTime: '45-60 minutes',
     requiredTools: ['Included squeegee', 'Included spray bottle', 'Microfiber cloth', 'Precision knife']
   },
@@ -108,11 +108,11 @@ const stubCompatibilityData: Record<string, ProductCompatibility> = {
     vehicleId: 'tesla-model-y-2025',
     compatibility: 'difficult',
     installationDifficulty: 'professional',
-    notes: 'Generic film requires custom cutting and advanced installation techniques',
+    notes: 'Universal kit requires custom placement and calibration for best results',
     specificIssues: [
-      'Requires custom cutting to fit Tesla Model Y windows',
-      'Complex curves need professional heat gun technique',
-      'No pre-marked installation guides'
+      'Requires custom mounting to fit your cabin layout',
+      'Calibration may take longer in highly reflective interiors',
+      'Follow the universal placement guide for stable zoning'
     ],
     alternativeProducts: ['cybershade-irx-tesla-model-y'],
     installationTime: '2-3 hours',
@@ -255,7 +255,7 @@ export async function checkProductCompatibility(
       }
       break;
     case 'incompatible':
-      reasons.push('Not compatible with this vehicle', 'Different window specifications required');
+      reasons.push('Not supported for this vehicle', 'Different cabin geometry or mounting constraints');
       break;
   }
   

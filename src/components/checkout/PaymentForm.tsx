@@ -5,7 +5,7 @@
 export default function PaymentForm() {
   return (
     <div className="text-center py-8">
-      <p className="text-gray-600">
+      <p className="text-muted-foreground">
         This component has been replaced by Stripe Embedded Checkout.
         Please use CheckoutWrapper instead.
       </p>

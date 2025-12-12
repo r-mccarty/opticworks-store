@@ -22,22 +22,22 @@ export default function PrivacyPolicyPage() {
   const lastUpdated = "January 15, 2025";
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
+      <section className="relative bg-gradient-to-b from-background to-muted/40 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                <RiShieldCheckLine className="h-8 w-8 text-green-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <RiShieldCheckLine className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
                 Privacy Policy
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
+              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-muted-foreground">
                 How we collect, use, and protect your personal information.
               </p>
-              <div className="mt-4 text-sm text-gray-500">
+              <div className="mt-4 text-sm text-muted-foreground">
                 Last updated: {lastUpdated}
               </div>
             </FadeDiv>
@@ -55,7 +55,7 @@ export default function PrivacyPolicyPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
-                    <RiEyeLine className="h-6 w-6 text-blue-600" />
+                    <RiEyeLine className="h-6 w-6 text-primary" />
                     Overview
                   </CardTitle>
                 </CardHeader>
@@ -82,18 +82,18 @@ export default function PrivacyPolicyPage() {
                 <CardContent className="space-y-6">
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Personal Information You Provide</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li><strong>Contact Information:</strong> Name, email address, mailing address</li>
                       <li><strong>Account Information:</strong> Username, password, profile information</li>
                       <li><strong>Payment Information:</strong> Credit card details, billing address (processed securely by our payment processors)</li>
-                      <li><strong>Order Information:</strong> Purchase history, product preferences, vehicle information</li>
+                      <li><strong>Order Information:</strong> Purchase history, product preferences, device configuration metadata</li>
                       <li><strong>Communication Data:</strong> Messages sent through contact forms, support tickets, reviews</li>
                     </ul>
                   </div>
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Information Automatically Collected</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li><strong>Device Information:</strong> IP address, browser type, operating system, device identifiers</li>
                       <li><strong>Usage Data:</strong> Pages visited, time spent, clicks, search terms, referral sources</li>
                       <li><strong>Location Data:</strong> General geographic location (city/state level) based on IP address</li>
@@ -114,7 +114,7 @@ export default function PrivacyPolicyPage() {
                   <div className="space-y-4">
                     <div>
                       <h4 className="font-semibold mb-2">Service Delivery & Operations</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm">
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm">
                         <li>Process orders and payments</li>
                         <li>Ship products and provide order updates</li>
                         <li>Provide customer support and respond to inquiries</li>
@@ -124,7 +124,7 @@ export default function PrivacyPolicyPage() {
                     
                     <div>
                       <h4 className="font-semibold mb-2">Marketing & Communications</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm">
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm">
                         <li>Send promotional emails and product updates (with your consent)</li>
                         <li>Display personalized advertisements and content</li>
                         <li>Conduct surveys and collect feedback</li>
@@ -134,7 +134,7 @@ export default function PrivacyPolicyPage() {
                     
                     <div>
                       <h4 className="font-semibold mb-2">Legal & Security</h4>
-                      <ul className="list-disc list-inside space-y-1 text-gray-600 text-sm">
+                      <ul className="list-disc list-inside space-y-1 text-muted-foreground text-sm">
                         <li>Comply with legal obligations and industry standards</li>
                         <li>Protect against fraud, abuse, and security threats</li>
                         <li>Enforce our terms of service and policies</li>
@@ -154,14 +154,14 @@ export default function PrivacyPolicyPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-700">
+                    <p className="text-muted-foreground">
                       We do not sell, trade, or rent your personal information to third parties. We may share your information in the following circumstances:
                     </p>
                     
                     <div className="space-y-4">
                       <div>
                         <h4 className="font-semibold mb-2">Service Providers</h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           Payment processors, shipping companies, email services, analytics providers, 
                           and other vendors who help us operate our business (under strict confidentiality agreements).
                         </p>
@@ -169,7 +169,7 @@ export default function PrivacyPolicyPage() {
                       
                       <div>
                         <h4 className="font-semibold mb-2">Legal Requirements</h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           When required by law, court order, or government regulation, or to protect our rights, 
                           property, or safety of our users.
                         </p>
@@ -177,7 +177,7 @@ export default function PrivacyPolicyPage() {
                       
                       <div>
                         <h4 className="font-semibold mb-2">Business Transfers</h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           In connection with a merger, acquisition, or sale of assets, your information may be 
                           transferred to the new entity (with prior notice).
                         </p>
@@ -193,20 +193,20 @@ export default function PrivacyPolicyPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
-                    <RiLockLine className="h-6 w-6 text-green-600" />
+                    <RiLockLine className="h-6 w-6 text-primary" />
                     Data Security
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-700">
+                    <p className="text-muted-foreground">
                       We implement industry-standard security measures to protect your personal information:
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-green-800 mb-2">Technical Safeguards</h5>
-                        <ul className="text-sm text-green-700 space-y-1">
+                      <div className="rounded-lg border border-border bg-muted/30 p-4">
+                        <h5 className="mb-2 font-medium text-foreground">Technical Safeguards</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                           <li>• SSL/TLS encryption for data transmission</li>
                           <li>• Secure data storage and backup systems</li>
                           <li>• Regular security audits and updates</li>
@@ -214,9 +214,9 @@ export default function PrivacyPolicyPage() {
                         </ul>
                       </div>
                       
-                      <div className="bg-blue-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-blue-800 mb-2">Operational Safeguards</h5>
-                        <ul className="text-sm text-blue-700 space-y-1">
+                      <div className="rounded-lg border border-border bg-muted/30 p-4">
+                        <h5 className="mb-2 font-medium text-foreground">Operational Safeguards</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                           <li>• Employee training and confidentiality agreements</li>
                           <li>• Limited access on need-to-know basis</li>
                           <li>• Incident response and breach notification procedures</li>
@@ -225,8 +225,8 @@ export default function PrivacyPolicyPage() {
                       </div>
                     </div>
                     
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-sm text-yellow-800">
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <p className="text-sm text-muted-foreground">
                         <strong>Important:</strong> While we implement robust security measures, no system is 100% secure. 
                         We cannot guarantee absolute security of your information transmitted to our site.
                       </p>
@@ -244,17 +244,17 @@ export default function PrivacyPolicyPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-6">
-                    <p className="text-gray-700">
+                    <p className="text-muted-foreground">
                       Depending on your location, you may have the following rights regarding your personal information:
                     </p>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
                         <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <RiEyeLine className="h-4 w-4 text-blue-600" />
+                          <RiEyeLine className="h-4 w-4 text-primary" />
                           Access & Portability
                         </h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                           <li>• Request a copy of your personal data</li>
                           <li>• Receive data in a structured, portable format</li>
                           <li>• Understand how your data is processed</li>
@@ -263,10 +263,10 @@ export default function PrivacyPolicyPage() {
                       
                       <div>
                         <h4 className="font-semibold mb-3 flex items-center gap-2">
-                          <RiDeleteBinLine className="h-4 w-4 text-red-600" />
+                          <RiDeleteBinLine className="h-4 w-4 text-primary" />
                           Correction & Deletion
                         </h4>
-                        <ul className="text-sm text-gray-600 space-y-1">
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                           <li>• Correct inaccurate or incomplete data</li>
                           <li>• Request deletion of your personal data</li>
                           <li>• Withdraw consent for data processing</li>
@@ -274,13 +274,13 @@ export default function PrivacyPolicyPage() {
                       </div>
                     </div>
                     
-                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-800 mb-2">How to Exercise Your Rights</h4>
-                      <p className="text-sm text-blue-700 mb-3">
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <h4 className="mb-2 font-semibold text-foreground">How to Exercise Your Rights</h4>
+                      <p className="mb-3 text-sm text-muted-foreground">
                         To exercise any of these rights, please contact us using the information provided below. 
                         We will respond to your request within 30 days.
                       </p>
-                      <Button asChild variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                      <Button asChild variant="outline" size="sm">
                         <Link href={siteConfig.baseLinks.supportContact + "?category=privacy"}>
                           Submit Privacy Request
                         </Link>
@@ -299,7 +299,7 @@ export default function PrivacyPolicyPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <p className="text-gray-700">
+                    <p className="text-muted-foreground">
                       We use cookies and similar technologies to enhance your browsing experience and analyze site usage.
                     </p>
                     
@@ -322,9 +322,9 @@ export default function PrivacyPolicyPage() {
                         </div>
                       </div>
                       
-                      <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="rounded-lg border border-border bg-muted/30 p-4">
                         <h4 className="font-semibold mb-2">Managing Cookies</h4>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-muted-foreground">
                           You can control cookies through your browser settings. Note that disabling certain cookies 
                           may affect website functionality. Most browsers allow you to refuse or delete cookies.
                         </p>
@@ -337,25 +337,25 @@ export default function PrivacyPolicyPage() {
 
             {/* Contact Information */}
             <FadeDiv>
-              <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200">
+              <Card className="border-border bg-muted/30">
                 <CardContent className="p-8 text-center">
-                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-green-600">
-                    <RiMailLine className="h-8 w-8 text-white" />
+                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                    <RiMailLine className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className="mb-4 text-2xl font-semibold text-foreground">
                     Questions About Your Privacy?
                   </h3>
-                  <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                  <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
                     If you have questions about this privacy policy or how we handle your personal information, 
                     please don&apos;t hesitate to contact us.
                   </p>
                   
-                  <div className="space-y-2 text-sm text-gray-600 mb-6">
+                  <div className="mb-6 space-y-2 text-sm text-muted-foreground">
                     <p><strong>Email:</strong> privacy@opticworks.com</p>
                     <p><strong>Mail:</strong> OpticWorks LLC, Privacy Department, [Address]</p>
                   </div>
                   
-                  <Button asChild size="lg" className="bg-green-600 hover:bg-green-700">
+                  <Button asChild size="lg">
                     <Link href={siteConfig.baseLinks.supportContact + "?category=privacy"}>
                       <RiMailLine className="mr-2 h-4 w-4" />
                       Contact Privacy Team

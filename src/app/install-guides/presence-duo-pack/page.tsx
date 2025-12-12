@@ -37,17 +37,17 @@ export const metadata: Metadata = {
 
 export default function PresenceDuoPackGuide() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <section className="bg-white pt-28 pb-16">
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="bg-background pt-28 pb-16">
         <FadeContainer className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
           <FadeDiv>
-            <Badge className="mb-6 rounded-full bg-emerald-100 text-emerald-700">
-              Multi-Room Blueprint
+            <Badge variant="secondary" className="mb-6 rounded-full">
+              Multi‑room blueprint
             </Badge>
-            <h1 className="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
               Presence Sensor Duo Pack
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
               Install two synchronized sensors for split beds, primary + guest rooms, or clinic bays.
               Follow the phases below to prevent cross-triggering and keep automations coordinated.
             </p>
@@ -62,10 +62,10 @@ export default function PresenceDuoPackGuide() {
               <CardHeader>
                 <CardTitle>{phase.title}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm text-gray-600">
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
                 {phase.bullets.map((bullet) => (
                   <div key={bullet} className="flex gap-3">
-                    <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-gray-900/5 text-gray-900">
+                    <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-muted text-foreground">
                       ●
                     </span>
                     <p>{bullet}</p>

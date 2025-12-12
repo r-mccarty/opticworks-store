@@ -8,6 +8,7 @@ import { useCart } from '@/hooks/useCart';
 import { Loader2 } from 'lucide-react';
 import CheckoutForm from './CheckoutForm';
 import type { ShippingRate } from '@/hooks/useMedusaShipping';
+import { Button } from '@/components/ui/button';
 
 const publishableKey = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const stripePromise: Promise<Stripe | null> = publishableKey ? loadStripe(publishableKey) : Promise.resolve(null);
@@ -121,32 +122,26 @@ export default function CheckoutWrapper({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-12" data-testid="checkout-loading">
-        <Loader2 className="h-8 w-8 animate-spin mb-4" />
-        <p className="text-lg">Preparing your checkout...</p>
-        <p className="text-sm text-gray-500 mt-2">Creating secure payment session...</p>
+      <div className="flex flex-col items-center justify-center py-12 text-foreground" data-testid="checkout-loading">
+        <Loader2 className="h-8 w-8 animate-spin mb-4 text-muted-foreground" />
+        <p className="text-lg font-medium">Preparing your checkout...</p>
+        <p className="text-sm text-muted-foreground mt-2">Creating secure payment session...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center" data-testid="checkout-error">
-        <h3 className="text-lg font-semibold text-red-800 mb-2">Checkout Error</h3>
-        <p className="text-red-700 mb-4">{error}</p>
-        <div className="space-x-2">
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors"
-          >
+      <div className="rounded-lg border border-destructive/30 bg-destructive/10 p-6 text-center" data-testid="checkout-error">
+        <h3 className="text-lg font-semibold text-foreground mb-2">Checkout error</h3>
+        <p className="text-sm text-muted-foreground mb-4">{error}</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button onClick={() => window.location.reload()}>
             Retry
-          </button>
-          <button
-            onClick={() => window.history.back()}
-            className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition-colors"
-          >
-            Go Back
-          </button>
+          </Button>
+          <Button variant="outline" onClick={() => window.history.back()}>
+            Go back
+          </Button>
         </div>
       </div>
     );
@@ -154,16 +149,13 @@ export default function CheckoutWrapper({
 
   if (!cartId) {
     return (
-      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
-        <p className="text-yellow-800">
+      <div className="rounded-lg border border-border bg-card p-6 text-center">
+        <p className="text-muted-foreground">
           Unable to initialize checkout. Please try again.
         </p>
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700 transition-colors"
-        >
+        <Button onClick={() => window.location.reload()} className="mt-4">
           Retry
-        </button>
+        </Button>
       </div>
     );
   }

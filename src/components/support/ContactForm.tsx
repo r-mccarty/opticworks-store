@@ -52,7 +52,7 @@ function DarkInput({
 }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={`flex h-11 w-full rounded-lg border border-gray-800 bg-gray-900 px-4 py-2 text-sm text-gray-100 placeholder:text-gray-500 focus:border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-600 disabled:cursor-not-allowed disabled:opacity-50 transition-colors ${className}`}
+      className={`flex h-11 w-full rounded-md border border-input bg-background px-4 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 transition-colors ${className}`}
       {...props}
     />
   )
@@ -65,7 +65,7 @@ function DarkTextarea({
 }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={`flex min-h-[140px] w-full rounded-lg border border-gray-800 bg-gray-900 px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-600 disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-colors ${className}`}
+      className={`flex min-h-[140px] w-full rounded-md border border-input bg-background px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 resize-none transition-colors ${className}`}
       {...props}
     />
   )
@@ -87,7 +87,7 @@ function DarkSelect({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="flex h-11 w-full appearance-none rounded-lg border border-gray-800 bg-gray-900 px-4 py-2 text-sm text-gray-100 focus:border-gray-600 focus:outline-none focus:ring-1 focus:ring-gray-600 disabled:cursor-not-allowed disabled:opacity-50 transition-colors cursor-pointer"
+      className="flex h-11 w-full appearance-none rounded-md border border-input bg-background px-4 py-2 text-sm text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 transition-colors cursor-pointer"
       style={{
         backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E")`,
         backgroundRepeat: "no-repeat",
@@ -96,14 +96,14 @@ function DarkSelect({
         paddingRight: "40px",
       }}
     >
-      <option value="" disabled className="bg-gray-900 text-gray-500">
+      <option value="" disabled className="bg-background text-muted-foreground">
         {placeholder}
       </option>
       {options.map((option) => (
         <option
           key={option.value}
           value={option.value}
-          className="bg-gray-900 text-gray-100"
+          className="bg-background text-foreground"
         >
           {option.label}
         </option>
@@ -202,14 +202,14 @@ export function ContactForm() {
 
   if (submitted) {
     return (
-      <div className="rounded-xl border border-gray-800 bg-gray-900/50 p-8 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-gray-700 bg-gray-800 mb-5">
-          <RiCheckLine className="h-7 w-7 text-white" />
+      <div className="rounded-xl border border-border bg-card p-8 text-center shadow-elevation-1">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-border bg-muted mb-5">
+          <RiCheckLine className="h-7 w-7 text-secondary" />
         </div>
-        <h3 className="text-xl font-semibold text-white mb-3">
+        <h3 className="text-xl font-semibold text-foreground mb-3">
           Message sent
         </h3>
-        <p className="text-gray-400 mb-8 max-w-sm mx-auto">
+        <p className="text-muted-foreground mb-8 max-w-sm mx-auto">
           We&apos;ve received your support request and will respond within 2
           hours during business hours.
         </p>
@@ -219,7 +219,7 @@ export function ContactForm() {
             form.reset()
             setUploadedFiles([])
           }}
-          className="bg-white text-black hover:bg-gray-200 font-medium px-6"
+          className="px-6"
         >
           Send another message
         </Button>
@@ -228,7 +228,7 @@ export function ContactForm() {
   }
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-gray-900/30 p-6 sm:p-8">
+    <div className="rounded-xl border border-border bg-card p-6 sm:p-8 shadow-elevation-1">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           {/* Personal Information */}
@@ -238,13 +238,13 @@ export function ContactForm() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300 text-sm font-medium">
+                  <FormLabel className="text-sm font-medium text-foreground">
                     Full Name
                   </FormLabel>
                   <FormControl>
                     <DarkInput placeholder="Your full name" {...field} />
                   </FormControl>
-                  <FormMessage className="text-red-400 text-xs" />
+                  <FormMessage className="text-destructive text-xs" />
                 </FormItem>
               )}
             />
@@ -254,7 +254,7 @@ export function ContactForm() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300 text-sm font-medium">
+                  <FormLabel className="text-sm font-medium text-foreground">
                     Email Address
                   </FormLabel>
                   <FormControl>
@@ -264,7 +264,7 @@ export function ContactForm() {
                       {...field}
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 text-xs" />
+                  <FormMessage className="text-destructive text-xs" />
                 </FormItem>
               )}
             />
@@ -276,14 +276,14 @@ export function ContactForm() {
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-400 text-sm font-medium">
+                  <FormLabel className="text-sm font-medium text-foreground">
                     Phone Number
-                    <span className="text-gray-600 ml-1">(optional)</span>
+                    <span className="text-muted-foreground ml-1">(optional)</span>
                   </FormLabel>
                   <FormControl>
                     <DarkInput placeholder="(555) 123-4567" {...field} />
                   </FormControl>
-                  <FormMessage className="text-red-400 text-xs" />
+                  <FormMessage className="text-destructive text-xs" />
                 </FormItem>
               )}
             />
@@ -293,14 +293,14 @@ export function ContactForm() {
               name="orderNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-400 text-sm font-medium">
+                  <FormLabel className="text-sm font-medium text-foreground">
                     Order Number
-                    <span className="text-gray-600 ml-1">(if applicable)</span>
+                    <span className="text-muted-foreground ml-1">(if applicable)</span>
                   </FormLabel>
                   <FormControl>
                     <DarkInput placeholder="#12345" {...field} />
                   </FormControl>
-                  <FormMessage className="text-red-400 text-xs" />
+                  <FormMessage className="text-destructive text-xs" />
                 </FormItem>
               )}
             />
@@ -313,7 +313,7 @@ export function ContactForm() {
               name="category"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300 text-sm font-medium">
+                  <FormLabel className="text-sm font-medium text-foreground">
                     Support Category
                   </FormLabel>
                   <FormControl>
@@ -324,7 +324,7 @@ export function ContactForm() {
                       placeholder="Select category"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 text-xs" />
+                  <FormMessage className="text-destructive text-xs" />
                 </FormItem>
               )}
             />
@@ -334,7 +334,7 @@ export function ContactForm() {
               name="priority"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-gray-300 text-sm font-medium">
+                  <FormLabel className="text-sm font-medium text-foreground">
                     Priority Level
                   </FormLabel>
                   <FormControl>
@@ -345,7 +345,7 @@ export function ContactForm() {
                       placeholder="Select priority"
                     />
                   </FormControl>
-                  <FormMessage className="text-red-400 text-xs" />
+                  <FormMessage className="text-destructive text-xs" />
                 </FormItem>
               )}
             />
@@ -357,7 +357,7 @@ export function ContactForm() {
             name="subject"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-300 text-sm font-medium">
+                <FormLabel className="text-sm font-medium text-foreground">
                   Subject
                 </FormLabel>
                 <FormControl>
@@ -366,7 +366,7 @@ export function ContactForm() {
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-red-400 text-xs" />
+                <FormMessage className="text-destructive text-xs" />
               </FormItem>
             )}
           />
@@ -377,38 +377,38 @@ export function ContactForm() {
             name="message"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-gray-300 text-sm font-medium">
+                <FormLabel className="text-sm font-medium text-foreground">
                   Message
                 </FormLabel>
                 <FormControl>
                   <DarkTextarea
-                    placeholder="Please provide detailed information about your question or issue. Include any error messages, steps you've tried, and your vehicle information if relevant."
+                    placeholder="Please provide detailed information about your question or issue. Include any error messages, steps you’ve tried, and a screenshot or log snippet if possible."
                     {...field}
                   />
                 </FormControl>
-                <FormMessage className="text-red-400 text-xs" />
+                <FormMessage className="text-destructive text-xs" />
               </FormItem>
             )}
           />
 
           {/* File Upload */}
           <div className="space-y-3">
-            <Label className="text-gray-400 text-sm font-medium block">
+            <Label className="text-sm font-medium text-foreground block">
               Attachments
-              <span className="text-gray-600 ml-1">(optional, max 5 files)</span>
+              <span className="text-muted-foreground ml-1">(optional, max 5 files)</span>
             </Label>
 
             <label
               htmlFor="file-upload"
-              className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-gray-700 rounded-lg cursor-pointer bg-gray-900/50 hover:bg-gray-900 hover:border-gray-600 transition-colors"
+              className="flex flex-col items-center justify-center w-full h-28 border border-dashed border-border rounded-md cursor-pointer bg-muted/60 hover:bg-muted transition-colors"
             >
               <div className="flex flex-col items-center justify-center py-4">
-                <RiUploadLine className="w-6 h-6 mb-2 text-gray-500" />
-                <p className="text-sm text-gray-400">
-                  <span className="text-gray-300">Click to upload</span> or drag
+                <RiUploadLine className="w-6 h-6 mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  <span className="text-foreground">Click to upload</span> or drag
                   and drop
                 </p>
-                <p className="text-xs text-gray-600 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   PNG, JPG, MP4 up to 10MB
                 </p>
               </div>
@@ -428,12 +428,12 @@ export function ContactForm() {
                 {uploadedFiles.map((file, index) => (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-3 bg-gray-900 rounded-lg border border-gray-800"
+                    className="flex items-center justify-between p-3 bg-muted/60 rounded-md border border-border"
                   >
                     <div className="flex items-center space-x-3">
                       <div className="text-sm">
-                        <p className="font-medium text-gray-200">{file.name}</p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="font-medium text-foreground">{file.name}</p>
+                        <p className="text-muted-foreground text-xs">
                           {(file.size / 1024 / 1024).toFixed(2)} MB
                         </p>
                       </div>
@@ -443,7 +443,7 @@ export function ContactForm() {
                       variant="ghost"
                       size="sm"
                       onClick={() => removeFile(index)}
-                      className="text-gray-400 hover:text-red-400 hover:bg-transparent"
+                      className="text-muted-foreground hover:text-destructive hover:bg-transparent"
                     >
                       <RiDeleteBinLine className="w-4 h-4" />
                     </Button>
@@ -457,7 +457,7 @@ export function ContactForm() {
           <div className="pt-2">
             <Button
               type="submit"
-              className="w-full bg-white text-black hover:bg-gray-200 font-medium h-11 text-sm"
+              className="w-full h-11 text-sm font-medium"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Sending..." : "Send message"}

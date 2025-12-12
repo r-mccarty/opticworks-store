@@ -2,6 +2,7 @@ import { Metadata } from "next"
 import { FadeContainer, FadeDiv } from "@/components/Fade"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import { 
   RiFileTextLine,
   RiShieldCheckLine,
@@ -25,7 +26,7 @@ const legalCategories = [
     description: "How we collect, use, and protect your personal information",
     icon: RiShieldCheckLine,
     href: "/support/legal/privacy",
-    color: "bg-green-50 text-green-600",
+    color: "bg-muted text-primary",
     details: "GDPR & CCPA compliant privacy practices"
   },
   {
@@ -33,7 +34,7 @@ const legalCategories = [
     description: "Terms governing your use of our products and services", 
     icon: RiScalesLine,
     href: "/support/legal/terms",
-    color: "bg-orange-50 text-orange-600",
+    color: "bg-muted text-primary",
     details: "Purchase terms, warranties, and legal agreements"
   },
   {
@@ -41,7 +42,7 @@ const legalCategories = [
     description: "Understand regional privacy expectations for mmWave sensors",
     icon: RiMapPinLine,
     href: "/support/legal/tinting-laws",
-    color: "bg-blue-50 text-blue-600",
+    color: "bg-muted text-primary",
     popular: true,
     details: "Updated guidance for residential + clinical deployments"
   }
@@ -49,19 +50,19 @@ const legalCategories = [
 
 export default function LegalPage() {
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
+      <section className="relative bg-gradient-to-b from-background to-muted/40 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                <RiFileTextLine className="h-8 w-8 text-gray-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <RiFileTextLine className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
                 Legal & Compliance
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
+              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-muted-foreground">
                 Stay informed about privacy, terms, and the compliance posture of our presence hardware.
               </p>
             </FadeDiv>
@@ -78,13 +79,13 @@ export default function LegalPage() {
                 <div className="group relative">
                   {category.popular && (
                     <div className="absolute -top-3 -right-3 z-10">
-                      <span className="inline-flex items-center rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-800">
+                      <Badge variant="secondary" className="text-xs">
                         Popular
-                      </span>
+                      </Badge>
                     </div>
                   )}
                   
-                  <Card className="h-full transition-all duration-200 hover:shadow-lg">
+                  <Card className="h-full transition-all duration-200 hover:shadow-elevation-2">
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <span className={`inline-flex rounded-lg p-3 ${category.color}`}>
@@ -97,11 +98,11 @@ export default function LegalPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="flex-1">
-                      <p className="text-sm text-gray-600 mb-6">
+                      <p className="mb-6 text-sm text-muted-foreground">
                         {category.details}
                       </p>
                       
-                      <Button asChild className="w-full group-hover:bg-orange-50 group-hover:border-orange-300 group-hover:text-orange-700" variant="outline">
+                      <Button asChild className="w-full" variant="outline">
                         <Link href={category.href}>
                           View Details
                           <RiArrowRightLine className="ml-2 h-4 w-4" />
@@ -117,33 +118,33 @@ export default function LegalPage() {
       </section>
 
       {/* Legal FAQ Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <FadeDiv>
             <div className="text-center mb-12">
-              <h2 className="font-barlow text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl font-display">
                 Legal FAQ
               </h2>
-              <p className="mt-4 text-lg text-gray-600">
+              <p className="mt-4 text-lg text-muted-foreground">
                 Quick answers to common legal and compliance questions
               </p>
             </div>
           </FadeDiv>
 
           <FadeDiv>
-            <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200">
+            <Card className="border-border bg-muted/30">
               <CardContent className="p-8 text-center">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600">
-                  <RiQuestionLine className="h-8 w-8 text-white" />
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <RiQuestionLine className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="mb-4 text-2xl font-semibold text-foreground">
                   Need Presence Compliance Guidance?
                 </h3>
-                <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
                   Check our legal FAQ section for answers about privacy requests, local regulations, and approved deployment scenarios.
                 </p>
                 
-                <Button asChild size="lg" className="bg-blue-600 hover:bg-blue-700">
+                <Button asChild size="lg">
                   <Link href={siteConfig.baseLinks.supportFaq + "?category=legal"}>
                     <RiQuestionLine className="mr-2 h-4 w-4" />
                     Browse Legal FAQ
@@ -159,13 +160,13 @@ export default function LegalPage() {
       <section className="py-16">
         <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <FadeDiv>
-            <Card className="border-gray-200">
+            <Card className="border-border">
               <CardContent className="p-8">
                 <div className="text-center">
-                  <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                  <h3 className="mb-4 text-xl font-semibold text-foreground">
                     Need Legal Assistance?
                   </h3>
-                  <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                  <p className="mx-auto mb-6 max-w-2xl text-muted-foreground">
                     For legal inquiries, privacy requests, or compliance questions not covered here, 
                     please contact our support team.
                   </p>

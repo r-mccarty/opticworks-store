@@ -59,11 +59,11 @@ const installGuides = [
   },
 ]
 
-const difficultyColor = {
-  Beginner: "bg-green-100 text-green-800",
-  Intermediate: "bg-yellow-100 text-yellow-800",
-  Professional: "bg-red-100 text-red-800",
-}
+const difficultyVariant = {
+  Beginner: "secondary",
+  Intermediate: "outline",
+  Professional: "destructive",
+} as const
 
 export default function InstallGuidesPage() {
   const sortedGuides = [...installGuides].sort((a, b) =>
@@ -71,31 +71,30 @@ export default function InstallGuidesPage() {
   )
 
   return (
-    <main className="relative">
+    <main className="relative min-h-screen bg-background text-foreground">
       <FadeContainer className="relative px-7 sm:px-6 lg:px-8 pt-28 pb-16">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <FadeDiv className="mb-16 text-center">
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl font-display">
               Installation Guides
             </h1>
-            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-gray-600">
-              Professional-quality results with our step-by-step installation
-              guides. From beginner-friendly kits to advanced techniques,
-              we&apos;ll help you achieve a flawless finish every time.
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+              Step‑by‑step install and calibration playbooks for every zone —
+              from bedroom and living spaces to multi‑room deployments.
             </p>
           </FadeDiv>
 
           {/* Guides Grid */}
           <FadeDiv>
-            <h2 className="mb-8 text-2xl font-bold text-gray-900">
+            <h2 className="mb-8 text-2xl font-semibold text-foreground font-display">
               Browse Guides
             </h2>
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {sortedGuides.map((guide) => (
                 <Card
                   key={guide.id}
-                  className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg"
+                  className="flex flex-col overflow-hidden transition-shadow hover:shadow-elevation-2"
                 >
                   <Link href={guide.href}>
                     <div className="relative aspect-video">
@@ -107,7 +106,7 @@ export default function InstallGuidesPage() {
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                       {guide.featured && (
-                        <Badge className="absolute top-4 left-4 bg-orange-500 hover:bg-orange-600">
+                        <Badge className="absolute top-4 left-4 rounded-full">
                           Featured
                         </Badge>
                       )}
@@ -117,16 +116,16 @@ export default function InstallGuidesPage() {
                     <Link href={guide.href}>
                       <CardTitle className="text-lg">{guide.title}</CardTitle>
                     </Link>
-                    <p className="text-sm text-gray-600">{guide.description}</p>
+                    <p className="text-sm text-muted-foreground">{guide.description}</p>
                   </CardHeader>
                   <CardContent className="mt-auto">
-                    <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-gray-500">
+                    <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <UserIcon className="h-4 w-4" />
                         <Badge
-                          className={
-                            difficultyColor[
-                              guide.difficulty as keyof typeof difficultyColor
+                          variant={
+                            difficultyVariant[
+                              guide.difficulty as keyof typeof difficultyVariant
                             ]
                           }
                         >
@@ -161,11 +160,11 @@ export default function InstallGuidesPage() {
 
           {/* Help Section */}
           <FadeDiv className="mt-16 text-center">
-            <div className="rounded-2xl bg-gray-50 p-8">
-              <h3 className="mb-4 text-2xl font-bold text-gray-900">
+            <div className="rounded-2xl border border-border bg-muted/30 p-8">
+              <h3 className="mb-4 text-2xl font-semibold text-foreground">
                 Need Additional Help?
               </h3>
-              <p className="mx-auto mb-6 max-w-2xl text-gray-600">
+              <p className="mx-auto mb-6 max-w-2xl text-muted-foreground">
                 Our installation guides are designed to be foolproof, but if you
                 have questions or need additional support, we&apos;re here to
                 help.

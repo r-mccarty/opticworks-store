@@ -39,12 +39,12 @@ export default function ForgotPasswordPage() {
 
   if (isSubmitted) {
     return (
-      <main className="min-h-screen bg-black flex items-center justify-center px-4">
-        <div className="w-full max-w-md text-center">
-          <div className="mb-8">
-            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+      <main className="min-h-screen bg-background flex items-center justify-center px-4 py-24">
+        <div className="w-full max-w-md">
+          <div className="rounded-lg border border-border bg-card p-8 shadow-elevation-1 text-center">
+            <div className="mb-6 flex size-14 items-center justify-center rounded-full bg-secondary/15 mx-auto">
               <svg
-                className="w-8 h-8 text-green-500"
+                className="size-7 text-secondary"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -57,32 +57,33 @@ export default function ForgotPasswordPage() {
                 />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">Check Your Email</h1>
-            <p className="text-zinc-400">
-              If an account exists for <span className="text-white">{email}</span>,
-              you&apos;ll receive a password reset link shortly.
+            <h1 className="text-2xl font-semibold text-foreground mb-2">
+              Check your email
+            </h1>
+            <p className="text-muted-foreground">
+              If an account exists for{" "}
+              <span className="text-foreground">{email}</span>, you&apos;ll
+              receive a reset link shortly.
             </p>
-          </div>
 
-          <div className="space-y-4">
-            <p className="text-sm text-zinc-500">
-              Didn&apos;t receive the email? Check your spam folder or try again.
-            </p>
-            <Button
-              onClick={() => {
-                setIsSubmitted(false)
-                setEmail("")
-              }}
-              variant="outline"
-              className="w-full border-zinc-800 text-zinc-300 hover:bg-zinc-900"
-            >
-              Try Again
-            </Button>
-            <Link href="/auth/login">
-              <Button variant="ghost" className="w-full text-zinc-400 hover:text-white">
-                Back to Sign In
+            <div className="mt-6 space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Didn&apos;t receive the email? Check spam or try again.
+              </p>
+              <Button
+                onClick={() => {
+                  setIsSubmitted(false)
+                  setEmail("")
+                }}
+                variant="outline"
+                className="w-full"
+              >
+                Try again
               </Button>
-            </Link>
+              <Button asChild variant="ghost" className="w-full">
+                <Link href="/auth/login">Back to sign in</Link>
+              </Button>
+            </div>
           </div>
         </div>
       </main>
@@ -90,54 +91,51 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-24">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Reset Password</h1>
-          <p className="text-zinc-400">
-            Enter your email address and we&apos;ll send you a link to reset your password.
+          <h1 className="text-3xl font-semibold text-foreground mb-2">
+            Reset password
+          </h1>
+          <p className="text-muted-foreground">
+            Enter your email and we&apos;ll send a reset link.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
-              {error}
+        <div className="rounded-lg border border-border bg-card p-6 shadow-elevation-1">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {error && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {error}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="john@example.com"
+                autoComplete="email"
+              />
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-zinc-300">
-              Email
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="john@example.com"
-              className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
-              autoComplete="email"
-            />
-          </div>
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? "Sending..." : "Send reset link"}
+            </Button>
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-white text-black hover:bg-zinc-200"
-          >
-            {isLoading ? "Sending..." : "Send Reset Link"}
-          </Button>
-
-          <p className="text-center text-sm text-zinc-400">
-            Remember your password?{" "}
-            <Link href="/auth/login" className="text-white hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </form>
+            <p className="text-center text-sm text-muted-foreground">
+              Remember your password?{" "}
+              <Link href="/auth/login" className="text-foreground hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </main>
   )

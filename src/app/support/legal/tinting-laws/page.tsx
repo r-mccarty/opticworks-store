@@ -1,401 +1,249 @@
-"use client"
+import type { Metadata } from "next"
+import Link from "next/link"
 
-import { useState, useEffect } from "react"
 import { FadeContainer, FadeDiv } from "@/components/Fade"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  RiMapPinLine,
-  RiCheckLine,
-  RiCloseLine,
-  RiAlertLine,
+import { siteConfig } from "@/app/siteConfig"
+import {
+  RiEyeLine,
   RiInformationLine,
-  RiSearchLine,
-  RiShieldCheckLine
+  RiLockLine,
+  RiMapPinLine,
+  RiShieldCheckLine,
 } from "@remixicon/react"
-import { fetchTintingLaws, fetchAvailableStates, checkTintCompliance, type TintingLaw, type ComplianceCheck } from "@/lib/api/tintingLaws"
 
-// Note: Metadata cannot be exported from client components
-// This page requires client-side functionality for the interactive features
+export const metadata: Metadata = {
+  title: "Presence Compliance by Region - OpticWorks Presence",
+  description:
+    "High-level privacy and deployment guidance for OpticWorks mmWave presence sensors across the US. Not legal advice.",
+  keywords: [
+    "presence compliance",
+    "mmWave privacy",
+    "regional guidance",
+    "Home Assistant presence",
+    "OpticWorks",
+  ],
+}
 
-const vltOptions = [
-  { value: '5', label: '5% VLT (Limo Dark)', popular: true },
-  { value: '15', label: '15% VLT (Dark)', popular: true },
-  { value: '35', label: '35% VLT (Medium)', popular: true },
-  { value: '50', label: '50% VLT (Light)' },
-  { value: '70', label: '70% VLT (Very Light)' }
-];
+type RegionGuidance = {
+  code: string
+  name: string
+  notice: string
+  commercial: string
+  recording: string
+  lastUpdated: string
+}
 
-export default function TintingLawsPage() {
-  const [selectedState, setSelectedState] = useState<string>('');
-  const [selectedVlt, setSelectedVlt] = useState<string>('35');
-  const [windowType, setWindowType] = useState<'front-side' | 'back-side' | 'rear'>('front-side');
-  const [states, setStates] = useState<Array<{code: string; name: string}>>([]);
-  const [tintingLaws, setTintingLaws] = useState<TintingLaw | null>(null);
-  const [compliance, setCompliance] = useState<ComplianceCheck | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const regions: RegionGuidance[] = [
+  {
+    code: "CA",
+    name: "California",
+    notice:
+      "Notice is strongly recommended anywhere a guest could be present. Avoid installations in private guest bedrooms without clear disclosure.",
+    commercial:
+      "Signage is required for clinics, rentals, and offices. If a space is monitored for safety or automation, make it explicit.",
+    recording:
+      "Our default mode does not capture audio/video. If you enable spatial visualization storage, keep it local or obtain explicit consent.",
+    lastUpdated: "2025-01-15",
+  },
+  {
+    code: "NY",
+    name: "New York",
+    notice:
+      "Household installs are generally permitted with reasonable notice to occupants and guests.",
+    commercial:
+      "Post signage at entrances and include presence monitoring in your privacy policy for shared buildings.",
+    recording:
+      "Do not store identifiable traces without consent. Use occupancy‑only mode for public areas.",
+    lastUpdated: "2025-01-15",
+  },
+  {
+    code: "TX",
+    name: "Texas",
+    notice:
+      "Residential installs are permitted; disclose to household members and caretakers.",
+    commercial:
+      "Signage recommended for rentals and workplaces. Obtain written consent for sensitive environments.",
+    recording:
+      "Prefer local retention; delete traces on request. Avoid any use that could be interpreted as covert surveillance.",
+    lastUpdated: "2025-01-15",
+  },
+  {
+    code: "FL",
+    name: "Florida",
+    notice:
+      "Inform occupants if sensors are installed in bedrooms, nurseries, or assisted‑living suites.",
+    commercial:
+      "Use clear signage and maintain a public policy describing monitoring purpose and retention.",
+    recording:
+      "Only retain what you need for automation. Use anonymized heatmaps rather than raw traces.",
+    lastUpdated: "2025-01-15",
+  },
+]
 
-  // Load available states on mount
-  useEffect(() => {
-    fetchAvailableStates().then(setStates).catch(console.error);
-  }, []);
+const deploymentChecklist = [
+  "Place sensors only where monitoring is appropriate and expected.",
+  "Disclose presence sensing to household members, guests, staff, or patients.",
+  "Use occupancy‑only mode for shared/public spaces whenever possible.",
+  "If storing spatial visualizations, keep retention short and honor deletion requests.",
+  "Never pair presence data with identifying audio/video without explicit consent.",
+]
 
-  // Load tinting laws when state is selected
-  useEffect(() => {
-    if (selectedState) {
-      setLoading(true);
-      setError(null);
-      
-      fetchTintingLaws(selectedState)
-        .then((laws) => {
-          setTintingLaws(laws);
-          if (!laws) {
-            setError('Tinting law data not available for this state');
-          }
-        })
-        .catch((err) => {
-          setError('Failed to load tinting laws');
-          console.error(err);
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setTintingLaws(null);
-      setCompliance(null);
-    }
-  }, [selectedState]);
-
-  // Check compliance when VLT or window type changes
-  useEffect(() => {
-    if (selectedState && selectedVlt && windowType) {
-      checkTintCompliance(selectedState, parseInt(selectedVlt), windowType)
-        .then(setCompliance)
-        .catch(console.error);
-    }
-  }, [selectedState, selectedVlt, windowType]);
-
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case 'low': return 'bg-green-100 text-green-800';
-      case 'medium': return 'bg-yellow-100 text-yellow-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const getComplianceIcon = (isCompliant: boolean) => {
-    return isCompliant 
-      ? <RiCheckLine className="h-5 w-5 text-green-600" />
-      : <RiCloseLine className="h-5 w-5 text-red-600" />;
-  };
-
+export default function PresenceCompliancePage() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
-        <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center">
-            <FadeDiv>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
-                <RiMapPinLine className="h-8 w-8 text-blue-600" />
-              </div>
-              <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Window Tinting Laws
-              </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-                Check tinting laws and VLT requirements for your state. Stay legal and avoid citations.
-              </p>
-            </FadeDiv>
-          </div>
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="relative bg-gradient-to-b from-background to-muted/40 pt-24 pb-16">
+        <FadeContainer className="mx-auto max-w-6xl px-6 lg:px-8 text-center">
+          <FadeDiv>
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+              <RiMapPinLine className="h-8 w-8 text-primary" />
+            </div>
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
+              Presence compliance by region
+            </h1>
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground sm:text-xl">
+              This page summarizes common expectations for mmWave presence sensing
+              in residential and light‑commercial deployments. It is not legal
+              advice — when in doubt, consult local counsel.
+            </p>
+          </FadeDiv>
         </FadeContainer>
       </section>
 
-      {/* Law Checker Tool */}
       <section className="py-16">
-        <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
-          <FadeDiv>
-            <Card className="mb-8">
+        <FadeContainer className="mx-auto max-w-6xl px-6 lg:px-8 space-y-10">
+          <FadeDiv className="grid gap-6 md:grid-cols-3">
+            <Card className="h-full">
               <CardHeader>
-                <div className="flex items-center gap-3">
-                  <RiSearchLine className="h-6 w-6 text-blue-600" />
-                  <div>
-                    <CardTitle className="text-2xl">Tinting Law Checker</CardTitle>
-                    <CardDescription>
-                      Select your state and tint specifications to check legal compliance
-                    </CardDescription>
-                  </div>
-                </div>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <RiEyeLine className="h-5 w-5 text-primary" />
+                  What we sense
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-6">
-                {/* State Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select Your State
-                  </label>
-                  <select
-                    value={selectedState}
-                    onChange={(e) => setSelectedState(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    <option value="">Choose a state...</option>
-                    {states.map((state) => (
-                      <option key={state.code} value={state.code}>
-                        {state.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* VLT Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Select VLT Percentage
-                  </label>
-                  <select
-                    value={selectedVlt}
-                    onChange={(e) => setSelectedVlt(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-orange-500 focus:border-orange-500"
-                  >
-                    {vltOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Window Type Selector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Window Type
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {[
-                      { value: 'front-side', label: 'Front Side Windows' },
-                      { value: 'back-side', label: 'Back Side Windows' },
-                      { value: 'rear', label: 'Rear Window' }
-                    ].map((type) => (
-                      <button
-                        key={type.value}
-                        onClick={() => setWindowType(type.value as 'front-side' | 'back-side' | 'rear')}
-                        className={`p-3 text-sm font-medium rounded-lg border transition-colors ${
-                          windowType === type.value
-                            ? 'bg-orange-100 border-orange-300 text-orange-700'
-                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                        }`}
-                      >
-                        {type.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <CardContent className="text-sm text-muted-foreground">
+                OpticWorks Presence uses mmWave radar to estimate motion and
+                stillness. No cameras or microphones are required for core
+                operation.
+              </CardContent>
+            </Card>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <RiLockLine className="h-5 w-5 text-primary" />
+                  Data defaults
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Presence state, confidence, and change reasons stay local by
+                default. Cloud sync and spatial trace storage are opt‑in.
+              </CardContent>
+            </Card>
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <RiShieldCheckLine className="h-5 w-5 text-primary" />
+                  Best practice
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground">
+                Disclose sensing, avoid covert deployments, and minimize
+                retention. Use occupancy‑only mode whenever possible.
               </CardContent>
             </Card>
           </FadeDiv>
 
-          {/* Compliance Results */}
-          {compliance && tintingLaws && (
-            <FadeDiv>
-              <Card className={`border-2 ${compliance.isCompliant ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}`}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {getComplianceIcon(compliance.isCompliant)}
-                      <CardTitle className={compliance.isCompliant ? 'text-green-800' : 'text-red-800'}>
-                        {compliance.isCompliant ? 'Compliant' : 'Non-Compliant'}
-                      </CardTitle>
-                    </div>
-                    <Badge className={getRiskColor(compliance.riskLevel)}>
-                      {compliance.riskLevel.charAt(0).toUpperCase() + compliance.riskLevel.slice(1)} Risk
-                    </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {compliance.violations.length > 0 && (
-                      <div className="bg-red-100 border border-red-200 rounded-lg p-4">
-                        <h4 className="font-semibold text-red-800 flex items-center gap-2">
-                          <RiAlertLine className="h-4 w-4" />
-                          Violations
-                        </h4>
-                        <ul className="mt-2 text-sm text-red-700 space-y-1">
-                          {compliance.violations.map((violation, index) => (
-                            <li key={index}>• {violation}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
+          <FadeDiv>
+            <h2 className="text-2xl font-semibold tracking-tight font-display">
+              US highlights
+            </h2>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Summaries are intentionally high‑level. We’ll expand coverage as
+              regulations evolve.
+            </p>
+          </FadeDiv>
 
-                    <div className="bg-blue-100 border border-blue-200 rounded-lg p-4">
-                      <h4 className="font-semibold text-blue-800 flex items-center gap-2">
-                        <RiInformationLine className="h-4 w-4" />
-                        Recommendations
-                      </h4>
-                      <ul className="mt-2 text-sm text-blue-700 space-y-1">
-                        {compliance.recommendations.map((rec, index) => (
-                          <li key={index}>• {rec}</li>
-                        ))}
-                      </ul>
-                    </div>
+          <FadeDiv className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {regions.map((region) => (
+              <Card key={region.code} className="h-full">
+                <CardHeader className="flex flex-row items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="text-lg">
+                      {region.name}
+                    </CardTitle>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Last updated {region.lastUpdated}
+                    </p>
+                  </div>
+                  <Badge variant="outline">{region.code}</Badge>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm text-muted-foreground">
+                  <div>
+                    <p className="font-medium text-foreground">Residential notice</p>
+                    <p className="mt-1">{region.notice}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Commercial / clinical</p>
+                    <p className="mt-1">{region.commercial}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-foreground">Spatial recording</p>
+                    <p className="mt-1">{region.recording}</p>
                   </div>
                 </CardContent>
               </Card>
-            </FadeDiv>
-          )}
+            ))}
+          </FadeDiv>
 
-          {/* State Law Details */}
-          {tintingLaws && (
-            <FadeDiv>
-              <Card className="mt-8">
-                <CardHeader>
-                  <CardTitle className="text-xl">
-                    {tintingLaws.state} Tinting Laws
-                  </CardTitle>
-                  <CardDescription>
-                    Last updated: {new Date(tintingLaws.lastUpdated).toLocaleDateString()}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-6">
-                    {/* VLT Requirements */}
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">VLT Requirements</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="text-sm text-gray-600">Front Windshield</div>
-                          <div className="font-semibold">{tintingLaws.frontWindshield.allowedVlt}</div>
-                          <div className="text-xs text-gray-500 mt-1">{tintingLaws.frontWindshield.restrictions}</div>
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="text-sm text-gray-600">Front Side Windows</div>
-                          <div className="font-semibold">{tintingLaws.frontSideWindows.minVlt}%+ VLT</div>
-                          {tintingLaws.frontSideWindows.restrictions && (
-                            <div className="text-xs text-gray-500 mt-1">{tintingLaws.frontSideWindows.restrictions}</div>
-                          )}
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="text-sm text-gray-600">Back Side Windows</div>
-                          <div className="font-semibold">{tintingLaws.backSideWindows.minVlt}%+ VLT</div>
-                          {tintingLaws.backSideWindows.restrictions && (
-                            <div className="text-xs text-gray-500 mt-1">{tintingLaws.backSideWindows.restrictions}</div>
-                          )}
-                        </div>
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <div className="text-sm text-gray-600">Rear Window</div>
-                          <div className="font-semibold">{tintingLaws.rearWindow.minVlt}%+ VLT</div>
-                          {tintingLaws.rearWindow.restrictions && (
-                            <div className="text-xs text-gray-500 mt-1">{tintingLaws.rearWindow.restrictions}</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Additional Restrictions */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-3">Color Restrictions</h4>
-                        <div className="space-y-2">
-                          <div>
-                            <span className="text-sm text-gray-600">Allowed: </span>
-                            <span className="text-sm">{tintingLaws.colors.allowed.join(', ')}</span>
-                          </div>
-                          {tintingLaws.colors.restricted.length > 0 && (
-                            <div>
-                              <span className="text-sm text-gray-600">Restricted: </span>
-                              <span className="text-sm text-red-600">{tintingLaws.colors.restricted.join(', ')}</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-semibold text-gray-900 mb-3">Other Rules</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex items-center gap-2">
-                            {tintingLaws.reflectivity.metallic ? (
-                              <RiCheckLine className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <RiCloseLine className="h-4 w-4 text-red-600" />
-                            )}
-                            Metallic/Reflective Tint {tintingLaws.reflectivity.metallic ? 'Allowed' : 'Prohibited'}
-                          </div>
-                          <div className="flex items-center gap-2">
-                            {tintingLaws.medicalExemptions ? (
-                              <RiCheckLine className="h-4 w-4 text-green-600" />
-                            ) : (
-                              <RiCloseLine className="h-4 w-4 text-red-600" />
-                            )}
-                            Medical Exemptions {tintingLaws.medicalExemptions ? 'Available' : 'Not Available'}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Penalties */}
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Penalties</h4>
-                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium">First Offense: </span>
-                            <span>{tintingLaws.penalties.firstOffense}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Repeat Offense: </span>
-                            <span>{tintingLaws.penalties.repeatOffense}</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </FadeDiv>
-          )}
-
-          {/* Loading/Error States */}
-          {loading && (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto"></div>
-              <p className="mt-2 text-gray-600">Loading tinting laws...</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-              <RiAlertLine className="h-6 w-6 text-red-600 mx-auto mb-2" />
-              <p className="text-red-800">{error}</p>
-            </div>
-          )}
+          <FadeDiv>
+            <Card className="border-border bg-muted/30">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <RiInformationLine className="h-5 w-5 text-primary" />
+                  Deployment checklist
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ul className="grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
+                  {deploymentChecklist.map((item) => (
+                    <li key={item} className="flex gap-2">
+                      <span className="mt-1 inline-flex size-5 items-center justify-center rounded-full bg-muted text-foreground">
+                        •
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          </FadeDiv>
         </FadeContainer>
       </section>
 
-      {/* Disclaimer */}
-      <section className="py-16 bg-white">
-        <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+      <section className="py-16">
+        <FadeContainer className="mx-auto max-w-4xl px-6 lg:px-8">
           <FadeDiv>
-            <Card className="border-gray-200">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <RiShieldCheckLine className="h-8 w-8 text-yellow-600 flex-shrink-0 mt-1" />
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                      Important Legal Disclaimer
-                    </h3>
-                    <div className="prose prose-sm text-gray-600">
-                      <p>
-                        The information provided here is for reference purposes only and may not reflect the most current laws. 
-                        Tinting laws can change frequently and vary by jurisdiction.
-                      </p>
-                      <p className="font-medium text-gray-800 mt-4">
-                        Always verify current tinting laws with your local DMV or law enforcement before installation.
-                      </p>
-                      <p className="mt-4">
-                        OpticWorks is not responsible for citations or legal issues resulting from non-compliant tinting. 
-                        Installation of any tint is at your own risk and responsibility.
-                      </p>
-                    </div>
-                  </div>
+            <Card className="border-border bg-card shadow-elevation-1">
+              <CardContent className="p-8 text-center">
+                <h3 className="text-2xl font-semibold text-foreground">
+                  Need a compliance review?
+                </h3>
+                <p className="mx-auto mt-3 max-w-2xl text-muted-foreground">
+                  Share your deployment plan and we’ll help you choose the
+                  safest configuration for your region.
+                </p>
+                <div className="mt-6 flex flex-wrap justify-center gap-3">
+                  <Button asChild size="lg">
+                    <Link href={siteConfig.baseLinks.supportContact + "?category=legal"}>
+                      Contact compliance
+                    </Link>
+                  </Button>
+                  <Button asChild size="lg" variant="outline">
+                    <Link href={siteConfig.baseLinks.supportFaq}>
+                      Browse legal FAQ
+                    </Link>
+                  </Button>
                 </div>
               </CardContent>
             </Card>

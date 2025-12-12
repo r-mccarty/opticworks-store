@@ -1,8 +1,8 @@
 export const siteConfig = {
-  name: "OpticWorks Presence Lab",
+  name: "OpticWorks Presence",
   url: "https://opticworks.com",
   description:
-    "Bed Presence Sensor kits for Home Assistant power users. Local mmWave hardware, statistical presence engine, and transparent tuning tools for reliable automations.",
+    "Real‑time presence sensors and spatial visualization for Home Assistant and beyond.",
   baseLinks: {
     home: "/",
     store: "/store",

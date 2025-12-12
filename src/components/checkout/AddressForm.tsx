@@ -21,7 +21,7 @@ export default function AddressForm({ onComplete }: AddressFormProps) {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <div className="border rounded-md p-3">
+          <div className="border border-border rounded-md bg-background p-3">
             <AddressElement 
               options={{
                 mode: 'shipping',
@@ -36,7 +36,7 @@ export default function AddressForm({ onComplete }: AddressFormProps) {
               onChange={handleAddressChange}
             />
           </div>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-muted-foreground">
             Enter your shipping address. Shipping rates and tax will be calculated automatically.
           </p>
         </div>

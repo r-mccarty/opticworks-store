@@ -5,230 +5,137 @@ import {
   RiYoutubeFill,
 } from "@remixicon/react"
 import Link from "next/link"
-import { SolarLogo } from "../../../public/SolarLogo"
+
 import { siteConfig } from "@/app/siteConfig"
+import { SolarLogo } from "../../../public/SolarLogo"
+
 const CURRENT_YEAR = new Date().getFullYear()
 
+const sections = [
+  {
+    title: "Products",
+    items: [
+      { label: "Presence Sensor Kit", href: "/products/bed-presence-sensor-kit" },
+      { label: "Presence Duo Pack", href: "/products/presence-sensor-duo-pack" },
+      { label: "Developer Edition", href: "/products/presence-developer-edition" },
+      { label: "Mounts & Enclosures", href: "/products/presence-enclosure-pack" },
+      { label: "Accessories", href: siteConfig.baseLinks.store },
+    ],
+  },
+  {
+    title: "Platform",
+    items: [
+      { label: "Presence Engine", href: siteConfig.baseLinks.products },
+      { label: "Automation OS", href: "https://docs.optic.works", external: true },
+      { label: "Install Guides", href: siteConfig.baseLinks.installGuides },
+      { label: "API & Docs", href: "https://docs.optic.works", external: true },
+    ],
+  },
+  {
+    title: "Support",
+    items: [
+      { label: "Contact", href: siteConfig.baseLinks.supportContact },
+      { label: "Order Status", href: siteConfig.baseLinks.supportOrders },
+      { label: "Billing", href: siteConfig.baseLinks.supportBilling },
+      { label: "Warranty & Returns", href: siteConfig.baseLinks.supportWarranty },
+      { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
+    ],
+  },
+  {
+    title: "Legal",
+    items: [
+      { label: "Compliance", href: siteConfig.baseLinks.supportLegal },
+      { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
+      { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
+    ],
+  },
+] as const
+
 const Footer = () => {
-  const sections = {
-    products: {
-      title: "Products",
-      items: [
-        { label: "Bed Presence Sensor Kit", href: "/products/bed-presence-sensor-kit" },
-        { label: "Presence Sensor Duo Pack", href: "/products/presence-sensor-duo-pack" },
-        { label: "Presence Engine Dev Edition", href: "/products/presence-developer-edition" },
-        { label: "Dashboard Pack", href: "/products/presence-dashboard-pack" },
-        { label: "Mount & Enclosure Pack", href: "/products/presence-enclosure-pack" },
-        { label: "Accessories & Add-ons", href: siteConfig.baseLinks.store },
-      ],
-    },
-    store: {
-      title: "Store",
-      items: [
-        { label: "Shop All Products", href: siteConfig.baseLinks.store },
-        { label: "New Arrivals", href: siteConfig.baseLinks.store },
-        { label: "Best Sellers", href: siteConfig.baseLinks.store },
-        { label: "Bundles & Deals", href: siteConfig.baseLinks.store },
-        { label: "Shopping Cart", href: siteConfig.baseLinks.cart },
-      ],
-    },
-    support: {
-      title: "Customer Support",
-      items: [
-        { label: "Contact Us", href: siteConfig.baseLinks.supportContact },
-        { label: "Order Status", href: siteConfig.baseLinks.supportOrders },
-        { label: "Payment & Billing", href: siteConfig.baseLinks.supportBilling },
-        { label: "Product Compatibility", href: siteConfig.baseLinks.supportCompatibility },
-        { label: "Returns & Exchanges", href: siteConfig.baseLinks.supportWarranty },
-        { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
-        { label: "Oops Protection", href: siteConfig.baseLinks.supportOops },
-      ],
-    },
-    guides: {
-      title: "Install Guides",
-      items: [
-        { label: "Calibration Videos", href: siteConfig.baseLinks.installGuides },
-        { label: "Bed Presence Install", href: "/install-guides/bed-presence-sensor" },
-        { label: "Step-by-Step Guide", href: siteConfig.baseLinks.installGuides },
-        { label: "Troubleshooting", href: siteConfig.baseLinks.supportFaq },
-        { label: "Integrator Playbooks", href: siteConfig.baseLinks.installGuides },
-        { label: "Get Help", href: siteConfig.baseLinks.support },
-      ],
-    },
-    legal: {
-      title: "Legal & Compliance",
-      items: [
-        { label: "Presence Compliance", href: siteConfig.baseLinks.supportLegal },
-        { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
-        { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
-        { label: "Legal Support", href: siteConfig.baseLinks.supportLegal },
-      ],
-    },
-  }
-
   return (
-    <div className="px-4 xl:px-0">
-      <footer
-        id="footer"
-        className="relative mx-auto flex max-w-6xl flex-wrap pt-4"
-      >
-        {/* Vertical Lines */}
-        <div className="pointer-events-none inset-0">
-          {/* Left */}
-          <div
-            className="absolute inset-y-0 my-[-5rem] w-px"
-            style={{
-              maskImage: "linear-gradient(transparent, white 5rem)",
-            }}
-          >
-            <svg className="h-full w-full" preserveAspectRatio="none">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                className="stroke-gray-300"
-                strokeWidth="2"
-                strokeDasharray="3 3"
-              />
-            </svg>
-          </div>
-
-          {/* Right */}
-          <div
-            className="absolute inset-y-0 right-0 my-[-5rem] w-px"
-            style={{
-              maskImage: "linear-gradient(transparent, white 5rem)",
-            }}
-          >
-            <svg className="h-full w-full" preserveAspectRatio="none">
-              <line
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="100%"
-                className="stroke-gray-300"
-                strokeWidth="2"
-                strokeDasharray="3 3"
-              />
-            </svg>
-          </div>
-        </div>
-        <svg
-          className="mb-10 h-20 w-full border-y border-dashed border-gray-300 stroke-gray-300"
-          // style={{
-          //   maskImage:
-          //     "linear-gradient(transparent, white 10rem, white calc(100% - 10rem), transparent)",
-          // }}
-        >
-          <defs>
-            <pattern
-              id="diagonal-footer-pattern"
-              patternUnits="userSpaceOnUse"
-              width="64"
-              height="64"
-            >
-              {Array.from({ length: 17 }, (_, i) => {
-                const offset = i * 8
-                return (
-                  <path
-                    key={i}
-                    d={`M${-106 + offset} 110L${22 + offset} -18`}
-                    stroke=""
-                    strokeWidth="1"
-                  />
-                )
-              })}
-            </pattern>
-          </defs>
-          <rect
-            stroke="none"
-            width="100%"
-            height="100%"
-            fill="url(#diagonal-footer-pattern)"
-          />
-        </svg>
-        <div className="mr-auto flex w-full justify-between lg:w-fit lg:flex-col">
-          <Link
-            href="/"
-            className="flex items-center font-medium text-gray-700 select-none sm:text-sm"
-          >
-            <SolarLogo className="ml-2 w-20" />
-
-            <span className="sr-only">OpticWorks Logo (go home)</span>
+    <footer id="footer" className="border-t border-border bg-background">
+      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:grid-cols-2 lg:grid-cols-6 lg:gap-8">
+        <div className="lg:col-span-2">
+          <Link href="/" className="flex items-center gap-3">
+            <SolarLogo className="w-20 text-foreground" />
+            <span className="sr-only">{siteConfig.name}</span>
           </Link>
 
-          <div className="flex flex-col space-y-3">
-            {/* Social Icons */}
-            <div className="flex items-center">
-              <Link
-                href="https://twitter.com/opticworks"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiTwitterXFill className="size-5" />
-              </Link>
-              <Link
-                href="https://youtube.com/@opticworks"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiYoutubeFill className="size-5" />
-              </Link>
-              <Link
-                href="https://github.com/opticworks"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiGithubFill className="size-5" />
-              </Link>
-              <Link
-                href={siteConfig.baseLinks.supportContact}
-                className="rounded-sm p-2 text-gray-700 transition-colors duration-200 hover:bg-gray-200 hover:text-gray-900"
-              >
-                <RiSlackFill className="size-5" />
-              </Link>
-            </div>
-            
-            {/* Copyright */}
-            <div className="ml-2 text-sm text-gray-700">
-              &copy; {CURRENT_YEAR} OpticWorks LLC
-            </div>
-            
-            {/* Legal Links */}
-            <div className="ml-2 text-xs text-gray-600">
-              <Link 
-                href={siteConfig.baseLinks.supportPrivacy}
-                className="hover:text-gray-900 transition-colors"
-              >
-                Privacy Policy
-              </Link>
-              <span className="mx-2">•</span>
-              <Link 
-                href={siteConfig.baseLinks.supportTerms}
-                className="hover:text-gray-900 transition-colors"
-              >
-                Terms of Service
-              </Link>
-            </div>
+          <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+            Real‑time presence sensing and spatial visualization for modern
+            homes, labs, and automation builders.
+          </p>
+
+          <div className="mt-5 flex items-center gap-1">
+            <Link
+              href="https://twitter.com/opticworks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="OpticWorks on X"
+            >
+              <RiTwitterXFill className="size-5" />
+            </Link>
+            <Link
+              href="https://youtube.com/@opticworks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="OpticWorks on YouTube"
+            >
+              <RiYoutubeFill className="size-5" />
+            </Link>
+            <Link
+              href="https://github.com/opticworks"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="OpticWorks on GitHub"
+            >
+              <RiGithubFill className="size-5" />
+            </Link>
+            <Link
+              href={siteConfig.baseLinks.supportContact}
+              className="rounded-md p-2 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              aria-label="OpticWorks community"
+            >
+              <RiSlackFill className="size-5" />
+            </Link>
+          </div>
+
+          <div className="mt-6 text-xs text-muted-foreground">
+            &copy; {CURRENT_YEAR} OpticWorks LLC
+          </div>
+          <div className="mt-2 text-xs text-muted-foreground">
+            <Link
+              href={siteConfig.baseLinks.supportPrivacy}
+              className="hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <span className="mx-2">•</span>
+            <Link
+              href={siteConfig.baseLinks.supportTerms}
+              className="hover:text-foreground"
+            >
+              Terms
+            </Link>
           </div>
         </div>
 
-        {/* Footer Sections */}
-        {Object.entries(sections).map(([key, section]) => (
-          <div key={key} className="mt-10 min-w-44 pl-2 lg:mt-0 lg:pl-0">
-            <h3 className="mb-4 font-medium text-gray-900 sm:text-sm">
+        {sections.map((section) => (
+          <div key={section.title} className="space-y-3 lg:col-span-1">
+            <h3 className="text-sm font-semibold text-foreground">
               {section.title}
             </h3>
-            <ul className="space-y-4">
+            <ul className="space-y-2 text-sm">
               {section.items.map((item) => (
-                <li key={item.label} className="text-sm">
+                <li key={item.label}>
                   <Link
                     href={item.href}
-                    className="text-gray-600 transition-colors duration-200 hover:text-gray-900"
+                    target={item.external ? "_blank" : undefined}
+                    rel={item.external ? "noopener noreferrer" : undefined}
+                    className="text-muted-foreground transition-colors hover:text-foreground"
                   >
                     {item.label}
                   </Link>
@@ -237,9 +144,10 @@ const Footer = () => {
             </ul>
           </div>
         ))}
-      </footer>
-    </div>
+      </div>
+    </footer>
   )
 }
 
 export default Footer
+

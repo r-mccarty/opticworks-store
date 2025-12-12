@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
+import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 
 import { Toaster } from "@/components/ui/sonner"
@@ -87,17 +88,24 @@ const featureCondensedFont = localFont({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://yoururl.com"),
+  metadataBase: new URL(siteConfig.url),
   title: siteConfig.name,
   description: siteConfig.description,
-  keywords: ["Marketing", "Database", "Software"],
+  keywords: [
+    "presence sensors",
+    "mmWave",
+    "spatial visualization",
+    "home automation",
+    "Home Assistant",
+    "OpticWorks",
+  ],
   authors: [
     {
-      name: "yourname",
-      url: "",
+      name: "OpticWorks",
+      url: siteConfig.url,
     },
   ],
-  creator: "yourname",
+  creator: "OpticWorks",
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -110,7 +118,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    creator: "@yourname",
+    creator: "@opticworks",
   },
   icons: {
     icon: "/favicon.ico",
@@ -123,8 +131,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable}`} suppressHydrationWarning>
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-gray-50 antialiased selection:bg-orange-100 selection:text-orange-600 font-colfax">
+    <html
+      lang="en"
+      className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable} ${GeistMono.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="min-h-screen overflow-x-hidden scroll-auto bg-background text-foreground antialiased font-sans">
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
           <MenuBar />

@@ -142,14 +142,20 @@ export default function BillingPage() {
     }
   }
 
-  const getStatusColor = (status: Invoice['status']) => {
+  const getStatusVariant = (status: Invoice["status"]) => {
     switch (status) {
-      case 'paid': return 'bg-green-100 text-green-800'
-      case 'pending': return 'bg-yellow-100 text-yellow-800'
-      case 'overdue': return 'bg-red-100 text-red-800'
-      case 'cancelled': return 'bg-gray-100 text-gray-800'
-      case 'refunded': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case "paid":
+        return "default"
+      case "pending":
+        return "secondary"
+      case "overdue":
+        return "destructive"
+      case "refunded":
+        return "outline"
+      case "cancelled":
+        return "outline"
+      default:
+        return "outline"
     }
   }
 
@@ -162,19 +168,19 @@ export default function BillingPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
+      <section className="relative bg-gradient-to-b from-background to-muted/40 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-purple-100">
-                <RiBankCardLine className="h-8 w-8 text-purple-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <RiBankCardLine className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Payment & Billing Support
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
+                Billing & Payments
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
+              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-muted-foreground">
                 Manage your invoices, process refunds, and resolve billing questions.
               </p>
             </FadeDiv>
@@ -189,7 +195,7 @@ export default function BillingPage() {
             <Card className="mb-8">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <RiSearchLine className="h-6 w-6 text-purple-600" />
+                  <RiSearchLine className="h-6 w-6 text-primary" />
                   <div>
                     <CardTitle className="text-2xl">Find Your Invoice</CardTitle>
                     <CardDescription>
@@ -248,16 +254,16 @@ export default function BillingPage() {
                 <Button 
                   onClick={handleInvoiceLookup} 
                   disabled={loading}
-                  className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700"
+                  className="w-full sm:w-auto"
                 >
                   {loading ? 'Searching...' : 'Find Invoice'}
                 </Button>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
                     <div className="flex items-start gap-3">
-                      <RiAlertLine className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-red-800 text-sm">{error}</p>
+                      <RiAlertLine className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
+                      <p className="text-sm text-foreground">{error}</p>
                     </div>
                   </div>
                 )}
@@ -277,7 +283,7 @@ export default function BillingPage() {
                         <CardTitle className="text-xl">Invoice {invoice.invoiceNumber}</CardTitle>
                         <CardDescription>Order {invoice.orderNumber}</CardDescription>
                       </div>
-                      <Badge className={getStatusColor(invoice.status)}>
+                      <Badge variant={getStatusVariant(invoice.status)} className="capitalize">
                         {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
                       </Badge>
                     </div>
@@ -285,11 +291,11 @@ export default function BillingPage() {
                   <CardContent>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Amount Due</h4>
-                        <p className="text-2xl font-bold text-purple-600">
+                        <h4 className="mb-2 font-medium text-foreground">Amount due</h4>
+                        <p className="text-2xl font-semibold text-primary">
                           ${(invoice.total - invoice.paidAmount).toFixed(2)}
                         </p>
-                        <div className="text-sm text-gray-600 mt-1">
+                        <div className="mt-1 text-sm text-muted-foreground">
                           <div>Total: ${invoice.total.toFixed(2)}</div>
                           <div>Paid: ${invoice.paidAmount.toFixed(2)}</div>
                           {invoice.refundedAmount > 0 && (
@@ -299,8 +305,8 @@ export default function BillingPage() {
                       </div>
                       
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Payment Method</h4>
-                        <div className="text-sm text-gray-600">
+                        <h4 className="mb-2 font-medium text-foreground">Payment method</h4>
+                        <div className="text-sm text-muted-foreground">
                           <div className="flex items-center gap-2">
                             <RiBankCardLine className="h-4 w-4" />
                             {invoice.paymentMethod.brand} ending in {invoice.paymentMethod.last4}
@@ -314,8 +320,8 @@ export default function BillingPage() {
                       </div>
                       
                       <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Dates</h4>
-                        <div className="text-sm text-gray-600">
+                        <h4 className="mb-2 font-medium text-foreground">Dates</h4>
+                        <div className="text-sm text-muted-foreground">
                           <div>Created: {formatDate(invoice.createdAt)}</div>
                           <div>Due: {formatDate(invoice.dueDate)}</div>
                           {invoice.paidAt && (
@@ -338,7 +344,7 @@ export default function BillingPage() {
                       {invoice.status === 'pending' && (
                         <Button
                           onClick={handleRetryPayment}
-                          className="flex-1 sm:flex-none bg-green-600 hover:bg-green-700"
+                          className="flex-1 sm:flex-none"
                         >
                           Retry Payment
                         </Button>
@@ -352,8 +358,8 @@ export default function BillingPage() {
                   <CardHeader>
                     <CardTitle>Billing Address</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-sm text-gray-700">
+                <CardContent>
+                    <div className="text-sm text-muted-foreground">
                       <div>{invoice.billingAddress.firstName} {invoice.billingAddress.lastName}</div>
                       {invoice.billingAddress.company && <div>{invoice.billingAddress.company}</div>}
                       <div>{invoice.billingAddress.address1}</div>
@@ -437,14 +443,14 @@ export default function BillingPage() {
       </section>
 
       {/* Payment Information */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <FadeDiv>
             <div className="text-center mb-12">
-              <h2 className="font-barlow text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl font-display">
                 Payment Information
               </h2>
-              <p className="mt-4 text-lg text-gray-600">
+              <p className="mt-4 text-lg text-muted-foreground">
                 Everything you need to know about billing and payments
               </p>
             </div>
@@ -454,14 +460,14 @@ export default function BillingPage() {
             <FadeDiv>
               <Card className="text-center h-full">
                 <CardContent className="p-8">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                    <RiCheckboxCircleLine className="h-6 w-6 text-green-600" />
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <RiCheckboxCircleLine className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Secure Payments</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="mb-3 text-xl font-semibold text-foreground">Secure payments</h3>
+                  <p className="mb-4 text-muted-foreground">
                     All payments are processed securely through Stripe with bank-level encryption
                   </p>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     <div>Visa, Mastercard, American Express</div>
                     <div>PayPal, Apple Pay, Google Pay</div>
                   </div>
@@ -472,14 +478,14 @@ export default function BillingPage() {
             <FadeDiv>
               <Card className="text-center h-full">
                 <CardContent className="p-8">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-blue-100">
-                    <RiRefund2Line className="h-6 w-6 text-blue-600" />
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <RiRefund2Line className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Easy Refunds</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="mb-3 text-xl font-semibold text-foreground">Easy refunds</h3>
+                  <p className="mb-4 text-muted-foreground">
                     30-day refund policy with easy online refund requests
                   </p>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Most refunds processed within 3-5 business days
                   </div>
                 </CardContent>
@@ -489,14 +495,14 @@ export default function BillingPage() {
             <FadeDiv>
               <Card className="text-center h-full">
                 <CardContent className="p-8">
-                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-100">
-                    <RiFileTextLine className="h-6 w-6 text-purple-600" />
+                  <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <RiFileTextLine className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-3">Digital Invoices</h3>
-                  <p className="text-gray-600 mb-4">
+                  <h3 className="mb-3 text-xl font-semibold text-foreground">Digital invoices</h3>
+                  <p className="mb-4 text-muted-foreground">
                     Instant invoice generation with PDF download capability
                   </p>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Email receipts sent automatically
                   </div>
                 </CardContent>
@@ -510,20 +516,20 @@ export default function BillingPage() {
       <section className="py-16">
         <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <FadeDiv>
-            <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200">
+            <Card className="border-border bg-muted/30">
               <CardContent className="p-8 text-center">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-purple-600">
-                  <RiCustomerService2Line className="h-8 w-8 text-white" />
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <RiCustomerService2Line className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="mb-4 text-2xl font-semibold text-foreground">
                   Need Billing Assistance?
                 </h3>
-                <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
                   Our billing specialists are here to help resolve any payment issues or answer questions.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button asChild size="lg" className="bg-purple-600 hover:bg-purple-700">
+                  <Button asChild size="lg">
                     <Link href={siteConfig.baseLinks.supportContact + "?category=billing"}>
                       Contact Billing Support
                     </Link>

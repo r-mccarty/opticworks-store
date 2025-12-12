@@ -1,9 +1,9 @@
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Bed Presence Sensor Lineup",
+  title: "Presence Sensor Lineup",
   description:
-    "Explore the OpticWorks Presence Lab catalog—hardware kits, developer editions, and dashboards that make bed occupancy detection reliable.",
+    "Explore the OpticWorks Presence catalog—hardware kits, developer editions, and dashboards for real‑time spatial awareness.",
 }
 
 export default function ProductsLayout({

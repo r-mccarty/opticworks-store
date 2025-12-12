@@ -58,116 +58,114 @@ export default function RegisterPage() {
   const displayError = validationError || error
 
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-24">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-zinc-400">
-            Join OpticWorks to track orders and manage your devices
+          <h1 className="text-3xl font-semibold mb-2 text-foreground">
+            Create account
+          </h1>
+          <p className="text-muted-foreground">
+            Manage orders, subscriptions, and device access in one place.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {displayError && (
-            <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
-              {displayError}
-            </div>
-          )}
+        <div className="rounded-lg border border-border bg-card p-6 shadow-elevation-1">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {displayError && (
+              <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
+                {displayError}
+              </div>
+            )}
 
-          <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="firstName">First name</Label>
+                <Input
+                  id="firstName"
+                  name="firstName"
+                  type="text"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  placeholder="John"
+                  autoComplete="given-name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="lastName">Last name</Label>
+                <Input
+                  id="lastName"
+                  name="lastName"
+                  type="text"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  placeholder="Doe"
+                  autoComplete="family-name"
+                />
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="firstName" className="text-zinc-300">
-                First Name
+              <Label htmlFor="email">
+                Email <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="firstName"
-                name="firstName"
-                type="text"
-                value={formData.firstName}
+                id="email"
+                name="email"
+                type="email"
+                required
+                value={formData.email}
                 onChange={handleChange}
-                placeholder="John"
-                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
+                placeholder="john@example.com"
+                autoComplete="email"
               />
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="lastName" className="text-zinc-300">
-                Last Name
+              <Label htmlFor="password">
+                Password <span className="text-destructive">*</span>
               </Label>
               <Input
-                id="lastName"
-                name="lastName"
-                type="text"
-                value={formData.lastName}
+                id="password"
+                name="password"
+                type="password"
+                required
+                value={formData.password}
                 onChange={handleChange}
-                placeholder="Doe"
-                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
+                placeholder="At least 8 characters"
+                autoComplete="new-password"
+                minLength={8}
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email" className="text-zinc-300">
-              Email <span className="text-red-400">*</span>
-            </Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="john@example.com"
-              className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">
+                Confirm password <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                required
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                autoComplete="new-password"
+                minLength={8}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-zinc-300">
-              Password <span className="text-red-400">*</span>
-            </Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="At least 8 characters"
-              className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
-            />
-          </div>
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? "Creating account..." : "Create account"}
+            </Button>
 
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword" className="text-zinc-300">
-              Confirm Password <span className="text-red-400">*</span>
-            </Label>
-            <Input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
-            />
-          </div>
-
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-white text-black hover:bg-zinc-200"
-          >
-            {isLoading ? "Creating account..." : "Create Account"}
-          </Button>
-
-          <p className="text-center text-sm text-zinc-400">
-            Already have an account?{" "}
-            <Link href="/auth/login" className="text-white hover:underline">
-              Sign in
-            </Link>
-          </p>
-        </form>
+            <p className="text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link href="/auth/login" className="text-foreground hover:underline">
+                Sign in
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </main>
   )

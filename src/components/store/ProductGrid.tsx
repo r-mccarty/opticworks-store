@@ -29,8 +29,8 @@ export function ProductGrid({ products }: ProductGridProps) {
       {products.map((product) => (
         <FadeDiv key={product.id}>
           <Link href={`/products/${product.id}`} className="block h-full">
-            <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-md">
-              <div className="relative aspect-[4/3] bg-gray-100">
+            <Card className="group flex h-full flex-col overflow-hidden transition-shadow hover:shadow-elevation-2">
+              <div className="relative aspect-[4/3] bg-muted">
                 <Image
                   src={product.image}
                   alt={product.name}
@@ -39,20 +39,20 @@ export function ProductGrid({ products }: ProductGridProps) {
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                 />
                 {product.badge && (
-                  <Badge className="absolute top-3 left-3 bg-orange-500 text-white">
+                  <Badge className="absolute left-3 top-3 bg-primary text-primary-foreground">
                     {product.badge}
                   </Badge>
                 )}
               </div>
 
               <CardContent className="flex flex-1 flex-col p-5">
-                <h3 className="line-clamp-2 text-lg font-semibold text-gray-900">
+                <h3 className="line-clamp-2 text-lg font-semibold text-foreground">
                   {product.name}
                 </h3>
-                <p className="mt-2 line-clamp-2 text-sm text-gray-600">
+                <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
                   {product.description}
                 </p>
-                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-gray-500">
+                <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-muted-foreground">
                   {(product.specifications?.slice(0, 4) ?? []).map((spec) => (
                     <div key={spec.label} className="flex items-center gap-1">
                       <span className="font-medium">{spec.label}:</span>
@@ -62,14 +62,14 @@ export function ProductGrid({ products }: ProductGridProps) {
                 </div>
               </CardContent>
 
-              <CardFooter className="mt-auto flex flex-col items-stretch gap-4 border-t p-5">
+              <CardFooter className="mt-auto flex flex-col items-stretch gap-4 border-t border-border p-5">
                 <div className="flex w-full items-center justify-between">
                   <div className="flex flex-col">
-                    <span className="text-xl font-bold text-gray-900">
+                    <span className="text-xl font-semibold text-foreground">
                       ${product.price}
                     </span>
                     {product.originalPrice && (
-                      <span className="text-sm text-gray-500 line-through">
+                      <span className="text-sm text-muted-foreground line-through">
                         ${product.originalPrice}
                       </span>
                     )}
@@ -78,7 +78,7 @@ export function ProductGrid({ products }: ProductGridProps) {
                     <div className="text-right">
                       <div className="flex items-center gap-1">
                         <span className="text-sm font-medium">★{product.reviews.rating}</span>
-                        <span className="text-xs text-gray-500">({product.reviews.count})</span>
+                        <span className="text-xs text-muted-foreground">({product.reviews.count})</span>
                       </div>
                     </div>
                   )}

@@ -37,17 +37,17 @@ export const metadata: Metadata = {
 
 export default function AdjustableBaseGuide() {
   return (
-    <main className="min-h-screen bg-gray-50">
-      <section className="bg-white pt-28 pb-16">
+    <main className="min-h-screen bg-background text-foreground">
+      <section className="bg-background pt-28 pb-16">
         <FadeContainer className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 text-center">
           <FadeDiv>
-            <Badge className="mb-6 rounded-full bg-indigo-100 text-indigo-700">
-              Advanced Install
+            <Badge variant="secondary" className="mb-6 rounded-full">
+              Advanced install
             </Badge>
-            <h1 className="text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
               Adjustable Base & Split Beds
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-gray-600">
+            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
               Keep presence readings accurate even when the bed frame moves. This guide covers mounting,
               cable management, and calibration tweaks for adjustable platforms.
             </p>
@@ -62,10 +62,10 @@ export default function AdjustableBaseGuide() {
               <CardHeader>
                 <CardTitle>{section.title}</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm text-gray-600">
+              <CardContent className="space-y-3 text-sm text-muted-foreground">
                 {section.details.map((detail) => (
                   <div key={detail} className="flex gap-3">
-                    <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-gray-900/5 text-gray-900">
+                    <span className="mt-1 inline-flex size-5 flex-none items-center justify-center rounded-full bg-muted text-foreground">
                       ●
                     </span>
                     <p>{detail}</p>

@@ -26,9 +26,9 @@ function ResetPasswordForm() {
   if (!token || !email) {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-destructive/15 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
-            className="w-8 h-8 text-red-500"
+            className="w-8 h-8 text-destructive"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -41,14 +41,14 @@ function ResetPasswordForm() {
             />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Invalid Reset Link</h2>
-        <p className="text-zinc-400 mb-6">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
+          Invalid reset link
+        </h2>
+        <p className="text-muted-foreground mb-6">
           This password reset link is invalid or has expired. Please request a new one.
         </p>
         <Link href="/auth/forgot-password">
-          <Button className="bg-white text-black hover:bg-zinc-200">
-            Request New Link
-          </Button>
+          <Button>Request new link</Button>
         </Link>
       </div>
     )
@@ -112,9 +112,9 @@ function ResetPasswordForm() {
   if (isSuccess) {
     return (
       <div className="text-center">
-        <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-secondary/15 rounded-full flex items-center justify-center mx-auto mb-4">
           <svg
-            className="w-8 h-8 text-green-500"
+            className="w-8 h-8 text-secondary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -127,31 +127,29 @@ function ResetPasswordForm() {
             />
           </svg>
         </div>
-        <h2 className="text-xl font-bold text-white mb-2">Password Reset Complete</h2>
-        <p className="text-zinc-400 mb-6">
+        <h2 className="text-xl font-semibold text-foreground mb-2">
+          Password reset complete
+        </h2>
+        <p className="text-muted-foreground mb-6">
           Your password has been successfully reset. Redirecting to sign in...
         </p>
         <Link href="/auth/login">
-          <Button variant="ghost" className="text-zinc-400 hover:text-white">
-            Sign In Now
-          </Button>
+          <Button variant="ghost">Sign in now</Button>
         </Link>
       </div>
     )
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400 text-sm">
+        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
           {error}
         </div>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="password" className="text-zinc-300">
-          New Password
-        </Label>
+        <Label htmlFor="password">New password</Label>
         <Input
           id="password"
           name="password"
@@ -160,17 +158,16 @@ function ResetPasswordForm() {
           value={formData.password}
           onChange={handleChange}
           placeholder="Enter new password"
-          className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
           autoComplete="new-password"
           minLength={8}
         />
-        <p className="text-xs text-zinc-500">Must be at least 8 characters</p>
+        <p className="text-xs text-muted-foreground">
+          Must be at least 8 characters
+        </p>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword" className="text-zinc-300">
-          Confirm Password
-        </Label>
+        <Label htmlFor="confirmPassword">Confirm password</Label>
         <Input
           id="confirmPassword"
           name="confirmPassword"
@@ -179,7 +176,6 @@ function ResetPasswordForm() {
           value={formData.confirmPassword}
           onChange={handleChange}
           placeholder="Confirm new password"
-          className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-500"
           autoComplete="new-password"
         />
       </div>
@@ -187,14 +183,14 @@ function ResetPasswordForm() {
       <Button
         type="submit"
         disabled={isLoading}
-        className="w-full bg-white text-black hover:bg-zinc-200"
+        className="w-full"
       >
         {isLoading ? "Resetting..." : "Reset Password"}
       </Button>
 
-      <p className="text-center text-sm text-zinc-400">
+      <p className="text-center text-sm text-muted-foreground">
         Remember your password?{" "}
-        <Link href="/auth/login" className="text-white hover:underline">
+        <Link href="/auth/login" className="text-foreground hover:underline">
           Sign in
         </Link>
       </p>
@@ -204,18 +200,22 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <main className="min-h-screen bg-black flex items-center justify-center px-4">
+    <main className="min-h-screen bg-background flex items-center justify-center px-4 py-24">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Set New Password</h1>
-          <p className="text-zinc-400">
+          <h1 className="text-3xl font-semibold text-foreground mb-2">
+            Set new password
+          </h1>
+          <p className="text-muted-foreground">
             Enter your new password below.
           </p>
         </div>
 
-        <Suspense fallback={<div className="text-zinc-400 text-center">Loading...</div>}>
-          <ResetPasswordForm />
-        </Suspense>
+        <div className="rounded-lg border border-border bg-card p-6 shadow-elevation-1">
+          <Suspense fallback={<div className="text-muted-foreground text-center">Loading...</div>}>
+            <ResetPasswordForm />
+          </Suspense>
+        </div>
       </div>
     </main>
   )

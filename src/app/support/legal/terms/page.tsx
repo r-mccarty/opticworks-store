@@ -25,22 +25,22 @@ export default function TermsOfServicePage() {
   const lastUpdated = "January 15, 2025";
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
+      <section className="relative bg-gradient-to-b from-background to-muted/40 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-orange-100">
-                <RiScalesLine className="h-8 w-8 text-orange-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <RiScalesLine className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
                 Terms of Service
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
+              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-muted-foreground">
                 Terms and conditions governing your use of our products and services.
               </p>
-              <div className="mt-4 text-sm text-gray-500">
+              <div className="mt-4 text-sm text-muted-foreground">
                 Last updated: {lastUpdated}
               </div>
             </FadeDiv>
@@ -58,7 +58,7 @@ export default function TermsOfServicePage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
-                    <RiFileTextLine className="h-6 w-6 text-blue-600" />
+                    <RiFileTextLine className="h-6 w-6 text-primary" />
                     Acceptance of Terms
                   </CardTitle>
                 </CardHeader>
@@ -71,8 +71,8 @@ export default function TermsOfServicePage() {
                     These Terms constitute a legally binding agreement between you and OpticWorks LLC (&quot;OpticWorks,&quot; &quot;we,&quot; &quot;our,&quot; or &quot;us&quot;). 
                     If you do not agree to these Terms, do not use our website or services.
                   </p>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
-                    <p className="text-sm text-blue-800 mb-0">
+                  <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4">
+                    <p className="mb-0 text-sm text-muted-foreground">
                       <strong>Important:</strong> We may update these Terms from time to time. 
                       Your continued use after changes constitutes acceptance of the new Terms.
                     </p>
@@ -86,24 +86,24 @@ export default function TermsOfServicePage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
-                    <RiShoppingCartLine className="h-6 w-6 text-green-600" />
+                    <RiShoppingCartLine className="h-6 w-6 text-primary" />
                     Products and Orders
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Product Information</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>We strive to provide accurate product descriptions, specifications, and pricing</li>
                       <li>Product images are for illustration purposes and may not reflect exact appearance</li>
-                      <li>VLT (Visible Light Transmission) percentages may have ±3% manufacturing tolerance</li>
+                      <li>Detection range and confidence metrics are measured under typical conditions and may vary by environment</li>
                       <li>We reserve the right to correct errors and update product information without notice</li>
                     </ul>
                   </div>
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Ordering Process</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>Orders are subject to acceptance and product availability</li>
                       <li>We may cancel or refuse orders at our discretion</li>
                       <li>Payment is required at time of order placement</li>
@@ -113,7 +113,7 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Pricing and Payment</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>All prices are in USD and exclude applicable taxes and shipping</li>
                       <li>Prices are subject to change without notice until order confirmation</li>
                       <li>Payment processing is handled by secure third-party providers</li>
@@ -129,18 +129,18 @@ export default function TermsOfServicePage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
-                    <RiToolsLine className="h-6 w-6 text-orange-600" />
+                    <RiToolsLine className="h-6 w-6 text-primary" />
                     Installation and DIY Terms
-                    <Badge className="bg-yellow-100 text-yellow-800">Important</Badge>
+                    <Badge variant="secondary" className="ml-1">Important</Badge>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-                    <h4 className="font-semibold text-red-800 mb-3 flex items-center gap-2">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-6">
+                    <h4 className="mb-3 flex items-center gap-2 font-semibold text-foreground">
                       <RiAlertLine className="h-5 w-5" />
                       Installation Responsibility and Liability
                     </h4>
-                    <div className="space-y-3 text-sm text-red-700">
+                    <div className="space-y-3 text-sm text-foreground">
                       <p>
                         <strong>YOU ASSUME ALL RISK AND RESPONSIBILITY FOR DIY INSTALLATION.</strong> 
                         OpticWorks provides materials and guidance only.
@@ -156,7 +156,7 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Installation Guidelines</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>Follow all provided instructions and safety guidelines</li>
                       <li>Ensure compliance with local privacy/data regulations before installation</li>
                       <li>Installation should be performed in appropriate conditions (temperature, humidity, cleanliness)</li>
@@ -166,8 +166,8 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Legal Compliance</h4>
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                      <p className="text-sm text-yellow-800">
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <p className="text-sm text-muted-foreground">
                         <strong>You are responsible for ensuring compliance with all local, state, and federal privacy, radio, and safety regulations.</strong> 
                         OpticWorks provides general information only and is not responsible for legal violations or citations.
                       </p>
@@ -182,7 +182,7 @@ export default function TermsOfServicePage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-3 text-2xl">
-                    <RiShieldLine className="h-6 w-6 text-blue-600" />
+                    <RiShieldLine className="h-6 w-6 text-primary" />
                     Warranties and Returns
                   </CardTitle>
                 </CardHeader>
@@ -190,19 +190,19 @@ export default function TermsOfServicePage() {
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Product Warranties</h4>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-green-800 mb-2">Material Defects</h5>
-                        <ul className="text-sm text-green-700 space-y-1">
-                          <li>• Manufacturing defects in film material</li>
-                          <li>• Adhesive failure under normal conditions</li>
-                          <li>• Color or optical distortion defects</li>
+                      <div className="rounded-lg border border-border bg-muted/30 p-4">
+                        <h5 className="mb-2 font-medium text-foreground">Material Defects</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• Manufacturing defects in sensor hardware or enclosure materials</li>
+                          <li>• Firmware or calibration faults under normal use</li>
+                          <li>• Component failures within the stated warranty period</li>
                           <li>• Warranty period varies by product</li>
                         </ul>
                       </div>
                       
-                      <div className="bg-red-50 p-4 rounded-lg">
-                        <h5 className="font-medium text-red-800 mb-2">NOT Covered</h5>
-                        <ul className="text-sm text-red-700 space-y-1">
+                      <div className="rounded-lg border border-border bg-muted/30 p-4">
+                        <h5 className="mb-2 font-medium text-foreground">NOT Covered</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                           <li>• Installation errors or damage</li>
                           <li>• Normal wear and tear</li>
                           <li>• Damage from cleaning or chemicals</li>
@@ -214,7 +214,7 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Return Policy</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li><strong>30-Day Return Window:</strong> Unopened products may be returned within 30 days</li>
                       <li><strong>Restocking Fee:</strong> 15% restocking fee applies to opened or custom-cut products</li>
                       <li><strong>Return Shipping:</strong> Customer responsible for return shipping costs</li>
@@ -224,9 +224,13 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold text-lg mb-3">Oops Protection Program</h4>
-                    <p className="text-gray-600 text-sm mb-2">
-                      Our Oops Protection program provides replacement films for installation mistakes at reduced cost. 
-                      See our <Link href="/support/oops" className="text-orange-600 hover:text-orange-700 underline">Oops Protection Policy</Link> for full details.
+                    <p className="mb-2 text-sm text-muted-foreground">
+                      Our Oops Protection program provides replacement hardware for installation mistakes at reduced cost. 
+                      See our{" "}
+                      <Link href="/support/oops" className="text-primary underline hover:opacity-80">
+                        Oops Protection Policy
+                      </Link>{" "}
+                      for full details.
                     </p>
                   </div>
                 </CardContent>
@@ -240,21 +244,21 @@ export default function TermsOfServicePage() {
                   <CardTitle className="text-2xl">Limitations of Liability</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  <div className="bg-gray-50 border-2 border-gray-200 rounded-lg p-6">
+                  <div className="rounded-lg border-2 border-border bg-muted/30 p-6">
                     <h4 className="font-semibold text-lg mb-4">DISCLAIMER OF WARRANTIES</h4>
-                    <p className="text-sm text-gray-700 mb-4">
+                    <p className="mb-4 text-sm text-muted-foreground">
                       EXCEPT AS EXPRESSLY PROVIDED IN OUR PRODUCT WARRANTIES, ALL PRODUCTS AND SERVICES ARE PROVIDED 
                       &quot;AS IS&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED.
                     </p>
-                    <p className="text-sm text-gray-700">
+                    <p className="text-sm text-muted-foreground">
                       WE DISCLAIM ALL IMPLIED WARRANTIES, INCLUDING MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, 
                       AND NON-INFRINGEMENT.
                     </p>
                   </div>
                   
-                  <div className="bg-red-50 border-2 border-red-200 rounded-lg p-6">
-                    <h4 className="font-semibold text-lg mb-4 text-red-800">LIMITATION OF LIABILITY</h4>
-                    <div className="text-sm text-red-700 space-y-3">
+                  <div className="rounded-lg border-2 border-destructive/30 bg-destructive/5 p-6">
+                    <h4 className="mb-4 text-lg font-semibold text-foreground">LIMITATION OF LIABILITY</h4>
+                    <div className="space-y-3 text-sm text-foreground">
                       <p>
                         IN NO EVENT SHALL OPTICWORKS BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, 
                         CONSEQUENTIAL, OR PUNITIVE DAMAGES, INCLUDING BUT NOT LIMITED TO:
@@ -283,7 +287,7 @@ export default function TermsOfServicePage() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-3">Prohibited Uses</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>Using our products for illegal purposes or in violation of local laws</li>
                       <li>Reselling products without authorization</li>
                       <li>Reverse engineering or copying our proprietary methods</li>
@@ -293,7 +297,7 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold mb-3">Account Security</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>Maintain confidentiality of your account credentials</li>
                       <li>Notify us immediately of unauthorized access</li>
                       <li>You are responsible for all activities under your account</li>
@@ -313,7 +317,7 @@ export default function TermsOfServicePage() {
                 <CardContent className="space-y-4">
                   <div>
                     <h4 className="font-semibold mb-3">Jurisdiction</h4>
-                    <p className="text-gray-600">
+                    <p className="text-muted-foreground">
                       These Terms are governed by the laws of [State], without regard to conflict of law principles. 
                       Any disputes shall be resolved in the courts of [County], [State].
                     </p>
@@ -321,7 +325,7 @@ export default function TermsOfServicePage() {
                   
                   <div>
                     <h4 className="font-semibold mb-3">Dispute Resolution</h4>
-                    <ul className="list-disc list-inside space-y-2 text-gray-600">
+                    <ul className="list-disc list-inside space-y-2 text-muted-foreground">
                       <li>We encourage resolving disputes through direct communication first</li>
                       <li>Small claims court may be appropriate for minor disputes</li>
                       <li>Arbitration may be required for certain types of claims</li>
@@ -334,26 +338,26 @@ export default function TermsOfServicePage() {
 
             {/* Contact Information */}
             <FadeDiv>
-              <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+              <Card className="border-border bg-muted/30">
                 <CardContent className="p-8 text-center">
-                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-orange-600">
-                    <RiMailLine className="h-8 w-8 text-white" />
+                  <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                    <RiMailLine className="h-8 w-8 text-primary" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                  <h3 className="mb-4 text-2xl font-semibold text-foreground">
                     Questions About These Terms?
                   </h3>
-                  <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
+                  <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
                     If you have questions about these Terms of Service or need clarification on any provisions, 
                     please contact our legal team.
                   </p>
                   
-                  <div className="space-y-2 text-sm text-gray-600 mb-6">
+                  <div className="mb-6 space-y-2 text-sm text-muted-foreground">
                     <p><strong>Email:</strong> legal@opticworks.com</p>
                     <p><strong>Mail:</strong> OpticWorks LLC, Legal Department, [Address]</p>
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button asChild size="lg" className="bg-orange-600 hover:bg-orange-700">
+                    <Button asChild size="lg">
                       <Link href={siteConfig.baseLinks.supportContact + "?category=legal"}>
                         <RiMailLine className="mr-2 h-4 w-4" />
                         Contact Legal Team

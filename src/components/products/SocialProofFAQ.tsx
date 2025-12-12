@@ -13,7 +13,7 @@ const testimonials = [
     name: "Rina Patel",
     source: "Home Assistant Discord",
     rating: 5,
-    text: "My lights finally stay on while I read in bed. The debug text sensor is worth the price alone—I can see every state change.",
+    text: "My lights finally stay on when I’m still on the couch. The live trace makes every state change obvious.",
     verified: true,
   },
   {
@@ -21,7 +21,7 @@ const testimonials = [
     name: "Logan F.",
     source: "YouTube Review",
     rating: 5,
-    text: "Cats jumping on the bed no longer trigger my morning routine. The Absolute Clear Delay concept makes so much sense.",
+    text: "Pets and fans don’t trigger false routines anymore. The engine stays calm even in a noisy room.",
     verified: true,
   },
   {
@@ -29,7 +29,7 @@ const testimonials = [
     name: "Mara V.",
     source: "HA Podcast",
     rating: 5,
-    text: "It&apos;s the first sensor that gave me transparent tuning. Changing debounce timers while watching z-scores updates instantly.",
+    text: "It’s the first sensor that feels debuggable. Changing debounce while watching z‑scores updates instantly.",
     verified: true,
   },
   {
@@ -37,7 +37,7 @@ const testimonials = [
     name: "Alex Nguyen",
     source: "Beta Program",
     rating: 5,
-    text: "Setup was 12 minutes from unboxing to automations. Being able to export the dashboards was chef&apos;s kiss.",
+    text: "Setup was 10 minutes from unboxing to automations. Exporting dashboards to Home Assistant was seamless.",
     verified: true,
   },
 ]
@@ -47,7 +47,7 @@ const faqs = [
     id: 1,
     question: "How does it differ from a normal mmWave presence sensor?",
     answer:
-      "The Bed Presence Sensor runs a 4-state finite state machine that looks at still-energy reflections, z-score significance, and temporal filtering. Cheap mmWave sensors expose a binary signal tied directly to motion. We expose every variable so you know exactly why a state changed.",
+      "The Presence Sensor Kit runs a multi‑state engine that fuses still‑energy reflections, z‑score significance, and temporal filtering. Cheap mmWave sensors expose a raw binary tied directly to motion. We expose every variable so you know exactly why a state changed.",
   },
   {
     id: 2,
@@ -59,7 +59,7 @@ const faqs = [
     id: 3,
     question: "What is Absolute Clear Delay?",
     answer:
-      "It&apos;s a cooldown timer that starts when the engine last saw high-confidence presence. Even if the signal dips, we wait (default 30s) before considering the bed empty so sleepers aren’t cleared while still.",
+      "It’s a cooldown timer that starts when the engine last saw high‑confidence presence. Even if the signal dips, we wait (default 30s) before clearing a zone so still people aren’t dropped.",
   },
   {
     id: 4,
@@ -89,17 +89,17 @@ export function SocialProofFAQ() {
   }
 
   return (
-    <div className="bg-gray-50 py-16">
+    <div className="bg-background py-20 text-foreground">
       <div className="px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FadeDiv>
             {/* Social Proof Header */}
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Join the OpticWorks Community.
+              <h2 className="text-3xl font-semibold text-foreground mb-4">
+                Join the OpticWorks community.
               </h2>
-              <p className="text-lg text-gray-600">
-                Stories from Home Assistant builders and reliability nerds.
+              <p className="text-lg text-muted-foreground">
+                Stories from builders shipping calm, reliable automations.
               </p>
             </div>
 
@@ -113,24 +113,24 @@ export function SocialProofFAQ() {
                         {[...Array(5)].map((_, i) => (
                           <StarIcon
                             key={i}
-                            className="w-4 h-4 text-yellow-400"
+                            className="w-4 h-4 text-primary"
                           />
                         ))}
                       </div>
                       {testimonial.verified && (
-                        <Badge className="bg-green-100 text-green-800 text-xs">
+                        <Badge variant="secondary" className="text-xs">
                           Verified Purchase
                         </Badge>
                       )}
                     </div>
-                    <p className="text-gray-700 mb-4 italic">
+                    <p className="text-muted-foreground mb-4 italic">
                       &ldquo;{testimonial.text}&rdquo;
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-foreground">
                         {testimonial.name}
                       </span>
-                      <span className="text-sm text-gray-500">
+                      <span className="text-sm text-muted-foreground">
                         {testimonial.source}
                       </span>
                     </div>
@@ -141,16 +141,15 @@ export function SocialProofFAQ() {
 
             {/* User Generated Content Placeholder */}
             <div className="mb-16">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">
-                Share your dashboard - #PresenceEngine
+              <h3 className="text-xl font-semibold text-foreground mb-6 text-center">
+                Share your dashboard — #PresenceEngine
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <Card key={i} className="aspect-square">
-                    <div className="w-full h-full bg-gray-100 rounded-lg flex items-center justify-center">
-                      <div className="text-center text-gray-400">
-                        <div className="text-2xl mb-2">📸</div>
-                        <p className="text-xs">Customer Photo {i}</p>
+                    <div className="w-full h-full bg-muted rounded-md flex items-center justify-center">
+                      <div className="text-center text-muted-foreground">
+                        <p className="text-xs">Customer photo {i}</p>
                       </div>
                     </div>
                   </Card>
@@ -160,7 +159,7 @@ export function SocialProofFAQ() {
 
             {/* FAQ Section */}
             <div id="faq">
-              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+              <h3 className="text-2xl font-semibold text-foreground mb-8 text-center">
                 Frequently Asked Questions
               </h3>
               <div className="space-y-4">
@@ -169,22 +168,22 @@ export function SocialProofFAQ() {
                     <CardContent className="p-0">
                       <button
                         onClick={() => toggleFaq(faq.id)}
-                        className="w-full p-6 text-left hover:bg-gray-50 transition-colors"
+                        className="w-full p-6 text-left hover:bg-muted/60 transition-colors"
                       >
                         <div className="flex items-center justify-between">
-                          <h4 className="font-semibold text-gray-900 pr-8">
+                          <h4 className="font-semibold text-foreground pr-8">
                             {faq.question}
                           </h4>
                           {openFaq === faq.id ? (
-                            <ChevronUpIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                            <ChevronUpIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           ) : (
-                            <ChevronDownIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                            <ChevronDownIcon className="w-5 h-5 text-muted-foreground flex-shrink-0" />
                           )}
                         </div>
                       </button>
                       {openFaq === faq.id && (
                         <div className="px-6 pb-6">
-                          <p className="text-gray-600 leading-relaxed">
+                          <p className="text-muted-foreground leading-relaxed">
                             {faq.answer}
                           </p>
                         </div>

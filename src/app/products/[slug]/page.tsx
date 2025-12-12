@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 
 import { ProductDetailView } from "@/components/products/ProductDetailView"
 import { getProductById } from "@/lib/api/medusa"
+import { siteConfig } from "@/app/siteConfig"
 
 // Force dynamic rendering - Medusa API unavailable at build time
 export const dynamic = 'force-dynamic'
@@ -25,16 +26,16 @@ export async function generateMetadata({ params }: ProductPageProps): Promise<Me
 
   if (!product) {
     return {
-      title: "Product Not Found - OpticWorks Presence Lab",
+      title: `Product Not Found - ${siteConfig.name}`,
       description: "The requested product could not be found.",
     }
   }
 
   return {
-    title: `${product.name} - OpticWorks Presence Lab`,
+    title: `${product.name} - ${siteConfig.name}`,
     description: product.description,
     openGraph: {
-      title: `${product.name} - OpticWorks Presence Lab`,
+      title: `${product.name} - ${siteConfig.name}`,
       description: product.description,
       images: [product.image],
       type: "website",

@@ -105,47 +105,47 @@ const troubleshooting = [
 
 export default function CyberShadeIRXInstallGuide() {
   return (
-    <main className="relative">
+    <main className="relative min-h-screen bg-background text-foreground">
       <FadeContainer className="relative px-6 pt-28 pb-16 lg:px-8">
         <div className="mx-auto max-w-4xl">
           {/* Header */}
           <FadeDiv className="mb-12">
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-              <Link href="/install-guides" className="hover:text-orange-600">Install Guides</Link>
+            <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
+              <Link href="/install-guides" className="hover:text-primary">Install Guides</Link>
               <span>→</span>
               <span>CyberShade IRX Tesla Model Y</span>
             </div>
             
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl mb-6">
+            <h1 className="mb-6 text-4xl font-semibold tracking-tight sm:text-5xl font-display">
               CyberShade IRX Installation Guide
             </h1>
-            <p className="text-xl text-gray-600 mb-8">
+            <p className="mb-8 text-xl text-muted-foreground">
               Tesla Model Y (2025+ &ldquo;Juniper&rdquo;) Front Window Tinting
             </p>
             
-            <div className="flex flex-wrap items-center gap-4 mb-8">
+            <div className="mb-8 flex flex-wrap items-center gap-4">
               <div className="flex items-center gap-2">
-                <UserIcon className="w-5 h-5 text-gray-400" />
-                <Badge className="bg-green-100 text-green-800">Beginner Friendly</Badge>
+                <UserIcon className="h-5 w-5 text-muted-foreground" />
+                <Badge variant="secondary">Beginner Friendly</Badge>
               </div>
               <div className="flex items-center gap-2">
-                <ClockIcon className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-600">45-60 minutes</span>
+                <ClockIcon className="h-5 w-5 text-muted-foreground" />
+                <span className="text-muted-foreground">45-60 minutes</span>
               </div>
               <div className="flex items-center gap-2">
-                <WrenchScrewdriverIcon className="w-5 h-5 text-gray-400" />
-                <span className="text-gray-600">All tools included</span>
+                <WrenchScrewdriverIcon className="h-5 w-5 text-muted-foreground" />
+                <span className="text-muted-foreground">All tools included</span>
               </div>
             </div>
 
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6">
+            <div className="rounded-lg border border-border bg-muted/30 p-6">
               <div className="flex items-start gap-3">
-                <LightBulbIcon className="w-6 h-6 text-orange-600 flex-shrink-0 mt-0.5" />
+                <LightBulbIcon className="mt-0.5 h-6 w-6 flex-shrink-0 text-primary" />
                 <div>
-                  <h3 className="font-semibold text-orange-800 mb-2">
+                  <h3 className="mb-2 font-semibold text-foreground">
                     So Easy, It Feels Like Cheating
                   </h3>
-                  <p className="text-orange-700 text-sm">
+                  <p className="text-sm text-muted-foreground">
                     Our revolutionary Door Latch Tool and pre-cut films eliminate 99% of the difficulty 
                     in window tinting. Follow these 4 simple steps for professional results.
                   </p>
@@ -159,7 +159,7 @@ export default function CyberShadeIRXInstallGuide() {
 
           {/* Installation Steps */}
           <FadeDiv className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">Installation Steps</h2>
+            <h2 className="mb-8 text-3xl font-semibold text-foreground font-display">Installation Steps</h2>
             
             <div className="space-y-8">
               {installSteps.map((step) => (
@@ -175,21 +175,21 @@ export default function CyberShadeIRXInstallGuide() {
                       />
                     </div>
                     <div className="p-6">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-8 h-8 bg-orange-500 text-white rounded-full flex items-center justify-center font-bold">
+                      <div className="mb-4 flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
                           {step.step}
                         </div>
-                        <h3 className="text-xl font-bold text-gray-900">{step.title}</h3>
+                        <h3 className="text-xl font-semibold text-foreground">{step.title}</h3>
                         <Badge variant="outline">{step.duration}</Badge>
                       </div>
                       
-                      <p className="text-gray-600 mb-4">{step.description}</p>
+                      <p className="mb-4 text-muted-foreground">{step.description}</p>
                       
                       <div className="space-y-2">
-                        <h4 className="font-semibold text-gray-900 text-sm">Pro Tips:</h4>
+                        <h4 className="text-sm font-semibold text-foreground">Pro Tips:</h4>
                         {step.tips.map((tip, tipIndex) => (
-                          <div key={tipIndex} className="flex items-start gap-2 text-sm text-gray-600">
-                            <CheckCircleIcon className="w-4 h-4 text-green-500 flex-shrink-0 mt-0.5" />
+                          <div key={tipIndex} className="flex items-start gap-2 text-sm text-muted-foreground">
+                            <CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-primary" />
                             <span>{tip}</span>
                           </div>
                         ))}
@@ -203,14 +203,14 @@ export default function CyberShadeIRXInstallGuide() {
 
           {/* What's in the Kit */}
           <FadeDiv className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">What&apos;s Included in Your Kit</h2>
+            <h2 className="mb-6 text-3xl font-semibold text-foreground font-display">What&apos;s Included in Your Kit</h2>
             <Card>
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {kitContents.map((item, index) => (
                     <div key={index} className="flex items-start gap-3">
-                      <CheckCircleIcon className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-gray-700">{item}</span>
+                      <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-primary" />
+                      <span className="text-muted-foreground">{item}</span>
                     </div>
                   ))}
                 </div>
@@ -220,7 +220,7 @@ export default function CyberShadeIRXInstallGuide() {
 
           {/* Troubleshooting */}
           <FadeDiv className="mb-12">
-            <h2 className="text-3xl font-bold text-gray-900 mb-6">Troubleshooting</h2>
+            <h2 className="mb-6 text-3xl font-semibold text-foreground font-display">Troubleshooting</h2>
             <div className="space-y-4">
               {troubleshooting.map((item) => (
                 <Card key={item.problem}>
@@ -228,14 +228,14 @@ export default function CyberShadeIRXInstallGuide() {
                     <div className="flex items-start gap-3">
                       <ExclamationTriangleIcon 
                         className={`w-5 h-5 flex-shrink-0 mt-0.5 ${
-                          item.severity === 'high' ? 'text-red-500' :
-                          item.severity === 'medium' ? 'text-yellow-500' :
-                          'text-blue-500'
+                          item.severity === 'high' ? 'text-destructive' :
+                          item.severity === 'medium' ? 'text-primary' :
+                          'text-muted-foreground'
                         }`} 
                       />
                       <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-2">{item.problem}</h3>
-                        <p className="text-gray-600">{item.solution}</p>
+                        <h3 className="mb-2 font-semibold text-foreground">{item.problem}</h3>
+                        <p className="text-muted-foreground">{item.solution}</p>
                       </div>
                     </div>
                   </CardContent>
@@ -246,12 +246,12 @@ export default function CyberShadeIRXInstallGuide() {
 
           {/* CTA Section */}
           <FadeDiv className="text-center">
-            <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200">
+            <Card className="border-border bg-muted/30">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="mb-4 text-2xl font-semibold text-foreground">
                   Ready to Transform Your Tesla?
                 </h3>
-                <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
+                <p className="mx-auto mb-6 max-w-2xl text-muted-foreground">
                   Get professional-quality window tinting results with our foolproof CyberShade IRX kit. 
                   Everything you need is included, backed by our lifetime warranty.
                 </p>

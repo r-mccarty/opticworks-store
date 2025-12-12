@@ -56,46 +56,46 @@ export interface Product {
 export const products: Product[] = [
   {
     id: "bed-presence-sensor-kit",
-    name: "Bed Presence Sensor Kit",
+    name: "Presence Sensor Kit",
     description:
-      "Complete mmWave hardware + presence engine stack tuned for Home Assistant. Ships flashed, calibrated, and ready for dependable automations.",
+      "Flagship 60GHz mmWave presence kit with a local presence engine and real‑time spatial dashboards. Ships calibrated and ready for Home Assistant.",
     price: 239,
     originalPrice: 259,
     image: getProductImage("presence-kit"),
     category: "sensor",
     badge: "Flagship",
     heroIntro: {
-      headline: "Stop detecting motion. Start understanding presence.",
+      headline: "Stop sensing motion. Start mapping presence.",
       subheading:
-        "The Bed Presence Sensor kit combines a 60GHz mmWave module, ESP32 gateway, and our 4-state statistical presence engine so lights never shut off while you’re sleeping.",
+        "The Presence Sensor Kit pairs a 60GHz mmWave module with our local multi‑state engine and spatial UI, so automations react to intent, not noise.",
     },
     keyBenefits: [
       {
-        title: "4-State Presence Engine",
+        title: "Spatial Presence Engine",
         description:
-          "Temporal filtering plus hysteresis ensures the binary sensor only toggles when presence is deliberate.",
+          "Multi‑state inference fuses stillness, motion, and temporal context into a calm occupancy signal.",
       },
       {
-        title: "Absolute Clear Delay",
+        title: "Real‑Time Visualization",
         description:
-          "Remembers the last high-confidence reading for 30 seconds so perfectly still sleepers stay counted.",
+          "Dashboards render zones and confidence live, so anyone can understand what the sensor sees.",
       },
       {
-        title: "Privacy-First Hardware",
+        title: "Local‑First Privacy",
         description:
-          "mmWave detects that someone is there, not who. Processing happens locally on the ESP32.",
+          "No cameras, no cloud requirement. Inference runs locally on the ESP32.",
       },
       {
-        title: "Live Tuning Dashboard",
+        title: "Open Automation OS",
         description:
-          "Expose every threshold, debounce, and debug string directly in Home Assistant.",
+          "Ships with Home Assistant blueprints, templates, and tuning controls for every zone.",
       },
     ],
     specifications: [
       { label: "Sensor Suite", value: "60GHz mmWave (still energy focus)" },
       { label: "Processor", value: "ESP32-S3 w/ Wi-Fi + BLE" },
-      { label: "Detection Zone", value: "Up to 3.2m w/ focused bed cone" },
-      { label: "Presence Engine", value: "4-state FSM + z-score analysis" },
+      { label: "Detection Zone", value: "Up to 3.2m per zone" },
+      { label: "Presence Engine", value: "Multi‑state FSM + z‑score analysis" },
       { label: "Absolute Clear Delay", value: "30s default (tunable)" },
       { label: "Power", value: "USB-C 5V (cable included)" },
       { label: "Warranty", value: "2 years hardware / Oops Protection" },
@@ -105,17 +105,17 @@ export const products: Product[] = [
     variants: [
       {
         id: "bed-presence-sensor-kit-single",
-        name: "Single Bed Kit",
+        name: "Single Zone Kit",
         price: 239,
-        description: "Everything you need for one bed zone.",
+        description: "Everything you need for one room or zone.",
         badge: "Most popular",
         medusaVariantId: "variant_01KBF0WRDCT61JD4HHH2PGDHAK",
       },
       {
         id: "bed-presence-sensor-kit-duo",
-        name: "Dual Bed Pack",
+        name: "Dual Zone Pack",
         price: 449,
-        description: "Two synchronized sensors for primary + guest rooms.",
+        description: "Two synchronized sensors for multi‑room coverage.",
         medusaVariantId: "variant_01KBF0WRDCFRQ6NSMTKX7TZAF7",
       },
       {
@@ -138,7 +138,7 @@ export const products: Product[] = [
     id: "presence-sensor-duo-pack",
     name: "Presence Sensor Duo Pack",
     description:
-      "Two Bed Presence Sensors plus synchronized automations for multi-room deployments. Ships with offset mounting jig for bunk or split beds.",
+      "Two Presence Sensors plus synchronized automations for multi‑room deployments. Ships with mounting accessories for fast installs.",
     price: 449,
     originalPrice: 478,
     image: getProductImage("presence-duo"),
@@ -146,12 +146,12 @@ export const products: Product[] = [
     badge: "Bundle",
     specifications: [
       { label: "Contents", value: "2x sensors + 2x enclosures + 2x USB-C cables" },
-      { label: "Sync Engine", value: "Shared HA blueprint for multi-bed logic" },
+      { label: "Sync Engine", value: "Shared HA blueprint for multi‑zone logic" },
       { label: "Detection Mode", value: "Coordinated still-energy analysis" },
       { label: "Lead Time", value: "Ships in 3 business days" },
     ],
     highlights: [
-      "Perfect for master + guest rooms",
+      "Perfect for multi‑room coverage",
       "Pre-calibrated to avoid crosstalk",
       "Includes automation blueprint",
     ],
@@ -161,9 +161,9 @@ export const products: Product[] = [
   },
   {
     id: "presence-developer-edition",
-    name: "Presence Engine Developer Edition",
+    name: "Presence Developer Edition",
     description:
-      "For tinkerers who want deeper insight. Breakout headers, serial console, and beta firmware channel for experimenting with new detection ideas.",
+      "Breakout headers, serial console, and beta firmware channel for experimenting with new sensing ideas.",
     price: 329,
     image: getProductImage("presence-dev"),
     category: "sensor",
@@ -171,7 +171,7 @@ export const products: Product[] = [
     specifications: [
       { label: "Debug Outputs", value: "UART + USB-C + logic analyzer pads" },
       { label: "Firmware Access", value: "Weekly beta builds + OTA toggles" },
-      { label: "Included Sensors", value: "Bed Presence Sensor + sandbox module" },
+      { label: "Included Sensors", value: "Presence Sensor + sandbox module" },
       { label: "Support", value: "Private Discord lab channel" },
     ],
     variantId: "variant_01KBF0WRDDHTX28ZQCRET1SCB3", // Developer Edition Standard
@@ -179,9 +179,9 @@ export const products: Product[] = [
   },
   {
     id: "presence-dashboard-pack",
-    name: "Home Assistant Dashboard Pack",
+    name: "Presence Dashboard Pack",
     description:
-      "Pre-built Lovelace dashboards, helper templates, and automations that expose state reasons, z-score charts, and tuning controls.",
+      "Pre-built Lovelace dashboards, helper templates, and automations that visualize presence confidence and state reasoning.",
     price: 59,
     image: getProductImage("presence-dashboard"),
     category: "software",
@@ -203,7 +203,7 @@ export const products: Product[] = [
     id: "presence-enclosure-pack",
     name: "Magnetic Enclosure + Mount Pack",
     description:
-      "3D-printed magnetic enclosure with adjustable tilt bracket, bed-rail clips, and adhesive pads for stealth installs.",
+      "3D-printed magnetic enclosure with adjustable tilt bracket, clips, and adhesive pads for stealth installs.",
     price: 79,
     image: getProductImage("presence-enclosure"),
     category: "accessory",
@@ -211,16 +211,16 @@ export const products: Product[] = [
       { label: "Materials", value: "Matte black PETG + TPU feet" },
       { label: "Mount Options", value: "Magnetic, clip, adhesive" },
       { label: "Cable Management", value: "Integrated USB-C path" },
-      { label: "Compatibility", value: "All Bed Presence Sensor SKUs" },
+      { label: "Compatibility", value: "All Presence Sensor SKUs" },
     ],
     variantId: "variant_01KBF0WRDEZ9G74RKE409QA33C", // Enclosure Pack Standard
     inStock: true,
   },
   {
     id: "presence-spare-sensor",
-    name: "Spare mmWave Sensor Module",
+    name: "Spare Presence Sensor Module",
     description:
-      "Individual still-energy mmWave module for labs, redundancy, or advanced automations outside of the bedroom.",
+      "Individual still-energy mmWave module for labs, redundancy, or advanced automations.",
     price: 119,
     image: getProductImage("presence-spare"),
     category: "sensor",
@@ -228,7 +228,7 @@ export const products: Product[] = [
       { label: "Sensor", value: "60GHz FMCW w/ still-energy focus" },
       { label: "Interface", value: "UART / I2C breakouts" },
       { label: "Firmware", value: "Ships flashed w/ presence engine" },
-      { label: "Use Cases", value: "Office chairs, nurseries, occupancy cues" },
+      { label: "Use Cases", value: "Workspaces, hallways, occupancy cues" },
     ],
     variantId: "variant_01KBF0WRDE69PZG3GJ77EFM9EP", // Spare Sensor Standard
     inStock: true,
@@ -237,7 +237,7 @@ export const products: Product[] = [
     id: "presence-lab-support",
     name: "Reliability Lab Subscription",
     description:
-      "Join our Reliability Lab to get monthly firmware drops, guided tuning sessions, and early access to experimental engine features.",
+      "Join our Reliability Lab for monthly firmware drops, guided tuning sessions, and early access to experimental engine features.",
     price: 19,
     image: getProductImage("presence-lab"),
     category: "software",

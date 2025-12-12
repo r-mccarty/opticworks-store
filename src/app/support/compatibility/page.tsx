@@ -52,20 +52,20 @@ export default function CompatibilityPage() {
   const [error, setError] = useState<string | null>(null)
 
   const products = [
-    { 
-      id: 'cybershade-irx-tesla-model-y', 
-      name: 'CyberShade IRX™ Tesla Model Y Kit',
-      description: 'Pre-cut kit specifically designed for Tesla Model Y'
+    {
+      id: 'cybershade-irx-tesla-model-y',
+      name: 'Presence Kit — Tesla Model Y',
+      description: 'Vehicle‑specific spatial presence capsule with factory‑fit mounts.'
     },
-    { 
-      id: 'cybershade-irx-35', 
-      name: 'CyberShade IRX 35% VLT',
-      description: 'Universal ceramic film - requires custom cutting'
+    {
+      id: 'cybershade-irx-35',
+      name: 'Presence Kit — Universal Cabin',
+      description: 'Universal mmWave presence module for most cabins and vans.'
     },
-    { 
-      id: 'cybershade-irx-20', 
-      name: 'CyberShade IRX 20% VLT',
-      description: 'Universal ceramic film - requires custom cutting'
+    {
+      id: 'cybershade-irx-20',
+      name: 'Presence Kit — Fleet / Clinic',
+      description: 'High‑sensitivity pack for commercial installs and shared vehicles.'
     }
   ]
 
@@ -144,50 +144,53 @@ export default function CompatibilityPage() {
     }
   }
 
-  const getCompatibilityIcon = (compatibility: string) => {
+  type CompatibilityLevel = "perfect" | "good" | "difficult" | "incompatible"
+  type InstallationDifficulty = "beginner" | "intermediate" | "professional"
+
+  const getCompatibilityIcon = (compatibility: CompatibilityLevel) => {
     switch (compatibility) {
-      case 'perfect': return <RiCheckLine className="h-5 w-5 text-green-600" />
-      case 'good': return <RiThumbUpLine className="h-5 w-5 text-blue-600" />
-      case 'difficult': return <RiAlertLine className="h-5 w-5 text-yellow-600" />
-      case 'incompatible': return <RiCloseLine className="h-5 w-5 text-red-600" />
-      default: return <RiInformationLine className="h-5 w-5 text-gray-600" />
+      case 'perfect': return <RiCheckLine className="h-5 w-5 text-primary" />
+      case 'good': return <RiThumbUpLine className="h-5 w-5 text-primary/80" />
+      case 'difficult': return <RiAlertLine className="h-5 w-5 text-muted-foreground" />
+      case 'incompatible': return <RiCloseLine className="h-5 w-5 text-destructive" />
+      default: return <RiInformationLine className="h-5 w-5 text-muted-foreground" />
     }
   }
 
-  const getCompatibilityColor = (compatibility: string) => {
+  const getCompatibilityVariant = (compatibility: CompatibilityLevel) => {
     switch (compatibility) {
-      case 'perfect': return 'bg-green-100 text-green-800'
-      case 'good': return 'bg-blue-100 text-blue-800'
-      case 'difficult': return 'bg-yellow-100 text-yellow-800'
-      case 'incompatible': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'perfect': return 'default'
+      case 'good': return 'secondary'
+      case 'difficult': return 'outline'
+      case 'incompatible': return 'destructive'
+      default: return 'outline'
     }
   }
 
-  const getDifficultyColor = (difficulty: string) => {
+  const getDifficultyVariant = (difficulty: InstallationDifficulty) => {
     switch (difficulty) {
-      case 'beginner': return 'bg-green-100 text-green-800'
-      case 'intermediate': return 'bg-yellow-100 text-yellow-800'
-      case 'professional': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'beginner': return 'secondary'
+      case 'intermediate': return 'outline'
+      case 'professional': return 'destructive'
+      default: return 'outline'
     }
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-background text-foreground">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-b from-white to-gray-50 pt-24 pb-16">
+      <section className="relative bg-gradient-to-b from-background to-muted/40 pt-24 pb-16">
         <FadeContainer className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <FadeDiv>
-              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-100">
-                <RiCarLine className="h-8 w-8 text-indigo-600" />
+              <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                <RiCarLine className="h-8 w-8 text-primary" />
               </div>
-              <h1 className="font-barlow text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
-                Product Compatibility
+              <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl font-display">
+                Vehicle Compatibility
               </h1>
-              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-gray-600">
-                Check if our tinting products are compatible with your vehicle and get personalized recommendations.
+              <p className="mx-auto mt-6 max-w-2xl text-xl leading-8 text-muted-foreground">
+                Confirm which presence kits fit your cabin, then follow the install notes for a stable spatial map.
               </p>
             </FadeDiv>
           </div>
@@ -201,7 +204,7 @@ export default function CompatibilityPage() {
             <Card className="mb-8">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <RiSearchLine className="h-6 w-6 text-indigo-600" />
+                  <RiSearchLine className="h-6 w-6 text-primary" />
                   <div>
                     <CardTitle className="text-2xl">Compatibility Checker</CardTitle>
                     <CardDescription>
@@ -223,22 +226,22 @@ export default function CompatibilityPage() {
                   />
                   
                   {searchResults.length > 0 && (
-                    <div className="mt-2 border border-gray-200 rounded-md bg-white shadow-sm">
+                    <div className="mt-2 rounded-md border border-border bg-card shadow-elevation-1">
                       {searchResults.slice(0, 5).map((vehicle) => (
                         <button
                           key={vehicle.id}
                           onClick={() => handleVehicleSelect(vehicle.id)}
-                          className="w-full px-4 py-2 text-left hover:bg-gray-50 first:rounded-t-md last:rounded-b-md border-b border-gray-100 last:border-b-0"
+                          className="w-full border-b border-border/60 px-4 py-2 text-left transition-colors hover:bg-muted first:rounded-t-md last:rounded-b-md last:border-b-0"
                         >
                           <div className="font-medium">{vehicle.year} {vehicle.make} {vehicle.model}</div>
-                          <div className="text-sm text-gray-600">{vehicle.bodyStyle} {vehicle.generation && `• ${vehicle.generation}`}</div>
+                          <div className="text-sm text-muted-foreground">{vehicle.bodyStyle} {vehicle.generation && `• ${vehicle.generation}`}</div>
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
 
-                <div className="text-center text-gray-500">or</div>
+                <div className="text-center text-muted-foreground">or</div>
 
                 {/* Manual Selection */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -255,9 +258,9 @@ export default function CompatibilityPage() {
                       <SelectContent>
                         {makes.map((make) => (
                           <SelectItem key={make.id} value={make.id}>
-                            <div className="flex items-center gap-2">
-                              {make.name}
-                              {make.popular && <Badge className="bg-orange-100 text-orange-800 text-xs">Popular</Badge>}
+                              <div className="flex items-center gap-2">
+                                {make.name}
+                              {make.popular && <Badge variant="secondary" className="text-xs">Popular</Badge>}
                             </div>
                           </SelectItem>
                         ))}
@@ -305,7 +308,7 @@ export default function CompatibilityPage() {
                         <SelectItem key={product.id} value={product.id}>
                           <div>
                             <div className="font-medium">{product.name}</div>
-                            <div className="text-sm text-gray-600">{product.description}</div>
+                            <div className="text-sm text-muted-foreground">{product.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -316,16 +319,16 @@ export default function CompatibilityPage() {
                 <Button 
                   onClick={handleCompatibilityCheck} 
                   disabled={loading || !selectedVehicle || !selectedProduct}
-                  className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full sm:w-auto"
                 >
                   {loading ? 'Checking compatibility...' : 'Check Compatibility'}
                 </Button>
 
                 {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-4">
                     <div className="flex items-start gap-3">
-                      <RiAlertLine className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                      <p className="text-red-800 text-sm">{error}</p>
+                      <RiAlertLine className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
+                      <p className="text-sm text-foreground">{error}</p>
                     </div>
                   </div>
                 )}
@@ -338,15 +341,17 @@ export default function CompatibilityPage() {
             <FadeDiv>
               <div className="space-y-6">
                 {/* Main Result */}
-                <Card className={`border-2 ${
-                  compatibilityResult.recommendations.recommended 
-                    ? 'border-green-200 bg-green-50' 
-                    : 'border-yellow-200 bg-yellow-50'
-                }`}>
+                <Card
+                  className={`border-2 ${
+                    compatibilityResult.recommendations.recommended
+                      ? "border-primary/30 bg-primary/5"
+                      : "border-border bg-muted/30"
+                  }`}
+                >
                   <CardHeader>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        {getCompatibilityIcon(compatibilityResult.compatibility.compatibility)}
+                        {getCompatibilityIcon(compatibilityResult.compatibility.compatibility as CompatibilityLevel)}
                         <div>
                           <CardTitle className="text-xl">
                             {compatibilityResult.vehicle.year} {compatibilityResult.vehicle.make} {compatibilityResult.vehicle.model}
@@ -357,11 +362,11 @@ export default function CompatibilityPage() {
                         </div>
                       </div>
                       <div className="text-right space-y-2">
-                        <Badge className={getCompatibilityColor(compatibilityResult.compatibility.compatibility)}>
+                        <Badge variant={getCompatibilityVariant(compatibilityResult.compatibility.compatibility as CompatibilityLevel)}>
                           {compatibilityResult.compatibility.compatibility.charAt(0).toUpperCase() + 
                            compatibilityResult.compatibility.compatibility.slice(1)}
                         </Badge>
-                        <Badge className={getDifficultyColor(compatibilityResult.compatibility.installationDifficulty)}>
+                        <Badge variant={getDifficultyVariant(compatibilityResult.compatibility.installationDifficulty as InstallationDifficulty)}>
                           {compatibilityResult.compatibility.installationDifficulty.charAt(0).toUpperCase() + 
                            compatibilityResult.compatibility.installationDifficulty.slice(1)}
                         </Badge>
@@ -373,29 +378,29 @@ export default function CompatibilityPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
                       {compatibilityResult.compatibility.installationTime && (
                         <div className="flex items-center gap-3">
-                          <RiTimeLine className="h-5 w-5 text-gray-600" />
+                          <RiTimeLine className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <div className="font-medium">Install Time</div>
-                            <div className="text-sm text-gray-600">{compatibilityResult.compatibility.installationTime}</div>
+                            <div className="text-sm text-muted-foreground">{compatibilityResult.compatibility.installationTime}</div>
                           </div>
                         </div>
                       )}
                       
                       {compatibilityResult.compatibility.requiredTools && (
                         <div className="flex items-center gap-3">
-                          <RiToolsLine className="h-5 w-5 text-gray-600" />
+                          <RiToolsLine className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <div className="font-medium">Tools Needed</div>
-                            <div className="text-sm text-gray-600">{compatibilityResult.compatibility.requiredTools.length} tools</div>
+                            <div className="text-sm text-muted-foreground">{compatibilityResult.compatibility.requiredTools.length} tools</div>
                           </div>
                         </div>
                       )}
                       
                       <div className="flex items-center gap-3">
-                        <RiStarLine className="h-5 w-5 text-gray-600" />
+                        <RiStarLine className="h-5 w-5 text-muted-foreground" />
                         <div>
                           <div className="font-medium">Recommended</div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-muted-foreground">
                             {compatibilityResult.recommendations.recommended ? 'Yes' : 'No'}
                           </div>
                         </div>
@@ -404,17 +409,17 @@ export default function CompatibilityPage() {
 
                     {/* Notes */}
                     {compatibilityResult.compatibility.notes && (
-                      <div className="bg-blue-100 border border-blue-200 rounded-lg p-4 mb-4">
-                        <h4 className="font-medium text-blue-800 mb-2">Installation Notes</h4>
-                        <p className="text-blue-700 text-sm">{compatibilityResult.compatibility.notes}</p>
+                      <div className="mb-4 rounded-lg border border-border bg-muted/40 p-4">
+                        <h4 className="mb-2 font-medium text-foreground">Install notes</h4>
+                        <p className="text-sm text-muted-foreground">{compatibilityResult.compatibility.notes}</p>
                       </div>
                     )}
 
                     {/* Issues */}
                     {compatibilityResult.compatibility.specificIssues && compatibilityResult.compatibility.specificIssues.length > 0 && (
-                      <div className="bg-yellow-100 border border-yellow-200 rounded-lg p-4 mb-4">
-                        <h4 className="font-medium text-yellow-800 mb-2">Potential Issues</h4>
-                        <ul className="text-yellow-700 text-sm space-y-1">
+                      <div className="mb-4 rounded-lg border border-border bg-muted/30 p-4">
+                        <h4 className="mb-2 font-medium text-foreground">Potential issues</h4>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
                           {compatibilityResult.compatibility.specificIssues.map((issue, index) => (
                             <li key={index}>• {issue}</li>
                           ))}
@@ -423,9 +428,9 @@ export default function CompatibilityPage() {
                     )}
 
                     {/* Recommendations */}
-                    <div className="bg-gray-100 border border-gray-200 rounded-lg p-4">
-                      <h4 className="font-medium text-gray-800 mb-2">Our Assessment</h4>
-                      <ul className="text-gray-700 text-sm space-y-1">
+                    <div className="rounded-lg border border-border bg-muted/40 p-4">
+                      <h4 className="mb-2 font-medium text-foreground">Our assessment</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
                         {compatibilityResult.recommendations.reasons.map((reason, index) => (
                           <li key={index}>• {reason}</li>
                         ))}
@@ -460,11 +465,11 @@ export default function CompatibilityPage() {
                     <CardContent>
                       <div className="space-y-4">
                         {compatibilityResult.recommendations.alternatives.map((alt, index) => (
-                          <div key={index} className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-lg">
+                          <div key={index} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
                             <div>
                               <h4 className="font-medium">{alt.productName}</h4>
-                              <p className="text-sm text-gray-600 mb-2">{alt.whyBetter}</p>
-                              <Badge className="bg-green-100 text-green-800">Better Match</Badge>
+                              <p className="mb-2 text-sm text-muted-foreground">{alt.whyBetter}</p>
+                              <Badge variant="secondary">Better match</Badge>
                             </div>
                             <div className="text-right">
                               <div className="font-semibold">${alt.price}</div>
@@ -491,18 +496,18 @@ export default function CompatibilityPage() {
                     <CardContent>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {recommendations.slice(0, 4).map((rec, index) => (
-                          <div key={index} className="p-4 border border-gray-200 rounded-lg hover:border-indigo-300 transition-colors">
+                          <div key={index} className="rounded-lg border border-border p-4 transition-colors hover:border-primary/40">
                             <div className="flex items-center gap-3 mb-2">
-                              {getCompatibilityIcon(rec.compatibility.compatibility)}
+                              {getCompatibilityIcon(rec.compatibility.compatibility as CompatibilityLevel)}
                               <h4 className="font-medium">{rec.product.name}</h4>
                             </div>
-                            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+                            <div className="mb-2 flex items-center justify-between text-sm text-muted-foreground">
                               <span>${rec.product.price}</span>
-                              <Badge className={getCompatibilityColor(rec.compatibility.compatibility)}>
+                              <Badge variant={getCompatibilityVariant(rec.compatibility.compatibility as CompatibilityLevel)}>
                                 {rec.compatibility.compatibility}
                               </Badge>
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-muted-foreground">
                               {rec.compatibility.installationTime && `${rec.compatibility.installationTime} install`}
                             </p>
                           </div>
@@ -518,23 +523,23 @@ export default function CompatibilityPage() {
       </section>
 
       {/* Contact Support */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-background">
         <FadeContainer className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
           <FadeDiv>
-            <Card className="bg-gradient-to-r from-indigo-50 to-indigo-100 border-indigo-200">
+            <Card className="border-border bg-muted/30">
               <CardContent className="p-8 text-center">
-                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-600">
-                  <RiCustomerService2Line className="h-8 w-8 text-white" />
+                <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                  <RiCustomerService2Line className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                <h3 className="mb-4 text-2xl font-semibold text-foreground">
                   Need Help Choosing?
                 </h3>
-                <p className="text-lg text-gray-700 mb-8 max-w-2xl mx-auto">
-                  Our product specialists can help you find the perfect tinting solution for your specific vehicle and needs.
+                <p className="mx-auto mb-8 max-w-2xl text-lg text-muted-foreground">
+                  Our specialists can help you pick the right presence kit for your vehicle and environment.
                 </p>
                 
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button asChild size="lg" className="bg-indigo-600 hover:bg-indigo-700">
+                  <Button asChild size="lg">
                     <Link href={siteConfig.baseLinks.supportContact + "?category=compatibility"}>
                       Get Expert Advice
                     </Link>

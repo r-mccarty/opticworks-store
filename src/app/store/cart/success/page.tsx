@@ -94,15 +94,15 @@ function PaymentSuccessContent() {
     const totalDollars = orderData.total;
 
     return (
-      <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
+      <div className="min-h-screen bg-background text-foreground pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
         <div className="max-w-3xl mx-auto">
           <div className="flex flex-col items-center justify-center space-y-6 text-center">
-            <CheckCircleIcon className="h-20 w-20 text-green-500" data-testid="success-icon" />
+            <CheckCircleIcon className="h-20 w-20 text-secondary" data-testid="success-icon" />
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-semibold text-foreground">
                 Thank you for your order!
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Your OpticWorks order is confirmed and will be on its way soon.
               </p>
             </div>
@@ -112,7 +112,7 @@ function PaymentSuccessContent() {
           <Card className="my-8">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
-              <p className="text-sm text-gray-500 pt-1">
+              <p className="text-sm text-muted-foreground pt-1">
                 Order #{orderData.display_id}
               </p>
             </CardHeader>
@@ -132,7 +132,7 @@ function PaymentSuccessContent() {
                       )}
                       <div>
                         <p className="font-medium">{item.title}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Quantity: {item.quantity}
                         </p>
                       </div>
@@ -150,7 +150,7 @@ function PaymentSuccessContent() {
               </div>
             </CardContent>
             <CardFooter>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 A confirmation receipt has been sent to {orderData.email}.
               </p>
             </CardFooter>
@@ -186,15 +186,15 @@ function PaymentSuccessContent() {
     const total = paymentSession.items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
     return (
-      <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
+      <div className="min-h-screen bg-background text-foreground pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
         <div className="max-w-3xl mx-auto">
           <div className="flex flex-col items-center justify-center space-y-6 text-center">
-            <CheckCircleIcon className="h-20 w-20 text-green-500" data-testid="success-icon" />
+            <CheckCircleIcon className="h-20 w-20 text-secondary" data-testid="success-icon" />
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-semibold text-foreground">
                 Thank you for your order!
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Your OpticWorks order is confirmed and will be on its way soon.
               </p>
             </div>
@@ -204,7 +204,7 @@ function PaymentSuccessContent() {
           <Card className="my-8">
             <CardHeader>
               <CardTitle>Order Summary</CardTitle>
-              <p className="text-sm text-gray-500 pt-1">
+              <p className="text-sm text-muted-foreground pt-1">
                 Payment ID: {paymentSession.sessionId.split('_')[1]}
               </p>
             </CardHeader>
@@ -222,7 +222,7 @@ function PaymentSuccessContent() {
                       />
                       <div>
                         <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           Quantity: {item.quantity}
                         </p>
                       </div>
@@ -240,7 +240,7 @@ function PaymentSuccessContent() {
               </div>
             </CardContent>
              <CardFooter>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 A detailed confirmation receipt has been sent to your email address.
               </p>
             </CardFooter>
@@ -274,15 +274,15 @@ function PaymentSuccessContent() {
   // If we have an order ID but couldn't fetch details, show a generic success message
   if (orderId) {
     return (
-      <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
+      <div className="min-h-screen bg-background text-foreground pt-40 px-4 sm:px-6 lg:px-8" data-testid="order-success">
         <div className="max-w-3xl mx-auto">
           <div className="flex flex-col items-center justify-center space-y-6 text-center">
-            <CheckCircleIcon className="h-20 w-20 text-green-500" data-testid="success-icon" />
+            <CheckCircleIcon className="h-20 w-20 text-secondary" data-testid="success-icon" />
             <div className="space-y-2">
-              <h1 className="text-4xl font-bold text-gray-900">
+              <h1 className="text-4xl font-semibold text-foreground">
                 Thank you for your order!
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-muted-foreground">
                 Your payment was successful and your order is being processed.
               </p>
             </div>
@@ -290,10 +290,10 @@ function PaymentSuccessContent() {
 
           <Card className="my-8">
             <CardContent className="pt-6">
-              <p className="text-gray-700">
+              <p className="text-muted-foreground">
                 Your order confirmation and receipt will be sent to your email shortly.
               </p>
-              <p className="text-sm text-gray-500 mt-4">
+              <p className="text-sm text-muted-foreground mt-4">
                 Reference: {orderId}
               </p>
             </CardContent>
@@ -326,20 +326,20 @@ function PaymentSuccessContent() {
 
   // No order ID and no payment session - show error
   return (
-    <div className="min-h-screen bg-gray-50 pt-40 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background text-foreground pt-40 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto text-center">
         <div className="flex flex-col items-center justify-center space-y-4">
-          <ExclamationTriangleIcon className="h-20 w-20 text-red-500" />
-          <h1 className="text-3xl font-bold text-gray-900">
+          <ExclamationTriangleIcon className="h-20 w-20 text-destructive" />
+          <h1 className="text-3xl font-semibold text-foreground">
             Payment Information Missing
           </h1>
           <Card className="w-full text-left">
             <CardContent className="pt-6">
-              <p className="text-lg text-red-700">
+              <p className="text-lg text-destructive">
                 We couldn&apos;t find the details of your completed payment.
                 This can happen if you refresh the page or navigate here directly.
               </p>
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 Please check your email for a confirmation receipt. If you don&apos;t receive one shortly, please contact our support team.
               </p>
             </CardContent>
