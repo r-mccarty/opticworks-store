@@ -56,7 +56,7 @@ export async function GET(
 
     const customer = customers[0]
 
-    if (!customer?.account_holder) {
+    if (!customer?.account_holders?.[0]) {
       // Customer doesn't have an account holder yet (registered before this feature)
       logger.info(`[payment-methods] No account holder for customer ${customerId}`)
       res.json({ payment_methods: [] })
@@ -67,7 +67,7 @@ export async function GET(
     const paymentMethods = await paymentModuleService.listPaymentMethods({
       provider_id: "pp_stripe_stripe",
       context: {
-        account_holder: customer.account_holder,
+        account_holder: customer.account_holders[0],
       },
     })
 
@@ -133,7 +133,7 @@ export async function DELETE(
 
     const customer = customers[0]
 
-    if (!customer?.account_holder) {
+    if (!customer?.account_holders?.[0]) {
       res.status(404).json({ error: "No payment methods found" })
       return
     }

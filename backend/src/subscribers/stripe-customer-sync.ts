@@ -56,9 +56,9 @@ export default async function stripeCustomerSyncHandler({
     })
 
     const customerWithAccountHolder = customersWithAccountHolder[0]
-    if (customerWithAccountHolder?.account_holder) {
+    if (customerWithAccountHolder?.account_holders?.[0]) {
       logger.info(
-        `[stripe-customer-sync] Customer ${data.id} already has account holder ${customerWithAccountHolder.account_holder.id}, skipping`
+        `[stripe-customer-sync] Customer ${data.id} already has account holder ${customerWithAccountHolder.account_holders[0].id}, skipping`
       )
       return
     }
