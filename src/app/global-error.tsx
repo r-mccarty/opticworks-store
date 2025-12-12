@@ -10,7 +10,7 @@
  * It must render its own <html> and <body> tags since it replaces
  * the root layout when an error occurs.
  */
-import * as Sentry from "@sentry/nextjs"
+import * as Sentry from "@sentry/browser"
 import Link from "next/link"
 import { useEffect } from "react"
 

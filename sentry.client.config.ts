@@ -1,34 +1,28 @@
 /**
  * Sentry Client Configuration
  *
- * This file configures Sentry for the browser/client-side.
- * It runs in the user's browser and captures frontend JavaScript errors.
+ * This file configures Sentry for the browser/client-side only.
+ * Uses @sentry/browser for minimal bundle size on Cloudflare Workers.
  *
  * Hybrid approach: Sentry handles client-side errors only.
  * Edge/server monitoring is handled by Cloudflare's native tools.
  */
-import * as Sentry from "@sentry/nextjs"
+import * as Sentry from "@sentry/browser"
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 
   environment: process.env.NODE_ENV || "development",
 
-  // Performance Monitoring - 100% for dev/staging, reduce in production
+  // Performance Monitoring - 20% sample rate for production
   tracesSampleRate: process.env.NODE_ENV === "production" ? 0.2 : 1.0,
 
-  // Session Replay - helps debug user sessions
-  replaysSessionSampleRate: 0.1, // 10% of sessions
-  replaysOnErrorSampleRate: 1.0, // 100% when error occurs
+  // Session Replay removed - too heavy for Cloudflare Workers bundle
+  // Use Cloudflare's native analytics for user session insights
 
   integrations: [
-    // Capture browser performance data
+    // Browser tracing for performance monitoring
     Sentry.browserTracingIntegration(),
-    // Session replay for debugging user interactions
-    Sentry.replayIntegration({
-      maskAllText: true,
-      blockAllMedia: true,
-    }),
   ],
 
   // Filter out noisy, non-actionable errors
@@ -68,3 +62,6 @@ Sentry.init({
     return event
   },
 })
+
+// Export Sentry for use in error boundaries
+export { Sentry }
