@@ -100,6 +100,10 @@ See `docs/reference/FULFILLMENT.md` for full fulfillment architecture details.
 4. Cart items displayed immediately (no loading spinner)
 5. User clicks "Proceed to Payment" button
 
+> If SSR returns no cart (e.g., missing/expired cookie), the client now initializes
+> a fresh Medusa cart and fetches totals before marking itself hydrated, preventing
+> stale localStorage carts from rendering.
+
 > **Architecture Note (Dec 2024)**: Cart page now uses SSR pattern. The server
 > component fetches the cart using a cookie-stored cart ID, eliminating the
 > previous hydration mismatch issues that required a loading guard.
@@ -206,6 +210,22 @@ The form renders in this order:
 > option to get actual prices. Skipping this step causes NaN or $0 prices in the UI.
 >
 > See `docs/reference/FULFILLMENT.md` for full implementation details.
+
+### Order Summary Display (Cart Page)
+
+- The Cart page now displays **Medusa-authoritative totals** when available (SSR cart or a fresh fetch after hydration), instead of hardcoded "Free" shipping or purely local math.
+- If totals are not yet calculated (no shipping selected), the UI shows "Calculated at checkout" rather than optimistic values. This keeps presentation aligned with backend truth and prevents split-brain totals.
+
+### Order Finalization & Polling (No More Blind Redirect)
+
+After Stripe confirms payment:
+
+1. `POST /store/carts/{id}/complete` is called.
+2. If `completeCart` fails but payment succeeded, the frontend **polls the cart** for order creation (webhook eventual consistency).
+3. If the order appears during polling, we clear cart state and redirect to success.
+4. If polling exhausts without an order, we **stop and show an informative message** (no auto-redirect). Users stay on the page with instructions; support can reconcile using Stripe PI + webhook logs.
+
+This replaces the previous 2-second blind redirect. It is safer, matches the roadmap, and avoids falsely signaling success when Medusa has not produced an order yet.
 
 ### Step 5: Shipping Rate Selection & Elements Update
 

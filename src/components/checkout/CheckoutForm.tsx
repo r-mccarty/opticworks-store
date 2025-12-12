@@ -291,14 +291,12 @@ export default function CheckoutForm({
             clearCart();
             onSuccess(pollResult.orderId);
           } else {
-            // Order not found after polling - show informative message
-            // The order may still be created; user should check email
-            setMessage(getPollingResultMessage(pollResult));
-            console.log('[checkout] Polling result:', pollResult);
-            // Redirect to success page after short delay - order confirmation will be sent via email
-            setTimeout(() => {
-              window.location.href = `/store/cart/success?payment_intent=${paymentIntent.id}&status=pending`;
-            }, 3000);
+            // Order not found after polling - show informative message and stop
+            // We no longer blind-redirect; user stays on page with next steps
+            const fallbackMessage = getPollingResultMessage(pollResult);
+            setMessage(fallbackMessage);
+            onError(fallbackMessage);
+            console.log('[checkout] Polling result (no order yet):', pollResult);
           }
         }
       } else if (paymentIntent?.status === 'processing') {

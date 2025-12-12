@@ -14,6 +14,7 @@ import CheckoutWrapper from "@/components/checkout/CheckoutWrapper"
 import { useCheckoutState } from "@/hooks/useCheckoutState"
 import { summarizeSpecifications } from "@/lib/cart/utils"
 import type { MedusaCart } from "@/lib/api/medusa"
+import { getCart as fetchMedusaCart } from "@/lib/api/medusa"
 
 interface CartPageProps {
   /** Initial cart data from SSR (eliminates hydration mismatch) */
@@ -29,20 +30,111 @@ interface CartPageProps {
  * @see Phase 4 of Architecture Audit
  */
 export function CartPage({ initialCart }: CartPageProps) {
-  const { items, updateQuantity, removeFromCart, getTotalPrice, clearCart, setPaymentSession, hydrateFromServer } = useCart()
+  const {
+    items,
+    updateQuantity,
+    removeFromCart,
+    getTotalPrice,
+    clearCart,
+    setPaymentSession,
+    hydrateFromServer,
+    getCartId,
+    initializeCart,
+  } = useCart()
   const { taxAmount, isCalculatingTax, reset: resetCheckout } = useCheckoutState()
   const [isCheckingOut, setIsCheckingOut] = useState(false)
   const [showPaymentForm, setShowPaymentForm] = useState(false)
-  const [isHydrated, setIsHydrated] = useState(!!initialCart)
+  const [isHydrated, setIsHydrated] = useState(false)
+  const [cartTotals, setCartTotals] = useState<{
+    subtotal?: number
+    tax_total?: number
+    shipping_total?: number
+    total?: number
+  } | null>(initialCart ? {
+    subtotal: initialCart.subtotal,
+    tax_total: initialCart.tax_total,
+    shipping_total: initialCart.shipping_total,
+    total: initialCart.total,
+  } : null)
 
   // Hydrate cart store from server data (eliminates loading spinner)
   useEffect(() => {
-    if (initialCart && hydrateFromServer) {
-      hydrateFromServer(initialCart)
+    let cancelled = false
+
+    const hydrateCart = async () => {
+      if (initialCart && hydrateFromServer) {
+        hydrateFromServer(initialCart)
+        if (!cancelled) {
+          setCartTotals({
+            subtotal: initialCart.subtotal,
+            tax_total: initialCart.tax_total,
+            shipping_total: initialCart.shipping_total,
+            total: initialCart.total,
+          })
+          setIsHydrated(true)
+        }
+        return
+      }
+
+      // No SSR cart – initialize/sync client cart
+      await initializeCart()
+      const currentCartId = getCartId()
+
+      if (currentCartId) {
+        try {
+          const latest = await fetchMedusaCart(currentCartId)
+          if (!cancelled) {
+            setCartTotals({
+              subtotal: latest.subtotal,
+              tax_total: latest.tax_total,
+              shipping_total: latest.shipping_total,
+              total: latest.total,
+            })
+          }
+        } catch (error) {
+          console.error("[cart] Failed to fetch cart totals:", error)
+        }
+      }
+
+      if (!cancelled) {
+        setIsHydrated(true)
+      }
     }
-    // Mark as hydrated after first render (handles case where initialCart is null)
-    setIsHydrated(true)
-  }, [initialCart, hydrateFromServer])
+
+    void hydrateCart()
+
+    return () => {
+      cancelled = true
+    }
+  }, [initialCart, hydrateFromServer, initializeCart, getCartId])
+
+  // Refresh totals whenever cart items change (keeps UI aligned with Medusa)
+  useEffect(() => {
+    let cancelled = false
+    const refreshTotals = async () => {
+      const currentCartId = getCartId()
+      if (!currentCartId) return
+      try {
+        const latest = await fetchMedusaCart(currentCartId)
+        if (!cancelled) {
+          setCartTotals({
+            subtotal: latest.subtotal,
+            tax_total: latest.tax_total,
+            shipping_total: latest.shipping_total,
+            total: latest.total,
+          })
+        }
+      } catch (error) {
+        console.error("[cart] Failed to refresh cart totals:", error)
+      }
+    }
+
+    void refreshTotals()
+
+    return () => {
+      cancelled = true
+    }
+  }, [items.length, getCartId])
 
   const handlePaymentSuccess = (sessionId: string) => {
     console.log('Payment successful, setting session:', sessionId)
@@ -118,6 +210,14 @@ export function CartPage({ initialCart }: CartPageProps) {
 
   const cartColumnClassName = `${cartColumnBaseClass} lg:sticky lg:top-32 lg:self-start`
   const featuredSpecs = items[0]?.specifications?.slice(0, 6) ?? []
+  const summarySubtotal = cartTotals?.subtotal ?? getTotalPrice()
+  const summaryShipping = typeof cartTotals?.shipping_total === "number" ? cartTotals.shipping_total : null
+  const summaryTax = showPaymentForm
+    ? (taxAmount || cartTotals?.tax_total || null)
+    : (typeof cartTotals?.tax_total === "number" ? cartTotals.tax_total : null)
+  const summaryTotal = typeof cartTotals?.total === "number"
+    ? cartTotals.total
+    : (showPaymentForm && summaryTax !== null ? getTotalPrice() + summaryTax : null)
 
   return (
     <main className="relative">
@@ -347,28 +447,32 @@ export function CartPage({ initialCart }: CartPageProps) {
                   <CardHeader>
                     <CardTitle>Order Summary</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span>Subtotal</span>
-                      <span>${getTotalPrice().toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Shipping</span>
-                      <span>Free</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Tax</span>
-                      <span>
-                        {showPaymentForm ? (
+                    <CardContent className="space-y-4">
+                      <div className="flex justify-between text-sm">
+                        <span>Subtotal</span>
+                        <span>${summarySubtotal.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Shipping</span>
+                        <span>
+                          {summaryShipping !== null
+                            ? (summaryShipping === 0 ? "Free" : `$${summaryShipping.toFixed(2)}`)
+                            : "Calculated at checkout"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Tax</span>
+                        <span>
+                          {showPaymentForm ? (
                           isCalculatingTax ? (
                             <div className="flex items-center text-xs">
                               <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse mr-1"></div>
                               Calculating...
                             </div>
-                          ) : taxAmount > 0 ? (
-                            `$${taxAmount.toFixed(2)}`
+                          ) : summaryTax !== null ? (
+                            `$${summaryTax.toFixed(2)}`
                           ) : (
-                            'Enter address below'
+                            'Calculated at checkout'
                           )
                         ) : (
                           'Calculated at checkout'
@@ -379,11 +483,9 @@ export function CartPage({ initialCart }: CartPageProps) {
                     <div className="flex justify-between text-lg font-semibold">
                       <span>Total</span>
                       <span>
-                        {showPaymentForm && taxAmount > 0 ? (
-                          `$${(getTotalPrice() + taxAmount).toLocaleString()}`
-                        ) : (
-                          'Calculated at checkout'
-                        )}
+                        {summaryTotal !== null
+                          ? `$${summaryTotal.toFixed(2)}`
+                          : 'Calculated at checkout'}
                       </span>
                     </div>
                   </CardContent>

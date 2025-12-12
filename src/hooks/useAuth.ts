@@ -3,6 +3,8 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { MedusaCustomer } from '@/lib/api/medusa'
+import { updateCart } from '@/lib/api/medusa'
+import { useCart } from './useCart'
 
 interface AuthState {
   // State
@@ -21,6 +23,7 @@ interface AuthState {
   login: (email: string, password: string) => Promise<boolean>
   register: (email: string, password: string, firstName?: string, lastName?: string) => Promise<boolean>
   fetchCustomer: () => Promise<void>
+  refreshSession: () => Promise<void>
 }
 
 const AUTH_STORAGE_KEY = "opticworks-auth"
@@ -87,6 +90,16 @@ export const useAuth = create<AuthState>()(
             error: null
           })
 
+          // Link existing cart to customer for order history/pricing
+          const cartId = useCart.getState().getCartId()
+          if (cartId && data.customer?.id) {
+            try {
+              await updateCart(cartId, { customer_id: data.customer.id, email: data.customer.email })
+            } catch (linkError) {
+              console.warn("[useAuth] Failed to link cart to customer:", linkError)
+            }
+          }
+
           return true
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Login failed'
@@ -133,11 +146,34 @@ export const useAuth = create<AuthState>()(
             error: null
           })
 
+          // Link existing cart to customer for order history/pricing
+          const cartId = useCart.getState().getCartId()
+          if (cartId && data.customer?.id) {
+            try {
+              await updateCart(cartId, { customer_id: data.customer.id, email: data.customer.email })
+            } catch (linkError) {
+              console.warn("[useAuth] Failed to link cart to customer:", linkError)
+            }
+          }
+
           return true
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Registration failed'
           set({ error: message, isLoading: false })
           return false
+        }
+      },
+
+      // Refresh session via API (renews JWT cookie)
+      refreshSession: async () => {
+        try {
+          const response = await fetch('/api/auth/refresh', { method: 'POST' })
+          if (!response.ok) {
+            // Refresh failed; treat as unauthenticated
+            set({ isAuthenticated: false, customer: null })
+          }
+        } catch (error) {
+          console.warn("[useAuth] Refresh session error:", error)
         }
       },
 
@@ -186,10 +222,12 @@ export const useAuth = create<AuthState>()(
 
 // Hook to check auth status on mount
 export function useAuthInit() {
-  const { isAuthenticated, fetchCustomer } = useAuth()
+  const { isAuthenticated, fetchCustomer, refreshSession } = useAuth()
 
   // Fetch customer on mount if authenticated
   if (typeof window !== 'undefined' && isAuthenticated) {
-    fetchCustomer()
+    refreshSession().finally(() => {
+      fetchCustomer()
+    })
   }
 }

@@ -5,6 +5,7 @@ import {
   createCustomerProfile,
   getCurrentCustomer,
 } from '@/lib/api/medusa'
+import { buildRateLimitKey, rateLimit } from '@/lib/rate-limit'
 
 const AUTH_COOKIE_NAME = 'medusa_auth_token'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7 // 7 days
@@ -20,6 +21,16 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json() as RegisterRequest
     const { email, password, first_name, last_name } = body
+
+    // Rate limit registration attempts per IP
+    const limitKey = buildRateLimitKey("auth-register", request)
+    const limitResult = rateLimit(limitKey, { limit: 10, windowMs: 5 * 60 * 1000 })
+    if (!limitResult.success) {
+      return NextResponse.json(
+        { error: 'Too many registration attempts. Please try again later.' },
+        { status: 429, headers: { 'Retry-After': Math.ceil(limitResult.retryAfter / 1000).toString() } }
+      )
+    }
 
     // Validate required fields
     if (!email || !password) {
