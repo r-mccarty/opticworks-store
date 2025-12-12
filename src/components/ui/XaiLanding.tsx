@@ -13,12 +13,14 @@ import Link from "next/link"
 import { FadeContainer, FadeDiv } from "../Fade"
 import { Button } from "./button"
 
-const shellPadding = "px-5 sm:px-8 lg:px-10"
-const sectionSpacing = "space-y-14 sm:space-y-16"
+const shellPadding = "px-5 sm:px-8 lg:px-12"
+const sectionSpacing = "py-14 sm:py-16 lg:py-20"
+const columnGap = "gap-8 sm:gap-10 lg:gap-12"
 const cardGlass =
   "rounded-3xl border border-white/10 bg-white/5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] backdrop-blur"
 const subheading =
-  "text-sm uppercase tracking-[0.24em] text-white/60"
+  "text-xs sm:text-sm uppercase tracking-[0.22em] text-white/60"
+const contentWidth = "max-w-7xl mx-auto"
 
 const featureSignals = [
   {
@@ -70,8 +72,9 @@ export function XaiLanding() {
     <div className="relative overflow-hidden bg-[#05060a] text-slate-100">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(120,119,198,0.18),transparent_25%),radial-gradient(circle_at_80%_10%,rgba(56,189,248,0.18),transparent_22%),radial-gradient(circle_at_50%_80%,rgba(14,165,233,0.12),transparent_28%)]" />
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.08)_0%,rgba(255,255,255,0)_20%,rgba(255,255,255,0)_80%,rgba(255,255,255,0.08)_100%)] opacity-30" />
-      <div className="relative mx-auto flex min-h-screen max-w-6xl flex-col gap-16 pb-24 pt-16">
-        <FadeContainer className={`${sectionSpacing} ${shellPadding}`}>
+      <div className="relative flex min-h-screen flex-col pb-24 pt-12">
+        {/* Hero */}
+        <FadeContainer className={`${sectionSpacing} ${shellPadding} ${contentWidth} space-y-10`}>
           <FadeDiv className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-1 text-sm text-white/80">
             <span className="flex items-center gap-2 font-semibold tracking-tight text-cyan-300">
               <RiAiGenerate className="size-4" />
@@ -86,7 +89,7 @@ export function XaiLanding() {
             </h1>
           </FadeDiv>
           <FadeDiv>
-            <p className="max-w-3xl text-lg text-white/70 sm:text-xl">
+            <p className="max-w-3xl text-lg leading-relaxed text-white/75 sm:text-xl">
               OpticWorks pairs mmWave sensing with a transparent presence engine so your automations feel intentional.
               Designed with the stark, cinematic aesthetic of x.ai: clear lines, glowing gradients, and interfaces that tell you exactly what happens next.
             </p>
@@ -114,7 +117,9 @@ export function XaiLanding() {
           </FadeDiv>
         </FadeContainer>
 
-        <FadeContainer className={`grid gap-6 ${shellPadding} ${sectionSpacing} lg:grid-cols-[1.1fr_0.9fr]`}>
+        {/* Signal + Stats */}
+        <FadeContainer className={`${sectionSpacing} ${shellPadding} ${contentWidth}`}>
+          <div className={`grid ${columnGap} lg:grid-cols-[1.1fr_0.9fr]`}>
           <FadeDiv className={`relative overflow-hidden ${cardGlass} p-8`}>
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(56,189,248,0.2),transparent_35%)]" />
             <div className="relative flex items-center justify-between text-xs uppercase tracking-[0.2em] text-white/50">
@@ -168,25 +173,31 @@ export function XaiLanding() {
               ))}
             </div>
           </FadeDiv>
+          </div>
         </FadeContainer>
 
-        <FadeContainer className={`grid gap-6 ${shellPadding} ${cardGlass} p-8 lg:grid-cols-3`}>
-          {featureSignals.map((feature) => (
-            <FadeDiv key={feature.title} className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/40 p-6">
-              <div className="flex items-center gap-3 text-lg font-semibold text-white">
-                <feature.icon className="size-5 text-cyan-300" />
-                {feature.title}
-              </div>
-              <p className="text-white/70">{feature.body}</p>
-              <div className="inline-flex items-center gap-2 text-sm text-cyan-200">
-                <span className="size-2 rounded-full bg-cyan-400" />
-                Designed with x.ai minimalism
-              </div>
-            </FadeDiv>
-          ))}
+        {/* Features */}
+        <FadeContainer className={`${sectionSpacing} ${shellPadding} ${contentWidth}`}>
+          <div className={`grid ${columnGap} lg:grid-cols-3`}>
+            {featureSignals.map((feature) => (
+              <FadeDiv key={feature.title} className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-black/40 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)]">
+                <div className="flex items-center gap-3 text-lg font-semibold text-white">
+                  <feature.icon className="size-5 text-cyan-300" />
+                  {feature.title}
+                </div>
+                <p className="text-white/70 leading-relaxed">{feature.body}</p>
+                <div className="inline-flex items-center gap-2 text-sm text-cyan-200">
+                  <span className="size-2 rounded-full bg-cyan-400" />
+                  Designed with x.ai minimalism
+                </div>
+              </FadeDiv>
+            ))}
+          </div>
         </FadeContainer>
 
-        <FadeContainer className={`grid gap-6 ${shellPadding} ${sectionSpacing} lg:grid-cols-[1.1fr_0.9fr]`}>
+        {/* Catalog + Lab notes */}
+        <FadeContainer className={`${sectionSpacing} ${shellPadding} ${contentWidth}`}>
+          <div className={`grid ${columnGap} lg:grid-cols-[1.1fr_0.9fr]`}>
           <FadeDiv className="rounded-3xl border border-white/10 bg-gradient-to-br from-white/5 via-white/0 to-white/5 p-8 shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
             <p className={subheading}>Catalog</p>
             <h2 className="mt-3 text-3xl font-semibold text-white">Hardware that matches the interface</h2>
@@ -241,33 +252,37 @@ export function XaiLanding() {
               <p className="mt-3 text-white/60">Your routines stay terse, readable, and resilient to false clears.</p>
             </div>
           </FadeDiv>
+          </div>
         </FadeContainer>
 
-        <FadeContainer className={`${shellPadding} overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-slate-900 p-8 shadow-[0_40px_100px_rgba(0,0,0,0.5)]`}>
-          <FadeDiv className="flex flex-col gap-4 text-center">
-            <p className="text-sm uppercase tracking-[0.24em] text-white/60">Ready to automate with confidence</p>
-            <h2 className="text-3xl font-semibold text-white sm:text-4xl">Join the presence network built with x.ai precision</h2>
-            <p className="text-white/70">
-              Ship sensors that think like Grok and pair seamlessly with your smart home. Clear UI, visible reasoning, and automations that respect context.
-            </p>
-            <div className="mt-4 flex flex-wrap justify-center gap-4">
-              <Button
-                asChild
-                size="lg"
-                className="bg-gradient-to-r from-cyan-300 to-indigo-400 text-slate-950 shadow-[0_20px_60px_rgba(59,130,246,0.35)] hover:from-cyan-200 hover:to-indigo-300"
-              >
-                <Link href="/products">Browse products</Link>
-              </Button>
-              <Button
-                asChild
-                variant="secondary"
-                size="lg"
-                className="border-white/20 bg-white/5 text-white hover:border-cyan-200 hover:text-cyan-50"
-              >
-                <Link href="/support">Book a walkthrough</Link>
-              </Button>
-            </div>
-          </FadeDiv>
+        {/* CTA */}
+        <FadeContainer className={`${sectionSpacing} ${shellPadding} ${contentWidth}`}>
+          <div className="overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-r from-cyan-500/15 via-indigo-500/10 to-slate-900 p-10 shadow-[0_40px_100px_rgba(0,0,0,0.5)]">
+            <FadeDiv className="flex flex-col gap-4 text-center">
+              <p className="text-sm uppercase tracking-[0.22em] text-white/60">Ready to automate with confidence</p>
+              <h2 className="text-3xl font-semibold text-white sm:text-4xl">Join the presence network built with x.ai precision</h2>
+              <p className="text-white/70 leading-relaxed">
+                Ship sensors that think like Grok and pair seamlessly with your smart home. Clear UI, visible reasoning, and automations that respect context.
+              </p>
+              <div className="mt-4 flex flex-wrap justify-center gap-4">
+                <Button
+                  asChild
+                  size="lg"
+                  className="bg-gradient-to-r from-cyan-300 to-indigo-400 text-slate-950 shadow-[0_20px_60px_rgba(59,130,246,0.35)] hover:from-cyan-200 hover:to-indigo-300"
+                >
+                  <Link href="/products">Browse products</Link>
+                </Button>
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="lg"
+                  className="border-white/20 bg-white/5 text-white hover:border-cyan-200 hover:text-cyan-50"
+                >
+                  <Link href="/support">Book a walkthrough</Link>
+                </Button>
+              </div>
+            </FadeDiv>
+          </div>
         </FadeContainer>
       </div>
     </div>
