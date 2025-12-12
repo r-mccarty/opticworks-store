@@ -4,7 +4,7 @@
 Multi-session tracking log for the Medusa v2 architecture audit and migration project.
 
 **Plan File:** `/home/node/.claude/plans/parsed-meandering-clarke.md`
-**Reference Doc:** `docs/reference/Medusa v2 Stripe Tax Integration_ Audit and Migration Roadmap.md`
+**Reference Doc:** `docs/reference/Medusa v2 Stripe Tax Integration_ Audit and Migration Roadmap.md` (canonical snapshot; legacy workarounds removed)
 
 ---
 

@@ -22,6 +22,7 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 | [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) | Full checkout process, Stripe deferred intent pattern |
 | [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
 | [STRIPE_TAX.md](STRIPE_TAX.md) | Automated sales tax calculation via Stripe Tax |
+| [Medusa v2 Stripe Tax Integration_ Audit and Migration Roadmap.md](Medusa%20v2%20Stripe%20Tax%20Integration_%20Audit%20and%20Migration%20Roadmap.md) | Canonical snapshot of tax/shipping/checkout architecture |
 | [WEBHOOKS.md](WEBHOOKS.md) | Stripe + EasyPost webhooks via Hookdeck |
 
 ---
