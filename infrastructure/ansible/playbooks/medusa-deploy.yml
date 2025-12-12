@@ -95,6 +95,20 @@
       become_user: "{{ app_user }}"
       changed_when: true
 
+    - name: Kill any orphaned Medusa processes
+      ansible.builtin.shell: |
+        # Find and kill any orphaned medusa processes not managed by PM2
+        # This prevents zombie processes that accumulate over deployments
+        pkill -f "medusajs/cli" || true
+        sleep 2
+        # Force kill any that didn't respond to SIGTERM
+        pkill -9 -f "medusajs/cli" || true
+      become: yes
+      become_user: "{{ app_user }}"
+      changed_when: false
+      # Don't fail if no processes found
+      failed_when: false
+
     - name: Start fresh from ecosystem config
       ansible.builtin.command:
         cmd: pm2 start ecosystem.config.js --env production

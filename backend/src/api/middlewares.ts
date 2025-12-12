@@ -1,4 +1,4 @@
-import { defineMiddlewares } from "@medusajs/medusa"
+import { defineMiddlewares, authenticate } from "@medusajs/framework/http"
 import type { MedusaNextFunction, MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import express from "express"
 import * as Sentry from "@sentry/node"
@@ -160,6 +160,11 @@ export default defineMiddlewares({
       matcher: "/webhooks/*",
       bodyParser: false, // Disable default body parser
       middlewares: [webhookBodyParser],
+    },
+    // Protected customer routes (require authentication)
+    {
+      matcher: "/store/customers/me/payment-methods",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
     },
   ],
 })

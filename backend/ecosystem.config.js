@@ -4,6 +4,10 @@
  * Standard Medusa project deployment configuration.
  * Provides process supervision for both development and production environments.
  *
+ * IMPORTANT: Production uses node directly (not pnpm) to ensure PM2 properly
+ * manages the process tree and can kill all child processes on restart/stop.
+ * This prevents orphaned node processes that consume CPU/memory.
+ *
  * Usage:
  *   pm2 start ecosystem.config.js --env development  # Start in dev mode
  *   pm2 start ecosystem.config.js --env production   # Start in prod mode
@@ -66,13 +70,17 @@ const devProcess = {
 
 const prodProcess = {
   name: 'medusa-prod',
-  script: 'pnpm',
-  args: 'start',
+  // Run node directly instead of pnpm to ensure PM2 manages the process tree.
+  // This prevents orphaned child processes when PM2 restarts/stops the app.
+  script: 'node',
+  args: './node_modules/@medusajs/cli/cli.js start',
   cwd: __dirname,
   instances: 1,
   autorestart: true,
   watch: false,
   max_memory_restart: '2G',
+  // Ensure entire process tree is killed (PM2 default, explicit for clarity)
+  treekill: true,
   env: {
     NODE_ENV: 'production',
     // Production: JSON logs to stdout + file for log aggregation
@@ -89,8 +97,8 @@ const prodProcess = {
   out_file: './logs/pm2-prod-out.log',
   log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
   merge_logs: true,
-  // Stop gracefully
-  kill_timeout: 10000,
+  // Stop gracefully - allow 15s for graceful shutdown
+  kill_timeout: 15000,
   wait_ready: false,
   listen_timeout: 30000,
 };

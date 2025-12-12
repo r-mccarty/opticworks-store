@@ -67,7 +67,8 @@ ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
 - Pulls latest code from Git
 - Installs dependencies
 - Rebuilds admin dashboard
-- Restarts PM2 gracefully
+- Kills any orphaned node processes (prevents zombie accumulation)
+- Restarts PM2 with fresh process
 
 ### Teardown
 
@@ -80,6 +81,46 @@ ansible-playbook -i inventory/production.ini playbooks/medusa-destroy.yml
 **What it removes**: PM2 processes, database, Redis data, application files
 
 **What it preserves**: SSH keys, system packages, user accounts
+
+---
+
+## Process Management
+
+PM2 manages the Medusa backend process. The ecosystem config (`backend/ecosystem.config.js`) is designed to prevent orphaned processes:
+
+### Key Configuration
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `script` | `node` | Runs node directly (not pnpm) for proper process tree management |
+| `treekill` | `true` | Ensures entire process tree is killed on stop/restart |
+| `kill_timeout` | `15000` | Allows 15s for graceful shutdown |
+
+### Why This Matters
+
+When PM2 manages a wrapper (like pnpm) instead of the actual node process, child processes can become orphaned during restarts. Over time, these zombie processes consume CPU and memory.
+
+**Symptoms of orphaned processes:**
+- High CPU/memory usage when idle
+- Multiple `medusajs/cli` processes in `ps aux`
+- Load average higher than expected
+
+**The deployment playbook automatically cleans up orphans** by running `pkill -f "medusajs/cli"` before starting fresh processes.
+
+### Manual Cleanup
+
+If orphaned processes accumulate between deployments:
+
+```bash
+# Check for orphans
+ssh hetzner-node "ps aux | grep medusajs/cli | grep -v grep"
+
+# Kill them (graceful, then force)
+ssh hetzner-node "pkill -f 'medusajs/cli'; sleep 2; pkill -9 -f 'medusajs/cli'"
+
+# Restart PM2 process
+ssh hetzner-node "cd /opt/opticworks/medusa-backend && PM2_TARGET=production pm2 start ecosystem.config.js --env production"
+```
 
 ---
 

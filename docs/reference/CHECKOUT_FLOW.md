@@ -721,6 +721,40 @@ Key test scenarios:
 
 ---
 
+## Saved Payment Methods
+
+When a customer registers, a Stripe Customer is automatically created and linked via Medusa's Account Holder system. This enables saved payment methods for returning customers.
+
+### How It Works
+
+1. **On Registration**: `customer.created` event triggers `stripe-customer-sync` subscriber
+2. **Subscriber Creates**: Account Holder via Payment Module → Stripe Customer created
+3. **During Checkout**: When cart has `customer_id`, Stripe uses the linked customer
+4. **Cards Saved**: With proper setup, payment methods are saved to the Stripe Customer
+
+### Saved Cards UI
+
+Customers can view and manage saved cards in their account page at `/account`:
+- `src/components/account/SavedPaymentMethods.tsx` - UI component
+- `src/app/api/account/payment-methods/route.ts` - Frontend API proxy
+- `backend/src/api/store/customers/me/payment-methods/route.ts` - Backend API
+
+### Backend Files
+
+| File | Purpose |
+|------|---------|
+| `backend/src/subscribers/stripe-customer-sync.ts` | Creates Stripe customer on registration |
+| `backend/src/api/store/customers/me/payment-methods/route.ts` | List/delete saved payment methods |
+
+### Future Enhancement
+
+To allow customers to select saved cards at checkout, update `CheckoutForm.tsx` to:
+1. Fetch saved payment methods if customer is authenticated
+2. Show a selector for saved cards vs. new card
+3. Pass `payment_method_id` when initiating payment session
+
+---
+
 ## Future Improvements
 
 1. **Progressive disclosure**: Show email first, then address, then shipping, then payment
@@ -729,3 +763,4 @@ Key test scenarios:
 4. **Retry logic**: Exponential backoff for failed API calls
 5. **Offline support**: Queue cart changes when offline
 6. **Free shipping rules**: Implement price-based rules in Medusa admin for free shipping threshold
+7. **Saved card selection**: Allow selecting saved payment methods during checkout (see Saved Payment Methods section)

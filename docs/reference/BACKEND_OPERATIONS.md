@@ -286,6 +286,38 @@ ssh hetzner-node "pm2 restart medusa-prod"
 ssh hetzner-node "sudo systemctl restart cloudflared"
 ```
 
+### Orphaned/Zombie Node Processes
+
+Orphaned processes can accumulate if PM2 doesn't cleanly stop child processes. Symptoms:
+- High CPU usage even when idle
+- High memory usage
+- Multiple `medusajs/cli` processes running
+
+**Check for orphaned processes:**
+
+```bash
+# List all medusa processes (should show only 1-2 for PM2-managed process)
+ssh hetzner-node "ps aux | grep medusajs/cli | grep -v grep"
+
+# Check system resources
+ssh hetzner-node "free -h && uptime"
+```
+
+**Kill orphaned processes:**
+
+```bash
+# Graceful kill first
+ssh hetzner-node "pkill -f 'medusajs/cli'"
+
+# Force kill if needed (wait 2-3 seconds after graceful)
+ssh hetzner-node "pkill -9 -f 'medusajs/cli'"
+
+# Restart the PM2-managed process
+ssh hetzner-node "cd /opt/opticworks/medusa-backend && PM2_TARGET=production pm2 start ecosystem.config.js --env production"
+```
+
+**Prevention:** The Ansible deploy playbook automatically kills orphaned processes during deployment. The ecosystem config uses `treekill: true` and runs node directly (not via pnpm) to ensure PM2 properly manages the process tree.
+
 ### Fulfillment Failed
 
 1. Check Medusa logs for EasyPost errors:

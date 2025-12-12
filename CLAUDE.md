@@ -60,6 +60,7 @@ Teardown: `playbooks/medusa-destroy.yml`
 | Medusa logs (JSON) | `ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"` |
 | Medusa logs (pretty) | `ssh hetzner-node "tail -f ..." \| pnpm pino-pretty` |
 | PM2 status | `ssh hetzner-node "pm2 status"` |
+| Orphaned processes | `ssh hetzner-node "ps aux \| grep medusajs/cli"` |
 | Backend health | `curl https://api.optic.works/health` |
 | Webhook logs | Hookdeck Admin API (`e2e/fixtures/hookdeck-utils.ts`) |
 | Email delivery | Mailosaur API (`e2e/fixtures/email-utils.ts`) |
@@ -85,6 +86,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | Hookdeck | Webhook gateway (Stripe + EasyPost) | `docs/reference/WEBHOOKS.md` |
 | Stripe | Payments (deferred intent pattern) | `docs/reference/CHECKOUT_FLOW.md` |
 | Stripe Tax | Automated sales tax calculation | `docs/reference/STRIPE_TAX.md` |
+| Stripe (Saved Cards) | Customer sync, saved payment methods | `docs/reference/CUSTOMER_AUTH.md` |
 | Sentry | Error tracking (backend + client-side) | `docs/reference/OBSERVABILITY.md` |
 | Infisical | Secrets management | `docs/SECRETS.md` |
 | Mailosaur | E2E email testing | `docs/reference/E2E_TESTING.md` |

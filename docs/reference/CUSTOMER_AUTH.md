@@ -312,3 +312,57 @@ This enables:
 - Order history association
 - Cart recovery across devices
 - Personalized pricing (future)
+
+---
+
+## Stripe Customer Sync
+
+When a customer registers, a Stripe Customer is automatically created and linked via Medusa's Account Holder system. This enables saved payment methods.
+
+### Registration Flow with Stripe
+
+```
+Customer registers
+       │
+       ▼
+Medusa creates customer → customer.created event fires
+       │
+       ▼
+stripe-customer-sync subscriber
+       │
+       ├─► createAccountHolder() (Payment Module)
+       │          │
+       │          └─► Stripe provider creates Stripe Customer
+       │
+       └─► remoteLink.create() links Account Holder to Customer
+```
+
+### Backend Files
+
+| File | Purpose |
+|------|---------|
+| `backend/src/subscribers/stripe-customer-sync.ts` | Creates Stripe customer on registration |
+| `backend/src/api/store/customers/me/payment-methods/route.ts` | List/delete saved payment methods |
+
+### Saved Payment Methods
+
+Customers can view and manage saved cards in their account page:
+
+```
+/account page
+    │
+    └─► SavedPaymentMethods component
+              │
+              └─► GET /api/account/payment-methods
+                        │
+                        └─► Backend: GET /store/customers/me/payment-methods
+                                    │
+                                    └─► paymentModuleService.listPaymentMethods()
+```
+
+### Key Points
+
+- **Fail-safe**: Stripe sync failure doesn't block registration
+- **No migration**: Only new registrations get Stripe customers
+- **Account Holder**: Medusa v2 concept linking customers to payment provider accounts
+- **Provider ID**: Uses `pp_stripe_stripe` (Medusa's built-in Stripe provider)

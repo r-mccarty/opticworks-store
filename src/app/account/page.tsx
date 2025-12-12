@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui/button"
+import { SavedPaymentMethods } from "@/components/account/SavedPaymentMethods"
 
 export default function AccountPage() {
   const router = useRouter()
@@ -104,6 +105,9 @@ export default function AccountPage() {
               </Button>
             </Link>
           </div>
+
+          {/* Payment Methods Card */}
+          <SavedPaymentMethods />
 
           {/* Addresses Card */}
           <div className="bg-card border border-border rounded-lg p-6 shadow-elevation-1">

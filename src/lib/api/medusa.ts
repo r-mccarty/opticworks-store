@@ -721,6 +721,16 @@ export interface MedusaCustomer {
   phone: string | null
   created_at: string
   updated_at: string
+  /** Custom metadata stored on the customer */
+  metadata?: {
+    stripe_customer_id?: string
+    [key: string]: unknown
+  }
+  /** Linked payment account holder (for saved payment methods) */
+  account_holder?: {
+    id: string
+    data?: Record<string, unknown>
+  }
 }
 
 export interface AuthResponse {
