@@ -214,7 +214,7 @@ export function ProductComparisonGrid() {
           👉 Swipe to see all features
         </p>
         <p className="text-xs text-white/60 sm:text-sm">
-          Every feature backed by our 2-year warranty and Oops Protection guarantee
+          Every feature backed by our 2-year hardware warranty
         </p>
       </motion.div>
     </section>

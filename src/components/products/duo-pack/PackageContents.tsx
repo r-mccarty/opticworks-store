@@ -80,9 +80,7 @@ export function PackageContents() {
         <FadeDiv className="mt-12 text-center">
           <p className="text-gray-600">
             All components backed by our{" "}
-            <span className="font-semibold text-gray-900">2-year hardware warranty</span>
-            {" "}and{" "}
-            <span className="font-semibold text-gray-900">Oops Protection</span> plan.
+            <span className="font-semibold text-gray-900">2-year hardware warranty</span>.
           </p>
         </FadeDiv>
       </div>

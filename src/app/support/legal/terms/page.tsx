@@ -221,18 +221,6 @@ export default function TermsOfServicePage() {
                       <li><strong>Refund Processing:</strong> Refunds processed within 5-7 business days after receipt</li>
                     </ul>
                   </div>
-                  
-                  <div>
-                    <h4 className="font-semibold text-lg mb-3">Oops Protection Program</h4>
-                    <p className="mb-2 text-sm text-muted-foreground">
-                      Our Oops Protection program provides replacement hardware for installation mistakes at reduced cost. 
-                      See our{" "}
-                      <Link href="/support/oops" className="text-primary underline hover:opacity-80">
-                        Oops Protection Policy
-                      </Link>{" "}
-                      for full details.
-                    </p>
-                  </div>
                 </CardContent>
               </Card>
             </FadeDiv>

@@ -77,7 +77,7 @@ const faqs = [
     id: 6,
     question: "Do you offer replacements if I damage the sensor?",
     answer:
-      "Yes. Our Oops Protection covers the first replacement sensor head for the cost of shipping. Developer kits also include spare breakout boards.",
+      "Contact our support team for assistance with replacement hardware. Our 2-year warranty covers sensor failure, power issues, and enclosure damage.",
   },
 ]
 

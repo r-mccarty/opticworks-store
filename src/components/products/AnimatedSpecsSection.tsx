@@ -58,7 +58,7 @@ const SPECS = [
     icon: RiShieldCheckLine,
     label: "Warranty",
     value: "2 Years",
-    detail: "Plus Oops Protection",
+    detail: "Full hardware coverage",
     color: "from-violet-500 to-purple-500",
     bgGlow: "rgba(124, 58, 237, 0.15)",
   },

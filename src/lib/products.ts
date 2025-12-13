@@ -98,7 +98,7 @@ export const products: Product[] = [
       { label: "Presence Engine", value: "Multi‑state FSM + z‑score analysis" },
       { label: "Absolute Clear Delay", value: "30s default (tunable)" },
       { label: "Power", value: "USB-C 5V (cable included)" },
-      { label: "Warranty", value: "2 years hardware / Oops Protection" },
+      { label: "Warranty", value: "2 years hardware" },
     ],
     // Default variant ID for products without variant selection
     variantId: "variant_01KBF0WRDCT61JD4HHH2PGDHAK", // Single Bed Kit

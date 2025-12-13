@@ -13,7 +13,6 @@ export const siteConfig = {
     supportFaq: "/support/faq",
     supportContact: "/support/contact",
     supportWarranty: "/support/warranty",
-    supportOops: "/support/oops",
     supportLegal: "/support/legal",
     supportTintingLaws: "/support/legal/tinting-laws",
     supportPrivacy: "/support/legal/privacy",

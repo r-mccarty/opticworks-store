@@ -82,9 +82,9 @@ export const faqData: FAQ[] = [
     id: "warranty-coverage",
     question: "What does the warranty cover?",
     answer:
-      "Hardware is covered for two years against sensor failure, power issues, enclosure damage, or firmware defects. Our Oops Protection program lets you request a discounted replacement if you damage the unit during install.",
+      "Hardware is covered for two years against sensor failure, power issues, enclosure damage, or firmware defects. Contact our support team if you need assistance with any hardware issues.",
     category: "warranty",
-    tags: ["warranty", "coverage", "hardware", "oops protection"]
+    tags: ["warranty", "coverage", "hardware"]
   },
   {
     id: "warranty-process",

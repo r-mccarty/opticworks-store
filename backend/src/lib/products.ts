@@ -97,7 +97,7 @@ export const products: Product[] = [
       { label: "Presence Engine", value: "4-state FSM + z-score analysis" },
       { label: "Absolute Clear Delay", value: "30s default (tunable)" },
       { label: "Power", value: "USB-C 5V (cable included)" },
-      { label: "Warranty", value: "2 years hardware / Oops Protection" },
+      { label: "Warranty", value: "2 years hardware" },
     ],
     variants: [
       {

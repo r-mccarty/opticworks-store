@@ -98,7 +98,7 @@ const troubleshooting = [
   },
   {
     problem: "Film tears during application",
-    solution: "Contact our support team immediately. We offer replacement film under our 'Oops Protection' program for a small shipping fee.",
+    solution: "Contact our support team immediately for assistance with replacement options.",
     severity: "high"
   }
 ]

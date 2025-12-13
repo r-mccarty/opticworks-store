@@ -6,7 +6,6 @@ import {
   RiCompassDiscoverLine,
   RiFlashlightLine,
   RiFileTextLine,
-  RiRefreshLine,
   RiShieldCheckLine,
   RiShoppingBag3Line,
   RiToolsLine,
@@ -53,15 +52,6 @@ const supportCategories: SupportCategory[] = [
     icon: RiShieldCheckLine,
     signal: "2-hour resolution average",
     accent: "from-amber-500/80 to-orange-400/50",
-  },
-  {
-    title: "Oops protection",
-    description: "Redeem no-fuss replacements when installs go sideways—just cover shipping.",
-    href: siteConfig.baseLinks.supportOops,
-    icon: RiRefreshLine,
-    signal: "Unlimited incidents",
-    accent: "from-purple-500/70 to-fuchsia-500/40",
-    emphasis: "Customer favorite",
   },
   {
     title: "Billing clarity",

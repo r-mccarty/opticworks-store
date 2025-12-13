@@ -126,8 +126,7 @@ export default function OrderConfirmation({
               <Text style={text}>
                 • Tracking info arrives within 1–2 business days<br />
                 • Start calibration anytime at <Link href="https://optic.works/install-guides" style={link}>optic.works/install-guides</Link><br />
-                • Need help? Contact our support team at <Link href="mailto:support@notifications.optic.works" style={link}>support@notifications.optic.works</Link><br />
-                • &quot;Oops Protection&quot; replacement program: <Link href="https://optic.works/support/oops" style={link}>optic.works/support/oops</Link>
+                • Need help? Contact our support team at <Link href="mailto:support@notifications.optic.works" style={link}>support@notifications.optic.works</Link>
               </Text>
             </Section>
           </Section>

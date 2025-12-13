@@ -10,7 +10,6 @@ import {
   RiBook3Line,
   RiCompassDiscoverLine,
   RiFileTextLine,
-  RiRefreshLine,
   RiShieldCheckLine,
   RiShoppingBag3Line,
   RiToolsLine,
@@ -48,16 +47,9 @@ const categories: SupportCategory[] = [
   {
     title: "Warranty",
     description:
-      "Claim replacements, manage Oops Protection, and check coverage.",
+      "Claim replacements and check coverage for your hardware.",
     href: siteConfig.baseLinks.supportWarranty,
     icon: RiShieldCheckLine,
-  },
-  {
-    title: "Oops Protection",
-    description:
-      "No‑fuss replacements when installs go sideways.",
-    href: siteConfig.baseLinks.supportOops,
-    icon: RiRefreshLine,
   },
   {
     title: "Billing",
