@@ -17,6 +17,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.2.1
         version: 5.2.2(react-hook-form@7.67.0(react@19.1.2))
+      '@marsidev/react-turnstile':
+        specifier: ^1.4.0
+        version: 1.4.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)
       '@opennextjs/cloudflare':
         specifier: ^1.14.1
         version: 1.14.1(wrangler@4.51.0)
@@ -2023,6 +2026,12 @@ packages:
 
   '@js-sdsl/ordered-map@4.4.2':
     resolution: {integrity: sha512-iUKgm52T8HOE/makSxjqoWhe95ZJA1/G1sYsGev2JDKUSS14KAgg1LHb+Ba+IPow0xflbnSkOsZcO08C7w1gYw==}
+
+  '@marsidev/react-turnstile@1.4.0':
+    resolution: {integrity: sha512-3aR7mh4lATeayWt6GjWuYyLjM0GL148z7/ZQl0rLKGpDYIrWgoU2PYsdAdA9fzH+JysW3Q2OaPfHvv66cwcAZg==}
+    peerDependencies:
+      react: ^17.0.2 || ^18.0.0 || ^19.0
+      react-dom: ^17.0.2 || ^18.0.0 || ^19.0
 
   '@mediapipe/tasks-vision@0.10.17':
     resolution: {integrity: sha512-CZWV/q6TTe8ta61cZXjfnnHsfWIdFhms03M9T7Cnd5y2mdpylJM0rF1qRq+wsQVRMLz1OYPVEBU9ph2Bx8cxrg==}
@@ -13702,6 +13711,11 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@js-sdsl/ordered-map@4.4.2': {}
+
+  '@marsidev/react-turnstile@1.4.0(react-dom@19.1.2(react@19.1.2))(react@19.1.2)':
+    dependencies:
+      react: 19.1.2
+      react-dom: 19.1.2(react@19.1.2)
 
   '@mediapipe/tasks-vision@0.10.17': {}
 

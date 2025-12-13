@@ -5,6 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { RiUploadLine, RiDeleteBinLine, RiCheckLine } from "@remixicon/react"
+import { Turnstile } from "@marsidev/react-turnstile"
 import { Button } from "../ui/button"
 import { Label } from "../ui/label"
 import {
@@ -116,6 +117,7 @@ export function ContactForm() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -154,6 +156,7 @@ export function ContactForm() {
           to: "ryan@mccarty.id", // TODO: Switch to support@optic.works later
           subject: `Support Request: ${data.subject} [${data.category.toUpperCase()}]`,
           template: "support-request",
+          turnstileToken,
           data: {
             customerName: data.name,
             customerEmail: data.email,
@@ -192,6 +195,7 @@ export function ContactForm() {
       }
 
       setSubmitted(true)
+      setTurnstileToken(null)
     } catch (error) {
       console.error("Error submitting form:", error)
       // TODO: Show error message to user
@@ -218,6 +222,7 @@ export function ContactForm() {
             setSubmitted(false)
             form.reset()
             setUploadedFiles([])
+            setTurnstileToken(null)
           }}
           className="px-6"
         >
@@ -453,12 +458,23 @@ export function ContactForm() {
             )}
           </div>
 
+          {/* Turnstile CAPTCHA */}
+          <div className="flex justify-center">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+              onSuccess={setTurnstileToken}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+              options={{ theme: "dark" }}
+            />
+          </div>
+
           {/* Submit Button */}
           <div className="pt-2">
             <Button
               type="submit"
               className="w-full h-11 text-sm font-medium"
-              disabled={isSubmitting}
+              disabled={isSubmitting || !turnstileToken}
             >
               {isSubmitting ? "Sending..." : "Send message"}
             </Button>

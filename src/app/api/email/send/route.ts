@@ -14,10 +14,48 @@ const VALID_TEMPLATES = [
   'support-request',
 ];
 
+async function validateTurnstile(token: string): Promise<boolean> {
+  const secretKey = process.env.TURNSTILE_SECRET_KEY;
+  if (!secretKey) {
+    console.warn('TURNSTILE_SECRET_KEY not configured, skipping validation');
+    return true; // Allow in dev if not configured
+  }
+
+  try {
+    const res = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: `secret=${encodeURIComponent(secretKey)}&response=${encodeURIComponent(token)}`
+    });
+    const data = await res.json();
+    return data.success === true;
+  } catch (error) {
+    console.error('Turnstile validation error:', error);
+    return false;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { to, subject, template, data } = body as EmailTemplate;
+    const { to, subject, template, data, turnstileToken } = body as EmailTemplate & { turnstileToken?: string };
+
+    // Validate Turnstile token for support requests
+    if (template === 'support-request') {
+      if (!turnstileToken) {
+        return NextResponse.json(
+          { error: 'CAPTCHA verification required' },
+          { status: 400 }
+        );
+      }
+      const isValid = await validateTurnstile(turnstileToken);
+      if (!isValid) {
+        return NextResponse.json(
+          { error: 'CAPTCHA verification failed' },
+          { status: 400 }
+        );
+      }
+    }
 
     // Validate required fields
     if (!to || !subject || !template || !data) {
