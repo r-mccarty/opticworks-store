@@ -17,8 +17,12 @@ const VALID_TEMPLATES = [
 async function validateTurnstile(token: string): Promise<boolean> {
   const secretKey = process.env.TURNSTILE_SECRET_KEY;
   if (!secretKey) {
-    console.warn('TURNSTILE_SECRET_KEY not configured, skipping validation');
-    return true; // Allow in dev if not configured
+    if (process.env.NODE_ENV !== 'production') {
+      console.warn('TURNSTILE_SECRET_KEY not configured, skipping validation (non-production)');
+      return true;
+    }
+    console.error('TURNSTILE_SECRET_KEY not configured in production');
+    return false;
   }
 
   try {

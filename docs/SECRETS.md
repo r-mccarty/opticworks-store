@@ -1,6 +1,6 @@
 # Secrets Management
 
-All secrets stored in **Infisical**. Never commit `.env.local` or `backend/.env`.
+All secrets stored in **Infisical**. Never commit `.env.local`, `.dev.vars`, or `backend/.env`.
 
 ## Quick Start
 
@@ -12,13 +12,15 @@ All secrets stored in **Infisical**. Never commit `.env.local` or `backend/.env`
 pnpm run secrets:pull
 ```
 
+This syncs storefront secrets into `.env.local` (Next.js dev) and `.dev.vars` (Wrangler/OpenNext local preview).
+
 ### Local Development
 
 ```bash
 # Get token from team or Infisical dashboard
 export INFISICAL_SERVICE_TOKEN=st.xxx.xxx
 
-# Pull secrets (writes .env.local)
+# Pull secrets (writes .env.local and .dev.vars)
 pnpm run secrets:pull
 
 # Verify
@@ -36,6 +38,8 @@ cat .env.local | head -5
 | `STRIPE_SECRET_KEY` | Server-side Stripe operations |
 | `STRIPE_WEBHOOK_SECRET` | Webhook signature verification |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side Stripe Elements |
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Turnstile widget site key (public) |
+| `TURNSTILE_SECRET_KEY` | Turnstile server-side validation secret |
 
 ### Backend (via Ansible)
 

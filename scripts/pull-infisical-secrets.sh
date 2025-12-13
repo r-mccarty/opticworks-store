@@ -19,6 +19,10 @@ fi
 INFISICAL_PROJECT_ID="${INFISICAL_PROJECT_ID:-42e9e77c-88fa-4cbb-925b-5064c8e3b18c}"
 INFISICAL_ENVIRONMENT_VALUE="${INFISICAL_ENVIRONMENT:-dev}"
 INFISICAL_OUTPUT_FILE_VALUE="${INFISICAL_OUTPUT_FILE:-.env.local}"
+INFISICAL_WRANGLER_OUTPUT_FILE_VALUE="${INFISICAL_WRANGLER_OUTPUT_FILE:-.dev.vars}"
+
+TMP_ENV_FILE="$(mktemp)"
+trap 'rm -f "$TMP_ENV_FILE"' EXIT
 
 # Use service token to export secrets directly (no login needed)
 # --projectId is required for service tokens
@@ -28,7 +32,10 @@ infisical export \
   --token="$INFISICAL_SERVICE_TOKEN" \
   --projectId="$INFISICAL_PROJECT_ID" \
   --env="$INFISICAL_ENVIRONMENT_VALUE" \
-  --format=dotenv | grep -v "^NODE_ENV=" > "$INFISICAL_OUTPUT_FILE_VALUE"
+  --format=dotenv | grep -v "^NODE_ENV=" > "$TMP_ENV_FILE"
 
-SECRET_COUNT=$(grep -cE "^[A-Z]" "$INFISICAL_OUTPUT_FILE_VALUE" || echo 0)
-echo "Infisical secrets synced to $INFISICAL_OUTPUT_FILE_VALUE (env: $INFISICAL_ENVIRONMENT_VALUE, $SECRET_COUNT secrets)"
+cp "$TMP_ENV_FILE" "$INFISICAL_OUTPUT_FILE_VALUE"
+cp "$TMP_ENV_FILE" "$INFISICAL_WRANGLER_OUTPUT_FILE_VALUE"
+
+SECRET_COUNT=$(grep -cE "^[A-Z]" "$TMP_ENV_FILE" || echo 0)
+echo "Infisical secrets synced to $INFISICAL_OUTPUT_FILE_VALUE and $INFISICAL_WRANGLER_OUTPUT_FILE_VALUE (env: $INFISICAL_ENVIRONMENT_VALUE, $SECRET_COUNT secrets)"

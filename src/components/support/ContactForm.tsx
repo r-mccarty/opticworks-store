@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -118,6 +118,14 @@ export function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const [turnstileSiteKey, setTurnstileSiteKey] = useState<string | null>(() => {
+    const inlineSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+    if (typeof inlineSiteKey === "string" && inlineSiteKey.length > 0) return inlineSiteKey
+    return null
+  })
+  const [isTurnstileSiteKeyLoading, setIsTurnstileSiteKeyLoading] = useState<boolean>(
+    () => turnstileSiteKey === null
+  )
 
   const form = useForm<ContactFormData>({
     resolver: zodResolver(contactFormSchema),
@@ -132,6 +140,42 @@ export function ContactForm() {
       priority: "medium",
     },
   })
+
+  useEffect(() => {
+    if (turnstileSiteKey) return
+
+    const controller = new AbortController()
+    let isActive = true
+
+    async function loadTurnstileSiteKey() {
+      try {
+        if (isActive) setIsTurnstileSiteKeyLoading(true)
+        const response = await fetch("/api/turnstile/site-key", {
+          signal: controller.signal,
+          cache: "no-store",
+        })
+        if (!response.ok) return
+        const data = (await response.json()) as { siteKey: unknown }
+        if (!isActive) return
+        if (typeof data.siteKey === "string" && data.siteKey.length > 0) {
+          setTurnstileSiteKey(data.siteKey)
+        }
+      } catch (error) {
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          console.error("Failed to load Turnstile site key:", error)
+        }
+      } finally {
+        if (isActive) setIsTurnstileSiteKeyLoading(false)
+      }
+    }
+
+    void loadTurnstileSiteKey()
+
+    return () => {
+      isActive = false
+      controller.abort()
+    }
+  }, [turnstileSiteKey])
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files || [])
@@ -460,13 +504,21 @@ export function ContactForm() {
 
           {/* Turnstile CAPTCHA */}
           <div className="flex justify-center">
-            <Turnstile
-              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-              onSuccess={setTurnstileToken}
-              onExpire={() => setTurnstileToken(null)}
-              onError={() => setTurnstileToken(null)}
-              options={{ theme: "dark" }}
-            />
+            {turnstileSiteKey ? (
+              <Turnstile
+                siteKey={turnstileSiteKey}
+                onSuccess={setTurnstileToken}
+                onExpire={() => setTurnstileToken(null)}
+                onError={() => setTurnstileToken(null)}
+                options={{ theme: "dark" }}
+              />
+            ) : (
+              <div className="w-full rounded-md border border-border bg-muted/60 px-4 py-3 text-center text-sm text-muted-foreground">
+                {isTurnstileSiteKeyLoading
+                  ? "Loading CAPTCHA..."
+                  : "CAPTCHA unavailable. Please refresh the page or contact support directly."}
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -474,7 +526,7 @@ export function ContactForm() {
             <Button
               type="submit"
               className="w-full h-11 text-sm font-medium"
-              disabled={isSubmitting || !turnstileToken}
+              disabled={isSubmitting || !turnstileSiteKey || !turnstileToken}
             >
               {isSubmitting ? "Sending..." : "Send message"}
             </Button>
