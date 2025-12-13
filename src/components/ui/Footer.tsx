@@ -13,40 +13,39 @@ const CURRENT_YEAR = new Date().getFullYear()
 
 const sections = [
   {
-    title: "Products",
+    title: "Product",
     items: [
-      { label: "Presence Sensor Kit", href: "/products/bed-presence-sensor-kit" },
-      { label: "Presence Duo Pack", href: "/products/presence-sensor-duo-pack" },
-      { label: "Developer Edition", href: "/products/presence-developer-edition" },
-      { label: "Mounts & Enclosures", href: "/products/presence-enclosure-pack" },
-      { label: "Accessories", href: siteConfig.baseLinks.store },
+      { label: "OW-1 Dev Kit", href: "/store" },
+      { label: "Technology", href: siteConfig.baseLinks.products },
+      { label: "Home Assistant Add-on", href: "https://docs.optic.works", external: true },
+      { label: "Developer API", href: "https://docs.optic.works", external: true },
     ],
   },
   {
-    title: "Platform",
+    title: "Company",
     items: [
-      { label: "Presence Engine", href: siteConfig.baseLinks.products },
-      { label: "Automation OS", href: "https://docs.optic.works", external: true },
-      { label: "Install Guides", href: siteConfig.baseLinks.installGuides },
-      { label: "API & Docs", href: "https://docs.optic.works", external: true },
+      { label: "About", href: siteConfig.baseLinks.support },
+      { label: "Contact", href: siteConfig.baseLinks.supportContact },
+      { label: "Privacy", href: siteConfig.baseLinks.supportPrivacy },
+      { label: "Terms", href: siteConfig.baseLinks.supportTerms },
     ],
   },
   {
     title: "Support",
     items: [
-      { label: "Contact", href: siteConfig.baseLinks.supportContact },
       { label: "Order Status", href: siteConfig.baseLinks.supportOrders },
-      { label: "Billing", href: siteConfig.baseLinks.supportBilling },
-      { label: "Warranty & Returns", href: siteConfig.baseLinks.supportWarranty },
       { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
+      { label: "Warranty", href: siteConfig.baseLinks.supportWarranty },
+      { label: "Billing", href: siteConfig.baseLinks.supportBilling },
     ],
   },
   {
-    title: "Legal",
+    title: "Social",
     items: [
-      { label: "Compliance", href: siteConfig.baseLinks.supportLegal },
-      { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
-      { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
+      { label: "Twitter", href: "https://twitter.com/opticworks", external: true },
+      { label: "GitHub", href: "https://github.com/opticworks", external: true },
+      { label: "Discord", href: siteConfig.baseLinks.supportContact },
+      { label: "YouTube", href: "https://youtube.com/@opticworks", external: true },
     ],
   },
 ] as const
@@ -62,8 +61,8 @@ const Footer = () => {
           </Link>
 
           <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-            Real‑time presence sensing and spatial visualization for modern
-            homes, labs, and automation builders.
+            Spatial intelligence for the private home. Tesla-like presence
+            sensing that runs entirely local.
           </p>
 
           <div className="mt-5 flex items-center gap-1">

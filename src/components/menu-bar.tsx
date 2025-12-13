@@ -3,7 +3,6 @@
 import * as React from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import {
-  BookOpen,
   FileText,
   Headphones,
   Home,
@@ -33,10 +32,9 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { icon: <Home className="size-4" />, label: "Home", href: siteConfig.baseLinks.home },
-  { icon: <Package className="size-4" />, label: "Products", href: "/products" },
+  { icon: <Package className="size-4" />, label: "Technology", href: "/products" },
   { icon: <Store className="size-4" />, label: "Store", href: "/store" },
   { icon: <Headphones className="size-4" />, label: "Support", href: siteConfig.baseLinks.support },
-  { icon: <BookOpen className="size-4" />, label: "Guides", href: "/install-guides" },
   { icon: <FileText className="size-4" />, label: "Docs", href: "https://docs.optic.works", external: true },
 ]
 
@@ -169,9 +167,9 @@ export const MenuBar = React.memo(function MenuBar() {
 
             <Link
               href="/store"
-              className="hidden items-center rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-elevation-1 transition-colors hover:bg-primary/90 sm:inline-flex"
+              className="hidden items-center rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-neutral-950 shadow-elevation-1 transition-colors hover:bg-amber-400 sm:inline-flex"
             >
-              Shop
+              Pre-order OW-1
             </Link>
           </div>
 

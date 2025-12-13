@@ -14,48 +14,48 @@ import Image from "next/image"
 export const metadata: Metadata = {
   title: "Installation Guides - OpticWorks Presence Sensors",
   description:
-    "Step-by-step install and calibration guides for OpticWorks presence hardware, from single-bed kits to multi-room deployments.",
+    "Step-by-step install and calibration guides for the OpticWorks OW-1 presence sensor. Wall mounting, Home Assistant integration, and calibration.",
 }
 
 const installGuides = [
   {
-    id: "bed-presence-sensor",
-    title: "Bed Presence Sensor Kit",
+    id: "ow-1-quick-start",
+    title: "OW-1 Quick Start Guide",
     description:
-      "Mounting, wiring, and calibration guide for the flagship single-bed kit. Includes still-energy baseline workflow and validation checklist.",
+      "Get your OW-1 presence sensor up and running in under 15 minutes. Covers wall mounting, power connection, and Home Assistant discovery.",
     image:
-      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPGRlZnM+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmNWZkZmYiIC8+CiAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNlOGYzZmYiIC8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPC9zdmc+",
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPGRlZnM+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxYTFhMWEiIC8+CiAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMyYTJhMmEiIC8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPC9zdmc+",
     difficulty: "Beginner",
-    duration: "20-30 minutes",
+    duration: "10-15 minutes",
     tools: "Included in kit",
     featured: true,
-    href: "/install-guides/bed-presence-sensor",
+    href: "/support", // Placeholder until guide is created
   },
   {
-    id: "presence-duo-pack",
-    title: "Presence Sensor Duo Pack",
+    id: "ow-1-multi-zone",
+    title: "Multi-Zone Deployment",
     description:
-      "Deploy synchronized sensors for multi-room or split-king setups. Covers offset placement and blueprint linking.",
+      "Deploy multiple OW-1 sensors for whole-home coverage. Learn zone coordination, entity naming, and multi-room automation strategies.",
     image:
-      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPGRlZnM+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmMWZlZmYiIC8+CiAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNmY2U4ZmYiIC8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPC9zdmc+",
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPGRlZnM+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMyMjIyMjIiIC8+CiAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMzMzMzMzMiIC8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPC9zdmc+",
     difficulty: "Intermediate",
-    duration: "35-45 minutes",
-    tools: "Two kits required",
+    duration: "30-45 minutes",
+    tools: "Multiple OW-1 sensors",
     featured: false,
-    href: "/install-guides/presence-duo-pack",
+    href: "/support", // Placeholder until guide is created
   },
   {
-    id: "adjustable-base",
-    title: "Adjustable Base + Split Beds",
+    id: "ow-1-calibration",
+    title: "Advanced Calibration",
     description:
-      "Special mounting techniques for adjustable frames, wall mounts, and split mattresses. Includes wiring strain relief tips.",
+      "Fine-tune detection zones, sensitivity thresholds, and inference parameters. Optimize for your specific room geometry and use case.",
     image:
-      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPGRlZnM+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNlMmY1ZmYiIC8+CiAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiNjZWRjZmYiIC8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPC9zdmc+",
+      "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgICAgPGRlZnM+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJncmFkIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KICAgICAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMxZTFlMWUiIC8+CiAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0eWxlPSJzdG9wLWNvbG9yOiMyZDJkMmQiIC8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgPC9kZWZzPgogICAgICA8cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyYWQpIiAvPgogICAgPC9zdmc+",
     difficulty: "Professional",
     duration: "45-60 minutes",
-    tools: "Mount kit + cable clips",
+    tools: "Home Assistant access",
     featured: false,
-    href: "/install-guides/adjustable-base",
+    href: "/support", // Placeholder until guide is created
   },
 ]
 
@@ -71,30 +71,30 @@ export default function InstallGuidesPage() {
   )
 
   return (
-    <main className="relative min-h-screen bg-background text-foreground">
+    <main className="relative min-h-screen bg-neutral-950 text-neutral-200">
       <FadeContainer className="relative px-7 sm:px-6 lg:px-8 pt-28 pb-16">
         <div className="mx-auto max-w-6xl">
           {/* Header */}
           <FadeDiv className="mb-16 text-center">
-            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl font-display">
+            <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl font-display text-white">
               Installation Guides
             </h1>
-            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-              Step‑by‑step install and calibration playbooks for every zone —
-              from bedroom and living spaces to multi‑room deployments.
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-neutral-400">
+              Step-by-step guides for installing, configuring, and optimizing
+              your OW-1 presence sensors for any room or deployment scenario.
             </p>
           </FadeDiv>
 
           {/* Guides Grid */}
           <FadeDiv>
-            <h2 className="mb-8 text-2xl font-semibold text-foreground font-display">
+            <h2 className="mb-8 text-2xl font-semibold text-white font-display">
               Browse Guides
             </h2>
             <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
               {sortedGuides.map((guide) => (
                 <Card
                   key={guide.id}
-                  className="flex flex-col overflow-hidden transition-shadow hover:shadow-elevation-2"
+                  className="flex flex-col overflow-hidden bg-neutral-900 border-white/10 transition-shadow hover:shadow-elevation-2"
                 >
                   <Link href={guide.href}>
                     <div className="relative aspect-video">
@@ -106,7 +106,7 @@ export default function InstallGuidesPage() {
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                       {guide.featured && (
-                        <Badge className="absolute top-4 left-4 rounded-full">
+                        <Badge className="absolute top-4 left-4 rounded-full bg-amber-500 text-neutral-950">
                           Featured
                         </Badge>
                       )}
@@ -114,12 +114,12 @@ export default function InstallGuidesPage() {
                   </Link>
                   <CardHeader>
                     <Link href={guide.href}>
-                      <CardTitle className="text-lg">{guide.title}</CardTitle>
+                      <CardTitle className="text-lg text-white">{guide.title}</CardTitle>
                     </Link>
-                    <p className="text-sm text-muted-foreground">{guide.description}</p>
+                    <p className="text-sm text-neutral-400">{guide.description}</p>
                   </CardHeader>
                   <CardContent className="mt-auto">
-                    <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <div className="mb-4 flex flex-wrap items-center gap-3 text-xs text-neutral-400">
                       <div className="flex items-center gap-1">
                         <UserIcon className="h-4 w-4" />
                         <Badge
@@ -144,7 +144,7 @@ export default function InstallGuidesPage() {
                     <Button
                       asChild
                       variant={guide.featured ? "default" : "outline"}
-                      className="w-full"
+                      className={guide.featured ? "w-full bg-amber-500 text-neutral-950 hover:bg-amber-400" : "w-full border-white/20 text-white hover:bg-white/5"}
                     >
                       <Link href={guide.href}>
                         {guide.featured
@@ -160,21 +160,21 @@ export default function InstallGuidesPage() {
 
           {/* Help Section */}
           <FadeDiv className="mt-16 text-center">
-            <div className="rounded-2xl border border-border bg-muted/30 p-8">
-              <h3 className="mb-4 text-2xl font-semibold text-foreground">
+            <div className="rounded-2xl border border-white/10 bg-neutral-900/50 p-8">
+              <h3 className="mb-4 text-2xl font-semibold text-white">
                 Need Additional Help?
               </h3>
-              <p className="mx-auto mb-6 max-w-2xl text-muted-foreground">
-                Our installation guides are designed to be foolproof, but if you
+              <p className="mx-auto mb-6 max-w-2xl text-neutral-400">
+                Our installation guides are designed to be straightforward, but if you
                 have questions or need additional support, we&apos;re here to
                 help.
               </p>
               <div className="flex flex-col justify-center gap-4 sm:flex-row">
-                <Button asChild variant="outline">
+                <Button asChild variant="outline" className="border-white/20 text-white hover:bg-white/5">
                   <Link href="/support">Contact Support</Link>
                 </Button>
-                <Button asChild>
-                  <Link href="/store">Shop Installation Kits</Link>
+                <Button asChild className="bg-amber-500 text-neutral-950 hover:bg-amber-400">
+                  <Link href="/store">Order OW-1 Dev Kit</Link>
                 </Button>
               </div>
             </div>

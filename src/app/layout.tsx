@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import localFont from "next/font/local"
+import { Inter, Space_Grotesk } from "next/font/google"
 import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 
@@ -87,6 +88,21 @@ const featureCondensedFont = localFont({
   display: "swap",
 })
 
+// OpticWorks new design fonts
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  variable: "--font-inter",
+  display: "swap",
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
+  display: "swap",
+})
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: siteConfig.name,
@@ -133,12 +149,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable} ${GeistMono.variable}`}
+      className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable} ${GeistMono.variable} ${inter.variable} ${spaceGrotesk.variable} dark`}
       suppressHydrationWarning
     >
       <body className="min-h-screen overflow-x-hidden scroll-auto bg-background text-foreground antialiased font-sans">
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
           <MenuBar />
           {children}
           <Footer />

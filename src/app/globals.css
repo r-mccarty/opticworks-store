@@ -35,8 +35,9 @@
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
   --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --font-sans: var(--font-colfax), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-feature), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* OpticWorks typography: Inter (body), Space Grotesk (display) */
+  --font-sans: var(--font-inter), var(--font-colfax), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-space-grotesk), var(--font-feature), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --animate-hide: hide 150ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -53,6 +54,8 @@
   --animate-dashes: dashes 0.8s linear infinite;
   --animate-dashes-reverse: dashes 0.8s linear infinite reverse;
   --animate-hover: hover 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  --animate-scan: scan 3s linear infinite;
+  --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
   @keyframes hide {
     from {
@@ -199,6 +202,27 @@
       transform: translateY(-10px);
     }
   }
+
+  @keyframes scan {
+    0% {
+      transform: translateY(-100%);
+    }
+
+    100% {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.5;
+    }
+  }
 }
 
 /* MenuBar Performance Optimizations */
@@ -225,30 +249,31 @@
 */
 @layer base {
   :root {
-    color-scheme: light;
+    color-scheme: dark;
   }
 
   .dark {
     color-scheme: dark;
-    --color-background: oklch(0.13 0.02 260);
-    --color-foreground: oklch(0.96 0.005 255);
-    --color-card: oklch(0.17 0.02 260);
+    /* OpticWorks Dark Theme - Near-black with amber accents */
+    --color-background: oklch(0.07 0.01 250);        /* #0a0a0a */
+    --color-foreground: oklch(0.92 0.005 250);       /* #e5e5e5 */
+    --color-card: oklch(0.12 0.01 250);              /* #171717 / neutral-900 */
     --color-card-foreground: var(--color-foreground);
-    --color-popover: oklch(0.17 0.02 260);
+    --color-popover: oklch(0.12 0.01 250);
     --color-popover-foreground: var(--color-foreground);
-    --color-muted: oklch(0.22 0.02 260);
-    --color-muted-foreground: oklch(0.72 0.02 255);
-    --color-border: oklch(0.28 0.02 260);
-    --color-input: oklch(0.28 0.02 260);
-    --color-ring: oklch(0.75 0.18 55);
-    --color-primary: oklch(0.75 0.18 55);
-    --color-primary-foreground: oklch(0.15 0.02 260);
-    --color-secondary: oklch(0.85 0.2 145);
-    --color-secondary-foreground: oklch(0.15 0.02 260);
-    --color-accent: oklch(0.26 0.02 260);
+    --color-muted: oklch(0.18 0.01 250);             /* neutral-800 */
+    --color-muted-foreground: oklch(0.60 0.01 250); /* neutral-400 */
+    --color-border: oklch(0.22 0.01 250 / 0.5);     /* white/5 subtle */
+    --color-input: oklch(0.18 0.01 250);
+    --color-ring: oklch(0.78 0.16 80);              /* amber-500 */
+    --color-primary: oklch(0.78 0.16 80);           /* amber-500 #f59e0b */
+    --color-primary-foreground: oklch(0.07 0.01 250); /* near-black on amber */
+    --color-secondary: oklch(0.12 0.01 250);        /* neutral-900 */
+    --color-secondary-foreground: oklch(0.92 0.005 250);
+    --color-accent: oklch(0.15 0.01 250);           /* darker accent */
     --color-accent-foreground: var(--color-foreground);
     --color-destructive: oklch(0.68 0.22 29);
-    --color-destructive-foreground: oklch(0.13 0.02 260);
+    --color-destructive-foreground: oklch(0.92 0.005 250);
   }
 
   body {
@@ -306,4 +331,33 @@
     transform: translateX(-100%);
     opacity: 100;
   }
+}
+
+/* SpatialDemo Perspective Grid */
+.perspective-grid {
+  background-image:
+    linear-gradient(rgba(245, 158, 11, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245, 158, 11, 0.1) 1px, transparent 1px);
+  background-size: 40px 40px;
+  transform: perspective(500px) rotateX(60deg);
+  opacity: 0.2;
+}
+
+/* Radar scan line effect */
+.radar-scan {
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(245, 158, 11, 0.4),
+    transparent
+  );
+  animation: scan 3s linear infinite;
+}
+
+/* Amber glow effect for highlights */
+.amber-glow {
+  box-shadow:
+    0 0 20px rgba(245, 158, 11, 0.3),
+    0 0 40px rgba(245, 158, 11, 0.2),
+    0 0 60px rgba(245, 158, 11, 0.1);
 }

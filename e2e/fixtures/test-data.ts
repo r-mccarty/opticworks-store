@@ -4,19 +4,20 @@
 
 export const testProducts = {
   flagship: {
-    slug: 'bed-presence-sensor-kit',
-    name: 'Bed Presence Sensor Kit',
-    price: 239,
+    slug: 'ow-1-dev-kit',
+    name: 'OpticWorks OW-1 Developer Kit',
+    price: 89,
   },
+  // Legacy aliases for backward compatibility
   duo: {
-    slug: 'presence-sensor-duo-pack',
-    name: 'Presence Sensor Duo Pack',
-    price: 449,
+    slug: 'ow-1-dev-kit',
+    name: 'OpticWorks OW-1 Developer Kit',
+    price: 89,
   },
   prism: {
-    slug: 'optic-1x-prism',
-    name: 'Optic 1x Prism',
-    price: 149,
+    slug: 'ow-1-dev-kit',
+    name: 'OpticWorks OW-1 Developer Kit',
+    price: 89,
   },
 };
 
