@@ -87,6 +87,7 @@ Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
 | Stripe | Payments (deferred intent pattern) | `docs/reference/CHECKOUT_FLOW.md` |
 | Stripe Tax | Automated sales tax calculation | `docs/reference/STRIPE_TAX.md` |
 | Stripe (Saved Cards) | Customer sync, saved payment methods | `docs/reference/CUSTOMER_AUTH.md` |
+| Turnstile | CAPTCHA spam prevention (contact form) | `docs/reference/CLOUDFLARE_API.md` |
 | Sentry | Error tracking (backend + client-side) | `docs/reference/OBSERVABILITY.md` |
 | Infisical | Secrets management | `docs/SECRETS.md` |
 | Mailosaur | E2E email testing | `docs/reference/E2E_TESTING.md` |

@@ -262,6 +262,86 @@ curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets/$
 
 ---
 
+## Cloudflare Turnstile (CAPTCHA)
+
+Turnstile provides invisible CAPTCHA protection for the contact form to prevent spam submissions.
+
+### How It Works
+
+1. **Client-side**: The `@marsidev/react-turnstile` widget renders on the contact form
+2. **User interaction**: Turnstile generates a token (usually invisible to the user)
+3. **Form submission**: Token is sent with the form data to `/api/email/send`
+4. **Server validation**: The API route validates the token with Cloudflare's siteverify endpoint
+5. **Response**: If validation fails, the submission is rejected with a 400 error
+
+### Environment Variables
+
+| Variable | Location | Purpose |
+|----------|----------|---------|
+| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | `wrangler.jsonc` vars | Public site key for the widget (safe to commit) |
+| `TURNSTILE_SECRET_KEY` | Worker secret (Dashboard) | Server-side validation (never commit) |
+
+### Getting Keys
+
+1. Go to **Cloudflare Dashboard** > **Turnstile** > **Add Widget**
+2. Select **Managed** challenge type (recommended)
+3. Add your domains: `optic.works`, `www.optic.works`, `localhost`
+4. Copy the **Site Key** (public) and **Secret Key** (private)
+
+### Testing Keys
+
+Cloudflare provides dummy keys for development and testing:
+
+| Key Type | Value | Behavior |
+|----------|-------|----------|
+| Site key (always pass) | `1x00000000000000000000AA` | Widget always succeeds |
+| Site key (always block) | `2x00000000000000000000AB` | Widget always fails |
+| Site key (force challenge) | `3x00000000000000000000FF` | Forces interactive challenge |
+| Secret key (always pass) | `1x0000000000000000000000000000000AA` | Validation always succeeds |
+| Secret key (always fail) | `2x0000000000000000000000000000000AB` | Validation always fails |
+
+### Implementation Details
+
+**Frontend** (`src/components/support/ContactForm.tsx`):
+- Uses `@marsidev/react-turnstile` library
+- Tries `process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY` first (build-time)
+- Falls back to `/api/turnstile/site-key` endpoint (runtime) if env var unavailable
+- Widget uses dark theme to match site design
+
+**Site Key API** (`src/app/api/turnstile/site-key/route.ts`):
+- Returns site key for runtime configuration
+- Checks both `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SITE_KEY`
+
+**Server Validation** (`src/app/api/email/send/route.ts`):
+- Validates Turnstile token for `support-request` template only
+- Calls `https://challenges.cloudflare.com/turnstile/v0/siteverify`
+- In non-production, skips validation if `TURNSTILE_SECRET_KEY` is not set
+- In production, rejects all requests if secret key is missing
+
+### Deployment Checklist
+
+1. Add `TURNSTILE_SECRET_KEY` to Cloudflare Worker secrets (Dashboard > Workers > Settings > Variables)
+2. Verify `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is in `wrangler.jsonc` vars
+3. Add both keys to Infisical for local development (`pnpm run secrets:pull`)
+4. Test the contact form submission works in production
+
+### Troubleshooting
+
+**Widget shows "CAPTCHA unavailable"**
+- Check browser console for errors
+- Verify `NEXT_PUBLIC_TURNSTILE_SITE_KEY` is set (check `/api/turnstile/site-key` response)
+
+**"CAPTCHA verification failed" on submit**
+- Verify `TURNSTILE_SECRET_KEY` is set as a Worker secret
+- Check if token expired (tokens are valid for ~5 minutes)
+- In production, ensure the secret key matches the site key's widget
+
+**Widget not appearing in development**
+- Run `pnpm run secrets:pull` to sync keys from Infisical
+- Or use testing keys in `.env.local`
+
+---
+
 ## Workers Secrets Management
 
 ### Important: Git Integration vs CLI Secrets
@@ -291,6 +371,7 @@ When using Cloudflare's **Git integration** (auto-deploy on push to main), secre
 | `STRIPE_SECRET_KEY` | Stripe API authentication |
 | `EASYPOST_API_KEY` | EasyPost shipping API |
 | `SHIP_FROM_ZIP` | Origin ZIP for shipping calculations |
+| `TURNSTILE_SECRET_KEY` | Server-side Turnstile CAPTCHA validation |
 
 ### Verifying Secrets Are Loaded
 
