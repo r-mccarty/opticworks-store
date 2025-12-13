@@ -51,14 +51,18 @@ export default async function stripeCustomerSyncHandler({
     // This prevents duplicate Stripe customers on re-registration
     const { data: customersWithAccountHolder } = await query.graph({
       entity: "customer",
-      fields: ["id", "account_holder.*"],
+      fields: ["id", "account_holder_link.account_holder.*"],
       filters: { id: data.id },
     })
 
-    const customerWithAccountHolder = customersWithAccountHolder[0]
-    if (customerWithAccountHolder?.account_holders?.[0]) {
+    const customerWithAccountHolder = customersWithAccountHolder[0] as {
+      id: string
+      account_holder_link?: Array<{ account_holder: { id: string } }>
+    }
+    const existingAccountHolder = customerWithAccountHolder?.account_holder_link?.[0]?.account_holder
+    if (existingAccountHolder) {
       logger.info(
-        `[stripe-customer-sync] Customer ${data.id} already has account holder ${customerWithAccountHolder.account_holders[0].id}, skipping`
+        `[stripe-customer-sync] Customer ${data.id} already has account holder ${existingAccountHolder.id}, skipping`
       )
       return
     }

@@ -47,16 +47,22 @@ export async function GET(
   logger.info(`[payment-methods] Listing payment methods for customer: ${customerId}`)
 
   try {
-    // Fetch customer with linked account_holder
+    // Fetch customer with linked account_holder via Medusa's link table
+    // The link is created by remoteLink.create() in stripe-customer-sync subscriber
     const { data: customers } = await query.graph({
       entity: "customer",
-      fields: ["id", "account_holder.*"],
+      fields: ["id", "account_holder_link.account_holder.*"],
       filters: { id: customerId },
     })
 
-    const customer = customers[0]
+    const customer = customers[0] as {
+      id: string
+      account_holder_link?: Array<{ account_holder: { id: string; data?: Record<string, unknown> } }>
+    }
 
-    if (!customer?.account_holders?.[0]) {
+    const accountHolder = customer?.account_holder_link?.[0]?.account_holder
+
+    if (!accountHolder) {
       // Customer doesn't have an account holder yet (registered before this feature)
       logger.info(`[payment-methods] No account holder for customer ${customerId}`)
       res.json({ payment_methods: [] })
@@ -64,10 +70,13 @@ export async function GET(
     }
 
     // List payment methods from Stripe via payment module
+    // The account_holder.data contains the external Stripe customer ID
     const paymentMethods = await paymentModuleService.listPaymentMethods({
       provider_id: "pp_stripe_stripe",
       context: {
-        account_holder: customer.account_holders[0],
+        account_holder: {
+          data: accountHolder.data || {},
+        },
       },
     })
 
@@ -127,13 +136,16 @@ export async function DELETE(
     // Verify customer has an account holder (security check)
     const { data: customers } = await query.graph({
       entity: "customer",
-      fields: ["id", "account_holder.*"],
+      fields: ["id", "account_holder_link.account_holder.*"],
       filters: { id: customerId },
     })
 
-    const customer = customers[0]
+    const customer = customers[0] as {
+      id: string
+      account_holder_link?: Array<{ account_holder: { id: string } }>
+    }
 
-    if (!customer?.account_holders?.[0]) {
+    if (!customer?.account_holder_link?.[0]?.account_holder) {
       res.status(404).json({ error: "No payment methods found" })
       return
     }
