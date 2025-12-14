@@ -13,6 +13,10 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
+    // Disable Next.js image optimization for Cloudflare Workers
+    // Workers runtime doesn't support Node.js sharp library
+    // Images are served directly from /public or R2
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',
