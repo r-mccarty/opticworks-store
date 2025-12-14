@@ -1,10 +1,8 @@
 // PRODUCT IMAGES STATUS:
-// - Using gradient placeholders for consistent layout testing
+// - Using local stock placeholders for consistent layout testing
 // - TODO: Upload real product images to R2 and replace with actual URLs
 // - See R2-PRODUCT-IMAGES.md for upload guide and commands
 // - R2 base URL: https://pub-7268d532bc454f39b3de3c39e3d5105b.r2.dev/products/
-
-import { getProductImage } from "./gradients"
 
 export interface ProductSpecification {
   label: string
@@ -60,7 +58,7 @@ export const products: Product[] = [
     description:
       "Spatial sensing node with 60GHz mmWave radar, NPU acceleration, and Matter over Thread connectivity. Ships with USB-C cable and wall mount.",
     price: 89,
-    image: getProductImage("presence-kit"),
+    image: "/images/stock/ow1-devkit-4x3.webp",
     category: "sensor",
     badge: "Pre-order",
     heroIntro: {
