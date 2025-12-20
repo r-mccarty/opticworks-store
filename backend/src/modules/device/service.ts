@@ -7,6 +7,7 @@ import type {
   UpdateDeviceStatusInput,
   DeviceTokenResponse,
   DeviceCloudTokenResponse,
+  DeviceDTO,
 } from "./types"
 
 /**
@@ -22,7 +23,7 @@ class DeviceModuleService extends MedusaService({
    * Create a new device record (called during fulfillment).
    * The device is pre-registered but not yet paired to a customer.
    */
-  async createDevice(input: CreateDeviceInput): Promise<Device> {
+  async createDevice(input: CreateDeviceInput): Promise<DeviceDTO> {
     const device = await this.createDevices({
       serial_number: input.serial_number,
       product_type: input.product_type ?? "rs1",
@@ -36,7 +37,7 @@ class DeviceModuleService extends MedusaService({
   /**
    * Get a device by serial number.
    */
-  async getDeviceBySerial(serialNumber: string): Promise<Device | null> {
+  async getDeviceBySerial(serialNumber: string): Promise<DeviceDTO | null> {
     const devices = await this.listDevices({
       serial_number: serialNumber,
     })
@@ -47,7 +48,7 @@ class DeviceModuleService extends MedusaService({
   /**
    * Get all devices for a customer.
    */
-  async getDevicesByCustomer(customerId: string): Promise<Device[]> {
+  async getDevicesByCustomer(customerId: string): Promise<DeviceDTO[]> {
     return await this.listDevices({
       customer_id: customerId,
     })
@@ -56,7 +57,7 @@ class DeviceModuleService extends MedusaService({
   /**
    * Get all devices for an order.
    */
-  async getDevicesByOrder(orderId: string): Promise<Device[]> {
+  async getDevicesByOrder(orderId: string): Promise<DeviceDTO[]> {
     return await this.listDevices({
       order_id: orderId,
     })
@@ -66,7 +67,7 @@ class DeviceModuleService extends MedusaService({
    * Pair a device to a customer account.
    * Called when customer confirms device in their account.
    */
-  async pairDevice(input: PairDeviceInput): Promise<Device> {
+  async pairDevice(input: PairDeviceInput): Promise<DeviceDTO> {
     const device = await this.getDeviceBySerial(input.serial_number)
 
     if (!device) {
@@ -95,7 +96,7 @@ class DeviceModuleService extends MedusaService({
   /**
    * Unpair a device from a customer.
    */
-  async unpairDevice(deviceId: string): Promise<Device> {
+  async unpairDevice(deviceId: string): Promise<DeviceDTO> {
     return await this.updateDevices({
       id: deviceId,
       customer_id: null,
@@ -177,7 +178,7 @@ class DeviceModuleService extends MedusaService({
   /**
    * Validate a cloud token and return the device if valid.
    */
-  async validateCloudToken(cloudToken: string): Promise<Device | null> {
+  async validateCloudToken(cloudToken: string): Promise<DeviceDTO | null> {
     const devices = await this.listDevices({
       cloud_token: cloudToken,
     })
@@ -188,7 +189,7 @@ class DeviceModuleService extends MedusaService({
   /**
    * Update device status (called by Go device management service).
    */
-  async updateDeviceStatus(input: UpdateDeviceStatusInput): Promise<Device> {
+  async updateDeviceStatus(input: UpdateDeviceStatusInput): Promise<DeviceDTO> {
     const device = await this.getDeviceBySerial(input.serial_number)
 
     if (!device) {
