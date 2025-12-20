@@ -180,5 +180,14 @@ export default defineMiddlewares({
       matcher: "/store/customers/me/payment-methods",
       middlewares: [authenticate("customer", ["session", "bearer"])],
     },
+    // Device routes (require customer authentication)
+    {
+      matcher: "/store/devices",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
+    {
+      matcher: "/store/devices/*",
+      middlewares: [authenticate("customer", ["session", "bearer"])],
+    },
   ],
 })

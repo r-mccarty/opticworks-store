@@ -215,6 +215,11 @@ module.exports = defineConfig({
       },
     },
 
+    // ===== Device Module (OpticWorks devices) =====
+    {
+      resolve: "./src/modules/device",
+    },
+
     // ===== Fulfillment Module (EasyPost) =====
     {
       key: Modules.FULFILLMENT,
