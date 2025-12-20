@@ -334,12 +334,99 @@ backend/src/links/
 └── device-customer.ts    # Device-Customer relationship
 ```
 
+## Database Schema
+
+### Device Table
+
+```sql
+CREATE TABLE device (
+    id VARCHAR(255) PRIMARY KEY,
+    serial_number VARCHAR(255) NOT NULL UNIQUE,
+    product_type VARCHAR(255) DEFAULT 'rs1',
+    firmware_version VARCHAR(255),
+    customer_id VARCHAR(255),
+    order_id VARCHAR(255),
+    cloud_token VARCHAR(255),
+    temp_token VARCHAR(255),
+    last_seen_at TIMESTAMP WITH TIME ZONE,
+    registered_at TIMESTAMP WITH TIME ZONE,
+    paired_at TIMESTAMP WITH TIME ZONE,
+    metadata JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+-- Indexes
+CREATE UNIQUE INDEX idx_device_serial_number ON device(serial_number);
+CREATE INDEX idx_device_customer_id ON device(customer_id);
+CREATE INDEX idx_device_order_id ON device(order_id);
+CREATE INDEX idx_device_cloud_token ON device(cloud_token);
+CREATE INDEX idx_device_temp_token ON device(temp_token);
+```
+
+### Device-Customer Link Table
+
+```sql
+-- Automatically created by Medusa link definition
+CREATE TABLE customer_customer_device_device (
+    id VARCHAR(255) PRIMARY KEY,
+    customer_id VARCHAR(255) NOT NULL REFERENCES customer(id),
+    device_id VARCHAR(255) NOT NULL REFERENCES device(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    deleted_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX idx_link_customer_id ON customer_customer_device_device(customer_id);
+CREATE INDEX idx_link_device_id ON customer_customer_device_device(device_id);
+```
+
+### Go Service Tables (Future)
+
+The Go device management service will create additional tables:
+
+```sql
+-- Telemetry data from devices
+CREATE TABLE device_telemetry (
+    id SERIAL PRIMARY KEY,
+    device_id VARCHAR(255) NOT NULL REFERENCES device(id),
+    timestamp TIMESTAMP WITH TIME ZONE NOT NULL,
+    metrics JSONB NOT NULL,
+    events JSONB,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_device_telemetry_device_id ON device_telemetry(device_id);
+CREATE INDEX idx_device_telemetry_timestamp ON device_telemetry(timestamp);
+
+-- OTA update tracking
+CREATE TABLE device_ota_updates (
+    id SERIAL PRIMARY KEY,
+    device_id VARCHAR(255) NOT NULL REFERENCES device(id),
+    from_version VARCHAR(255) NOT NULL,
+    to_version VARCHAR(255) NOT NULL,
+    started_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    completed_at TIMESTAMP WITH TIME ZONE,
+    status VARCHAR(50) DEFAULT 'pending',  -- pending, downloading, applying, completed, failed
+    error_message TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_device_ota_device_id ON device_ota_updates(device_id);
+```
+
 ## Migrations
 
 After adding the device module, run:
 
 ```bash
 cd backend
-npx medusa db:generate device
-npx medusa db:migrate
+pnpm medusa db:generate device
+pnpm medusa db:migrate
 ```
+
+The migration will:
+1. Create the `device` table with all columns
+2. Create the `customer_customer_device_device` link table
+3. Set up foreign key relationships
