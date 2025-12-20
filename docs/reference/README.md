@@ -36,6 +36,14 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 
 ---
 
+## Devices & Hardware
+
+| Document | Purpose |
+|----------|---------|
+| [DEVICE_MANAGEMENT.md](DEVICE_MANAGEMENT.md) | RS-1 device registration, pairing, cloud API |
+
+---
+
 ## State & API
 
 | Document | Purpose |
@@ -101,5 +109,6 @@ Moved to `docs/archived/` - historical reference only.
 | Debug test failures | [QA_ARTIFACTS.md](QA_ARTIFACTS.md) |
 | Modify Zustand stores | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) |
 | Add or rotate secrets | [../SECRETS.md](../SECRETS.md) |
+| Work with RS-1 devices | [DEVICE_MANAGEMENT.md](DEVICE_MANAGEMENT.md) |
 
 For daily development, `CLAUDE.md` has everything you need.
