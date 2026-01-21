@@ -1,0 +1,108 @@
+name: Anvil Review (Codex)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - "feature/**"
+  workflow_dispatch:
+
+jobs:
+  anvil-review:
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message || '', '[skip-anvil]') }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: anvil-review-${{ github.ref }}
+      cancel-in-progress: false
+    env:
+      SPRITE_NAME: anvil
+      REVIEWER_NAME: anvil
+      SKIP_TOKEN: skip-anvil
+      MAX_TURNS: 30
+      BEFORE_SHA: ${{ github.event.before || '0000000000000000000000000000000000000000' }}
+      SHA: ${{ github.sha }}
+      REPO_FULL: ${{ github.repository }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install sprite CLI
+        env:
+          SPRITE_INSTALL_BIN_DIR: ${{ runner.temp }}/sprite-bin
+        run: |
+          curl -fsSL https://sprites.dev/install.sh | bash
+          echo "${SPRITE_INSTALL_BIN_DIR}" >> "$GITHUB_PATH"
+
+      - name: Install Infisical CLI
+        run: |
+          curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash
+          sudo apt-get update
+          sudo apt-get install -y infisical
+
+      - name: Load secrets from Infisical
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+          INFISICAL_ENV: ${{ secrets.INFISICAL_ENV }}
+        run: |
+          INFISICAL_ENV="${INFISICAL_ENV:-dev}"
+          if [ -z "$INFISICAL_TOKEN" ] || [ -z "$INFISICAL_PROJECT_ID" ]; then
+            echo "Missing INFISICAL_TOKEN or INFISICAL_PROJECT_ID."
+            exit 1
+          fi
+          infisical export \
+            --token="$INFISICAL_TOKEN" \
+            --projectId="$INFISICAL_PROJECT_ID" \
+            --env="$INFISICAL_ENV" \
+            --format=dotenv \
+            --silent > /tmp/infisical.env
+          set -a
+          source /tmp/infisical.env
+          set +a
+          echo "SPRITES_API_TOKEN=$SPRITES_API_TOKEN" >> "$GITHUB_ENV"
+          echo "AGENT_HARNESS_TOKEN=${GITHUB_TOKEN}" >> "$GITHUB_ENV"
+
+      - name: Run anvil review
+        env:
+          SPRITES_API_TOKEN: ${{ env.SPRITES_API_TOKEN }}
+        run: |
+          if [ -z "$SHA" ] || [ -z "$REPO_FULL" ]; then
+            echo "Missing required SHA or REPO_FULL."
+            exit 1
+          fi
+          SHORT_SHA="${SHA:0:7}"
+          DATE_UTC="$(date -u +%Y%m%d)"
+          export SHORT_SHA DATE_UTC
+
+          AUTH_HEADER="Authorization: token ${AGENT_HARNESS_TOKEN}"
+          PROMPT_B64="$(curl -fsSL -H "$AUTH_HEADER" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/hammer/build_prompt.py | python | tr -d '\n')"
+
+          sprite auth setup --token "$SPRITES_API_TOKEN"
+
+          REPO_NAME="${REPO_FULL#*/}"
+
+          REMOTE_SCRIPT=$(cat <<EOF
+          set -euo pipefail
+          cd /home/sprite/workspace
+          if [ ! -d "/home/sprite/workspace/${REPO_NAME}/.git" ]; then
+            git clone https://github.com/${REPO_FULL}.git "${REPO_NAME}"
+          fi
+          cd "/home/sprite/workspace/${REPO_NAME}"
+          git fetch origin
+          if git show-ref --verify --quiet "refs/heads/main"; then
+            git checkout main
+          fi
+          git checkout ${SHA}
+          git reset --hard ${SHA}
+          mkdir -p docs/rfd
+          PROMPT_B64="${PROMPT_B64}"
+          PROMPT="\$(printf '%s' \"\$PROMPT_B64\" | base64 -d -i)"
+          printf '%s' "$PROMPT" | codex exec --dangerously-bypass-approvals-and-sandbox -
+          EOF
+          )
+
+          sprite exec -http-post -s "${SPRITE_NAME}" /bin/bash -lc "$REMOTE_SCRIPT"
