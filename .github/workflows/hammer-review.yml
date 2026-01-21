@@ -75,7 +75,7 @@ jobs:
           DATE_UTC="$(date -u +%Y%m%d)"
           export SHORT_SHA DATE_UTC
 
-          PROMPT_B64="$(curl -fsSL -H "Authorization: Bearer ${AGENT_HARNESS_TOKEN}" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/hammer/build_prompt.py | python)"
+          PROMPT_B64="$(curl -fsSL -H \"Authorization: Bearer ${AGENT_HARNESS_TOKEN}\" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/hammer/build_prompt.py | python)"
           claude --print --output-format json --dangerously-skip-permissions --max-turns ${MAX_TURNS} "\${PROMPT}"
           EOF
           )
