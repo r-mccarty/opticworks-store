@@ -75,8 +75,30 @@ jobs:
           DATE_UTC="$(date -u +%Y%m%d)"
           export SHORT_SHA DATE_UTC
 
-          PROMPT_B64="$(curl -fsSL -H \"Authorization: Bearer ${AGENT_HARNESS_TOKEN}\" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/hammer/build_prompt.py | python)"
-          claude --print --output-format json --dangerously-skip-permissions --max-turns ${MAX_TURNS} "\${PROMPT}"
+          AUTH_HEADER="Authorization: token ${AGENT_HARNESS_TOKEN}"
+          PROMPT_B64="$(curl -fsSL -H "$AUTH_HEADER" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/hammer/build_prompt.py | python | tr -d '\n')"
+
+          sprite auth setup --token "$SPRITES_API_TOKEN"
+
+          REPO_NAME="${REPO_FULL#*/}"
+
+          REMOTE_SCRIPT=$(cat <<EOF
+          set -euo pipefail
+          cd /home/sprite/workspace
+          if [ ! -d "/home/sprite/workspace/${REPO_NAME}/.git" ]; then
+            git clone https://github.com/${REPO_FULL}.git "${REPO_NAME}"
+          fi
+          cd "/home/sprite/workspace/${REPO_NAME}"
+          git fetch origin
+          if git show-ref --verify --quiet "refs/heads/main"; then
+            git checkout main
+          fi
+          git checkout ${SHA}
+          git reset --hard ${SHA}
+          mkdir -p docs/rfd
+          PROMPT_B64="${PROMPT_B64}"
+          PROMPT="\$(printf '%s' \"\$PROMPT_B64\" | base64 -d -i)"
+          claude --print --output-format json --dangerously-skip-permissions --max-turns ${MAX_TURNS} "\$PROMPT"
           EOF
           )
 
