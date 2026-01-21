@@ -9,8 +9,7 @@ on:
 
 jobs:
   hammer-review:
-    if: |
-      github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip-hammer]')
+    if: ${{ github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message || '', '[skip-hammer]') }}
     runs-on: ubuntu-latest
     concurrency:
       group: hammer-review-${{ github.ref }}
