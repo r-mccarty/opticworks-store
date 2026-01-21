@@ -92,6 +92,9 @@ jobs:
             git clone https://github.com/${REPO_FULL}.git "${REPO_NAME}"
           fi
           cd "/home/sprite/workspace/${REPO_NAME}"
+          if [ -f ".git/index.lock" ]; then
+            rm -f .git/index.lock
+          fi
           git fetch origin
           if git show-ref --verify --quiet "refs/heads/main"; then
             git checkout main
