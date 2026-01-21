@@ -101,7 +101,7 @@ jobs:
           mkdir -p docs/rfd
           PROMPT_B64="${PROMPT_B64}"
           PROMPT="\$(printf '%s' \"\$PROMPT_B64\" | base64 -d -i)"
-          printf '%s' "$PROMPT" | codex exec --dangerously-bypass-approvals-and-sandbox -
+          printf '%s' "\$PROMPT" | codex exec --dangerously-bypass-approvals-and-sandbox -
           EOF
           )
 
