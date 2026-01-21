@@ -1,0 +1,20 @@
+name: Hammer Review (RFD)
+
+on:
+  push:
+    branches:
+      - main
+      - "feature/**"
+  workflow_dispatch:
+
+jobs:
+  hammer-review:
+    if: |
+      github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, '[skip-hammer]')
+    uses: r-mccarty/agent-harness/.github/workflows/hammer-review.yml@main
+    secrets: inherit
+    with:
+      sprite_name: hammer
+      before_sha: ${{ github.event.before || '0000000000000000000000000000000000000000' }}
+      sha: ${{ github.sha }}
+      repo_full: ${{ github.repository }}
