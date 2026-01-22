@@ -141,6 +141,7 @@ jobs:
           sprite auth setup --token "$SPRITES_API_TOKEN"
 
           # Build remote script and encode it
+          # NOTE: We stay on the branch HEAD (not checkout SHA) because RFDs are committed AFTER the reviewed commit
           REMOTE_SCRIPT=$(cat <<EOF
           set -euo pipefail
           echo "=== Forge Synthesis for ${REPO_NAME} @ ${SHORT_SHA} ==="
@@ -157,8 +158,6 @@ jobs:
           git fetch origin
           git checkout main 2>/dev/null || git checkout dev 2>/dev/null || true
           git pull --ff-only || true
-          git checkout ${SHA}
-          git reset --hard ${SHA}
           mkdir -p docs/rfd
           HAMMER_RFD=\$(ls docs/rfd/RFD-*-${SHORT_SHA}-hammer-review.md 2>/dev/null | head -1 || true)
           ANVIL_RFD=\$(ls docs/rfd/RFD-*-${SHORT_SHA}-anvil-review.md 2>/dev/null | head -1 || true)
