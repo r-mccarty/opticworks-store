@@ -1,0 +1,187 @@
+# Forge Synthesis Workflow
+#
+# This workflow synthesizes RFDs from hammer (Claude) and anvil (Codex) reviews
+# into a unified, prioritized synthesis document.
+#
+# Copy this file to each app repo's .github/workflows/ directory.
+#
+# Trigger: Runs after both hammer and anvil reviews complete.
+# Output: Creates docs/rfd/RFD-<date>-<sha>-synthesis.md
+
+name: Forge Synthesis
+
+on:
+  workflow_run:
+    workflows: ["Hammer Review (RFD)", "Anvil Review (Codex)"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit SHA to synthesize (defaults to HEAD)"
+        required: false
+        type: string
+
+jobs:
+  check-prerequisites:
+    # Only run if the triggering workflow succeeded
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    outputs:
+      should_run: ${{ steps.check.outputs.should_run }}
+      sha: ${{ steps.check.outputs.sha }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for both RFDs
+        id: check
+        run: |
+          # Determine SHA
+          if [ -n "${{ inputs.sha }}" ]; then
+            SHA="${{ inputs.sha }}"
+          elif [ -n "${{ github.event.workflow_run.head_sha }}" ]; then
+            SHA="${{ github.event.workflow_run.head_sha }}"
+          else
+            SHA="${{ github.sha }}"
+          fi
+          SHORT_SHA="${SHA:0:7}"
+          DATE_UTC="$(date -u +%Y%m%d)"
+
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          echo "Checking for RFDs for commit $SHORT_SHA..."
+
+          # Check for hammer RFD
+          HAMMER_RFD=$(ls docs/rfd/RFD-*-${SHORT_SHA}-hammer-review.md 2>/dev/null | head -1 || true)
+          ANVIL_RFD=$(ls docs/rfd/RFD-*-${SHORT_SHA}-anvil-review.md 2>/dev/null | head -1 || true)
+          SYNTHESIS_RFD=$(ls docs/rfd/RFD-*-${SHORT_SHA}-synthesis.md 2>/dev/null | head -1 || true)
+
+          echo "Hammer RFD: ${HAMMER_RFD:-not found}"
+          echo "Anvil RFD: ${ANVIL_RFD:-not found}"
+          echo "Synthesis RFD: ${SYNTHESIS_RFD:-not found}"
+
+          # Require at least one RFD, skip if synthesis already exists
+          if [ -n "$SYNTHESIS_RFD" ]; then
+            echo "Synthesis RFD already exists, skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          elif [ -n "$HAMMER_RFD" ] || [ -n "$ANVIL_RFD" ]; then
+            echo "Prerequisites met, will run synthesis"
+            echo "should_run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No RFDs found for this commit, skipping"
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  forge-synthesis:
+    needs: check-prerequisites
+    if: ${{ needs.check-prerequisites.outputs.should_run == 'true' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: forge-synthesis-${{ github.ref }}
+      cancel-in-progress: false
+    env:
+      SPRITE_NAME: forge
+      MAX_TURNS: 20
+      SHA: ${{ needs.check-prerequisites.outputs.sha }}
+      REPO_FULL: ${{ github.repository }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install sprite CLI
+        env:
+          SPRITE_INSTALL_BIN_DIR: ${{ runner.temp }}/sprite-bin
+        run: |
+          curl -fsSL https://sprites.dev/install.sh | bash
+          echo "${SPRITE_INSTALL_BIN_DIR}" >> "$GITHUB_PATH"
+
+      - name: Install Infisical CLI
+        run: |
+          curl -1sLf 'https://dl.cloudsmith.io/public/infisical/infisical-cli/setup.deb.sh' | sudo -E bash
+          sudo apt-get update
+          sudo apt-get install -y infisical
+
+      - name: Load secrets from Infisical
+        env:
+          INFISICAL_TOKEN: ${{ secrets.INFISICAL_TOKEN }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
+          INFISICAL_ENV: ${{ secrets.INFISICAL_ENV }}
+        run: |
+          INFISICAL_ENV="${INFISICAL_ENV:-dev}"
+          if [ -z "$INFISICAL_TOKEN" ] || [ -z "$INFISICAL_PROJECT_ID" ]; then
+            echo "Missing INFISICAL_TOKEN or INFISICAL_PROJECT_ID."
+            exit 1
+          fi
+          infisical export \
+            --token="$INFISICAL_TOKEN" \
+            --projectId="$INFISICAL_PROJECT_ID" \
+            --env="$INFISICAL_ENV" \
+            --format=dotenv \
+            --silent > /tmp/infisical.env
+          set -a
+          source /tmp/infisical.env
+          set +a
+          echo "SPRITES_API_TOKEN=$SPRITES_API_TOKEN" >> "$GITHUB_ENV"
+          echo "AGENT_HARNESS_TOKEN=${GITHUB_TOKEN}" >> "$GITHUB_ENV"
+
+      - name: Run forge synthesis
+        env:
+          SPRITES_API_TOKEN: ${{ env.SPRITES_API_TOKEN }}
+        run: |
+          if [ -z "$SHA" ] || [ -z "$REPO_FULL" ]; then
+            echo "Missing required SHA or REPO_FULL."
+            exit 1
+          fi
+          SHORT_SHA="${SHA:0:7}"
+          DATE_UTC="$(date -u +%Y%m%d)"
+          export SHORT_SHA DATE_UTC
+
+          AUTH_HEADER="Authorization: token ${AGENT_HARNESS_TOKEN}"
+          PROMPT_B64="$(curl -fsSL -H "$AUTH_HEADER" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/forge/build_synthesis_prompt.py | \
+            REPO_NAME="${REPO_FULL#*/}" SHA="$SHA" DATE_UTC="$DATE_UTC" REPO_FULL="$REPO_FULL" GITHUB_RUN_ID="${GITHUB_RUN_ID}" \
+            python - --output base64 | tr -d '\n')"
+
+          if [ -z "$PROMPT_B64" ] || [ "$PROMPT_B64" = "" ]; then
+            echo "No RFDs to synthesize or prompt generation failed"
+            exit 0
+          fi
+
+          sprite auth setup --token "$SPRITES_API_TOKEN"
+
+          REPO_NAME="${REPO_FULL#*/}"
+
+          REMOTE_SCRIPT=$(cat <<EOF
+          set -euo pipefail
+          cd /home/sprite/workspace
+
+          # Clone or update repo
+          if [ ! -d "/home/sprite/workspace/${REPO_NAME}/.git" ]; then
+            git clone https://github.com/${REPO_FULL}.git "${REPO_NAME}"
+          fi
+          cd "/home/sprite/workspace/${REPO_NAME}"
+
+          # Clean up any stale locks
+          if [ -f ".git/index.lock" ]; then
+            rm -f .git/index.lock
+          fi
+
+          git fetch origin
+          if git show-ref --verify --quiet "refs/heads/main"; then
+            git checkout main
+          fi
+          git pull --ff-only || true
+          git checkout ${SHA}
+          git reset --hard ${SHA}
+          mkdir -p docs/rfd
+
+          PROMPT_B64="${PROMPT_B64}"
+          PROMPT="\$(printf '%s' \"\$PROMPT_B64\" | base64 -d -i)"
+          claude --print --output-format json --dangerously-skip-permissions --max-turns ${MAX_TURNS} "\$PROMPT"
+          EOF
+          )
+
+          sprite exec -http-post -s "${SPRITE_NAME}" /bin/bash -lc "$REMOTE_SCRIPT"
