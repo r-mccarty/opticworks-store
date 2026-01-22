@@ -126,7 +126,6 @@ jobs:
           source /tmp/infisical.env
           set +a
           echo "SPRITES_API_TOKEN=$SPRITES_API_TOKEN" >> "$GITHUB_ENV"
-          echo "AGENT_HARNESS_TOKEN=${GITHUB_TOKEN}" >> "$GITHUB_ENV"
 
       - name: Run forge synthesis
         env:
@@ -140,48 +139,92 @@ jobs:
           DATE_UTC="$(date -u +%Y%m%d)"
           export SHORT_SHA DATE_UTC
 
-          AUTH_HEADER="Authorization: token ${AGENT_HARNESS_TOKEN}"
-          PROMPT_B64="$(curl -fsSL -H "$AUTH_HEADER" https://raw.githubusercontent.com/r-mccarty/agent-harness/main/scripts/forge/build_synthesis_prompt.py | \
-            REPO_NAME="${REPO_FULL#*/}" SHA="$SHA" DATE_UTC="$DATE_UTC" REPO_FULL="$REPO_FULL" GITHUB_RUN_ID="${GITHUB_RUN_ID}" \
-            python - --output base64 | tr -d '\n')"
-
-          if [ -z "$PROMPT_B64" ] || [ "$PROMPT_B64" = "" ]; then
-            echo "No RFDs to synthesize or prompt generation failed"
-            exit 0
-          fi
-
           sprite auth setup --token "$SPRITES_API_TOKEN"
 
           REPO_NAME="${REPO_FULL#*/}"
 
-          REMOTE_SCRIPT=$(cat <<EOF
+          # Run everything on the forge sprite where all repos are cloned
+          REMOTE_SCRIPT=$(cat <<'SCRIPT_EOF'
           set -euo pipefail
-          cd /home/sprite/workspace
 
-          # Clone or update repo
+          REPO_NAME="__REPO_NAME__"
+          REPO_FULL="__REPO_FULL__"
+          SHA="__SHA__"
+          SHORT_SHA="__SHORT_SHA__"
+          DATE_UTC="__DATE_UTC__"
+          MAX_TURNS="__MAX_TURNS__"
+          GITHUB_RUN_ID="__GITHUB_RUN_ID__"
+
+          echo "=== Forge Synthesis for ${REPO_NAME} @ ${SHORT_SHA} ==="
+
+          # Update agent-harness to get latest scripts
+          cd /home/sprite/workspace/agent-harness
+          git fetch origin main
+          git checkout main
+          git pull --ff-only origin main || true
+
+          # Update the target repo
+          cd /home/sprite/workspace
           if [ ! -d "/home/sprite/workspace/${REPO_NAME}/.git" ]; then
-            git clone https://github.com/${REPO_FULL}.git "${REPO_NAME}"
+            git clone "https://github.com/${REPO_FULL}.git" "${REPO_NAME}"
           fi
           cd "/home/sprite/workspace/${REPO_NAME}"
 
           # Clean up any stale locks
-          if [ -f ".git/index.lock" ]; then
-            rm -f .git/index.lock
-          fi
+          [ -f ".git/index.lock" ] && rm -f .git/index.lock
 
           git fetch origin
-          if git show-ref --verify --quiet "refs/heads/main"; then
-            git checkout main
-          fi
+          # Try to checkout the default branch first
+          DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+          git checkout "$DEFAULT_BRANCH" 2>/dev/null || git checkout main 2>/dev/null || git checkout dev 2>/dev/null || true
           git pull --ff-only || true
-          git checkout ${SHA}
-          git reset --hard ${SHA}
+
+          # Now checkout the specific SHA
+          git checkout "${SHA}"
+          git reset --hard "${SHA}"
           mkdir -p docs/rfd
 
-          PROMPT_B64="${PROMPT_B64}"
-          PROMPT="\$(printf '%s' \"\$PROMPT_B64\" | base64 -d -i)"
-          claude --print --output-format json --dangerously-skip-permissions --max-turns ${MAX_TURNS} "\$PROMPT"
-          EOF
+          # Check if RFDs exist for this commit
+          HAMMER_RFD=$(ls docs/rfd/RFD-*-${SHORT_SHA}-hammer-review.md 2>/dev/null | head -1 || true)
+          ANVIL_RFD=$(ls docs/rfd/RFD-*-${SHORT_SHA}-anvil-review.md 2>/dev/null | head -1 || true)
+
+          echo "Hammer RFD: ${HAMMER_RFD:-not found}"
+          echo "Anvil RFD: ${ANVIL_RFD:-not found}"
+
+          if [ -z "$HAMMER_RFD" ] && [ -z "$ANVIL_RFD" ]; then
+            echo "No RFDs found for commit ${SHORT_SHA}, skipping synthesis"
+            exit 0
+          fi
+
+          # Build the synthesis prompt ON the forge sprite where all repos exist
+          echo "Building synthesis prompt..."
+          PROMPT=$(python /home/sprite/workspace/agent-harness/scripts/forge/build_synthesis_prompt.py \
+            --repo "${REPO_NAME}" \
+            --sha "${SHA}" \
+            --workspace /home/sprite/workspace \
+            --output text)
+
+          if [ -z "$PROMPT" ]; then
+            echo "Failed to build synthesis prompt"
+            exit 1
+          fi
+
+          echo "Prompt built successfully, running Claude..."
+
+          # Run Claude to create the synthesis
+          claude --print --output-format json --dangerously-skip-permissions --max-turns "${MAX_TURNS}" "$PROMPT"
+
+          echo "=== Forge Synthesis Complete ==="
+SCRIPT_EOF
           )
+
+          # Substitute variables into the script
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__REPO_NAME__/$REPO_NAME}"
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__REPO_FULL__/$REPO_FULL}"
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__SHA__/$SHA}"
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__SHORT_SHA__/$SHORT_SHA}"
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__DATE_UTC__/$DATE_UTC}"
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__MAX_TURNS__/$MAX_TURNS}"
+          REMOTE_SCRIPT="${REMOTE_SCRIPT//__GITHUB_RUN_ID__/${GITHUB_RUN_ID:-}}"
 
           sprite exec -http-post -s "${SPRITE_NAME}" /bin/bash -lc "$REMOTE_SCRIPT"
