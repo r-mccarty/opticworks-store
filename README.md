@@ -1,7 +1,8 @@
 # OpticWorks Website
 
-Company and product website for OpticWorks, Inc. (mmWave presence sensors), built with
-Next.js 15 and deployed to Cloudflare Workers via OpenNext.
+Company and product website for OpticWorks, Inc.: intelligent instruments for manufacturing,
+imaging and the physical world. Built with Next.js 15 and deployed to Cloudflare Workers via
+OpenNext. Public pages need no backend.
 
 **Live**: [optic.works](https://optic.works) · **Docs**: [docs.optic.works](https://docs.optic.works)
 · **Contact**: support@optic.works
@@ -9,11 +10,13 @@ Next.js 15 and deployed to Cloudflare Workers via OpenNext.
 ## Current state (since 2026-10-29)
 
 **Online commerce is offline.** The legacy Medusa v2 backend on Hetzner has been archived and
-stopped. The website stays up as a product and support site:
+stopped. The website is a company and product site:
 
-- Product, install-guide, FAQ, support and legal pages render normally.
-- Store, cart, checkout, order confirmation, sign-in and account routes render an
-  "unavailable" page. Commerce is hard-disabled in code by `COMMERCE_ENABLED = false`
+- Public pages: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`,
+  `/technology`, `/journal` (+ `/journal/feed.xml`), `/about`, `/contact`, `/support`, and the
+  legal pages under `/support/legal/*` (`/legal/*` redirects there temporarily, see #126).
+- Store, cart, order confirmation, sign-in and account routes keep their URLs but render only an
+  "unavailable" page; the legacy components are not bundled. Commerce is hard-disabled in code by `COMMERCE_ENABLED = false`
   in [`src/lib/commerce.ts`](src/lib/commerce.ts).
 - Support requests go to **support@optic.works** by email. The site has no working forms.
 - A separate Worker (`opticworks-backend-offline-20261029`) answers these routes with
@@ -27,8 +30,24 @@ Details, route inventory and remaining issues:
 [docs/reference/BACKEND_OFFLINE_FRONTEND.md](docs/reference/BACKEND_OFFLINE_FRONTEND.md).
 The backend archive, the snapshot runbook and the legacy API catalog are in PR #124.
 
-**Next:** the next frontend is a company/product website that doesn't depend on Medusa.
-E-commerce will return later on a new backend.
+Retired Presence/CyberShade pages (OW-1 product, install guides, FAQ, warranty,
+compatibility, tinting laws) answer **410 Gone** from `src/middleware.ts`; old support URLs
+redirect (`src/lib/legacy-routes.ts`). E-commerce will return later on a new backend.
+
+## Content
+
+Product, program and journal copy lives in `src/content/` as typed data, independent of
+commerce:
+
+- `programs.ts`: each program's stage, status note and capabilities. Every capability carries
+  a claim status (`validated`, `in-development`, `objective`, `vision`). Nothing is
+  `validated` until it has been demonstrated on hardware and approved.
+- `journal.ts`: entries with `draft: true` are never rendered, listed, or included in the
+  sitemap or RSS feed.
+- `company.ts`: mission, areas of work, principles, platform pillars.
+
+Tests in `src/content/content.test.ts` reject prices and purchase or shipping claims in program
+content and check that drafts stay unpublished.
 
 ## Quick start
 
@@ -74,7 +93,10 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 | Path | Purpose |
 |------|---------|
 | `src/app/` | Next.js App Router pages and (currently unreachable) `/api/*` route handlers |
-| `src/components/legacy/` | Commerce/account pages, rendered only when `COMMERCE_ENABLED` is true |
+| `src/content/` | Program, journal and company content (see above) |
+| `src/components/site/` | Site chrome, primitives and illustrations for the current design |
+| `src/lib/legacy-routes.ts` | Retired (410) paths and legacy redirects |
+| `src/components/legacy/`, `src/components/store/` | Archived commerce/account UI; not imported by any route |
 | `src/lib/commerce.ts` | Commerce kill switch |
 | `src/lib/api/medusa*.ts`, `src/hooks/useCart.ts`, `src/hooks/useAuth.ts` | Legacy Medusa client and stores, kept for reference |
 | `backend/` | Archived Medusa v2 backend source (standalone; not built or deployed) |

@@ -1,23 +1,19 @@
 import type { Metadata } from "next"
 
 import { ServiceUnavailable } from "@/components/ServiceUnavailable"
-import AccountPage from "@/components/legacy/AccountPage"
-import { COMMERCE_ENABLED } from "@/lib/commerce"
 
+// Legacy commerce route: the URL is kept, but nothing from the archived storefront is rendered
+// or bundled while commerce is offline (see src/lib/commerce.ts and src/components/legacy/).
 export const metadata: Metadata = {
-  title: "Account - OpticWorks",
+  title: "Account",
   robots: { index: false },
 }
 
 export default function Page() {
-  if (!COMMERCE_ENABLED) {
-    return (
-      <ServiceUnavailable
-        title="Account unavailable"
-        description="Customer accounts are offline while we rebuild our online store."
-      />
-    )
-  }
-
-  return <AccountPage />
+  return (
+    <ServiceUnavailable
+      title="Account unavailable"
+      description="Customer accounts are offline while we rebuild our online store."
+    />
+  )
 }
