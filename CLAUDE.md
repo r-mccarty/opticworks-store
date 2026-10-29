@@ -20,12 +20,18 @@ Contact: support@optic.works. Canonical site: https://optic.works.
 
 ## Direction
 
-The next frontend is a **company/product website that doesn't depend on Medusa**.
+The site is a **company/product website that doesn't depend on Medusa** (areas: precision
+manufacturing / compact VMC, advanced imaging / Mach 1, intelligent software / platform).
 E-commerce will return later on a new backend. Until then:
 
 - Don't add prices, "add to cart", pre-order, shipping-time, review/testimonial or other
   purchase claims.
 - Don't present mock data as real (order lookups, compatibility results, form "success").
+- Product copy lives in `src/content/`. Label every capability with its claim status; don't
+  mark anything `validated` without owner approval. Illustrations must be captioned as
+  illustrations. Never present CAD renders as photographs, and never publish internal VMC
+  renders, viewer links or supplier details.
+- Journal entries stay `draft: true` until the owner approves them.
 - Legal pages (privacy, terms, warranty/returns wording) need owner/legal approval before
   their obligations change. Flag problems instead of rewriting them.
 - Company identity: **OpticWorks, Inc.**, 3077B Clairemont Dr. #201, San Diego, CA 92117.
@@ -47,8 +53,10 @@ lints and type-checks; don't reintroduce `ignoreBuildErrors` / `ignoreDuringBuil
 
 ```
 src/app/                 # App Router pages; src/app/api/* handlers are unreachable in prod
-src/components/          # React components
-src/components/legacy/   # Commerce/account pages (only rendered when COMMERCE_ENABLED)
+src/content/             # Programs, journal, company copy (typed data)
+src/components/site/     # Header, footer, primitives, SVG illustrations
+src/components/legacy/   # Archived commerce/account UI (not imported by any route)
+src/lib/legacy-routes.ts # 410 Gone paths (middleware) and legacy redirects (next.config)
 src/lib/commerce.ts      # Commerce kill switch
 src/lib/api/medusa*.ts   # Legacy Medusa client (kept for reference)
 src/hooks/               # Zustand stores (useCart, useAuth: legacy)

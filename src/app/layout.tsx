@@ -1,105 +1,23 @@
-import type { Metadata } from "next"
-import localFont from "next/font/local"
-import { Inter, Space_Grotesk } from "next/font/google"
-import { GeistMono } from "geist/font/mono"
+import type { Metadata, Viewport } from "next"
+import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
 import "./globals.css"
 
-import { Toaster } from "@/components/ui/sonner"
-import Footer from "@/components/ui/Footer"
-import { MenuBar } from "@/components/menu-bar"
-import { ThemeProvider } from "@/components/theme-provider"
-import { siteConfig } from "./siteConfig"
 import { GoogleAnalytics } from "@/components/GoogleAnalytics"
+import { SiteFooter } from "@/components/site/SiteFooter"
+import { SiteHeader } from "@/components/site/SiteHeader"
+import { siteConfig } from "./siteConfig"
 
-// Define Barlow font
-const barlowFont = localFont({
-  src: [
-    {
-      path: "../../public/fonts/barlow-latin-400-normal-7fa387951673abf164b13dd1b45c70e3.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/barlow-latin-500-normal-50adbbfa3bfe480bf4246ff5bad7ad06.woff2",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/barlow-latin-700-normal-dd5b2912dbf896310865c1e9ac85ab41.woff2",
-      weight: "700",
-      style: "normal",
-    },
-  ],
-  variable: "--font-barlow",
-  display: "swap",
-})
-
-// Define Colfax font
-const colfaxFont = localFont({
-  src: [
-    {
-      path: "../../public/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2",
-      weight: "500",
-      style: "normal",
-    },
-  ],
-  variable: "--font-colfax",
-  display: "swap",
-})
-
-
-const featureFont = localFont({
-  src: [
-    {
-      path: "../../public/fonts/FeatureFlatHeadline.c189951b.woff2",
-      weight: "400",
-      style: "normal"
-    },
-    {
-      path: "../../public/fonts/FeatureFlatText-Bold.4f87c9cd.otf",
-      weight: "700",
-      style: "normal"
-    }
-  ],
-  variable: "--font-feature",
-  display: "swap",
-})
-
-const featureCondensedFont = localFont({
-  src: [
-    {
-      path: "../../public/fonts/FeatureFlatCond-Regular.a6231343.woff2",
-      weight: "400", // Corresponds to Regular
-      style: "normal",
-    },
-    {
-      path: "../../public/fonts/FeatureFlatCond-Medium.595cb47e.woff2",
-      weight: "500", // Corresponds to Medium
-      style: "normal",
-    },
-    // Add other CONDENSED weights/styles if you have them
-  ],
-  variable: "--font-feature-condensed", // Distinct variable name
-  display: "swap",
-})
-
-// OpticWorks new design fonts
-const inter = Inter({
+const plexSans = IBM_Plex_Sans({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600"],
-  variable: "--font-inter",
+  variable: "--font-plex-sans",
   display: "swap",
 })
 
-const spaceGrotesk = Space_Grotesk({
+const plexMono = IBM_Plex_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-space-grotesk",
+  weight: ["400", "500"],
+  variable: "--font-plex-mono",
   display: "swap",
 })
 
@@ -109,39 +27,35 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "./",
   },
-  title: siteConfig.name,
+  title: {
+    default: `${siteConfig.name}: intelligent instruments for manufacturing and imaging`,
+    template: `%s · ${siteConfig.name}`,
+  },
   description: siteConfig.description,
-  keywords: [
-    "presence sensors",
-    "mmWave",
-    "spatial visualization",
-    "home automation",
-    "Home Assistant",
-    "OpticWorks",
-  ],
-  authors: [
-    {
-      name: siteConfig.company.name,
-      url: siteConfig.url,
-    },
-  ],
+  applicationName: siteConfig.name,
+  authors: [{ name: siteConfig.company.name, url: siteConfig.url }],
   creator: siteConfig.company.name,
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: siteConfig.url,
-    title: siteConfig.name,
-    description: siteConfig.description,
+    url: "./",
     siteName: siteConfig.name,
+    title: siteConfig.tagline,
+    description: siteConfig.description,
   },
   twitter: {
     card: "summary_large_image",
-    title: siteConfig.name,
+    title: siteConfig.tagline,
     description: siteConfig.description,
   },
   icons: {
     icon: "/favicon.ico",
   },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#0f0e0d",
+  colorScheme: "dark",
 }
 
 export default function RootLayout({
@@ -150,19 +64,18 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${barlowFont.variable} ${colfaxFont.variable} ${featureFont.variable} ${featureCondensedFont.variable} ${GeistMono.variable} ${inter.variable} ${spaceGrotesk.variable} dark`}
-      suppressHydrationWarning
-    >
-      <body className="min-h-screen overflow-x-hidden scroll-auto bg-background text-foreground antialiased font-sans">
+    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+      <body className="min-h-screen bg-ink font-sans text-text antialiased">
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
-        <ThemeProvider attribute="class" defaultTheme="dark" forcedTheme="dark" enableSystem={false}>
-          <MenuBar />
-          {children}
-          <Footer />
-          <Toaster />
-        </ThemeProvider>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-sm focus:bg-amber focus:px-4 focus:py-2 focus:text-ink"
+        >
+          Skip to content
+        </a>
+        <SiteHeader />
+        <div id="main">{children}</div>
+        <SiteFooter />
       </body>
     </html>
   )

@@ -127,6 +127,22 @@ didn't exist (`checkRateLimit`, `RATE_LIMITS`, ...). It now uses `rateLimit`/`bu
 
 The docs content was not rewritten in this cleanup. It belongs to the product redesign.
 
+## Company website redesign
+
+The redesign branch (`feat/company-website-redesign`) replaces the Presence storefront with
+the company site described in the README:
+
+- Retired with **410 Gone** (`src/middleware.ts`): `/products/ow-1-dev-kit`, `/install-guides`
+  and everything under it, `/support/faq`, `/support/warranty`, `/support/compatibility`,
+  `/support/legal/tinting-laws`. None of that hardware shipped with an ongoing support obligation.
+- Redirected (`next.config.ts`): `/support/contact` → `/contact`; `/support/orders`,
+  `/support/billing`, `/support/legal` → `/support` (permanent); `/legal/privacy` and
+  `/legal/terms` → `/support/legal/*` (temporary until #126).
+- Legacy store/auth/account routes render only `ServiceUnavailable`; their components are no
+  longer bundled.
+- Items 3, 7 and 9 below are resolved by the redesign. Item 1 (legal) is unchanged: the legal
+  page bodies were not edited, only their page titles.
+
 ## Remaining issues (for the redesign, in priority order)
 
 1. **Legal pages need owner/legal review (not edited here).** Privacy Policy and Terms name

@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+import { LEGACY_REDIRECTS } from "./src/lib/legacy-routes";
+
 const nextConfig: NextConfig = {
   images: {
     // Disable Next.js image optimization for Cloudflare Workers
@@ -15,13 +17,8 @@ const nextConfig: NextConfig = {
       }
     ],
   },
-  transpilePackages: ['three'],
-  webpack: (config) => {
-    config.module.rules.push({
-      test: /\.(glsl|vs|fs|vert|frag)$/,
-      use: ['raw-loader'],
-    });
-    return config;
+  async redirects() {
+    return LEGACY_REDIRECTS;
   },
 };
 

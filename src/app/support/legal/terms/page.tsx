@@ -16,9 +16,8 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Terms of Service - OpticWorks Presence Sensors",
-  description: "Terms and conditions governing OpticWorks presence hardware, software, and services.",
-  keywords: ["terms of service", "presence sensors", "purchase agreement", "warranty", "legal"],
+  title: "Terms of Service",
+  description: "Terms governing use of the OpticWorks website and services.",
 }
 
 export default function TermsOfServicePage() {
@@ -346,7 +345,7 @@ export default function TermsOfServicePage() {
                   
                   <div className="flex flex-col sm:flex-row gap-4 justify-center">
                     <Button asChild size="lg">
-                      <Link href={siteConfig.baseLinks.supportContact + "?category=legal"}>
+                      <Link href={siteConfig.baseLinks.contact + "?category=legal"}>
                         <RiMailLine className="mr-2 h-4 w-4" />
                         Contact Legal Team
                       </Link>
