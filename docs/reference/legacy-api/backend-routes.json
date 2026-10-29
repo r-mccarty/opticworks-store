@@ -1,0 +1,2414 @@
+{
+  "reference_date": "2026-10-29",
+  "repository_commit": "13b04849bb05dbedcbf142ddcfb42cd30165f7ec",
+  "medusa_version": "2.12.0",
+  "discovery": "Static method exports in installed Medusa dist/api and deployed custom src/api. Not an HTTP exercise of every operation.",
+  "route_file_count": 281,
+  "method_operation_count": 424,
+  "operational_endpoints_outside_route_index": [
+    {
+      "path": "/health",
+      "methods": [
+        "GET"
+      ],
+      "purpose": "Framework health handler"
+    },
+    {
+      "path": "/app",
+      "purpose": "Admin SPA and assets"
+    }
+  ],
+  "routes": [
+    {
+      "origin": "medusa",
+      "path": "/admin/api-keys/:id/revoke",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/api-keys/[id]/revoke/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/api-keys/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/api-keys/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/api-keys/:id/sales-channels",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/api-keys/[id]/sales-channels/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/api-keys",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/api-keys/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/campaigns/:id/promotions",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/campaigns/[id]/promotions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/campaigns/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/campaigns/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/campaigns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/campaigns/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/claim-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/claim-items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/claim-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/claim-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/inbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/inbound/items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/inbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/inbound/items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/inbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/inbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/inbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/inbound/shipping-method/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/outbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/outbound/items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/outbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/outbound/items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/outbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/outbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/outbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/outbound/shipping-method/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/request/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/claims",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/claims/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/collections/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/collections/[id]/products/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/collections/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/collections/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/collections",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/collections/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/currencies/:code",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/currencies/[code]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/currencies",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/currencies/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customer-groups/:id/customers",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customer-groups/[id]/customers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customer-groups/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customer-groups/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customer-groups",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customer-groups/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customers/:id/addresses/:address_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customers/[id]/addresses/[address_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customers/:id/addresses",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customers/[id]/addresses/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customers/:id/customer-groups",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customers/[id]/customer-groups/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customers/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customers/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/customers",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/customers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/convert-to-order",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/convert-to-order/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/confirm/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/items/item/:item_id",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/items/item/[item_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/promotions",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/promotions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/request/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/shipping-methods/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/shipping-methods/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/shipping-methods/method/:method_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/shipping-methods/method/[method_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id/edit/shipping-methods",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/edit/shipping-methods/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/draft-orders",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/draft-orders/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/inbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/inbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/inbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/inbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/inbound/shipping-method/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/outbound/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/outbound/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/outbound/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/shipping-method/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/outbound/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/outbound/shipping-method/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/request/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/exchanges",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/exchanges/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/feature-flags",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/feature-flags/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillment-providers/:id/options",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillment-providers/[id]/options/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillment-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillment-providers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillment-sets/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillment-sets/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillment-sets/:id/service-zones/:zone_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillment-sets/[id]/service-zones/[zone_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillment-sets/:id/service-zones",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillment-sets/[id]/service-zones/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillments/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillments/[id]/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillments/:id/shipment",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillments/[id]/shipment/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/fulfillments",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/fulfillments/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/index/details",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/index/details/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/index/sync",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/index/sync/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/inventory-items/:id/location-levels/:location_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/inventory-items/[id]/location-levels/[location_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/inventory-items/:id/location-levels/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/inventory-items/[id]/location-levels/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/inventory-items/:id/location-levels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/inventory-items/[id]/location-levels/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/inventory-items/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/inventory-items/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/inventory-items/location-levels/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/inventory-items/location-levels/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/inventory-items",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/inventory-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/invites/:id/resend",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/invites/[id]/resend/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/invites/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/invites/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/invites/accept",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/invites/accept/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/invites",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/invites/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/notifications/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/notifications/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/notifications",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/notifications/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-changes/:id",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-changes/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/confirm/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/items/item/:item_id",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/items/item/[item_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/request/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/shipping-method/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits/:id/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/[id]/shipping-method/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/order-edits",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/order-edits/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/archive",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/archive/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/changes",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/changes/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/complete",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/complete/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/credit-lines",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/credit-lines/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/[fulfillment_id]/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/mark-as-delivered",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/[fulfillment_id]/mark-as-delivered/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/fulfillments/:fulfillment_id/shipments",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/[fulfillment_id]/shipments/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/fulfillments",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/fulfillments/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/line-items",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/line-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/preview",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/preview/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/shipping-options",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/shipping-options/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/transfer/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/transfer/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders/:id/transfer",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/[id]/transfer/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/orders",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/orders/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payment-collections/:id/mark-as-paid",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payment-collections/[id]/mark-as-paid/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payment-collections/:id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payment-collections/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payment-collections",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payment-collections/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payments/:id/capture",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payments/[id]/capture/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payments/:id/refund",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payments/[id]/refund/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payments/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payments/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payments/payment-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payments/payment-providers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/payments",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/payments/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/plugins",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/plugins/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/price-lists/:id/prices/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/price-lists/[id]/prices/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/price-lists/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/price-lists/[id]/products/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/price-lists/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/price-lists/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/price-lists",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/price-lists/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/price-preferences/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/price-preferences/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/price-preferences",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/price-preferences/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-categories/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-categories/[id]/products/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-categories/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-categories/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-categories",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-categories/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-tags/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-tags/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-tags",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-tags/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-types/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-types/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-types/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/product-variants",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/product-variants/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/images/:image_id/variants/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/images/[image_id]/variants/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/options/:option_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/options/[option_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/options/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants/:variant_id/images/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/images/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants/:variant_id/inventory-items/:inventory_item_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/inventory-items/[inventory_item_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants/:variant_id/inventory-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/inventory-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants/:variant_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/[variant_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants/inventory-items/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/inventory-items/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/:id/variants",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/[id]/variants/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/export",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/export/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/import/:transaction_id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/import/[transaction_id]/confirm/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/import",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/import/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/imports/:transaction_id/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/imports/[transaction_id]/confirm/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products/imports",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/imports/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/products",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/products/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/:id/:rule_type",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/[id]/[rule_type]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/:id/buy-rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/[id]/buy-rules/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/:id/rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/[id]/rules/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/:id/target-rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/[id]/target-rules/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/rule-attribute-options/:rule_type",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/rule-attribute-options/[rule_type]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/promotions/rule-value-options/:rule_type/:rule_attribute_id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/promotions/rule-value-options/[rule_type]/[rule_attribute_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/refund-reasons/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/refund-reasons/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/refund-reasons",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/refund-reasons/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/regions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/regions/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/regions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/regions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/reservations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/reservations/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/reservations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/reservations/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/return-reasons/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/return-reasons/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/return-reasons",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/return-reasons/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/dismiss-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/dismiss-items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/dismiss-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/dismiss-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/receive/confirm",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/receive/confirm/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/receive",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/receive/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/receive-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/receive-items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/receive-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/receive-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/request",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/request/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/request-items/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/request-items/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/request-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/request-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/shipping-method/:action_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/shipping-method/[action_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns/:id/shipping-method",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/[id]/shipping-method/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/returns",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/returns/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/sales-channels/:id/products",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/sales-channels/[id]/products/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/sales-channels/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/sales-channels/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/sales-channels",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/sales-channels/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-option-types/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-option-types/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-option-types",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-option-types/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-options/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-options/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-options/:id/rules/batch",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-options/[id]/rules/batch/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-options",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-options/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-profiles/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-profiles/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/shipping-profiles",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/shipping-profiles/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stock-locations/:id/fulfillment-providers",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stock-locations/[id]/fulfillment-providers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stock-locations/:id/fulfillment-sets",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stock-locations/[id]/fulfillment-sets/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stock-locations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stock-locations/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stock-locations/:id/sales-channels",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stock-locations/[id]/sales-channels/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stock-locations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stock-locations/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stores/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stores/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/stores",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/stores/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-providers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-rates/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-rates/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-rates/:id/rules/:rule_id",
+      "methods": [
+        "DELETE"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-rates/[id]/rules/[rule_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-rates/:id/rules",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-rates/[id]/rules/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-rates",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-rates/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-regions/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-regions/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/tax-regions",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/tax-regions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/uploads/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/uploads/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/uploads/presigned-urls",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/uploads/presigned-urls/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/uploads",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/uploads/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/users/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/users/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/users/me",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/users/me/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/users",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/users/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/views/:entity/columns",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/views/[entity]/columns/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/views/:entity/configurations/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/views/[entity]/configurations/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/views/:entity/configurations/active",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/views/[entity]/configurations/active/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/views/:entity/configurations",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/views/[entity]/configurations/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:workflow_id/:transaction_id/:step_id/subscribe",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/[transaction_id]/[step_id]/subscribe/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:workflow_id/:transaction_id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/[transaction_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:workflow_id/run",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/run/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:workflow_id/steps/failure",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/steps/failure/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:workflow_id/steps/success",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/steps/success/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions/:workflow_id/subscribe",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/[workflow_id]/subscribe/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/admin/workflows-executions",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/admin/workflows-executions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/:actor_type/:auth_provider/callback",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/[actor_type]/[auth_provider]/callback/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/:actor_type/:auth_provider/register",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/[actor_type]/[auth_provider]/register/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/:actor_type/:auth_provider/reset-password",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/[actor_type]/[auth_provider]/reset-password/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/:actor_type/:auth_provider",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/[actor_type]/[auth_provider]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/:actor_type/:auth_provider/update",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/[actor_type]/[auth_provider]/update/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/session",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/session/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/auth/token/refresh",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/auth/token/refresh/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/hooks/payment/:provider",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/hooks/payment/[provider]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/complete",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/complete/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/customer",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/customer/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/line-items/:line_id",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/line-items/[line_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/line-items",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/line-items/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/promotions",
+      "methods": [
+        "DELETE",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/promotions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/shipping-methods",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/shipping-methods/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts/:id/taxes",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/[id]/taxes/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/carts",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/carts/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/collections/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/collections/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/collections",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/collections/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/currencies/:code",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/currencies/[code]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/currencies",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/currencies/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/customers/me/addresses/:address_id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/customers/me/addresses/[address_id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/customers/me/addresses",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/customers/me/addresses/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/customers/me",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/customers/me/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/customers",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/customers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/orders/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/orders/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/orders/:id/transfer/accept",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/orders/[id]/transfer/accept/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/orders/:id/transfer/cancel",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/orders/[id]/transfer/cancel/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/orders/:id/transfer/decline",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/orders/[id]/transfer/decline/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/orders/:id/transfer/request",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/orders/[id]/transfer/request/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/orders",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/orders/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/payment-collections/:id/payment-sessions",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/payment-collections/[id]/payment-sessions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/payment-collections",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/payment-collections/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/payment-providers",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/payment-providers/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-categories/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-categories/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-categories",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-categories/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-tags/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-tags/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-tags",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-tags/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-types/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-types/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-types",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-types/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-variants/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-variants/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/product-variants",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/product-variants/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/products/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/products/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/products",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/products/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/regions/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/regions/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/regions",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/regions/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/return-reasons/:id",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/return-reasons/[id]/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/return-reasons",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/return-reasons/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/returns",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/returns/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/shipping-options/:id/calculate",
+      "methods": [
+        "POST"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/shipping-options/[id]/calculate/route.js"
+    },
+    {
+      "origin": "medusa",
+      "path": "/store/shipping-options",
+      "methods": [
+        "GET"
+      ],
+      "source": "node_modules/@medusajs/medusa/dist/api/store/shipping-options/route.js"
+    },
+    {
+      "origin": "custom",
+      "path": "/admin/custom",
+      "methods": [
+        "GET"
+      ],
+      "source": "src/api/admin/custom/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/admin/devices/:id",
+      "methods": [
+        "DELETE",
+        "GET",
+        "PATCH"
+      ],
+      "source": "src/api/admin/devices/[id]/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/admin/devices",
+      "methods": [
+        "GET",
+        "POST"
+      ],
+      "source": "src/api/admin/devices/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/store/custom",
+      "methods": [
+        "GET"
+      ],
+      "source": "src/api/store/custom/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/store/customers/me/payment-methods",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "source": "src/api/store/customers/me/payment-methods/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/store/devices/:id",
+      "methods": [
+        "DELETE",
+        "GET"
+      ],
+      "source": "src/api/store/devices/[id]/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/store/devices/pair",
+      "methods": [
+        "POST"
+      ],
+      "source": "src/api/store/devices/pair/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/store/devices",
+      "methods": [
+        "GET"
+      ],
+      "source": "src/api/store/devices/route.ts"
+    },
+    {
+      "origin": "custom",
+      "path": "/webhooks/easypost",
+      "methods": [
+        "POST"
+      ],
+      "source": "src/api/webhooks/easypost/route.ts"
+    }
+  ]
+}

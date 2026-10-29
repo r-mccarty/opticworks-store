@@ -10,6 +10,15 @@ Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily de
 
 ---
 
+## Legacy Backend Archive
+
+The backend was quiesced for a separate VM snapshot on 2026-10-29. Existing frontend pages remain visible; API operations are deliberately offline.
+
+| Document | Purpose |
+|----------|---------|
+| [LEGACY_BACKEND_API.md](LEGACY_BACKEND_API.md) | Frozen backend API inventory, custom contracts and frontend integration map |
+| [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_SNAPSHOT.md) | Recovery artifacts, snapshot readiness and deliberate rollback sequence |
+
 ## Core Documentation
 
 | Document | Purpose |
@@ -118,3 +127,4 @@ Moved to `docs/archived/` - historical reference only.
 | Work with RS-1 devices | [DEVICE_MANAGEMENT.md](DEVICE_MANAGEMENT.md) |
 
 For daily development, `CLAUDE.md` has everything you need.
+

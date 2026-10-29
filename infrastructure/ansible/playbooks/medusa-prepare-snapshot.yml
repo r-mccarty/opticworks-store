@@ -1,0 +1,95 @@
+---
+- name: Preserve the legacy backend and leave it quiescent for a provider snapshot
+  hosts: medusa_backend
+  gather_facts: false
+  become: true
+  vars:
+    recovery_directory: "/var/backups/opticworks/pre-redeployment-{{ capture_id }}"
+    snapshot_helper: /usr/local/libexec/opticworks/prepare-snapshot.py
+  tasks:
+    - name: Require an explicit capture identifier
+      ansible.builtin.assert:
+        that:
+          - capture_id is defined
+          - capture_id is match('^[0-9]{8}T[0-9]{6}Z$')
+
+    - name: Create the helper directory
+      ansible.builtin.file:
+        path: /usr/local/libexec/opticworks
+        state: directory
+        mode: '0700'
+
+    - name: Install the reviewed snapshot helper
+      ansible.builtin.copy:
+        src: ../scripts/prepare-snapshot.py
+        dest: "{{ snapshot_helper }}"
+        mode: '0700'
+
+    - name: Check recovery space and preserve original service and PM2 state
+      ansible.builtin.command:
+        argv: [python3, "{{ snapshot_helper }}", preflight, "{{ recovery_directory }}"]
+      changed_when: true
+
+    - name: Stop the public tunnel and prevent automatic reconnection
+      ansible.builtin.systemd_service:
+        name: cloudflared.service
+        state: stopped
+        enabled: false
+
+    - name: Stop the Medusa application and background jobs
+      ansible.builtin.command:
+        argv: [pm2, stop, medusa-prod]
+      become_user: ryan
+      no_log: true
+      changed_when: true
+
+    - name: Persist the stopped Medusa process state
+      ansible.builtin.command:
+        argv: [pm2, save]
+      become_user: ryan
+      no_log: true
+      changed_when: true
+
+    - name: Disable the known failing scheduled legacy backup
+      ansible.builtin.cron:
+        name: Restic backup to R2
+        user: ryan
+        minute: '0'
+        hour: '3'
+        job: /opt/opticworks/backup/backup.sh >> /var/log/opticworks-backup.log 2>&1
+        disabled: true
+
+    - name: Capture all three databases and global roles and verify archive decoding
+      ansible.builtin.command:
+        argv: [python3, "{{ snapshot_helper }}", database, "{{ recovery_directory }}"]
+      changed_when: true
+      no_log: true
+
+    - name: Persist Redis data before stopping the service
+      ansible.builtin.command:
+        argv: [redis-cli, SAVE]
+      changed_when: true
+
+    - name: Stop database and queue services cleanly
+      ansible.builtin.systemd_service:
+        name: "{{ item }}"
+        state: stopped
+      loop:
+        - redis-server.service
+        - postgresql@17-main.service
+
+    - name: Archive source, configuration, Redis persistence and checksums
+      ansible.builtin.command:
+        argv: [python3, "{{ snapshot_helper }}", archive, "{{ recovery_directory }}"]
+      changed_when: true
+      no_log: true
+
+    - name: Create and read back an encrypted offsite recovery snapshot
+      ansible.builtin.command:
+        argv: [python3, "{{ snapshot_helper }}", offsite, "{{ recovery_directory }}"]
+      changed_when: true
+      no_log: true
+
+    - name: Report the nonsecret recovery directory
+      ansible.builtin.debug:
+        msg: "Snapshot preparation completed. Read {{ recovery_directory }}/SNAPSHOT_READY.json for the offsite snapshot identifier. The provider VM snapshot is still a separate step."
