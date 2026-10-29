@@ -3,6 +3,7 @@
 import { useState } from "react"
 
 import { FadeContainer } from "@/components/Fade"
+import { COMMERCE_ENABLED } from "@/lib/commerce"
 import type { Product, ProductVariant } from "@/lib/products"
 
 import { ProductHero } from "./ProductHero"
@@ -34,7 +35,9 @@ export function ProductDetailView({ product }: ProductDetailViewProps) {
 
         <SocialProofFAQ />
 
-        <FinalCTA product={product} selectedVariant={selectedVariant} />
+        {COMMERCE_ENABLED && (
+          <FinalCTA product={product} selectedVariant={selectedVariant} />
+        )}
       </FadeContainer>
     </main>
   )

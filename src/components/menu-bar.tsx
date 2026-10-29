@@ -7,6 +7,7 @@ import { usePathname, useRouter } from "next/navigation"
 
 import { useAuth } from "@/hooks/useAuth"
 import { useCart } from "@/hooks/useCart"
+import { COMMERCE_ENABLED } from "@/lib/commerce"
 import { cx } from "@/lib/utils"
 import useScroll from "@/lib/useScroll"
 
@@ -16,6 +17,10 @@ const navItems = [
   { label: "Specs", href: "#specs" },
   { label: "Integrations", href: "#integrations" },
 ] as const
+
+const primaryCta = COMMERCE_ENABLED
+  ? { label: "Pre-order OW-1", href: "/store" }
+  : { label: "Contact us", href: "/support/contact" }
 
 export const MenuBar = React.memo(function MenuBar() {
   const pathname = usePathname()
@@ -97,32 +102,36 @@ export const MenuBar = React.memo(function MenuBar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link
-            href={accountHref}
-            className="hidden px-5 py-2 text-sm font-medium text-amber-500 transition-colors hover:text-amber-400 md:block"
-            title={accountLabel}
-          >
-            {accountLabel}
-          </Link>
+          {COMMERCE_ENABLED && (
+            <>
+              <Link
+                href={accountHref}
+                className="hidden px-5 py-2 text-sm font-medium text-amber-500 transition-colors hover:text-amber-400 md:block"
+                title={accountLabel}
+              >
+                {accountLabel}
+              </Link>
+
+              <Link
+                href="/store/cart"
+                className="relative p-2 text-neutral-300 transition-colors hover:text-white"
+                aria-label="Cart"
+              >
+                <ShoppingBag size={20} />
+                {totalItemsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-black animate-in zoom-in">
+                    {totalItemsCount}
+                  </span>
+                )}
+              </Link>
+            </>
+          )}
 
           <Link
-            href="/store/cart"
-            className="relative p-2 text-neutral-300 transition-colors hover:text-white"
-            aria-label="Cart"
-          >
-            <ShoppingBag size={20} />
-            {totalItemsCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-black animate-in zoom-in">
-                {totalItemsCount}
-              </span>
-            )}
-          </Link>
-
-          <Link
-            href="/store"
+            href={primaryCta.href}
             className="hidden rounded bg-amber-500 px-5 py-2 text-sm font-medium text-black transition-colors hover:bg-amber-400 md:block"
           >
-            Pre-order OW-1
+            {primaryCta.label}
           </Link>
 
           <button
@@ -153,11 +162,11 @@ export const MenuBar = React.memo(function MenuBar() {
           ))}
           <div className="my-2 h-px bg-white/10" />
           <Link
-            href="/store"
+            href={primaryCta.href}
             onClick={() => setMobileMenuOpen(false)}
             className="w-full rounded bg-amber-500 py-3 text-center font-medium text-black"
           >
-            Pre-order OW-1
+            {primaryCta.label}
           </Link>
         </div>
       )}

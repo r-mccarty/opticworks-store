@@ -1,111 +1,86 @@
 # Agent Context
 
-E-commerce platform: Next.js 15 + Medusa v2 + Stripe + Cloudflare Workers.
+OpticWorks, Inc. company/product website: Next.js 15 on Cloudflare Workers (OpenNext).
+Contact: support@optic.works. Canonical site: https://optic.works.
+(`AGENTS.md` is a symlink to this file.)
+
+## Current state: commerce offline (since 2026-10-29)
+
+- The legacy Medusa v2 backend (Hetzner) is archived and stopped. **Do not reconnect it,
+  restart it, or resume the paused Hookdeck connections** as part of frontend work.
+- `COMMERCE_ENABLED = false` in `src/lib/commerce.ts` disables catalog sync, cart, checkout
+  and accounts. Legacy store/account routes render `ServiceUnavailable`.
+- An edge Worker (`opticworks-backend-offline-20261029`) returns `503 BACKEND_OFFLINE` for
+  `optic.works/api/*`, `www.optic.works/api/*`, `api.optic.works/*`, `medusa.optic.works/*`.
+  **No same-origin `/api/*` route works in production.** Don't add client features that call
+  `/api/*` or Medusa. Don't remove or change those four routes here.
+- No website forms deliver anything. Support is by email to support@optic.works.
+- Status, route inventory and open issues: `docs/reference/BACKEND_OFFLINE_FRONTEND.md`.
+  The backend archive and API catalog are in PR #124 (draft, not merged).
+
+## Direction
+
+The next frontend is a **company/product website that doesn't depend on Medusa**.
+E-commerce will return later on a new backend. Until then:
+
+- Don't add prices, "add to cart", pre-order, shipping-time, review/testimonial or other
+  purchase claims.
+- Don't present mock data as real (order lookups, compatibility results, form "success").
+- Legal pages (privacy, terms, warranty/returns wording) need owner/legal approval before
+  their obligations change. Flag problems instead of rewriting them.
+- Company identity: **OpticWorks, Inc.**, 3077B Clairemont Dr. #201, San Diego, CA 92117.
 
 ## Quick Commands
 
 ```bash
-pnpm run dev                        # Dev server (localhost:3000)
-pnpm run lint && pnpm run test      # Pre-commit checks
-pnpm run secrets:pull               # Pull secrets from Infisical
-pnpm exec playwright test --project=chromium  # E2E tests
+pnpm dev            # Dev server (localhost:3000)
+pnpm lint           # Zero warnings allowed
+pnpm typecheck      # tsc --noEmit
+pnpm test           # Vitest unit tests
+pnpm cf:build       # OpenNext Cloudflare build
 ```
+
+CI (`.github/workflows/ci.yml`) runs all four on PRs and on pushes to `main`. `next build` also
+lints and type-checks; don't reintroduce `ignoreBuildErrors` / `ignoreDuringBuilds`.
 
 ## Structure
 
 ```
-src/app/              # Next.js App Router
-src/components/       # React components
-src/hooks/            # Zustand stores (useCart, useAuth)
-src/lib/api/          # Medusa API client
-backend/              # Medusa v2 backend (standalone)
-infrastructure/ansible/  # Hetzner deployment
-e2e/                  # Playwright tests
+src/app/                 # App Router pages; src/app/api/* handlers are unreachable in prod
+src/components/          # React components
+src/components/legacy/   # Commerce/account pages (only rendered when COMMERCE_ENABLED)
+src/lib/commerce.ts      # Commerce kill switch
+src/lib/api/medusa*.ts   # Legacy Medusa client (kept for reference)
+src/hooks/               # Zustand stores (useCart, useAuth: legacy)
+backend/                 # Archived Medusa backend (standalone, not built)
+infrastructure/ansible/  # Legacy backend automation
+platform/docs-site/      # Hugo source for docs.optic.works
+e2e/                     # Playwright tests for the legacy commerce flow (need backend)
 ```
 
 ## Constraints
 
-- **pnpm only** - no npm/yarn
-- **No `any` types** - strict TypeScript
-- **Never commit secrets** - use Infisical (`docs/SECRETS.md`)
-- **Backend changes via Ansible** - no direct SSH edits
+- **pnpm only**: no npm/yarn
+- **No `any` types**: strict TypeScript
+- **Never commit secrets**: use Infisical (`docs/SECRETS.md`)
+- **Backend changes via Ansible**: no direct SSH edits
+- **Merging to `main` deploys production** through Cloudflare's Git integration. Other
+  branches upload preview versions only.
 
-## Frontend Workflow
-
-1. Develop: `pnpm dev`
-2. Test: `pnpm lint && pnpm test`
-3. Build: `pnpm run cf:build`
-4. Deploy: Push to `main` → Cloudflare auto-deploys
-5. E2E: `pnpm exec playwright test --project=chromium`
-
-## Backend Workflow
-
-```bash
-cd infrastructure/ansible
-export INFISICAL_SERVICE_TOKEN=st.xxx
-bash scripts/generate-secrets-from-infisical.sh
-ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
-```
-
-Full provisioning: `playbooks/medusa-provision.yml`
-Teardown: `playbooks/medusa-destroy.yml`
-
-## Debugging & Monitoring
-
-| Task | Command/Method |
-|------|----------------|
-| Backend errors | Sentry dashboard (`opticworks-backend` project) |
-| Frontend errors | Sentry dashboard (`opticworks-storefront` project) |
-| Edge metrics | Cloudflare Dashboard → Workers & Pages → Analytics |
-| Medusa logs (JSON) | `ssh hetzner-node "tail -f /opt/opticworks/medusa-backend/logs/medusa-app.log"` |
-| Medusa logs (pretty) | `ssh hetzner-node "tail -f ..." \| pnpm pino-pretty` |
-| PM2 status | `ssh hetzner-node "pm2 status"` |
-| Orphaned processes | `ssh hetzner-node "ps aux \| grep medusajs/cli"` |
-| Backend health | `curl https://api.optic.works/health` |
-| Webhook logs | Hookdeck Admin API (`e2e/fixtures/hookdeck-utils.ts`) |
-| Email delivery | Mailosaur API (`e2e/fixtures/email-utils.ts`) |
-| Cloudflare resources | See `docs/reference/CLOUDFLARE_API.md` |
-
-See `docs/reference/OBSERVABILITY.md` for full monitoring strategy.
-
-## Architecture
+## Deployment
 
 ```
-optic.works (Workers) → api.optic.works → Medusa (Hetzner)
-                      → medusa.optic.works (SSR bypass)
-
-EasyPost → Hookdeck → Medusa webhooks (tracker.updated events)
-Stripe   → Hookdeck → Storefront webhooks (checkout.session.completed)
+optic.works, www.optic.works          → Worker opticworks-store (this repo)
+*.optic.works/api/*, api.*, medusa.*  → Worker opticworks-backend-offline-20261029 (503)
+docs.optic.works                      → Hugo docs site (platform/docs-site)
 ```
 
-## Key Integrations
+Preview URLs: `https://<version-id-prefix>-opticworks-store.ryan-39f.workers.dev`.
 
-| System | Purpose | Docs |
-|--------|---------|------|
-| EasyPost | Shipping rates, labels, tracking | `docs/reference/FULFILLMENT.md` |
-| Hookdeck | Webhook gateway (Stripe + EasyPost) | `docs/reference/WEBHOOKS.md` |
-| Stripe | Payments (deferred intent pattern) | `docs/reference/CHECKOUT_FLOW.md` |
-| Stripe Tax | Automated sales tax calculation | `docs/reference/STRIPE_TAX.md` |
-| Stripe (Saved Cards) | Customer sync, saved payment methods | `docs/reference/CUSTOMER_AUTH.md` |
-| Turnstile | CAPTCHA spam prevention (contact form) | `docs/reference/CLOUDFLARE_API.md` |
-| Sentry | Error tracking (backend + client-side) | `docs/reference/OBSERVABILITY.md` |
-| Infisical | Secrets management | `docs/SECRETS.md` |
-| Mailosaur | E2E email testing | `docs/reference/E2E_TESTING.md` |
+## Historical reference (legacy commerce)
 
-## Reference Docs
-
-| Document | Use When |
-|----------|----------|
-| `docs/reference/BACKEND_OPERATIONS.md` | SSH access, server logs, Medusa Admin API |
-| `docs/reference/FULFILLMENT.md` | Shipping rates, labels, EasyPost provider |
-| `docs/reference/FULFILLMENT_INBOUND.md` | Tracker webhooks, status updates |
-| `docs/reference/CHECKOUT_FLOW.md` | Payment flow, Stripe integration |
-| `docs/reference/STRIPE_TAX.md` | Sales tax calculation, Stripe Tax provider |
-| `docs/reference/WEBHOOKS.md` | Stripe + EasyPost webhook handling |
-| `docs/reference/E2E_TESTING.md` | Playwright, Mailosaur, Hookdeck testing |
-| `docs/reference/E2E_DEBUGGING.md` | Debugging failed tests, correlation IDs |
-| `docs/reference/DEPLOYMENT_GUIDE.md` | Ansible playbooks, backup & recovery |
-| `docs/reference/CLOUDFLARE_API.md` | R2, Tunnels, DNS, rate limiting |
-| `docs/reference/OBSERVABILITY.md` | Sentry setup, Cloudflare monitoring |
-| `docs/reference/LOGGING.md` | Structured logging, Pino, correlation IDs |
-| `docs/SECRETS.md` | All environment variables |
+These describe the archived Medusa/Stripe/EasyPost system. Read them for context only.
+They do not describe the running site:
+`docs/reference/BACKEND_OPERATIONS.md`, `DEPLOYMENT_GUIDE.md`, `CHECKOUT_FLOW.md`,
+`WEBHOOKS.md`, `FULFILLMENT*.md`, `STRIPE_TAX.md`, `CUSTOMER_AUTH.md`, `MEDUSA_API.md`,
+`E2E_TESTING.md`. See `docs/reference/README.md`.

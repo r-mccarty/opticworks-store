@@ -40,21 +40,21 @@ const categories: SupportCategory[] = [
   {
     title: "Order tracking",
     description:
-      "Track shipments, reschedule deliveries, and view receipts.",
+      "Get help with an existing order by email.",
     href: siteConfig.baseLinks.supportOrders,
     icon: RiShoppingBag3Line,
   },
   {
     title: "Warranty",
     description:
-      "Claim replacements and check coverage for your hardware.",
+      "Request warranty support for your hardware by email.",
     href: siteConfig.baseLinks.supportWarranty,
     icon: RiShieldCheckLine,
   },
   {
     title: "Billing",
     description:
-      "Invoices, subscriptions, and refunds in one place.",
+      "Get help with receipts, charges, and refunds by email.",
     href: siteConfig.baseLinks.supportBilling,
     icon: RiBankCardLine,
   },
@@ -68,7 +68,7 @@ const categories: SupportCategory[] = [
   {
     title: "FAQ",
     description:
-      "Instant answers across presence, installs, and accounts.",
+      "Answers about presence sensing, installs, and support.",
     href: siteConfig.baseLinks.supportFaq,
     icon: RiBook3Line,
   },
@@ -155,7 +155,7 @@ export default function SupportPage() {
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
               <Link href={siteConfig.baseLinks.supportContact}>
-                Start a ticket
+                Contact support
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">

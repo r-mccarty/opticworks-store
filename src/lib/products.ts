@@ -60,7 +60,6 @@ export const products: Product[] = [
     price: 89,
     image: "/images/stock/ow1-devkit-4x3.webp",
     category: "sensor",
-    badge: "Pre-order",
     heroIntro: {
       headline: "The home that watches out for you.",
       subheading:
@@ -99,10 +98,6 @@ export const products: Product[] = [
     ],
     // Default variant ID for cart integration
     variantId: "variant_OW1_DEV_KIT",
-    reviews: {
-      rating: 4.97,
-      count: 312,
-    },
     inStock: true,
     featured: true,
   },

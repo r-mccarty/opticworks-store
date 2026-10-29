@@ -105,6 +105,10 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
+  // "./" resolves to each route's own path, giving every page a self-canonical URL.
+  alternates: {
+    canonical: "./",
+  },
   title: siteConfig.name,
   description: siteConfig.description,
   keywords: [
@@ -117,11 +121,11 @@ export const metadata: Metadata = {
   ],
   authors: [
     {
-      name: "OpticWorks",
+      name: siteConfig.company.name,
       url: siteConfig.url,
     },
   ],
-  creator: "OpticWorks",
+  creator: siteConfig.company.name,
   openGraph: {
     type: "website",
     locale: "en_US",
@@ -134,7 +138,6 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: siteConfig.name,
     description: siteConfig.description,
-    creator: "@opticworks",
   },
   icons: {
     icon: "/favicon.ico",

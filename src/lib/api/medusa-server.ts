@@ -7,6 +7,7 @@
  * @see Phase 4 of Architecture Audit
  */
 
+import { COMMERCE_ENABLED } from '@/lib/commerce';
 import { getCartIdFromCookie } from '@/lib/cart/cookies.server';
 import type { MedusaCart } from './medusa';
 
@@ -32,6 +33,10 @@ function getPublishableKey(): string {
  * @returns Cart data or null if no cart/error
  */
 export async function getCartSSR(): Promise<MedusaCart | null> {
+  if (!COMMERCE_ENABLED) {
+    return null;
+  }
+
   const cartId = await getCartIdFromCookie();
   if (!cartId) {
     console.log('[medusa-server] No cart ID in cookie');

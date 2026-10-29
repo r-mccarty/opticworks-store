@@ -4,39 +4,37 @@ import { siteConfig } from "@/app/siteConfig"
 
 const CURRENT_YEAR = new Date().getFullYear()
 
-const sections = [
+type FooterLink = {
+  label: string
+  href: string
+  external?: boolean
+}
+
+const sections: { title: string; items: FooterLink[] }[] = [
   {
     title: "Product",
     items: [
       { label: "OW-1 Sensor", href: siteConfig.baseLinks.products },
       { label: "Integrations", href: "/#integrations" },
-      {
-        label: "Home Assistant Add-on",
-        href: "https://docs.optic.works",
-        external: true,
-      },
-      { label: "Developer API", href: "https://docs.optic.works", external: true },
+      { label: "Documentation", href: siteConfig.docsUrl, external: true },
     ],
   },
   {
-    title: "Company",
+    title: "Support",
     items: [
-      { label: "About Us", href: siteConfig.baseLinks.support },
-      { label: "Careers", href: siteConfig.baseLinks.supportContact },
-      { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
       { label: "Contact", href: siteConfig.baseLinks.supportContact },
+      { label: "Install Guides", href: siteConfig.baseLinks.installGuides },
+      { label: "FAQ", href: siteConfig.baseLinks.supportFaq },
     ],
   },
   {
-    title: "Social",
+    title: "Legal",
     items: [
-      { label: "Twitter / X", href: "https://twitter.com/opticworks", external: true },
-      { label: "GitHub", href: "https://github.com/opticworks", external: true },
-      { label: "Discord", href: siteConfig.baseLinks.supportContact },
-      { label: "YouTube", href: "https://youtube.com/@opticworks", external: true },
+      { label: "Privacy Policy", href: siteConfig.baseLinks.supportPrivacy },
+      { label: "Terms of Service", href: siteConfig.baseLinks.supportTerms },
     ],
   },
-] as const
+]
 
 const Footer = () => {
   return (
@@ -55,10 +53,20 @@ const Footer = () => {
             Spatial intelligence for the private home.
           </p>
 
-          <div className="text-neutral-600">
-            © {CURRENT_YEAR} OpticWorks Inc. <br />
-            San Francisco, CA
-          </div>
+          <address className="not-italic text-neutral-600">
+            © {CURRENT_YEAR} {siteConfig.company.name}
+            {siteConfig.company.addressLines.map((line) => (
+              <span key={line} className="block">
+                {line}
+              </span>
+            ))}
+            <a
+              href={`mailto:${siteConfig.contact.email}`}
+              className="mt-2 block transition-colors hover:text-amber-500"
+            >
+              {siteConfig.contact.email}
+            </a>
+          </address>
         </div>
 
         {sections.map((section) => (

@@ -5,6 +5,7 @@ import { FadeContainer, FadeDiv } from "@/components/Fade"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { products } from "@/lib/products"
+import { COMMERCE_ENABLED } from "@/lib/commerce"
 
 export default function ProductsPage() {
   return (
@@ -37,7 +38,7 @@ export default function ProductsPage() {
 
         <FadeDiv className="mt-10 flex flex-wrap justify-center gap-3">
           <Button asChild size="lg">
-            <Link href="/store">Shop hardware</Link>
+            <Link href="/support/contact">Contact us</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
             <Link href="https://docs.optic.works" target="_blank" rel="noreferrer">
@@ -79,9 +80,13 @@ export default function ProductsPage() {
                 </p>
 
                 <div className="mt-4 flex items-center justify-between text-sm">
-                  <span className="font-semibold text-foreground">
-                    ${product.price}
-                  </span>
+                  {COMMERCE_ENABLED ? (
+                    <span className="font-semibold text-foreground">
+                      ${product.price}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground">Not currently available to order</span>
+                  )}
                   <span className="text-muted-foreground">View details →</span>
                 </div>
               </Link>
@@ -101,9 +106,6 @@ export default function ProductsPage() {
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Button asChild size="lg">
-              <Link href="/store">Shop now</Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
               <Link href="/support/contact">Talk to us</Link>
             </Button>
           </div>

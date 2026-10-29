@@ -4,6 +4,8 @@ import { FadeContainer, FadeDiv } from "@/components/Fade"
 import { ProductGrid } from "@/components/store/ProductGrid"
 import { listProducts } from "@/lib/api/medusa"
 import { siteConfig } from "@/app/siteConfig"
+import { ServiceUnavailable } from "@/components/ServiceUnavailable"
+import { COMMERCE_ENABLED } from "@/lib/commerce"
 
 export const metadata: Metadata = {
   title: `Store - ${siteConfig.name}`,
@@ -15,6 +17,15 @@ export const metadata: Metadata = {
 export const revalidate = 300
 
 export default async function StorePage() {
+  if (!COMMERCE_ENABLED) {
+    return (
+      <ServiceUnavailable
+        title="Online store unavailable"
+        description="Our online store is offline while we rebuild it. Products are not available to order right now."
+      />
+    )
+  }
+
   const products = await listProducts()
 
   return (

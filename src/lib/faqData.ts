@@ -2,7 +2,7 @@ export interface FAQ {
   id: string
   question: string
   answer: string
-  category: 'installation' | 'products' | 'shipping' | 'warranty' | 'legal' | 'general'
+  category: 'installation' | 'products' | 'warranty' | 'legal' | 'general'
   tags: string[]
 }
 
@@ -59,24 +59,6 @@ export const faqData: FAQ[] = [
     tags: ["adjustable", "split king", "compatibility", "mounting"]
   },
 
-  // Shipping FAQs
-  {
-    id: "shipping-time",
-    question: "How long does shipping take?",
-    answer:
-      "Sensors leave the lab within 1–2 business days. Standard shipping is 3–5 business days within the US, expedited arrives in 1–2 days, and we provide a tracking link as soon as the label prints.",
-    category: "shipping",
-    tags: ["shipping", "delivery", "tracking", "expedited"]
-  },
-  {
-    id: "shipping-global",
-    question: "Do you ship internationally?",
-    answer:
-      "Yes. We currently fulfill to Canada, the EU, Australia, and Singapore. Customs fees or VAT are collected by the carrier. If your region isn’t listed at checkout, reach out and we’ll coordinate a manual shipment.",
-    category: "shipping",
-    tags: ["international", "customs", "VAT", "regions"]
-  },
-
   // Warranty FAQs
   {
     id: "warranty-coverage",
@@ -90,9 +72,9 @@ export const faqData: FAQ[] = [
     id: "warranty-process",
     question: "How do I start a warranty claim?",
     answer:
-      "Submit the warranty form with your order number, calibration logs if available, and photos of the install. We respond within 24 hours with troubleshooting steps or a replacement authorization.",
+      "Email support@optic.works with your order number, calibration logs if available, and photos of the install.",
     category: "warranty",
-    tags: ["claim", "process", "photos", "response time"]
+    tags: ["claim", "process", "photos", "email"]
   },
 
   // Legal FAQs
@@ -103,14 +85,6 @@ export const faqData: FAQ[] = [
       "No. All presence detection runs locally on the ESP32 and only publishes anonymized states (occupied, clear, confidence scores) to your local network. Cloud sync is optional and off by default.",
     category: "legal",
     tags: ["privacy", "local processing", "cloud", "data"]
-  },
-  {
-    id: "legal-clinics",
-    question: "Is it approved for clinics or HIPAA-sensitive environments?",
-    answer:
-      "Yes. The system has no cameras or microphones, stores no PII, and can run entirely offline. Sleep clinics typically pair it with their own encrypted data pipelines, which we fully support.",
-    category: "legal",
-    tags: ["hipaa", "clinics", "compliance", "privacy"]
   },
 
   // General FAQs
@@ -124,10 +98,10 @@ export const faqData: FAQ[] = [
   },
   {
     id: "general-support",
-    question: "How can I get real-time help?",
+    question: "How can I get help?",
     answer:
-      "Use the contact form, Discord link in your order email, or schedule a call with our integrations team. During business hours we typically respond in under two hours.",
+      "Email support@optic.works. Our online contact form is temporarily unavailable while we rebuild the website.",
     category: "general",
-    tags: ["support", "contact", "discord", "response time"]
+    tags: ["support", "contact", "email"]
   }
 ]

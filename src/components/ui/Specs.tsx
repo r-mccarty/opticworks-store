@@ -6,8 +6,8 @@ import Image from "next/image"
 
 export function Specs() {
   const product = {
+    id: "ow-1-dev-kit",
     name: "OpticWorks OW-1 Developer Kit",
-    price: 89,
     description: "Includes 1x Sensor Node, USB-C Cable, Wall Mount.",
   }
 
@@ -76,19 +76,18 @@ export function Specs() {
           <div className="mt-12 rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-lg font-medium">{product.name}</span>
-              <span className="text-2xl font-bold">${product.price}</span>
             </div>
             <p className="mb-6 text-sm text-neutral-500">
               {product.description}
             </p>
             <Link
-              href="/store"
+              href={`/products/${product.id}`}
               className="block w-full rounded-lg bg-amber-500 py-4 text-center font-bold text-black transition-colors hover:bg-amber-400 active:scale-[0.98]"
             >
-              Add to Cart
+              View Details
             </Link>
             <div className="mt-4 text-center text-xs text-neutral-400">
-              Ships Q4 2025. Limited Batch.
+              Not currently available to order.
             </div>
           </div>
         </div>

@@ -28,17 +28,17 @@ export function Hero() {
 
           <div className="flex flex-wrap items-center gap-4">
             <Link
-              href="/store"
+              href="/products"
               className="group relative flex items-center gap-2 rounded bg-amber-500 px-8 py-4 font-semibold text-black transition-all hover:bg-amber-400"
             >
-              Order Development Kit
+              Explore the OW-1
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               href="https://docs.optic.works"
               className="rounded border border-white/20 bg-transparent px-8 py-4 font-medium text-white transition-colors hover:bg-white/5"
             >
-              Read the Whitepaper
+              Read the Docs
             </Link>
           </div>
 
