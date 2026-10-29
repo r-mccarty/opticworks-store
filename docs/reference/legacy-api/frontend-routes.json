@@ -1,0 +1,259 @@
+{
+  "reference_date": "2026-10-29",
+  "repository_commit": "13b04849bb05dbedcbf142ddcfb42cd30165f7ec",
+  "route_file_count": 20,
+  "routes": [
+    {
+      "path": "/api/account/payment-methods",
+      "source": "src/app/api/account/payment-methods/route.ts",
+      "handlers": [
+        {
+          "method": "GET",
+          "line": 12
+        },
+        {
+          "method": "DELETE",
+          "line": 69
+        }
+      ]
+    },
+    {
+      "path": "/api/analytics/events",
+      "source": "src/app/api/analytics/events/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 48
+        },
+        {
+          "method": "GET",
+          "line": 117
+        },
+        {
+          "method": "OPTIONS",
+          "line": 176
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/forgot-password",
+      "source": "src/app/api/auth/forgot-password/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/login",
+      "source": "src/app/api/auth/login/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 14
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/logout",
+      "source": "src/app/api/auth/logout/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 6
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/me",
+      "source": "src/app/api/auth/me/route.ts",
+      "handlers": [
+        {
+          "method": "GET",
+          "line": 7
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/refresh",
+      "source": "src/app/api/auth/refresh/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 8
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/register",
+      "source": "src/app/api/auth/register/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 20
+        }
+      ]
+    },
+    {
+      "path": "/api/auth/reset-password",
+      "source": "src/app/api/auth/reset-password/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 10
+        }
+      ]
+    },
+    {
+      "path": "/api/easypost/suggest-address",
+      "source": "src/app/api/easypost/suggest-address/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 4
+        },
+        {
+          "method": "OPTIONS",
+          "line": 40
+        }
+      ]
+    },
+    {
+      "path": "/api/easypost/validate-address",
+      "source": "src/app/api/easypost/validate-address/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 16
+        },
+        {
+          "method": "OPTIONS",
+          "line": 61
+        }
+      ]
+    },
+    {
+      "path": "/api/email/send",
+      "source": "src/app/api/email/send/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 42
+        },
+        {
+          "method": "OPTIONS",
+          "line": 106
+        }
+      ]
+    },
+    {
+      "path": "/api/fulfillment/create-label",
+      "source": "src/app/api/fulfillment/create-label/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 158
+        },
+        {
+          "method": "OPTIONS",
+          "line": 246
+        }
+      ]
+    },
+    {
+      "path": "/api/inventory/check",
+      "source": "src/app/api/inventory/check/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 60
+        },
+        {
+          "method": "GET",
+          "line": 147
+        },
+        {
+          "method": "OPTIONS",
+          "line": 184
+        }
+      ]
+    },
+    {
+      "path": "/api/order-details",
+      "source": "src/app/api/order-details/route.ts",
+      "handlers": [
+        {
+          "method": "GET",
+          "line": 26
+        }
+      ]
+    },
+    {
+      "path": "/api/stripe/create-checkout-session",
+      "source": "src/app/api/stripe/create-checkout-session/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 27
+        },
+        {
+          "method": "OPTIONS",
+          "line": 165
+        }
+      ]
+    },
+    {
+      "path": "/api/stripe/get-session-tax",
+      "source": "src/app/api/stripe/get-session-tax/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 23
+        },
+        {
+          "method": "OPTIONS",
+          "line": 111
+        }
+      ]
+    },
+    {
+      "path": "/api/stripe/shipping-webhook",
+      "source": "src/app/api/stripe/shipping-webhook/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 20
+        },
+        {
+          "method": "OPTIONS",
+          "line": 215
+        }
+      ]
+    },
+    {
+      "path": "/api/stripe/webhook",
+      "source": "src/app/api/stripe/webhook/route.ts",
+      "handlers": [
+        {
+          "method": "POST",
+          "line": 35
+        },
+        {
+          "method": "OPTIONS",
+          "line": 484
+        }
+      ]
+    },
+    {
+      "path": "/api/turnstile/site-key",
+      "source": "src/app/api/turnstile/site-key/route.ts",
+      "handlers": [
+        {
+          "method": "GET",
+          "line": 7
+        }
+      ]
+    }
+  ]
+}

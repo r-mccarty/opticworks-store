@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-29",
+  "source_commit": "13b04849bb05dbedcbf142ddcfb42cd30165f7ec",
+  "server": "debian-2gb-hil-1-test-instance",
+  "snapshot_preparation": {
+    "prepared_utc": "2026-10-29T21:40:58.210725+00:00",
+    "directory": "/var/backups/opticworks/pre-redeployment-20261029T213953Z",
+    "restic_snapshot_id": "f648623b648631b3befa913632438daaad1ff333c3bdd169fda175afb7a43cc4",
+    "offsite_readback_verified": true,
+    "services_stopped": [
+      "cloudflared.service",
+      "postgresql@17-main.service",
+      "redis-server.service"
+    ],
+    "medusa_process": "stopped",
+    "provider_vm_snapshot_taken": false,
+    "ssh_available": true
+  },
+  "services": {
+    "cloudflared.service": {
+      "ActiveState": "inactive",
+      "UnitFileState": "disabled"
+    },
+    "postgresql@17-main.service": {
+      "ActiveState": "inactive",
+      "UnitFileState": "enabled-runtime"
+    },
+    "redis-server.service": {
+      "ActiveState": "inactive",
+      "UnitFileState": "enabled"
+    }
+  },
+  "medusa_process": [
+    {
+      "name": "medusa-prod",
+      "status": "stopped"
+    }
+  ],
+  "database_archives": [
+    {
+      "database": "postgres",
+      "file": "postgres.dump",
+      "bytes": 2086,
+      "toc_entries": 0,
+      "archive_decode_verified": true
+    },
+    {
+      "database": "medusa",
+      "file": "medusa.dump",
+      "bytes": 1636,
+      "toc_entries": 0,
+      "archive_decode_verified": true
+    },
+    {
+      "database": "medusa_db",
+      "file": "medusa_db.dump",
+      "bytes": 1057402,
+      "toc_entries": 939,
+      "archive_decode_verified": true
+    }
+  ],
+  "offline_worker": "opticworks-backend-offline-20261029",
+  "api_routes": [
+    {
+      "id": "5a097f605a8442a48a12fbf6a8a50c20",
+      "pattern": "optic.works/api/*",
+      "script": "opticworks-backend-offline-20261029",
+      "request_limit_fail_open": false
+    },
+    {
+      "id": "68d61474a3274c63be045a9fd05b9ef5",
+      "pattern": "medusa.optic.works/*",
+      "script": "opticworks-backend-offline-20261029",
+      "request_limit_fail_open": false
+    },
+    {
+      "id": "a53dabdf250a451c8269e3de5ee27cb6",
+      "pattern": "www.optic.works/api/*",
+      "script": "opticworks-backend-offline-20261029",
+      "request_limit_fail_open": false
+    },
+    {
+      "id": "2e638ae616374b0395ef6303be675959",
+      "pattern": "api.optic.works/*",
+      "script": "opticworks-backend-offline-20261029",
+      "request_limit_fail_open": false
+    }
+  ],
+  "paused_hookdeck_connections": [
+    {
+      "id": "web_0KJhysWUe7uX",
+      "paused_before": null,
+      "disabled_before": null,
+      "paused_after": "2026-10-29T21:38:00.879Z"
+    },
+    {
+      "id": "web_m3l1TbktTdQR",
+      "paused_before": null,
+      "disabled_before": null,
+      "paused_after": "2026-10-29T21:38:01.864Z"
+    }
+  ],
+  "original_storefront_version": "690cf649-520c-49df-8a17-bd2b623bf381",
+  "teardown_performed": false,
+  "provider_snapshot_verified": false
+}

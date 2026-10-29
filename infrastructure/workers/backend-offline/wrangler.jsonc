@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "opticworks-backend-offline-20261029",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-29",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": {"enabled": true, "head_sampling_rate": 1},
+  "routes": [
+    {"pattern": "api.optic.works/*", "zone_name": "optic.works"},
+    {"pattern": "medusa.optic.works/*", "zone_name": "optic.works"},
+    {"pattern": "optic.works/api/*", "zone_name": "optic.works"},
+    {"pattern": "www.optic.works/api/*", "zone_name": "optic.works"}
+  ]
+}
