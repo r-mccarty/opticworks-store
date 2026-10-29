@@ -1,18 +1,19 @@
-# OpticWorks Docs Site (Phase 3 – Knowledge Systems)
+# OpticWorks Docs Site
 
-Static Hugo site that renders the Markdown content in `/docs/` with the Geekdoc theme.
+Hugo source for [docs.optic.works](https://docs.optic.works). Configuration is in `hugo.yaml`.
+The theme is the local `themes/opticboot`. Content is in `content/` (not mounted from the
+repository's `/docs` folder).
 
-## Requirements
-
-- [Hugo Extended](https://gohugo.io/installation/) v0.125+
-- Git submodule for the Geekdoc theme:
-  ```bash
-  cd platform/docs-site
-  git submodule add https://github.com/thegeeklab/hugo-geekdoc themes/geekdoc
-  git submodule update --init --recursive
-  ```
+> **Content status (audited 2026-10-29):** the published pages describe a "Bed Presence
+> Sensor" and a mobile "OpticWorks app" (iOS/Android) with breathing-rate monitoring, sleep
+> stages, Matter and Bluetooth. That conflicts with the website's product material (OW-1
+> developer kit, Home Assistant integration). Treat the content as unverified until it's
+> rewritten with the product redesign. See the audit in
+> [`docs/reference/BACKEND_OFFLINE_FRONTEND.md`](../../docs/reference/BACKEND_OFFLINE_FRONTEND.md#hugo-docs-audit).
 
 ## Commands
+
+Requires [Hugo Extended](https://gohugo.io/installation/) v0.125+.
 
 ```bash
 # From repo root
@@ -20,18 +21,8 @@ pnpm docs:dev    # hugo server -s platform/docs-site -D
 pnpm docs:build  # hugo -s platform/docs-site
 ```
 
-`hugo.toml` mounts the root `/docs` folder into `content/docs`, so edits to the existing Markdown files automatically show up in the Hugo site with no copying required.
-
 ## Deployment
 
-- Use Cloudflare Pages, Netlify, or Vercel static hosting.
-- Example (Cloudflare Pages):
-  - Build command: `pnpm docs:build`
-  - Build directory: `platform/docs-site/public`
-  - Set environment variable `HUGO_VERSION` to the installed version.
-
-## TODO
-
-- Add Geekdoc theme as a submodule.
-- Configure search index + custom styling.
-- Hook docs build into CI as part of Phase 3 production hardening.
+`wrangler.toml` describes a Cloudflare Pages project, `opticworks-docs`, with output dir
+`public` and the custom domain docs.optic.works configured in the dashboard.
+`netlify.toml` is an unused alternative. The docs build isn't part of CI.

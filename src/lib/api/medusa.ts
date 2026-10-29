@@ -1,11 +1,13 @@
 import { cache } from "react"
+import { COMMERCE_ENABLED } from "@/lib/commerce"
 import { products as fallbackProducts, type Product } from "@/lib/products"
 
 // NOTE: Environment variables must be accessed directly as process.env.NEXT_PUBLIC_*
 // for Next.js to inline them at build time. Dynamic access like process.env[key]
 // will not be replaced and will be undefined in the browser.
 const medusaEnv = {
-  enabled: process.env.NEXT_PUBLIC_MEDUSA_ENABLED === "true",
+  // Both must be on: COMMERCE_ENABLED is the code-level kill switch (see src/lib/commerce.ts).
+  enabled: COMMERCE_ENABLED && process.env.NEXT_PUBLIC_MEDUSA_ENABLED === "true",
   baseUrl: process.env.NEXT_PUBLIC_MEDUSA_BASE_URL,
   // SSR base URL: Direct Cloudflare Tunnel access (bypasses hairpin routing issue)
   // See Track 10 in PHASE3_PLAN.md for details
@@ -240,6 +242,9 @@ const medusaHeaders = (): HeadersInit => {
 }
 
 const medusaFetch = async <T>(path: string, init?: RequestInit): Promise<T> => {
+  if (!medusaEnv.enabled) {
+    throw new Error("Medusa is disabled (COMMERCE_ENABLED=false); request not sent")
+  }
   const baseUrl = getBaseUrl()
   if (!baseUrl) {
     throw new Error("MEDUSA_BASE_URL is not configured")

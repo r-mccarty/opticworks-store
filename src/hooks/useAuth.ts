@@ -219,15 +219,3 @@ export const useAuth = create<AuthState>()(
     }
   )
 )
-
-// Hook to check auth status on mount
-export function useAuthInit() {
-  const { isAuthenticated, fetchCustomer, refreshSession } = useAuth()
-
-  // Fetch customer on mount if authenticated
-  if (typeof window !== 'undefined' && isAuthenticated) {
-    refreshSession().finally(() => {
-      fetchCustomer()
-    })
-  }
-}

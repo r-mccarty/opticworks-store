@@ -12,6 +12,8 @@ import { ShoppingCartIcon } from "@heroicons/react/24/outline"
 import Image from "next/image"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { COMMERCE_ENABLED } from "@/lib/commerce"
+import { siteConfig } from "@/app/siteConfig"
 
 interface ProductHeroProps {
   product: Product
@@ -167,9 +169,11 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
                             </p>
                           </div>
                           <div className="text-right">
-                            <div className="text-lg font-semibold text-foreground">
-                              ${variant.price}
-                            </div>
+                            {COMMERCE_ENABLED && (
+                              <div className="text-lg font-semibold text-foreground">
+                                ${variant.price}
+                              </div>
+                            )}
                             {variant.badge && (
                               <Badge
                                 variant="secondary"
@@ -187,50 +191,66 @@ export function ProductHero({ product, selectedVariant, onVariantChange }: Produ
               </div>
             )}
 
-            {/* Price */}
-            <div className="mb-6">
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-semibold text-foreground">
-                  ${currentPrice}
-                </span>
-                {product.originalPrice && (
-                  <span className="text-xl text-muted-foreground line-through">
-                    ${product.originalPrice}
+            {COMMERCE_ENABLED ? (
+              <>
+              {/* Price */}
+              <div className="mb-6">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-semibold text-foreground">
+                    ${currentPrice}
                   </span>
-                )}
+                  {product.originalPrice && (
+                    <span className="text-xl text-muted-foreground line-through">
+                      ${product.originalPrice}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
 
-            {/* Add to Cart */}
-            <div className="mb-8">
-              <Button
-                onClick={handleAddToCart}
-                disabled={!product.inStock || isAddingToCart}
-                className="w-full h-12 text-lg"
-                size="lg"
-                data-testid="add-to-cart-button"
-                data-product-id={product.id}
-              >
-                <ShoppingCartIcon className="w-5 h-5 mr-2" />
-                {isAddingToCart ? 'Adding...' : product.inStock ? 'ADD TO CART' : 'OUT OF STOCK'}
-              </Button>
-            </div>
+              {/* Add to Cart */}
+              <div className="mb-8">
+                <Button
+                  onClick={handleAddToCart}
+                  disabled={!product.inStock || isAddingToCart}
+                  className="w-full h-12 text-lg"
+                  size="lg"
+                  data-testid="add-to-cart-button"
+                  data-product-id={product.id}
+                >
+                  <ShoppingCartIcon className="w-5 h-5 mr-2" />
+                  {isAddingToCart ? 'Adding...' : product.inStock ? 'ADD TO CART' : 'OUT OF STOCK'}
+                </Button>
+              </div>
 
-            {/* Trust Badges */}
-            <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <TruckIcon className="h-5 w-5 text-foreground" />
-                <span>Free Shipping</span>
+              {/* Trust Badges */}
+              <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <TruckIcon className="h-5 w-5 text-foreground" />
+                  <span>Free Shipping</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <ShieldCheckIcon className="h-5 w-5 text-foreground" />
+                  <span>2‑Year Warranty</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircleIcon className="h-5 w-5 text-foreground" />
+                  <span>Local Processing</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <ShieldCheckIcon className="h-5 w-5 text-foreground" />
-                <span>2‑Year Warranty</span>
+
+              </>
+            ) : (
+              <div className="mb-8 rounded-lg border border-border bg-muted/40 p-5">
+                <p className="font-semibold text-foreground">Not currently available to order</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Our online store is offline while we rebuild it. Questions? Email{" "}
+                  <a href={`mailto:${siteConfig.contact.email}`} className="text-foreground underline underline-offset-4">
+                    {siteConfig.contact.email}
+                  </a>
+                  .
+                </p>
               </div>
-              <div className="flex items-center gap-2">
-                <CheckCircleIcon className="h-5 w-5 text-foreground" />
-                <span>Local Processing</span>
-              </div>
-            </div>
+            )}
 
             {/* Install Guide Link */}
             {product.installGuide && (

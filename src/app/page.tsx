@@ -1,7 +1,6 @@
 import { Hero } from "@/components/ui/Hero"
 import Features from "@/components/ui/Features"
 import { Specs } from "@/components/ui/Specs"
-import Newsletter from "@/components/ui/Newsletter"
 
 export default function Home() {
   return (
@@ -9,7 +8,6 @@ export default function Home() {
       <Hero />
       <Features />
       <Specs />
-      <Newsletter />
     </main>
   )
 }

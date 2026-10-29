@@ -24,8 +24,7 @@ export function ContactHero() {
 
           <FadeDiv>
             <p className="font-colfax mx-auto mt-5 max-w-xl text-lg leading-7 text-muted-foreground">
-              Talk directly with our presence engineers about installs, integrations, or tuning.
-              We typically respond within 2 hours during business hours.
+              Questions about installs, integrations, tuning or an existing order? Email our team.
             </p>
           </FadeDiv>
         </div>

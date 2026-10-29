@@ -2,6 +2,12 @@
 
 Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily development.
 
+> **Status (2026-10-29): commerce is offline.** The Medusa backend is archived, and its edge
+> routes return `503 BACKEND_OFFLINE`. The backend, checkout, payment, fulfillment, webhook,
+> auth and E2E documents below are **historical reference** for the archived system and
+> for planning future e-commerce. They do not describe the running site. Current state:
+> [BACKEND_OFFLINE_FRONTEND.md](BACKEND_OFFLINE_FRONTEND.md).
+
 ---
 
 ## Core Documentation

@@ -55,7 +55,8 @@
   "vars": {
     "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache",
     // Medusa API configuration (public vars, safe to commit)
-    "NEXT_PUBLIC_MEDUSA_ENABLED": "true",
+    // Disabled while the legacy backend is archived; see src/lib/commerce.ts.
+    "NEXT_PUBLIC_MEDUSA_ENABLED": "false",
     "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
     // SSR base URL: Direct tunnel access (bypasses Cloudflare hairpin issue)
     // See Track 10 in docs/reference/PHASE3_PLAN.md
@@ -114,7 +115,8 @@
       "vars": {
         "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache",
         // Medusa API configuration (public vars, safe to commit)
-        "NEXT_PUBLIC_MEDUSA_ENABLED": "true",
+        // Disabled while the legacy backend is archived; see src/lib/commerce.ts.
+        "NEXT_PUBLIC_MEDUSA_ENABLED": "false",
         "NEXT_PUBLIC_MEDUSA_BASE_URL": "https://api.optic.works",
         // SSR base URL: Direct tunnel access (bypasses Cloudflare hairpin issue)
         "MEDUSA_SSR_BASE_URL": "https://medusa.optic.works",

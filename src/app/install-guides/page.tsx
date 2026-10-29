@@ -174,7 +174,7 @@ export default function InstallGuidesPage() {
                   <Link href="/support">Contact Support</Link>
                 </Button>
                 <Button asChild className="bg-amber-500 text-neutral-950 hover:bg-amber-400">
-                  <Link href="/store">Order OW-1 Dev Kit</Link>
+                  <Link href="/products/ow-1-dev-kit">View the OW-1 Dev Kit</Link>
                 </Button>
               </div>
             </div>

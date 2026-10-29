@@ -1,11 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateAddress, type AddressInput } from '@/lib/api/easypost';
-import {
-  checkRateLimit,
-  getClientIP,
-  rateLimitHeaders,
-  RATE_LIMITS,
-} from '@/lib/rate-limit';
+import { buildRateLimitKey, rateLimit } from '@/lib/rate-limit';
 
 /**
  * POST /api/easypost/validate-address
@@ -15,13 +10,15 @@ import {
  */
 export async function POST(request: NextRequest) {
   // Rate limiting check
-  const clientIP = getClientIP(request);
-  const rateLimitResult = checkRateLimit(clientIP, RATE_LIMITS.addressValidation);
+  const rateLimitResult = rateLimit(buildRateLimitKey('easypost-validate-address', request), {
+    limit: 30,
+    windowMs: 60 * 1000,
+  });
 
   if (!rateLimitResult.success) {
     return NextResponse.json(
       { success: false, errors: ['Too many requests. Please wait a moment.'] },
-      { status: 429, headers: rateLimitHeaders(rateLimitResult) }
+      { status: 429, headers: { 'Retry-After': Math.ceil(rateLimitResult.retryAfter / 1000).toString() } }
     );
   }
 

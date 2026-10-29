@@ -18,7 +18,6 @@ const categories = [
   { id: 'all', name: 'All Questions', count: faqData.length },
   { id: 'installation', name: 'Installation', count: faqData.filter(f => f.category === 'installation').length },
   { id: 'products', name: 'Products', count: faqData.filter(f => f.category === 'products').length },
-  { id: 'shipping', name: 'Shipping', count: faqData.filter(f => f.category === 'shipping').length },
   { id: 'warranty', name: 'Warranty', count: faqData.filter(f => f.category === 'warranty').length },
   { id: 'legal', name: 'Legal', count: faqData.filter(f => f.category === 'legal').length },
   { id: 'general', name: 'General', count: faqData.filter(f => f.category === 'general').length },

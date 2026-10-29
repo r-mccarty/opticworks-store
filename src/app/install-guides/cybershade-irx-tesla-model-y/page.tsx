@@ -260,7 +260,7 @@ export default function CyberShadeIRXInstallGuide() {
                     <Link href="/products/cybershade-irx-tesla-model-y">Shop CyberShade IRX Kit</Link>
                   </Button>
                   <Button asChild variant="outline" size="lg">
-                    <Link href="/store">Browse All Products</Link>
+                    <Link href="/products">Browse All Products</Link>
                   </Button>
                 </div>
               </CardContent>

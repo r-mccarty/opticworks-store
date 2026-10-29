@@ -3,44 +3,7 @@
 import { useState } from "react"
 import { FadeDiv } from "@/components/Fade"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { StarIcon } from "@heroicons/react/24/solid"
 import { ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline"
-
-const testimonials = [
-  {
-    id: 1,
-    name: "Rina Patel",
-    source: "Home Assistant Discord",
-    rating: 5,
-    text: "My lights finally stay on when I’m still on the couch. The live trace makes every state change obvious.",
-    verified: true,
-  },
-  {
-    id: 2,
-    name: "Logan F.",
-    source: "YouTube Review",
-    rating: 5,
-    text: "Pets and fans don’t trigger false routines anymore. The engine stays calm even in a noisy room.",
-    verified: true,
-  },
-  {
-    id: 3,
-    name: "Mara V.",
-    source: "HA Podcast",
-    rating: 5,
-    text: "It’s the first sensor that feels debuggable. Changing debounce while watching z‑scores updates instantly.",
-    verified: true,
-  },
-  {
-    id: 4,
-    name: "Alex Nguyen",
-    source: "Beta Program",
-    rating: 5,
-    text: "Setup was 10 minutes from unboxing to automations. Exporting dashboards to Home Assistant was seamless.",
-    verified: true,
-  },
-]
 
 const faqs = [
   {
@@ -77,7 +40,7 @@ const faqs = [
     id: 6,
     question: "Do you offer replacements if I damage the sensor?",
     answer:
-      "Contact our support team for assistance with replacement hardware. Our 2-year warranty covers sensor failure, power issues, and enclosure damage.",
+      "Contact our support team for assistance with replacement hardware.",
   },
 ]
 
@@ -93,70 +56,6 @@ export function SocialProofFAQ() {
       <div className="px-6 lg:px-8">
         <div className="mx-auto max-w-6xl">
           <FadeDiv>
-            {/* Social Proof Header */}
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-semibold text-foreground mb-4">
-                Join the OpticWorks community.
-              </h2>
-              <p className="text-lg text-muted-foreground">
-                Stories from builders shipping calm, reliable automations.
-              </p>
-            </div>
-
-            {/* Testimonials */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
-              {testimonials.map((testimonial) => (
-                <Card key={testimonial.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-2 mb-4">
-                      <div className="flex items-center">
-                        {[...Array(5)].map((_, i) => (
-                          <StarIcon
-                            key={i}
-                            className="w-4 h-4 text-primary"
-                          />
-                        ))}
-                      </div>
-                      {testimonial.verified && (
-                        <Badge variant="secondary" className="text-xs">
-                          Verified Purchase
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-muted-foreground mb-4 italic">
-                      &ldquo;{testimonial.text}&rdquo;
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium text-foreground">
-                        {testimonial.name}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {testimonial.source}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* User Generated Content Placeholder */}
-            <div className="mb-16">
-              <h3 className="text-xl font-semibold text-foreground mb-6 text-center">
-                Share your dashboard — #PresenceEngine
-              </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {[1, 2, 3, 4].map((i) => (
-                  <Card key={i} className="aspect-square">
-                    <div className="w-full h-full bg-muted rounded-md flex items-center justify-center">
-                      <div className="text-center text-muted-foreground">
-                        <p className="text-xs">Customer photo {i}</p>
-                      </div>
-                    </div>
-                  </Card>
-                ))}
-              </div>
-            </div>
-
             {/* FAQ Section */}
             <div id="faq">
               <h3 className="text-2xl font-semibold text-foreground mb-8 text-center">
