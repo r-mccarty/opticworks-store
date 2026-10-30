@@ -4,10 +4,18 @@ OpticWorks, Inc. company/product website: Next.js 15 on Cloudflare Workers (Open
 Contact: support@optic.works. Canonical site: https://optic.works.
 (`AGENTS.md` is a symlink to this file.)
 
-## Current state: commerce offline (since 2026-10-29)
+## Current state: commerce offline (since 2026-10-29); new backend running dark (2026-10-30)
 
-- The legacy Medusa v2 backend (Hetzner) is archived and stopped. **Do not reconnect it,
-  restart it, or resume the paused Hookdeck connections** as part of frontend work.
+- The legacy Medusa v2 backend no longer runs anywhere. Its Hetzner server (the grandfathered
+  CPX21 `110578382`) was rebuilt in place on 2026-10-30. The legacy state survives only in
+  snapshot `449822273` and the PR #124 docs. **Don't resume the paused Hookdeck connections**
+  as part of frontend work.
+- A **new Medusa 2.21 backend** (`backend/`, on Neon `main`) runs on that rebuilt CPX21 at
+  `backend.optic.works`, **dark**: behind Cloudflare Access (owner + service token), with
+  test-mode Stripe/EasyPost keys and an `@optic.works` email allowlist. The website does
+  **not** use it yet. Don't point frontend code at it until launch (issue #138). Host
+  changes go through `infrastructure/ansible/` only (`README.md`, `MIGRATION.md`). **Never
+  delete, recreate or rescale that server**, or it loses its legacy price.
 - `COMMERCE_ENABLED = false` in `src/lib/commerce.ts` disables catalog sync, cart, checkout
   and accounts. Legacy store/account routes render `ServiceUnavailable`.
 - An edge Worker (`opticworks-backend-offline-20261029`) returns `503 BACKEND_OFFLINE` for
@@ -16,13 +24,14 @@ Contact: support@optic.works. Canonical site: https://optic.works.
   `/api/*` or Medusa. Don't remove or change those four routes here.
 - No website forms deliver anything. Support is by email to support@optic.works.
 - Status, route inventory and open issues: `docs/reference/BACKEND_OFFLINE_FRONTEND.md`.
-  The backend archive and API catalog are in PR #124 (draft, not merged).
+  The legacy backend archive and API catalog (PR #124, merged) are
+  `docs/reference/LEGACY_BACKEND_SNAPSHOT.md` and `docs/reference/LEGACY_BACKEND_API.md`.
 
 ## Direction
 
 The site is a **company/product website that doesn't depend on Medusa** (areas: precision
 manufacturing / compact VMC, advanced imaging / Mach 1, intelligent software / platform).
-E-commerce will return later on a new backend. Until then:
+E-commerce will return later on the new backend (dark at `backend.optic.works`). Until then:
 
 - Don't add prices, "add to cart", pre-order, shipping-time, review/testimonial or other
   purchase claims.
