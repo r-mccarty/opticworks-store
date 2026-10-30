@@ -7,11 +7,15 @@ For the retired legacy backend, see [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_
 
 ## Summary
 
-- The site is a **company and product website with no backend dependency**. It has no commerce,
-  account, auth or API code, and it needs no secrets or environment variables.
+- The site is a **company and product website with no backend dependency** in production.
+  It has no account, auth or API code, and it needs no secrets or environment variables.
+- A new **store frontend** is switched on for testing (`STORE_MODE=medusa`). It calls the dark
+  backend server-side, in test mode, and stops before payment. See
+  [STORE_FRONTEND.md](STORE_FRONTEND.md).
 - Routes: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`, `/technology`,
   `/journal` (+ `/journal/[slug]`, `/journal/feed.xml`), `/about`, `/contact`, `/support`,
-  `/support/legal/privacy`, `/support/legal/terms`. Anything else is a 404.
+  `/support/legal/privacy`, `/support/legal/terms`. Store routes: `/store`, `/cart`, `/checkout`
+  and `/checkout/confirmation`. Anything else is a 404.
 - `/legal/privacy` and `/legal/terms` redirect (temporarily) to `/support/legal/*` until the
   legal review (#126). These are the only redirects (`next.config.ts`).
 - Support is by email to **support@optic.works**. The site has no forms.
@@ -54,7 +58,7 @@ Nothing was archived in-tree; git history has it. The removals:
 - **Docs and tooling:** reference docs for the retired backend, checkout, payments, tax,
   fulfillment, webhooks, E2E and devices; postmortems and archived RFDs; Hookdeck
   transformations; storefront secrets scripts; the stale `hammer` review-bot config; and the
-  devcontainer's Hugo, secrets-pull and legacy Hetzner SSH setup.
+  Codespaces devcontainer (`.devcontainer/`).
 - **Cloudflare:** the docs.optic.works Pages project, custom domain and DNS record; the
   storefront's Worker secrets (in a new, undeployed version); the shipping-rates KV namespace;
   and the legacy `/api/shipping|checkout` rate-limit ruleset.
@@ -80,8 +84,7 @@ restoring the old frontend.
 
 ## Re-enabling commerce (later)
 
-1. Finish backend launch readiness (#138).
-2. Design the website's commerce surface against the new backend's core Store/Auth APIs. Don't
-   assume the legacy contract.
-3. Remove or re-point the offline Worker routes deliberately.
-4. Review purchase copy and legal terms, and add CI-covered checkout tests, before deploying.
+The storefront exists (see [STORE_FRONTEND.md](STORE_FRONTEND.md) for the remaining steps).
+Finish backend launch readiness (#138), connect payment, review purchase copy and legal terms,
+then set `STORE_MODE=medusa` in production. The offline `/api/*` routes can stay: the store
+doesn't use `/api/*`.

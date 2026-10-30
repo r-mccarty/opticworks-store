@@ -5,6 +5,7 @@ Start with [`CLAUDE.md`](../../CLAUDE.md) for daily development.
 | Document | Purpose |
 |----------|---------|
 | [BACKEND_OFFLINE_FRONTEND.md](BACKEND_OFFLINE_FRONTEND.md) | Current website state: routes, edge routing, what was removed, open issues |
+| [STORE_FRONTEND.md](STORE_FRONTEND.md) | Store frontend: `STORE_MODE`, mock vs backend, prices, enabling it in production |
 | [CLOUDFLARE_API.md](CLOUDFLARE_API.md) | Cloudflare API access: R2, tunnels, DNS, WAF |
 | [LEGACY_BACKEND_API.md](LEGACY_BACKEND_API.md) | Frozen API inventory of the retired Medusa backend and its old frontend integration |
 | [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_SNAPSHOT.md) | Recovery artifacts for the retired backend (Hetzner snapshot `449822273`) |

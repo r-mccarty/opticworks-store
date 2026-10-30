@@ -14,8 +14,12 @@ a company and product site:
 - Public pages: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`,
   `/technology`, `/journal` (+ `/journal/feed.xml`), `/about`, `/contact`, `/support`, and the
   legal pages under `/support/legal/*` (`/legal/*` redirects there temporarily, see #126).
-- Anything else is a 404. The site has no store, cart, checkout, account, sign-in or `/api/*`
-  code.
+- A new store (`/store`, `/cart`, `/checkout`, and a buy box on each product page) is
+  **switched on for testing** (`STORE_MODE=medusa` in `wrangler.jsonc`). It runs against the
+  new backend in test mode, and checkout stops before payment. Local dev uses mock prices and
+  a simulated checkout. See
+  [docs/reference/STORE_FRONTEND.md](docs/reference/STORE_FRONTEND.md).
+- Anything else is a 404. There's no account, sign-in or `/api/*` code.
 - Support requests go to **support@optic.works** by email. The site has no working forms.
 - A separate Worker (`opticworks-backend-offline-20261029`) answers these routes with
   `503 BACKEND_OFFLINE`, without reaching any origin:
@@ -74,7 +78,9 @@ pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-The website needs no secrets or environment variables.
+Locally the website needs no secrets: `pnpm dev` runs the store in mock mode. Use
+`STORE_MODE=off pnpm dev` to hide it. The deployed Worker needs the store secrets in
+[docs/SECRETS.md](docs/SECRETS.md).
 
 ## Validation
 
@@ -110,6 +116,7 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 | `src/app/` | Next.js App Router pages |
 | `src/content/` | Program, journal and company content (see above) |
 | `src/components/site/` | Site chrome, primitives and illustrations for the current design |
+| `src/lib/store/`, `src/components/store/` | Store frontend: mode gating, bag, mock and Medusa backends, checkout UI |
 | `backend/` | New Medusa 2.21 backend (standalone pnpm project; deployed dark, see above) |
 | `infrastructure/ansible/` | Backend host automation and runbooks (backend host changes only via Ansible) |
 | `infrastructure/workers/backend-offline/` | Source of the offline `/api/*` Worker |
@@ -121,6 +128,7 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 |----------|---------|
 | [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) | Agent context and constraints |
 | [docs/reference/BACKEND_OFFLINE_FRONTEND.md](docs/reference/BACKEND_OFFLINE_FRONTEND.md) | Current state, route inventory, remaining issues |
+| [docs/reference/STORE_FRONTEND.md](docs/reference/STORE_FRONTEND.md) | Store frontend: modes, flow, prices, enabling it |
 | [infrastructure/ansible/README.md](infrastructure/ansible/README.md) | New backend host: topology, secrets, deploy/restore runbook |
 | [infrastructure/ansible/MIGRATION.md](infrastructure/ansible/MIGRATION.md) | Move onto the grandfathered CPX21 (gates 0–4, all complete) and legacy-pricing rules |
 | [docs/reference/README.md](docs/reference/README.md) | Reference index |

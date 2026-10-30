@@ -2,9 +2,9 @@
  * Public product and development-program content.
  *
  * This is the source of truth for what the website says about a product. It is
- * intentionally independent of commerce: when the store returns, the commerce
- * backend should supply saleable variants, inventory, pricing and ordering, keyed
- * by `commerce.productHandle`, without owning the public narrative below.
+ * intentionally independent of commerce: the store backend supplies saleable
+ * variants, pricing and ordering, keyed by `commerce.productHandle`, without
+ * owning the public narrative below.
  *
  * Every capability carries an explicit claim status. Only use "validated" for
  * something demonstrated on hardware and approved for publication.
@@ -55,7 +55,10 @@ export interface Program {
   capabilities: ProgramCapability[]
   media: ProgramMedia[]
   cta: { label: string; href: string }
-  /** Link to future commerce records. Absent while the program is not for sale. */
+  /**
+   * The backend product for this program (Medusa handle). Price, availability and
+   * ordering come from the store backend, never from this file.
+   */
   commerce?: { productHandle: string }
 }
 
@@ -148,6 +151,7 @@ export const programs: Program[] = [
       },
     ],
     cta: { label: "Follow development", href: "/journal" },
+    commerce: { productHandle: "vmc" },
   },
   {
     slug: "mach-1",
@@ -205,6 +209,7 @@ export const programs: Program[] = [
       },
     ],
     cta: { label: "Follow development", href: "/journal" },
+    commerce: { productHandle: "mach-1" },
   },
 ]
 

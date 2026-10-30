@@ -4,9 +4,18 @@ Never commit secrets, `.env*` files or `backend/.env`. Inject values at run time
 
 ## Website
 
-The website (`src/`, Worker `opticworks-store`) needs **no secrets or environment variables**.
-It calls no backend or third-party API at run time. `wrangler.jsonc` holds only the Worker's
-name, routes and asset binding.
+The Worker `opticworks-store` runs the store with `STORE_MODE=medusa`, which calls the new
+backend server-side. Plain settings are in `wrangler.jsonc`. The three secrets live on the
+Worker and are never written in the repo. Set them with `wrangler versions secret put` (this
+creates a version without deploying it; later deploys inherit it) or in the dashboard. Local
+dev and mock mode need none of them.
+
+| Variable | Kind | Value |
+|----------|------|-------|
+| `STORE_MODE` | `wrangler.jsonc` | `medusa` (see [STORE_FRONTEND.md](reference/STORE_FRONTEND.md)) |
+| `MEDUSA_BACKEND_URL` | `wrangler.jsonc` | `https://backend.optic.works` |
+| `MEDUSA_PUBLISHABLE_KEY` | Worker secret | Admin → Settings → Publishable API Keys → "optic.works storefront" (public, per database) |
+| `CLOUDFLARE_BACKEND_ACCESS_ID` / `_TOKEN` | Worker secret | Access service token while the backend is dark (`/agents/opticworks-backend/credentials`) |
 
 The retired storefront's Worker secrets were removed on 2026-10-30. See
 [CLOUDFLARE_API.md](reference/CLOUDFLARE_API.md).
