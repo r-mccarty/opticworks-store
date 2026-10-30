@@ -6,16 +6,7 @@ import { useEffect, useState } from "react"
 
 import { siteConfig } from "@/app/siteConfig"
 import { cx } from "@/lib/utils"
-import { RegistrationMark } from "./visuals"
-
-export function Wordmark({ className }: { className?: string }) {
-  return (
-    <span className={cx("inline-flex items-center gap-2.5", className)}>
-      <RegistrationMark size={20} className="text-amber" />
-      <span className="text-[0.95rem] font-medium tracking-[0.02em] text-text">OpticWorks</span>
-    </span>
-  )
-}
+import { Wordmark } from "./Wordmark"
 
 export function SiteHeader() {
   const pathname = usePathname()
