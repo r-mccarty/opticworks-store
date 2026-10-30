@@ -1,5 +1,3 @@
 packages:
   - .
-  - services/*
-  - platform/*
   - '!backend'  # Excluded - standalone Medusa project (not a workspace package)

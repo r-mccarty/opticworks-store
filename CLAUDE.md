@@ -16,8 +16,8 @@ Contact: support@optic.works. Canonical site: https://optic.works.
   **not** use it yet. Don't point frontend code at it until launch (issue #138). Host
   changes go through `infrastructure/ansible/` only (`README.md`, `MIGRATION.md`). **Never
   delete, recreate or rescale that server**, or it loses its legacy price.
-- `COMMERCE_ENABLED = false` in `src/lib/commerce.ts` disables catalog sync, cart, checkout
-  and accounts. Legacy store/account routes render `ServiceUnavailable`.
+- The site has no commerce, account, auth or `/api/*` code (removed 2026-10-30 with the
+  retired Presence/CyberShade/OW-1 content; git history has it). Removed URLs 404.
 - An edge Worker (`opticworks-backend-offline-20261029`) returns `503 BACKEND_OFFLINE` for
   `optic.works/api/*`, `www.optic.works/api/*`, `api.optic.works/*`, `medusa.optic.works/*`.
   **No same-origin `/api/*` route works in production.** Don't add client features that call
@@ -61,25 +61,20 @@ lints and type-checks; don't reintroduce `ignoreBuildErrors` / `ignoreDuringBuil
 ## Structure
 
 ```
-src/app/                 # App Router pages; src/app/api/* handlers are unreachable in prod
+src/app/                 # App Router pages
 src/content/             # Programs, journal, company copy (typed data)
 src/components/site/     # Header, footer, primitives, SVG illustrations
-src/components/legacy/   # Archived commerce/account UI (not imported by any route)
-src/lib/legacy-routes.ts # 410 Gone paths (middleware) and legacy redirects (next.config)
-src/lib/commerce.ts      # Commerce kill switch
-src/lib/api/medusa*.ts   # Legacy Medusa client (kept for reference)
-src/hooks/               # Zustand stores (useCart, useAuth: legacy)
+src/components/ui/       # shadcn primitives (badge, button, card)
 backend/                 # New Medusa 2.21 backend (Neon + local Redis); dark, behind Cloudflare Access
 infrastructure/ansible/  # Backend host automation (see its README)
-platform/docs-site/      # Hugo source for docs.optic.works
-e2e/                     # Playwright tests for the legacy commerce flow (need backend)
+infrastructure/workers/backend-offline/  # Offline /api/* Worker source
 ```
 
 ## Constraints
 
 - **pnpm only**: no npm/yarn
 - **No `any` types**: strict TypeScript
-- **Never commit secrets**: use Infisical (`docs/SECRETS.md`)
+- **Never commit secrets**: the website needs none; backend secrets are in Infisical (`docs/SECRETS.md`)
 - **Backend changes via Ansible**: no direct SSH edits
 - **Merging to `main` deploys production** through Cloudflare's Git integration. Other
   branches upload preview versions only.
@@ -89,16 +84,7 @@ e2e/                     # Playwright tests for the legacy commerce flow (need b
 ```
 optic.works, www.optic.works          → Worker opticworks-store (this repo)
 *.optic.works/api/*, api.*, medusa.*  → Worker opticworks-backend-offline-20261029 (503)
-docs.optic.works                      → Hugo docs site (platform/docs-site)
 backend.optic.works                   → new Medusa backend via tunnel, Cloudflare Access only (dark)
 ```
 
 Preview URLs: `https://<version-id-prefix>-opticworks-store.ryan-39f.workers.dev`.
-
-## Historical reference (legacy commerce)
-
-These describe the archived Medusa/Stripe/EasyPost system. Read them for context only.
-They do not describe the running site:
-`docs/reference/BACKEND_OPERATIONS.md`, `DEPLOYMENT_GUIDE.md`, `CHECKOUT_FLOW.md`,
-`WEBHOOKS.md`, `FULFILLMENT*.md`, `STRIPE_TAX.md`, `CUSTOMER_AUTH.md`, `MEDUSA_API.md`,
-`E2E_TESTING.md`. See `docs/reference/README.md`.

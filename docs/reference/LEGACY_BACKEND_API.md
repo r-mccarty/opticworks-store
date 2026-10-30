@@ -45,7 +45,7 @@ Before disconnection, both backend hostnames reached the same Medusa process thr
 | Local storage | `cart-storage` persists cart UI state/cart IDs; auth store persists minimal signed-in state, then fetches current customer. It does not persist the bearer token in the current auth flow. |
 | `x-correlation-id` | Backend echoes incoming correlation/request ID or generates one; useful for matching logs. |
 
-Primary implementations: [shared client](../../src/lib/api/medusa.ts), [SSR cart reader](../../src/lib/api/medusa-server.ts), [auth store](../../src/hooks/useAuth.ts), [cart store](../../src/hooks/useCart.ts), [cart cookies](../../src/lib/cart/cookies.ts), [middleware](../../backend/src/api/middlewares.ts).
+Primary implementations: [shared client](https://github.com/r-mccarty/opticworks-store/blob/3aa2290b7dfe/src/lib/api/medusa.ts), [SSR cart reader](https://github.com/r-mccarty/opticworks-store/blob/3aa2290b7dfe/src/lib/api/medusa-server.ts), [auth store](https://github.com/r-mccarty/opticworks-store/blob/3aa2290b7dfe/src/hooks/useAuth.ts), [cart store](https://github.com/r-mccarty/opticworks-store/blob/2cfbde16b565/src/hooks/useCart.ts), [cart cookies](https://github.com/r-mccarty/opticworks-store/blob/2cfbde16b565/src/lib/cart/cookies.ts), [middleware](../../backend/src/api/middlewares.ts).
 
 Shared-client failures throw an error containing HTTP status and response text. Catalog methods catch failures and return static fallback products. Other operations generally surface an error. Do not copy the existing logging of headers, provider objects, payment data or raw error bodies into the replacement implementation.
 
@@ -90,7 +90,7 @@ All paths below are relative to the backend base URL. `:id` denotes a path param
 5. The session's Stripe client secret is used for `stripe.confirmPayment`. On `succeeded` or `requires_capture`, the UI calls cart completion and navigates using the returned order ID.
 6. Completion failure enters cart polling: default ten attempts, three seconds apart, checking `completed_at` and optional `order_id/order`. The comment that a webhook will complete the order is an assumption, not proof. The Stripe frontend webhook handler has legacy/optional storage paths; verify completion behavior end to end in the new system.
 
-Source: [CheckoutWrapper](../../src/components/checkout/CheckoutWrapper.tsx), [CheckoutForm](../../src/components/checkout/CheckoutForm.tsx), [shipping hook](../../src/hooks/useMedusaShipping.ts), [polling](../../src/lib/api/order-polling.ts). `PaymentForm.tsx` is an obsolete placeholder; its comments do not describe the current wrapper/form call path.
+Source: [CheckoutWrapper](https://github.com/r-mccarty/opticworks-store/blob/0948d35bf873/src/components/checkout/CheckoutWrapper.tsx), [CheckoutForm](https://github.com/r-mccarty/opticworks-store/blob/0948d35bf873/src/components/checkout/CheckoutForm.tsx), [shipping hook](https://github.com/r-mccarty/opticworks-store/blob/22f3e79a84a4/src/hooks/useMedusaShipping.ts), [polling](https://github.com/r-mccarty/opticworks-store/blob/2cfbde16b565/src/lib/api/order-polling.ts). `PaymentForm.tsx` is an obsolete placeholder; its comments do not describe the current wrapper/form call path.
 
 ### Authentication sequence
 
@@ -102,7 +102,7 @@ The account page uses the auth store and saved-card component. No current caller
 
 ### Devices
 
-Sources: [store list](../../backend/src/api/store/devices/route.ts), [pairing](../../backend/src/api/store/devices/pair/route.ts), [customer detail/unpair](../../backend/src/api/store/devices/[id]/route.ts), [admin list/create](../../backend/src/api/admin/devices/route.ts), [admin detail/update/delete](../../backend/src/api/admin/devices/[id]/route.ts).
+Sources: [store list](https://github.com/r-mccarty/opticworks-store/blob/edbee65158e1/backend/src/api/store/devices/route.ts), [pairing](https://github.com/r-mccarty/opticworks-store/blob/edbee65158e1/backend/src/api/store/devices/pair/route.ts), [customer detail/unpair](https://github.com/r-mccarty/opticworks-store/blob/edbee65158e1/backend/src/api/store/devices/[id]/route.ts), [admin list/create](https://github.com/r-mccarty/opticworks-store/blob/edbee65158e1/backend/src/api/admin/devices/route.ts), [admin detail/update/delete](https://github.com/r-mccarty/opticworks-store/blob/edbee65158e1/backend/src/api/admin/devices/[id]/route.ts).
 
 | Method and path | Authentication and input | Success | Expected errors |
 | --- | --- | --- | --- |
@@ -116,17 +116,17 @@ Sources: [store list](../../backend/src/api/store/devices/route.ts), [pairing](.
 | PATCH `/admin/devices/:id` | Admin; `{firmware_version?,metadata?}` | `{device}`; metadata is merged with existing metadata | 404, 500 |
 | DELETE `/admin/devices/:id` | Admin | `{success:true}`; deletes device | 404, 500 |
 
-`CustomerDevice` contains `id`, `serial_number`, `product_type`, `firmware_version`, `last_seen_at`, `registered_at`, `paired_at`; list/detail also include `metadata`, while pairing responses omit it. Customer endpoints exclude cloud/temp tokens. The underlying [model](../../backend/src/modules/device/models/device.ts) additionally has `customer_id`, `order_id`, `cloud_token`, `temp_token`, and standard model fields. Admin handlers return service results without the customer projection; handle these as privileged responses. Product type defaults to historical `rs1`.
+`CustomerDevice` contains `id`, `serial_number`, `product_type`, `firmware_version`, `last_seen_at`, `registered_at`, `paired_at`; list/detail also include `metadata`, while pairing responses omit it. Customer endpoints exclude cloud/temp tokens. The underlying [model](https://github.com/r-mccarty/opticworks-store/blob/edbee65158e1/backend/src/modules/device/models/device.ts) additionally has `customer_id`, `order_id`, `cloud_token`, `temp_token`, and standard model fields. Admin handlers return service results without the customer projection; handle these as privileged responses. Product type defaults to historical `rs1`.
 
 ### Saved payment methods
 
-Source: [backend handler](../../backend/src/api/store/customers/me/payment-methods/route.ts). Middleware authenticates customer bearer/session credentials. GET resolves `customer.account_holder_link.account_holder`, then asks Medusa's Stripe payment provider to list methods. Customers without a linked account holder get `{payment_methods:[]}`. `data.card` can contain brand, last four digits, expiry month/year; never log actual provider objects.
+Source: [backend handler](https://github.com/r-mccarty/opticworks-store/blob/355c2b47c399/backend/src/api/store/customers/me/payment-methods/route.ts). Middleware authenticates customer bearer/session credentials. GET resolves `customer.account_holder_link.account_holder`, then asks Medusa's Stripe payment provider to list methods. Customers without a linked account holder get `{payment_methods:[]}`. `data.card` can contain brand, last four digits, expiry month/year; never log actual provider objects.
 
 DELETE requires `payment_method_id`, checks that the customer has an account holder, then directly calls Stripe detach. **The handler does not explicitly check that the supplied payment method belongs to that customer.** A replacement must enforce ownership before detaching; do not treat the historical implementation as an authorization specification. Missing ID is 400, missing account-holder link 404, missing payment-provider key 500, otherwise `{success:true}` or 500.
 
 ### EasyPost inbound webhook
 
-Source: [route](../../backend/src/api/webhooks/easypost/route.ts), [workflow](../../backend/src/workflows/handle-easypost-event.ts).
+Source: [route](https://github.com/r-mccarty/opticworks-store/blob/fd01b9b22f61/backend/src/api/webhooks/easypost/route.ts), [workflow](https://github.com/r-mccarty/opticworks-store/blob/ba054fddd002/backend/src/workflows/handle-easypost-event.ts).
 
 - POST `/webhooks/easypost`; actual gateway destination `https://api.optic.works/webhooks/easypost`.
 - Expects original JSON event bytes and `x-hookdeck-signature`; accepts `x-hookdeck-signature-2` for rotation. Middleware disables the default body parser and captures raw bytes. Development-only bypass requires both `NODE_ENV=development` and `x-dev-bypass:true`.
@@ -172,7 +172,7 @@ These paths live on `optic.works`, not directly on Medusa. They are all gated by
 | POST `/api/analytics/events` | Individual/batched event data with properties/session/user identifiers | In-memory analytics only |
 | GET `/api/analytics/events` | Filters `event`, `limit`, `userId`, `sessionId` | In-memory analytics; not a persistent data source |
 
-Sources: [frontend route index](legacy-api/frontend-routes.json), [saved-card client](../../src/lib/api/payment-methods.ts). The saved-card proxy falls back to `NEXT_PUBLIC_MEDUSA_BACKEND_URL`, whereas the shared client uses `NEXT_PUBLIC_MEDUSA_BASE_URL`; `MEDUSA_SSR_BASE_URL` currently masks that naming mismatch.
+Sources: [frontend route index](legacy-api/frontend-routes.json), [saved-card client](https://github.com/r-mccarty/opticworks-store/blob/934608e0952f/src/lib/api/payment-methods.ts). The saved-card proxy falls back to `NEXT_PUBLIC_MEDUSA_BACKEND_URL`, whereas the shared client uses `NEXT_PUBLIC_MEDUSA_BASE_URL`; `MEDUSA_SSR_BASE_URL` currently masks that naming mismatch.
 
 ## Integration differences to resolve in a replacement
 

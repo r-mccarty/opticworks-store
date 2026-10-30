@@ -1,138 +1,19 @@
 # Reference Documentation
 
-Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily development.
-
-> **Status (2026-10-30): commerce is offline.** The legacy Medusa backend is retired, and its
-> edge routes return `503 BACKEND_OFFLINE`. The backend, checkout, payment, fulfillment,
-> webhook, auth and E2E documents below are **historical reference** for the legacy system
-> and for planning future e-commerce. They do not describe the running site. Current state:
-> [BACKEND_OFFLINE_FRONTEND.md](BACKEND_OFFLINE_FRONTEND.md).
->
-> A **new Medusa 2.21 backend** runs dark at `backend.optic.works` (Cloudflare Access only)
-> on the original Hetzner CPX21. It is documented in
-> [`infrastructure/ansible/README.md`](../../infrastructure/ansible/README.md) and
-> [`MIGRATION.md`](../../infrastructure/ansible/MIGRATION.md), not in the legacy documents
-> below. `BACKEND_OPERATIONS.md` and `DEPLOYMENT_GUIDE.md` describe the legacy host only.
-
----
-
-## Legacy Backend Archive
-
-The legacy backend was quiesced on 2026-10-29 and captured in Hetzner snapshot `449822273`
-(delete-protected). On 2026-10-30 its server was rebuilt in place for the new backend, so the
-snapshot is now the only copy of the legacy host. API operations on the public site stay offline.
+Start with [`CLAUDE.md`](../../CLAUDE.md) for daily development.
 
 | Document | Purpose |
 |----------|---------|
-| [LEGACY_BACKEND_API.md](LEGACY_BACKEND_API.md) | Frozen backend API inventory, custom contracts and frontend integration map |
-| [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_SNAPSHOT.md) | Recovery artifacts, snapshot readiness and deliberate rollback sequence |
+| [BACKEND_OFFLINE_FRONTEND.md](BACKEND_OFFLINE_FRONTEND.md) | Current website state: routes, edge routing, what was removed, open issues |
+| [CLOUDFLARE_API.md](CLOUDFLARE_API.md) | Cloudflare API access: R2, tunnels, DNS, WAF |
+| [LEGACY_BACKEND_API.md](LEGACY_BACKEND_API.md) | Frozen API inventory of the retired Medusa backend and its old frontend integration |
+| [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_SNAPSHOT.md) | Recovery artifacts for the retired backend (Hetzner snapshot `449822273`) |
+| [`legacy-api/`](legacy-api/) | Machine-readable route catalogs and the offline-route state for the above |
+| [`../SECRETS.md`](../SECRETS.md) | Where secrets live (the website needs none) |
 
-## Core Documentation
+The new Medusa 2.21 backend (dark at `backend.optic.works`) is documented with its automation:
+[`infrastructure/ansible/README.md`](../../infrastructure/ansible/README.md) and
+[`MIGRATION.md`](../../infrastructure/ansible/MIGRATION.md).
 
-| Document | Purpose |
-|----------|---------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System overview, data flows, external services |
-| [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md) | *Legacy host:* SSH access, server logs, Medusa Admin API |
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | *Legacy host:* Ansible playbooks, backup & recovery. New backend: [`infrastructure/ansible/README.md`](../../infrastructure/ansible/README.md) |
-| [CLOUDFLARE_API.md](CLOUDFLARE_API.md) | R2, Tunnels, DNS, WAF rate limiting |
-
----
-
-## Checkout & Payments
-
-| Document | Purpose |
-|----------|---------|
-| [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) | Full checkout process, Stripe deferred intent pattern |
-| [STRIPE_INTEGRATION.md](STRIPE_INTEGRATION.md) | Payment flow with Medusa |
-| [STRIPE_TAX.md](STRIPE_TAX.md) | Automated sales tax calculation via Stripe Tax |
-| [Medusa v2 Stripe Tax Integration_ Audit and Migration Roadmap.md](Medusa%20v2%20Stripe%20Tax%20Integration_%20Audit%20and%20Migration%20Roadmap.md) | Canonical snapshot of tax/shipping/checkout architecture |
-| [WEBHOOKS.md](WEBHOOKS.md) | Stripe + EasyPost webhooks via Hookdeck |
-
----
-
-## Fulfillment
-
-| Document | Purpose |
-|----------|---------|
-| [FULFILLMENT.md](FULFILLMENT.md) | Shipping rates, labels, EasyPost provider (outbound) |
-| [FULFILLMENT_INBOUND.md](FULFILLMENT_INBOUND.md) | Tracker webhooks, status updates (inbound) |
-
----
-
-## Devices & Hardware
-
-| Document | Purpose |
-|----------|---------|
-| [DEVICE_MANAGEMENT.md](DEVICE_MANAGEMENT.md) | RS-1 device registration, pairing, cloud API |
-
----
-
-## State & API
-
-| Document | Purpose |
-|----------|---------|
-| [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) | Zustand stores (cart, auth, checkout) |
-| [CUSTOMER_AUTH.md](CUSTOMER_AUTH.md) | Login, registration, sessions |
-| [MEDUSA_API.md](MEDUSA_API.md) | Store API (products, carts, payments) |
-
----
-
-## Testing
-
-| Document | Purpose |
-|----------|---------|
-| [E2E_TESTING.md](E2E_TESTING.md) | Playwright, Mailosaur email, Hookdeck webhook testing |
-| [QA_ARTIFACTS.md](QA_ARTIFACTS.md) | QA artifact generation for test debugging |
-| [MOBILE_E2E_TESTING_PLAN.md](MOBILE_E2E_TESTING_PLAN.md) | Mobile testing strategy |
-
----
-
-## Planning
-
-| Document | Purpose |
-|----------|---------|
-| [PHASE4_PLAN.md](PHASE4_PLAN.md) | Current phase tracks and status |
-| [PLATFORM_ENGINEERING_PLAN.md](PLATFORM_ENGINEERING_PLAN.md) | Infrastructure improvements roadmap |
-
----
-
-## RFDs (Request for Discussion)
-
-| Document | Status |
-|----------|--------|
-| [RFD-010-infrastructure-and-testing.md](RFD-010-infrastructure-and-testing.md) | Draft |
-| [RFD-012-easypost-hookdeck-verification.md](RFD-012-easypost-hookdeck-verification.md) | Deployed |
-
----
-
-## Archived
-
-Moved to `docs/archived/` - historical reference only.
-
-| Document | Notes |
-|----------|-------|
-| [PHASE3_PLAN.md](../archived/PHASE3_PLAN.md) | Completed |
-| [KEY_MANAGEMENT.md](../archived/KEY_MANAGEMENT.md) | Superseded by `docs/SECRETS.md` |
-| [RFD-011-cloudflare-ssr-workaround.md](../archived/RFD-011-cloudflare-ssr-workaround.md) | Resolved |
-
----
-
-## When to Use
-
-| Task | Document |
-|------|----------|
-| SSH to server, view logs | [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md) |
-| Debug shipping rates or fulfillment | [FULFILLMENT.md](FULFILLMENT.md) |
-| Understand webhook flow | [WEBHOOKS.md](WEBHOOKS.md) |
-| Debug checkout/payment | [CHECKOUT_FLOW.md](CHECKOUT_FLOW.md) |
-| Debug tax calculation | [STRIPE_TAX.md](STRIPE_TAX.md) |
-| Deploy backend changes | [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) |
-| Manage Cloudflare resources | [CLOUDFLARE_API.md](CLOUDFLARE_API.md) |
-| Write E2E tests | [E2E_TESTING.md](E2E_TESTING.md) |
-| Debug test failures | [QA_ARTIFACTS.md](QA_ARTIFACTS.md) |
-| Modify Zustand stores | [STATE_MANAGEMENT.md](STATE_MANAGEMENT.md) |
-| Add or rotate secrets | [../SECRETS.md](../SECRETS.md) |
-| Work with RS-1 devices | [DEVICE_MANAGEMENT.md](DEVICE_MANAGEMENT.md) |
-
-For daily development, `CLAUDE.md` has everything you need.
-
+Documentation for the retired storefront (checkout, payments, tax, fulfillment, webhooks, E2E,
+devices, operations of the old host) was removed on 2026-10-30. It remains in git history.

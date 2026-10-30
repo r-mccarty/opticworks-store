@@ -4,7 +4,7 @@ import { siteConfig } from "@/app/siteConfig"
 import { getPublishedEntries } from "@/content/journal"
 import { programs } from "@/content/programs"
 
-/** Public company pages only: no legacy store/account routes, retired pages or journal drafts. */
+/** Public company pages only: no journal drafts. */
 export default function sitemap(): MetadataRoute.Sitemap {
   const { baseLinks, url } = siteConfig
   const staticPaths = [

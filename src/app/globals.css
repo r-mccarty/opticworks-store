@@ -23,7 +23,7 @@
   --color-amber-strong: oklch(0.82 0.13 72);
   --color-amber-dim: oklch(0.76 0.14 66 / 0.14);
 
-  /* Semantic tokens kept for retained components (legacy commerce, shadcn ui) */
+  /* Semantic tokens used by the shadcn ui components (badge, button, card) */
   --color-background: var(--color-ink);
   --color-foreground: var(--color-text);
   --color-card: var(--color-surface);

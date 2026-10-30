@@ -28,8 +28,6 @@ export const siteConfig = {
     about: "/about",
     contact: "/contact",
     support: "/support",
-    store: "/store",
-    cart: "/store/cart",
     // Legal pages stay at their current URLs until the legal review (#126) is done;
     // /legal/privacy and /legal/terms redirect here temporarily (next.config.ts).
     privacy: "/support/legal/privacy",

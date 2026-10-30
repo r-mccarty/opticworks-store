@@ -1,51 +1,21 @@
 # Secrets Management
 
-All secrets stored in **Infisical**. Never commit `.env.local`, `.dev.vars`, or `backend/.env`.
+Never commit secrets, `.env*` files or `backend/.env`. Inject values at run time instead.
 
-## Quick Start
+## Website
 
-### Codespaces (Recommended)
+The website (`src/`, Worker `opticworks-store`) needs **no secrets or environment variables**.
+It calls no backend or third-party API at run time. `wrangler.jsonc` holds only the Worker's
+name, routes and asset binding.
 
-`INFISICAL_SERVICE_TOKEN` is pre-configured. Just run:
+The retired storefront's Worker secrets were removed on 2026-10-30. See
+[CLOUDFLARE_API.md](reference/CLOUDFLARE_API.md).
 
-```bash
-pnpm run secrets:pull
-```
+## Backend (Medusa 2.21, via Ansible)
 
-This syncs storefront secrets into `.env.local` (Next.js dev) and `.dev.vars` (Wrangler/OpenNext local preview).
-
-### Local Development
-
-```bash
-# Get token from team or Infisical dashboard
-export INFISICAL_SERVICE_TOKEN=st.xxx.xxx
-
-# Pull secrets (writes .env.local and .dev.vars)
-pnpm run secrets:pull
-
-# Verify
-cat .env.local | head -5
-```
-
-## Key Variables
-
-### Storefront (.env.local)
-
-| Variable | Purpose |
-|----------|---------|
-| `NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY` | Medusa Store API access |
-| `NEXT_PUBLIC_MEDUSA_BASE_URL` | Backend URL (https://api.optic.works) |
-| `STRIPE_SECRET_KEY` | Server-side Stripe operations |
-| `STRIPE_WEBHOOK_SECRET` | Webhook signature verification |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Client-side Stripe Elements |
-| `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Turnstile widget site key (public) |
-| `TURNSTILE_SECRET_KEY` | Turnstile server-side validation secret |
-
-### Backend (new Medusa 2.21, via Ansible)
-
-The new backend does **not** use the `OpticWorks` Infisical project. Its values live in project
-`ubuntu-pair-node`, environment `dev`, under `/agents/<service>/{config,credentials}`. See
-[Backend Secrets (Ansible)](#backend-secrets-ansible) below.
+The backend's values live in Infisical project `ubuntu-pair-node`, environment `dev`, under
+`/agents/<service>/{config,credentials}`. The old `OpticWorks` Infisical project belonged to the
+retired storefront and backend; nothing current reads it.
 
 | Variable | Folder | Purpose |
 |----------|--------|---------|
@@ -56,126 +26,14 @@ The new backend does **not** use the `OpticWorks` Infisical project. Its values 
 | `MEDUSA_ADMIN_EMAIL` / `MEDUSA_ADMIN_PASSWORD` | `/agents/opticworks-backend/{config,credentials}` | Admin login (`support@optic.works`) |
 | `CLOUDFLARE_BACKEND_ACCESS_ID` / `_TOKEN` | same | Cloudflare Access service token for `backend.optic.works` |
 | `SSH_HOST`, `SSH_KNOWN_HOSTS`, `SSH_PRIVATE_KEY`, `HETZNER_API_KEY` | `/agents/hetzner` | Host address, pinned host key, deploy key, Hetzner API |
+| Provider keys | `/agents/{neon,stripe,easypost,resend,cloudflare,tigris}` | Neon, Stripe (test), EasyPost (test), Resend, Cloudflare/R2, Tigris |
 
 Database URLs (Neon) and the tunnel token aren't stored. `run.py` fetches them from the provider
-APIs on each run. Legacy variables (`DATABASE_URL`, `POSTGRES_PASSWORD`, `MEDUSA_*_CORS`, …) belonged to the retired backend.
+APIs on each run.
 
-### Cloudflare
-
-| Variable | Purpose |
-|----------|---------|
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account identifier |
-| `CLOUDFLARE_API_TOKEN` | Scoped API token for automation |
-| `CLOUDFLARE_EMAIL` | Account email |
-| `CLOUDFLARE_GLOBAL_API_KEY` | Global API key (legacy, prefer token) |
-| `CLOUDFLARE_API_BASE_URL` | API endpoint URL |
-| `CLOUDFLARE_TUNNEL_ID` | Tunnel identifier for backend |
-| `CLOUDFLARE_TUNNEL_CREDENTIALS` | JSON credentials for tunnel |
-
-### R2 Storage
-
-| Variable | Purpose |
-|----------|---------|
-| `R2_ACCESS_KEY_ID` | R2 access key for public bucket |
-| `R2_SECRET_ACCESS_KEY` | R2 secret for public bucket |
-| `R2_BUCKET_NAME` | Public assets bucket name |
-| `R2_ENDPOINT_URL` | R2 S3-compatible endpoint |
-| `R2_PUBLIC_URL` | Public CDN URL for assets |
-| `R2_BACKUP_ACCESS_KEY_ID` | R2 access key for backups |
-| `R2_BACKUP_SECRET_ACCESS_KEY` | R2 secret for backups |
-| `R2_BACKUP_BUCKET_NAME` | Backup bucket name |
-
-### Fulfillment (EasyPost)
-
-| Variable | Purpose |
-|----------|---------|
-| `EASYPOST_API_KEY` | Production API key (starts with `EZAK`) |
-| `EASYPOST_TEST_API_KEY` | Test API key (starts with `EZTK`) - for development/testing |
-| `EASYPOST_MODE` | Mode toggle: `production` or `test` (controls which key is used) |
-| `SHIP_FROM_NAME` | Origin warehouse name (e.g., `OpticWorks`) |
-| `SHIP_FROM_STREET1` | Origin street address |
-| `SHIP_FROM_CITY` | Origin city |
-| `SHIP_FROM_STATE` | Origin state (2-letter code) |
-| `SHIP_FROM_ZIP` | Origin ZIP code |
-| `SHIP_FROM_PHONE` | Origin phone (required for FedEx rates) |
-
-**Note:** Set `EASYPOST_MODE=test` during development to generate VOID labels without charges. See `docs/reference/FULFILLMENT.md` for full configuration details.
-
-### Tax (Stripe Tax)
-
-| Variable | Purpose |
-|----------|---------|
-| `STRIPE_TAX_FROM_COUNTRY` | Ship-from country code (ISO 2-letter, e.g., `US`) |
-| `STRIPE_TAX_FROM_STATE` | Ship-from state/province (e.g., `CA`) |
-| `STRIPE_TAX_FROM_POSTAL` | Ship-from postal code (e.g., `94104`) |
-| `STRIPE_TAX_FROM_CITY` | Ship-from city (optional) |
-| `STRIPE_TAX_SKIP_COMMIT` | Skip committing transactions (set to `true` for local dev) |
-
-**Note:** Stripe Tax uses `STRIPE_API_KEY` (same as payments). The `FROM_*` address is used for origin-based tax calculation. Stripe determines nexus automatically from your Stripe Tax dashboard settings.
-
-### Email
-
-| Variable | Purpose |
-|----------|---------|
-| `RESEND_API_KEY` | Resend API for transactional email |
-| `RESEND_FROM_EMAIL` | From address (e.g., `OpticWorks <notifications@notifications.optic.works>`) |
-
-### Webhooks (Hookdeck)
-
-| Variable | Purpose |
-|----------|---------|
-| `HOOKDECK_WEBHOOK_SECRET` | Signing secret for verifying Hookdeck signatures (Settings > Project > Secrets in Hookdeck dashboard) |
-| `HOOKDECK_API_KEY` | Admin API key for querying events/deliveries (used in E2E tests) |
-
-**Note:** Hookdeck sits between Stripe/EasyPost and our webhook endpoints, providing retry logic, logging, and validation. The signing secret verifies that webhook requests genuinely originate from Hookdeck. The API key enables E2E tests to verify webhook delivery.
-
-#### Hookdeck Transformation Environment
-
-The EasyPost verification transformation requires `EASYPOST_WEBHOOK_SECRET` to be set in the Hookdeck transformation environment (not Infisical). This is configured in Hookdeck Dashboard > Transformations > easypost-verify > Environment Variables.
-
-See [RFD-012](reference/RFD-012-easypost-hookdeck-verification.md) and `infrastructure/hookdeck-transformations/README.md` for details.
-
-### Background Jobs (QStash)
-
-| Variable | Purpose |
-|----------|---------|
-| `QSTASH_URL` | QStash API endpoint |
-| `QSTASH_TOKEN` | QStash authentication token |
-| `QSTASH_CURRENT_SIGNING_KEY` | Current webhook signature key |
-| `QSTASH_NEXT_SIGNING_KEY` | Next rotation signing key |
-
-### Backup & Recovery
-
-| Variable | Purpose |
-|----------|---------|
-| `RESTIC_PASSWORD` | Encryption password for restic backups |
-
-### Testing
-
-| Variable | Purpose |
-|----------|---------|
-| `MAILOSAUR_API_KEY` | Mailosaur API key for E2E email verification |
-| `MAILOSAUR_SERVER_ID` | Mailosaur server ID (e.g., `cgbbp7hh`) - emails sent to `*@{server-id}.mailosaur.net` are captured |
-| `CONTEXT7_API_KEY` | Context7 API key |
-
-**Note:** Mailosaur enables E2E tests to verify transactional emails are actually sent. See `docs/reference/E2E_TESTING.md` for usage.
-
-## Infisical Structure
-
-```
-Project: OpticWorks
-├── dev/             # Local dev secrets (all at root path /)
-├── staging/         # Staging secrets (all at root path /)
-└── prod/            # Production secrets (all at root path /)
-```
-
-**Note:** All secrets are stored at the root path `/` - there are no subpaths like `/medusa` or `/infrastructure`. Environment names are short: `dev`, `staging`, `prod` (not `development`, `production`).
-
-## Backend Secrets (Ansible)
-
-`infrastructure/ansible/scripts/run.py` injects secrets from Infisical (`ubuntu-pair-node`, `dev`)
-into the Ansible process at run time. Nothing is written to `group_vars` or to disk on the
-controller, apart from an ephemeral SSH key in a 0700 temp dir:
+`infrastructure/ansible/scripts/run.py` injects these into the Ansible process. Nothing is
+written to `group_vars` or to disk on the controller, apart from an ephemeral SSH key in a 0700
+temp dir:
 
 ```bash
 export INFISICAL_PROFILE=<your profile> OPTICWORKS_CONFIRM_SERVER_ID=110578382
@@ -183,84 +41,12 @@ python3 -I infrastructure/ansible/scripts/run.py --target original deploy
 ```
 
 The backend's own values were created once with `scripts/generate_secrets.py` (it refuses to
-overwrite). Rotate individual values deliberately in Infisical. Full runbook:
-[`infrastructure/ansible/README.md`](../infrastructure/ansible/README.md). The old
-`generate-secrets-from-infisical.sh` / `group_vars/secrets.yml` flow belonged to the retired backend.
+overwrite). Rotate individual values deliberately in Infisical, then redeploy. Full runbook:
+[`infrastructure/ansible/README.md`](../infrastructure/ansible/README.md).
 
-## Adding New Secrets
+## Adding a secret
 
-### Via Web UI
-1. Add to Infisical via web UI at https://app.infisical.com
-2. For storefront: `pnpm run secrets:pull`
-3. For backend: Run Ansible deploy
-
-### Via CLI
-```bash
-# Add a secret to prod environment
-infisical secrets set SECRET_NAME="value" \
-  --env=prod \
-  --projectId=42e9e77c-88fa-4cbb-925b-5064c8e3b18c \
-  --token="$INFISICAL_SERVICE_TOKEN"
-```
-
-## Rotation Schedule
-
-- **Backend secrets**: Monthly (DATABASE_URL, JWT_SECRET, COOKIE_SECRET)
-- **API keys**: Quarterly (Stripe, EasyPost, Resend)
-- **Cloudflare credentials**: Quarterly
-- **R2 keys**: Quarterly
-- **Hookdeck signing secret**: Quarterly (rotate in dashboard, update Infisical)
-- **QStash keys**: As needed (NEXT_SIGNING_KEY becomes CURRENT on rotation)
-- **Service tokens**: Yearly
-- **Backup encryption**: Yearly (RESTIC_PASSWORD - requires re-init)
-
-## Troubleshooting
-
-**"INFISICAL_SERVICE_TOKEN not set"**
-```bash
-export INFISICAL_SERVICE_TOKEN=st.xxx.xxx
-```
-
-**"Project not found"**
-- Check token has access to OpticWorks project
-- Verify environment (development vs production)
-
-**Secrets not updating**
-```bash
-rm .env.local
-pnpm run secrets:pull
-```
-
-**Legacy backend (retired): "Pg connection failed" / KnexTimeoutError**
-
-*Applies only to the retired self-hosted Postgres backend. The new backend uses Neon.*
-
-This issue was caused by passwords containing URL-unsafe characters (`/`, `+`, `=`).
-
-**Prevention**: `generate-secrets-from-infisical.sh` now validates that `POSTGRES_PASSWORD` is hex-only (no special characters). If you see this error during secret generation, follow the instructions to regenerate the password.
-
-```bash
-# Generate new hex-only password
-openssl rand -hex 32
-
-# Update in Infisical
-infisical secrets set POSTGRES_PASSWORD="<new-password>" --env=prod \
-  --projectId=42e9e77c-88fa-4cbb-925b-5064c8e3b18c --token="$INFISICAL_SERVICE_TOKEN"
-
-# Regenerate secrets
-cd infrastructure/ansible
-bash scripts/generate-secrets-from-infisical.sh
-
-# Update PostgreSQL and redeploy
-ssh hetzner-node "sudo -u postgres psql -c \"ALTER USER medusa PASSWORD '<new-password>';\""
-ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
-```
-
-**Backend: Shell syntax error with angle brackets**
-```bash
-# Symptom: .env parse error "unexpected token"
-# Cause: Values like "Name <email>" need quotes
-
-# BAD:  FROM_EMAIL=Name <email@x.com>
-# GOOD: FROM_EMAIL="Name <email@x.com>"
-```
+1. Add it in Infisical under the right `/agents/<service>` folder (`config` for non-secret
+   settings, `credentials` for secrets).
+2. Read it in `run.py` or the relevant role. Never write it into the repo, `group_vars`, issues
+   or logs.
