@@ -1,24 +1,18 @@
 import type { NextConfig } from "next";
 
-import { LEGACY_REDIRECTS } from "./src/lib/legacy-routes";
-
 const nextConfig: NextConfig = {
   images: {
     // Disable Next.js image optimization for Cloudflare Workers
     // Workers runtime doesn't support Node.js sharp library
     // Images are served directly from /public or R2
     unoptimized: true,
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'pub-e97850e2b6554798b4b0ec23548c975d.r2.dev',
-        port: '',
-        pathname: '/**',
-      }
-    ],
   },
   async redirects() {
-    return LEGACY_REDIRECTS;
+    // Temporary until the legal review (#126) moves the documents to /legal/*.
+    return [
+      { source: "/legal/privacy", destination: "/support/legal/privacy", permanent: false },
+      { source: "/legal/terms", destination: "/support/legal/terms", permanent: false },
+    ];
   },
 };
 

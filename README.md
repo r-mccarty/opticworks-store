@@ -4,8 +4,7 @@ Company and product website for OpticWorks, Inc.: intelligent instruments for ma
 imaging and the physical world. Built with Next.js 15 and deployed to Cloudflare Workers via
 OpenNext. Public pages need no backend.
 
-**Live**: [optic.works](https://optic.works) · **Docs**: [docs.optic.works](https://docs.optic.works)
-· **Contact**: support@optic.works
+**Live**: [optic.works](https://optic.works) · **Contact**: support@optic.works
 
 ## Current state (since 2026-10-29)
 
@@ -15,14 +14,12 @@ a company and product site:
 - Public pages: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`,
   `/technology`, `/journal` (+ `/journal/feed.xml`), `/about`, `/contact`, `/support`, and the
   legal pages under `/support/legal/*` (`/legal/*` redirects there temporarily, see #126).
-- Store, cart, order confirmation, sign-in and account routes keep their URLs but render only an
-  "unavailable" page; the legacy components are not bundled. Commerce is hard-disabled in code by `COMMERCE_ENABLED = false`
-  in [`src/lib/commerce.ts`](src/lib/commerce.ts).
+- Anything else is a 404. The site has no store, cart, checkout, account, sign-in or `/api/*`
+  code.
 - Support requests go to **support@optic.works** by email. The site has no working forms.
 - A separate Worker (`opticworks-backend-offline-20261029`) answers these routes with
   `503 BACKEND_OFFLINE`, without reaching any origin:
   `optic.works/api/*`, `www.optic.works/api/*`, `api.optic.works/*`, `medusa.optic.works/*`.
-  This means **every same-origin `/api/*` route in this app is unreachable in production**.
   Don't build features that depend on `/api/*` on `optic.works`.
 - The Stripe and EasyPost Hookdeck connections are paused.
 
@@ -51,9 +48,9 @@ Launch readiness is tracked in **#138**: a bucket-scoped R2 token, a real Stripe
 custom file domain, live keys, and removing the email allowlist. Connecting the website is a
 separate step after that (see "Re-enabling commerce" in the status doc).
 
-Retired Presence/CyberShade pages (OW-1 product, install guides, FAQ, warranty,
-compatibility, tinting laws) answer **410 Gone** from `src/middleware.ts`; old support URLs
-redirect (`src/lib/legacy-routes.ts`). E-commerce will return on the new backend after launch.
+The retired Presence/CyberShade/OW-1 content and the legacy commerce frontend were removed
+from the repo on 2026-10-30 (see the status doc). E-commerce will return on the new backend
+after launch.
 
 ## Content
 
@@ -77,7 +74,7 @@ pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-No secrets are needed for the website while commerce is disabled.
+The website needs no secrets or environment variables.
 
 ## Validation
 
@@ -89,9 +86,6 @@ pnpm typecheck      # tsc --noEmit (excludes the standalone backend/)
 pnpm test           # vitest unit tests
 pnpm cf:build       # OpenNext Cloudflare build (next build also lints and type-checks)
 ```
-
-The Playwright E2E suite in `e2e/` targets the legacy commerce flow and needs the backend.
-It isn't part of CI while commerce is offline.
 
 ## Deployment
 
@@ -113,17 +107,13 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 
 | Path | Purpose |
 |------|---------|
-| `src/app/` | Next.js App Router pages and (currently unreachable) `/api/*` route handlers |
+| `src/app/` | Next.js App Router pages |
 | `src/content/` | Program, journal and company content (see above) |
 | `src/components/site/` | Site chrome, primitives and illustrations for the current design |
-| `src/lib/legacy-routes.ts` | Retired (410) paths and legacy redirects |
-| `src/components/legacy/`, `src/components/store/` | Archived commerce/account UI; not imported by any route |
-| `src/lib/commerce.ts` | Commerce kill switch |
-| `src/lib/api/medusa*.ts`, `src/hooks/useCart.ts`, `src/hooks/useAuth.ts` | Legacy Medusa client and stores, kept for reference |
 | `backend/` | New Medusa 2.21 backend (standalone pnpm project; deployed dark, see above) |
 | `infrastructure/ansible/` | Backend host automation and runbooks (backend host changes only via Ansible) |
-| `platform/docs-site/` | Hugo source for docs.optic.works (see audit in the status doc) |
-| `docs/reference/` | Reference docs. Backend/checkout docs are historical |
+| `infrastructure/workers/backend-offline/` | Source of the offline `/api/*` Worker |
+| `docs/reference/` | Current-state doc, Cloudflare API notes, legacy backend API record |
 
 ## Documentation
 
@@ -133,5 +123,5 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 | [docs/reference/BACKEND_OFFLINE_FRONTEND.md](docs/reference/BACKEND_OFFLINE_FRONTEND.md) | Current state, route inventory, remaining issues |
 | [infrastructure/ansible/README.md](infrastructure/ansible/README.md) | New backend host: topology, secrets, deploy/restore runbook |
 | [infrastructure/ansible/MIGRATION.md](infrastructure/ansible/MIGRATION.md) | Move onto the grandfathered CPX21 (gates 0–4, all complete) and legacy-pricing rules |
-| [docs/reference/README.md](docs/reference/README.md) | Reference index (legacy backend docs marked historical) |
-| [docs/SECRETS.md](docs/SECRETS.md) | Environment variables; where the new backend's secrets live |
+| [docs/reference/README.md](docs/reference/README.md) | Reference index |
+| [docs/SECRETS.md](docs/SECRETS.md) | Where the backend's secrets live (the website needs none) |

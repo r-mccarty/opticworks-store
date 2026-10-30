@@ -65,8 +65,8 @@ The bootstrap harness has guest SSH access but no configured Hetzner Cloud API t
 
 ## Applied automation
 
-- [Snapshot playbook](../../infrastructure/ansible/playbooks/medusa-prepare-snapshot.yml): all backend changes were made with Ansible, in accordance with AGENTS.md.
-- [Snapshot helper](../../infrastructure/ansible/scripts/prepare-snapshot.py): opens dump files as root, uses local PostgreSQL administrator access, verifies archive decoding, captures private configuration, and runs an encrypted offsite backup. It does not execute the old failing backup shell script.
+- [Snapshot playbook](https://github.com/r-mccarty/opticworks-store/blob/b747f160c973/infrastructure/ansible/playbooks/medusa-prepare-snapshot.yml): all backend changes were made with Ansible, in accordance with AGENTS.md.
+- [Snapshot helper](https://github.com/r-mccarty/opticworks-store/blob/b747f160c973/infrastructure/ansible/scripts/prepare-snapshot.py): opens dump files as root, uses local PostgreSQL administrator access, verifies archive decoding, captures private configuration, and runs an encrypted offsite backup. It does not execute the old failing backup shell script.
 - [API-offline Worker](../../infrastructure/workers/backend-offline/worker.mjs) and [routing configuration](../../infrastructure/workers/backend-offline/wrangler.jsonc).
 - [Nonsecret state receipt](legacy-api/snapshot-preparation-state.json): service states, route IDs, paused connection IDs, archive validation results and recovery identifiers.
 

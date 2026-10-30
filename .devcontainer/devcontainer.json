@@ -1,22 +1,18 @@
 {
-  "name": "OpticWorks Presence Storefront",
+  "name": "OpticWorks Website",
   "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
 
   "remoteUser": "node",
   "runArgs": ["--init"],
 
   "containerEnv": {
-    "NEXT_TELEMETRY_DISABLED": "1",
-    "INFISICAL_SERVICE_TOKEN": "${localEnv:INFISICAL_SERVICE_TOKEN}"
+    "NEXT_TELEMETRY_DISABLED": "1"
   },
 
-  "forwardPorts": [3000, 1313],
+  "forwardPorts": [3000],
   "portsAttributes": {
     "3000": {
-      "label": "Next.js storefront"
-    },
-    "1313": {
-      "label": "Hugo docs (pnpm docs:dev)"
+      "label": "Next.js site"
     }
   },
 
