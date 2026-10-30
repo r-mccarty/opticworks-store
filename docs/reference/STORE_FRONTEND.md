@@ -44,11 +44,15 @@ header ─ BagLink ──────┼─ server actions (src/lib/store/action
 /cart, /checkout ──────┘        │                                       ├─ mock.ts
                                 ├─ ow_bag cookie: [{handle, quantity}]   └─ medusa.ts ─► backend.optic.works
                                 └─ ow_checkout cookie: Medusa cart id      (Store API, server-side,
-                                   (or mock state)                          publishable key + Access token)
+                                   (or mock state)                          publishable key + Store-only
+                                                                            Access token)
 ```
 
 - **Prices are never stored client-side.** The bag cookie holds handles and quantities only;
   every page re-prices from the backend's offers.
+- **Least privilege.** The Worker's Access service token (`opticworks-store-worker`) is valid only
+  for `backend.optic.works/store/*` (a dedicated Access app). Operators and agents keep their own
+  token. See [SECRETS.md](../SECRETS.md#website).
 - **No `/api/*`.** Server actions post to the page URL, so the offline Worker that answers
   `optic.works/api/*` doesn't affect them. The browser never talks to Medusa.
 - **The backend cart is created at checkout, with the address first.** The backend's Stripe
