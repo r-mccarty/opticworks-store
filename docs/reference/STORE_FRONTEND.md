@@ -50,7 +50,7 @@ header ─ BagLink ──────┼─ server actions (src/lib/store/action
 - **The backend cart is created at checkout, with the address first.** The backend's Stripe
   Tax provider fails closed: it can't price an item for a cart that knows only its region
   (no ZIP code), so adding items to an address-less cart returns
-  `500 Tax could not be calculated`. Creating the cart with the full address avoids that.
+  `500 Tax could not be calculated`. Creating the cart with the full address avoids that (#142).
 - Products map to programs by handle (`Program.commerce.productHandle` === slug === Medusa
   handle). Marketing copy stays in `src/content/`; price and availability come from the
   store backend.
@@ -89,7 +89,7 @@ Owner-provided on 2026-10-30, **subject to change**:
    is also needed (#138). Until then `medusa` mode can't place orders.
 2. **Shipping data.** The products have no weight or dimensions, so EasyPost quotes a
    parcel-sized rate by USPS (about $6–20) for a machine. Set real weights and dimensions,
-   or use freight or manual shipping options, before showing rates.
+   or use freight or manual shipping options, before showing rates (#143).
 3. **Backend launch readiness** (#138): live keys, removing the email allowlist and making
    the backend public, or keeping it behind Access with the Worker's service token.
 4. **Copy and legal.** Both products are in development (prototype and early development).
