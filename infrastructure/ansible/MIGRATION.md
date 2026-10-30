@@ -80,12 +80,28 @@ Deploy, run dark end-to-end tests, and rehearse a restore, all on staging only.
 Staging uses Neon `dev`. Live commerce and webhooks stay off.
 
 - [x] `generate_secrets.py` succeeded (2026-10-30)
-- [ ] `run.py --target staging deploy`, then `run.py --target staging rotate-hostkey`
-- [ ] Through Access: health, admin login, auth, rate limits, seeded drafts hidden
-- [ ] Email/test integrations; first backups in R2 **and** Tigris (`--host opticworks-staging`)
-- [ ] Restore into an **isolated new Neon branch**, then verify row counts and boot
-- [ ] Record: git SHA, versions, `df -h /` and `/srv/medusa` size (must fit 40 GB with
-      release retention), release timings, acceptance results
+- [x] `run.py --target staging deploy` succeeded at `6e4ab50` (ok=71, failed=0), then
+      `rotate-hostkey` (now `SHA256:eGJrmKQaO+zL/VlTbDAnXL59GAy1JILMnLfe+ArKBlI`)
+- [x] Loopback probes: `/health` 200; store without a key 400; admin without auth 401;
+      legacy paths never 2xx; 11th bad login 429; store with a publishable key lists
+      **0** products (seeded drafts hidden), regions 200. Only SSH listens publicly
+- [x] Edge: anonymous `/`, `/health`, `/app`, `/store/products` → 302 to Access
+- [ ] Admin login through Access (owner account)
+- [ ] Email/test integrations (password-reset email, Stripe/EasyPost test calls)
+- [x] First backup landed in R2 **and** Tigris (`--host opticworks-staging`). The Tigris repo
+      passed `restic check`
+- [x] Restore rehearsal: R2 snapshot → `pg_restore` into an empty database on a new
+      Neon branch. 147 tables and 665 rows, identical per-table counts to `dev`.
+      The rehearsal branch was deleted afterwards. Booting Medusa against a restored
+      branch has not been tested
+- [x] Recorded: Medusa 2.21.2, Node 22, pnpm 10.18.1, Debian 13. Disk use 5.1 GB of 75 GB;
+      `/srv/medusa` 1.1 GB with one release, so ~3 GB at three retained releases. **Fits
+      the 40 GB original.** RAM use about 1 GB of 3.8 GB
+
+Fixes the first real converge needed (all in this PR): `group_vars` was never
+loaded; the journald drop-in directory was missing; Medusa writes `~/.config` (EROFS);
+seccomp killed `chown` (SIGSYS); a release that couldn't start skipped rollback;
+`pg_dump` needed `PGSSLROOTCERT=system`; Neon API resets needed a retry.
 
 ## Gate 2: plan for the original — STOP for owner approval
 
