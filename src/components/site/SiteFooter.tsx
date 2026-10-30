@@ -2,7 +2,7 @@ import Link from "next/link"
 
 import { siteConfig } from "@/app/siteConfig"
 import { programs } from "@/content/programs"
-import { Wordmark } from "./SiteHeader"
+import { Wordmark } from "./Wordmark"
 
 const CURRENT_YEAR = new Date().getFullYear()
 
