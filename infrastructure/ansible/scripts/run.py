@@ -25,6 +25,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -53,8 +54,17 @@ def outer(argv):
 
 
 def http_json(url, headers):
-    with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as r:
-        return json.load(r)
+    # Retry network errors (resets, timeouts); HTTP errors are answers and raise at once.
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=30) as r:
+                return json.load(r)
+        except urllib.error.HTTPError:
+            raise
+        except (urllib.error.URLError, TimeoutError, ConnectionError):
+            if attempt == 2:
+                raise
+            time.sleep(2 ** attempt)
 
 
 def target(name):
