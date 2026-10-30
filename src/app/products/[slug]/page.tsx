@@ -4,6 +4,7 @@ import { notFound } from "next/navigation"
 import { claimStatusLabels, getProgram, programs, type ClaimStatus } from "@/content/programs"
 import { ArrowLink, ClaimStatusTag, Container, Section, SectionHeading, StagePill } from "@/components/site/primitives"
 import { ProgramFigure } from "@/components/site/programs"
+import { BuyBox } from "@/components/store/BuyBox"
 
 export function generateStaticParams() {
   return programs.map((program) => ({ slug: program.slug }))
@@ -55,6 +56,7 @@ export default async function ProgramPage({ params }: Props) {
               <StagePill stage={program.stage} />
               <p className="mt-3 text-sm leading-relaxed text-text-muted">{program.statusNote}</p>
             </div>
+            {program.commerce && <BuyBox handle={program.commerce.productHandle} />}
           </div>
           <div className="lg:col-span-6">
             {program.media[0] && <ProgramFigure media={program.media[0]} />}

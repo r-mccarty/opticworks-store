@@ -6,6 +6,7 @@ import { useEffect, useState } from "react"
 
 import { siteConfig } from "@/app/siteConfig"
 import { cx } from "@/lib/utils"
+import { BagLink } from "@/components/store/BagLink"
 import { Wordmark } from "./Wordmark"
 
 export function SiteHeader() {
@@ -23,40 +24,44 @@ export function SiteHeader() {
           <Wordmark />
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-8 md:flex">
-          {siteConfig.nav.map((item) => (
+        <div className="flex items-center gap-6 md:gap-8">
+          <nav aria-label="Primary" className="hidden items-center gap-8 md:flex">
+            {siteConfig.nav.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={isActive(item.href) ? "page" : undefined}
+                className={cx(
+                  "text-sm transition-colors hover:text-text",
+                  isActive(item.href) ? "text-text" : "text-text-muted",
+                )}
+              >
+                {item.label}
+              </Link>
+            ))}
             <Link
-              key={item.href}
-              href={item.href}
-              aria-current={isActive(item.href) ? "page" : undefined}
-              className={cx(
-                "text-sm transition-colors hover:text-text",
-                isActive(item.href) ? "text-text" : "text-text-muted",
-              )}
+              href={siteConfig.baseLinks.contact}
+              className="rounded-sm border border-line-strong px-4 py-2 font-cta text-sm font-medium uppercase tracking-[0.08em] text-text transition-colors hover:border-amber hover:text-amber-strong"
             >
-              {item.label}
+              Contact
             </Link>
-          ))}
-          <Link
-            href={siteConfig.baseLinks.contact}
-            className="rounded-sm border border-line-strong px-4 py-2 font-cta text-sm font-medium uppercase tracking-[0.08em] text-text transition-colors hover:border-amber hover:text-amber-strong"
-          >
-            Contact
-          </Link>
-        </nav>
+          </nav>
 
-        <button
-          type="button"
-          className="-mr-2 rounded-sm p-2 text-text md:hidden"
-          aria-expanded={open}
-          aria-controls="mobile-nav"
-          onClick={() => setOpen((value) => !value)}
-        >
-          <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
-          <svg aria-hidden viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.5">
-            {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 8h16M4 16h16" />}
-          </svg>
-        </button>
+          <BagLink />
+
+          <button
+            type="button"
+            className="-mr-2 rounded-sm p-2 text-text md:hidden"
+            aria-expanded={open}
+            aria-controls="mobile-nav"
+            onClick={() => setOpen((value) => !value)}
+          >
+            <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
+            <svg aria-hidden viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="1.5">
+              {open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 8h16M4 16h16" />}
+            </svg>
+          </button>
+        </div>
       </div>
 
       <nav

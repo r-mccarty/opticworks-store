@@ -16,8 +16,8 @@ import {
 /**
  * Mirrors src/content/programs.ts in the frontend: one product per program,
  * handle === program slug (the frontend's `commerce.productHandle`). Products
- * stay DRAFT with no prices: nothing is for sale until the owner approves
- * offers, so the Store API returns no products and makes no purchase claims.
+ * are created DRAFT with no prices. Offers (price + published status) are set
+ * separately by infrastructure/ansible/scripts/catalog_offers.py.
  */
 const PROGRAMS = [
   { handle: "vmc", title: "Compact VMC", category: "Precision manufacturing" },

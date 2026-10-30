@@ -17,11 +17,17 @@ describe("program content", () => {
     expect(JSON.stringify(programs)).not.toMatch(priceLike)
   })
 
-  it("does not mark anything validated or for sale yet", () => {
+  it("does not mark anything validated or available yet", () => {
     for (const program of programs) {
       expect(program.stage).not.toBe("available")
-      expect(program.commerce).toBeUndefined()
       expect(program.capabilities.every((capability) => capability.status !== "validated")).toBe(true)
+    }
+  })
+
+  it("links each program to the backend product of the same handle", () => {
+    // The backend seed creates one product per program with handle === slug.
+    for (const program of programs) {
+      expect(program.commerce?.productHandle).toBe(program.slug)
     }
   })
 
