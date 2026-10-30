@@ -41,6 +41,11 @@ HARNESS_PATHS = [f"/agents/{s}/{k}" for s in ("opticworks-backend", "neon", "str
                  for k in ("config", "credentials")]
 TARGETS = json.loads((ANSIBLE / "inventory" / "targets.json").read_text())
 TUNNEL = "opticworks-backend"
+# Where each target's pinned host key (a known_hosts line; public, not secret) is
+# recorded, so a controller other than this one can verify the host on first contact.
+# The original sits beside /agents/hetzner SSH_HOST, which names it.
+HOSTKEY_RECORD = {"original": ("/agents/hetzner/config", "SSH_KNOWN_HOSTS"),
+                  "staging": ("/agents/opticworks-backend/config", "STAGING_SSH_KNOWN_HOSTS")}
 NEON_PROJECT = "jolly-moon-85409114"
 
 
@@ -144,7 +149,19 @@ def ssh(host, key, port, user, command):
                           capture_output=True, text=True)
 
 
-def rotate_hostkey(host, key, port, user):
+def record_hostkey(name, line):
+    """Store the known_hosts line in Infisical (stdout discarded: `secrets set` echoes values)."""
+    path, secret = HOSTKEY_RECORD[name]
+    profile = ["--profile", os.environ["INFISICAL_PROFILE"]] if os.environ.get("INFISICAL_PROFILE") else []
+    r = subprocess.run(["infisical", "secrets", "set", f"{secret}={line}", f"--projectId={HARNESS_PROJECT}",
+                        "--env=dev", f"--path={path}", "--silent", *profile],
+                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
+    if r.returncode != 0:
+        sys.exit(f"host key rotated but NOT recorded in Infisical {path} {secret}; record this line by hand: {line}")
+    print(f"recorded in Infisical ubuntu-pair-node/dev{path} {secret}")
+
+
+def rotate_hostkey(name, host, key, port, user):
     """Replace the cloud-init host key over the already-verified connection."""
     new = ssh(host, key, port, user,
               "sudo rm -f /etc/ssh/ssh_host_ed25519_key.new* && "
@@ -168,6 +185,7 @@ def rotate_hostkey(host, key, port, user):
     if check.returncode != 0:
         sys.exit("reconnect with the rotated key failed; investigate via the Hetzner console")
     print(f"host key rotated; now trusting {fp} for {entry}")
+    record_hostkey(name, f"{entry} {pub}")
 
 
 def inner(argv):
@@ -182,7 +200,7 @@ def inner(argv):
         os.chmod(tmp, 0o700)
         key = write_key(tmp)
         if action == "rotate-hostkey":
-            rotate_hostkey(host, key, port, user)
+            rotate_hostkey(name, host, key, port, user)
             return 0
         if action == "stop-tunnel":
             # Cutover handover: only one host may run the opticworks-backend connector.
