@@ -66,6 +66,9 @@ python3 -I infrastructure/ansible/scripts/generate_secrets.py
 python3 -I infrastructure/ansible/scripts/run.py --target staging deploy   # extra args go to ansible-playbook
 python3 -I infrastructure/ansible/scripts/run.py --target staging deploy --check --diff
 # The original only after the owner's Gate 2 approval (MIGRATION.md):
+agent-harness2/bin/with-secrets hetzner -- sh -c 'OPTICWORKS_CONFIRM_SERVER_ID=110578382 \
+  python3 -I infrastructure/ansible/scripts/hcloud_rebuild_original.py'   # dry run; --apply ERASES it
+python3 -I infrastructure/ansible/scripts/run.py --target staging stop-tunnel     # one connector at a time
 OPTICWORKS_CONFIRM_SERVER_ID=110578382 python3 -I infrastructure/ansible/scripts/run.py --target original deploy
 ```
 

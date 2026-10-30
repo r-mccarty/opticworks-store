@@ -3,6 +3,7 @@
 
   python3 -I infrastructure/ansible/scripts/run.py --target staging deploy [ansible-playbook args...]
   python3 -I infrastructure/ansible/scripts/run.py --target staging rotate-hostkey
+  python3 -I infrastructure/ansible/scripts/run.py --target staging stop-tunnel
 
 Targets come from inventory/targets.json and are resolved by Hetzner server ID.
 `staging` is the temporary validation VM (Neon `dev` branch). `original` is the
@@ -182,6 +183,13 @@ def inner(argv):
         key = write_key(tmp)
         if action == "rotate-hostkey":
             rotate_hostkey(host, key, port, user)
+            return 0
+        if action == "stop-tunnel":
+            # Cutover handover: only one host may run the opticworks-backend connector.
+            r = ssh(host, key, port, user, "sudo systemctl disable --now cloudflared && ! systemctl is-active -q cloudflared")
+            if r.returncode != 0:
+                sys.exit(f"could not stop cloudflared on {name}")
+            print(f"cloudflared stopped and disabled on {name} ({host}); the next deploy there re-enables it")
             return 0
         if action != "deploy":
             sys.exit(__doc__)

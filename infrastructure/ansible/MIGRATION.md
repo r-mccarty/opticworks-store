@@ -65,10 +65,15 @@ Done using only the Hetzner, Neon and Cloudflare APIs:
   Legacy tunnel `opticworks-medusa` is down. `backend.optic.works` → new tunnel, behind
   Access app "OpticWorks backend (dark)". `api.` / `medusa.` CNAMEs → legacy tunnel,
   served by the 503 offline Worker.
-- **Not yet inventoried:** what runs and is stored on the original's disk, the
-  state of the staging host, and Restic and Hookdeck. A host inspection over SSH
-  needs operator approval: it is a read of the production host. The API can't
-  show the billed rate. Confirm $13.99 on the Hetzner invoice or in the console.
+- **Original host (SSH, read-only, owner-approved, 2026-10-30):** Debian 13, 38 GB
+  filesystem with 7.7 GB used, up 49 weeks. Only `sshd` listens (`:8032`). The legacy
+  stack is stopped: pm2 Medusa, local PostgreSQL 17 (86 MB in `/var/lib/postgresql`)
+  and Redis are enabled but not running. Legacy files: `/home/ryan/opticworks-store`,
+  `/opt/opticworks`, `.cloudflared` credentials for the legacy tunnel, `/root/.claude`.
+  Empty crontab, no Docker. ufw and fail2ban are enabled. **Since snapshot `449822273`
+  only a DHCP lease file changed**, so the snapshot is a complete recovery copy.
+  Owner: nothing on it needs keeping.
+- The API can't show the billed rate. Confirm $13.99 on the Hetzner invoice or in the console.
 
 ## Gate 1: staging (`--target staging`)
 
@@ -86,8 +91,17 @@ Staging uses Neon `dev`. Live commerce and webhooks stay off.
       legacy paths never 2xx; 11th bad login 429; store with a publishable key lists
       **0** products (seeded drafts hidden), regions 200. Only SSH listens publicly
 - [x] Edge: anonymous `/`, `/health`, `/app`, `/store/products` → 302 to Access
-- [ ] Admin login through Access (owner account)
-- [ ] Email/test integrations (password-reset email, Stripe/EasyPost test calls)
+- [x] Through Access with the owner's service token (`/agents/opticworks-backend`):
+      `/health` and `/app` 200. Admin `support@optic.works` (password in Infisical
+      `MEDUSA_ADMIN_PASSWORD`): wrong password 401, login 200, `/admin/users/me` 200, admin
+      lists the two drafts. Python's default User-Agent gets a Cloudflare 403: set one
+- [x] Live integrations (test-mode keys): a password-reset email went to `support@optic.works`
+      through Resend. A temporary published product and cart to the company address got
+      EasyPost rates (Ground Advantage $20.91, Priority $25.08; FedEx 2Day unavailable, failing
+      closed). Stripe Tax: $1.94 on $25 (shipping untaxed). A Stripe test PaymentIntent was
+      created (`livemode: false`) but not confirmed. The test product was deleted. Use the
+      `optic.works storefront` publishable key: Medusa's auto-created "Default Publishable API
+      Key" points at a sales channel with no stock location, so it offers no shipping options
 - [x] First backup landed in R2 **and** Tigris (`--host opticworks-staging`). The Tigris repo
       passed `restic check`
 - [x] Restore rehearsal: R2 snapshot → `pg_restore` into an empty database on a new
@@ -105,29 +119,44 @@ seccomp killed `chown` (SIGSYS); a release that couldn't start skipped rollback;
 
 ## Gate 2: plan for the original — STOP for owner approval
 
-Prepare and review, without touching the original:
-
-- [ ] Inventory the original's disk, services and duties. Decide what to keep, and
-      copy it to a restorable, independent place (snapshot `449822273` plus a file-level copy)
-- [ ] Verify that a rebuild with `debian-13` keeps server ID, IPs and type. Settle
-      how first-boot access works (does the rebuild accept the cloud-init `user_data` used
-      for the pre-trusted host key, or does a root password plus console step apply?).
-      Keep strict host-key checking either way
-- [ ] Expected downtime, rollback (re-rebuild from snapshot `449822273`, same ID), and
-      tunnel handover: stop `cloudflared` on staging first. `run.py` refuses while the
-      tunnel is connected from another host
-- [ ] Owner approves: protection change, wipe/rebuild, traffic switch, and the
-      Neon branch (`main`) the original will use
+- [x] Inventory (Gate 0). Nothing to keep. Snapshot `449822273` (protected, 40 GB,
+      current) is the independent recovery copy
+- [x] Rebuild API (Hetzner OpenAPI spec, 2026-10-30): `POST /servers/{id}/actions/rebuild`
+      takes `image` and **`user_data`**. It runs on the same server, so ID, primary IPs and
+      type are kept. First boot therefore uses the same pre-trusted host key as staging,
+      and strict checking stays on. **Delete and rebuild protection must have the same
+      value**, so both are off for the rebuild window. `hcloud_rebuild_original.py` re-enables
+      them as soon as the rebuild is accepted (retrying through the lock), including on failure
+- [x] Tooling: `scripts/hcloud_rebuild_original.py` (dry run checked: no drift, snapshot
+      protected and fitting); `run.py --target staging stop-tunnel`
+- **Downtime:** none user-facing. The site doesn't use this backend (dark, Access-only),
+  and the original serves nothing today. `backend.optic.works` is down from `stop-tunnel`
+  until the original's deploy finishes (about 10–15 minutes)
+- **Rollback:** at any point, rebuild `110578382` again from snapshot `449822273` (same
+  ID, legacy price kept), or restart `cloudflared` on staging (`run.py --target staging deploy`)
+- **Data on Neon `main`:** the deploy runs migrations. The seed and the admin user exist only
+  on `dev`, so once `main` is migrated run the seed once and create the admin user. The
+  storefront publishable key is per database, so `main` gets a new one
+- **Firewall:** apply Hetzner firewall `11927072` to the original as defense in depth (it then
+  becomes shared: keep it in Gate 4)
+- [ ] **Owner approves:** the window; protection off/on; the in-place rebuild (erases the disk);
+      Neon `main` for the original (seed + admin user); applying the firewall
 
 ## Gate 3: cutover (owner-scheduled)
 
-Disable rebuild protection, rebuild `110578382` in place with `debian-13` (**no
-resize**), and re-enable protection right away. Then run
-`OPTICWORKS_CONFIRM_SERVER_ID=110578382 run.py --target original deploy`
-followed by `rotate-hostkey`, and restore Redis and config from Restic.
-Validate health, auth, admin, store, persistence, Access/TLS, backup timers and
-a restore. Update only scoped SSH/agent-harness references. Run
-`hcloud_audit.py` and confirm the invoice still shows $13.99.
+```bash
+H="agent-harness2/bin/with-secrets hetzner --"; export OPTICWORKS_CONFIRM_SERVER_ID=110578382
+$H python3 -I scripts/hcloud_audit.py                                  # no drift
+$H python3 -I scripts/hcloud_rebuild_original.py --apply               # same ID, debian-13, protection back on
+python3 -I scripts/run.py --target staging stop-tunnel                 # one connector only
+python3 -I scripts/run.py --target original deploy                     # Neon main; refuses while staging is connected
+python3 -I scripts/run.py --target original rotate-hostkey
+```
+
+Then: seed `main` and create the admin user; repeat the Gate 1 probes, integrations and a
+restore rehearsal (`--host opticworks-original`); apply firewall `11927072`; update only the
+scoped SSH/agent-harness references (the `/agents/hetzner` `SSH_HOST` stays `5.78.106.67`,
+but its host key changes); run `hcloud_audit.py`; confirm the invoice still shows $13.99.
 
 ## Gate 4: cleanup
 
