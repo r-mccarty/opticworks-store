@@ -65,6 +65,9 @@ python3 -I infrastructure/ansible/scripts/run.py --target original deploy   # ex
 python3 -I infrastructure/ansible/scripts/run.py --target original deploy --check --diff
 python3 -I infrastructure/ansible/scripts/run.py --target original rotate-hostkey  # also updates Infisical SSH_KNOWN_HOSTS
 
+# Catalog: prices + published status per product (source of truth: OFFERS in the script)
+agent-harness2/bin/with-secrets opticworks-backend -- python3 -I infrastructure/ansible/scripts/catalog_offers.py  # dry run; --apply
+
 # Disaster recovery only, with owner approval: in-place rebuild (same ID, keeps the legacy price)
 agent-harness2/bin/with-secrets hetzner -- python3 -I infrastructure/ansible/scripts/hcloud_rebuild_original.py  # dry run; --apply ERASES the disk
 # A temporary staging VM for risky changes: hcloud_provision.py --apply, add it to targets.json
