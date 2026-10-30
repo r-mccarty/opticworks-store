@@ -5,7 +5,7 @@ import { cx } from "@/lib/utils"
 export function Wordmark({ className }: { className?: string }) {
   return (
     <Image
-      src="/brand/opticworks-wordmark.svg"
+      src="/brand/opticworks-wordmark.svg?v=2"
       alt="OpticWorks"
       width={880}
       height={140}
