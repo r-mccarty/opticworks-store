@@ -1,0 +1,10 @@
+#!/bin/bash
+# Managed by Ansible. Weekly: verify repository structure and read back a
+# sample of pack data from each repository.
+set -euo pipefail
+status=0
+for repo in restic-r2 restic-tigris; do
+  ( set -a; . /root/.config/opticworks/$repo.env; set +a
+    restic check --read-data-subset=5% ) || { echo "check of $repo failed" >&2; status=1; }
+done
+exit $status

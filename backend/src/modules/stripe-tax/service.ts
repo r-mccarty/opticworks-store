@@ -8,7 +8,11 @@
 import { ITaxProvider, TaxTypes } from "@medusajs/framework/types"
 import { MedusaError } from "@medusajs/framework/utils"
 import { Logger } from "@medusajs/framework/types"
+import crypto from "crypto"
 import Stripe from "stripe"
+
+// Stripe Tax calculations stay valid far longer; an hour bounds staleness.
+const CALCULATION_TTL_MS = 60 * 60_000
 import {
   StripeTaxProviderOptions,
   StripeTaxLineMetadata,
@@ -22,6 +26,7 @@ class StripeTaxProviderService implements ITaxProvider {
   static identifier = "stripe-tax"
 
   private stripe: Stripe
+  private calculations = new Map<string, { at: number; calculation: Stripe.Tax.Calculation }>()
   private logger: Logger
   private options: StripeTaxProviderOptions
 
@@ -125,10 +130,20 @@ class StripeTaxProviderService implements ITaxProvider {
 
       // Call Stripe Tax API
       // Note: Must expand line_items to get them in the response
-      const calculation = await this.stripe.tax.calculations.create({
-        ...calculationParams,
-        expand: ["line_items"],
-      })
+      // Identical inputs reuse the same calculation: each create is billable,
+      // and getTaxLines runs on every cart refresh.
+      const cacheKey = crypto.createHash("sha256").update(JSON.stringify(calculationParams)).digest("hex")
+      const cached = this.calculations.get(cacheKey)
+      let calculation: Stripe.Tax.Calculation
+      if (cached && Date.now() - cached.at < CALCULATION_TTL_MS) {
+        calculation = cached.calculation
+      } else {
+        calculation = await this.stripe.tax.calculations.create({ ...calculationParams, expand: ["line_items"] })
+        this.calculations.set(cacheKey, { at: Date.now(), calculation })
+      }
+      for (const [k, v] of this.calculations) {
+        if (Date.now() - v.at > CALCULATION_TTL_MS) this.calculations.delete(k)
+      }
 
       this.logger.info(
         `[stripe-tax] Calculation created: ${calculation.id}, tax_amount: ${calculation.tax_amount_exclusive}, line_items: ${calculation.line_items?.data?.length ?? 0}`
@@ -141,20 +156,18 @@ class StripeTaxProviderService implements ITaxProvider {
         shippingLines
       )
 
-      this.logger.info(
-        `[stripe-tax] Returning ${taxLines.length} tax lines: ${JSON.stringify(taxLines.map(tl => ({ id: "line_item_id" in tl ? tl.line_item_id : tl.shipping_line_id, rate: tl.rate, name: tl.name })))}`
-      )
-
       return taxLines
     } catch (error) {
+      // Fail closed: charging zero tax on a provider outage under-collects and
+      // can't be fixed after the order is paid. Medusa surfaces this to the
+      // cart request, and the customer can retry.
       this.logger.error(
-        `[stripe-tax] Failed to calculate taxes: ${error instanceof Error ? error.message : error}`
+        `[stripe-tax] calculation failed: ${error instanceof Error ? error.message : "unknown error"}`
       )
-
-      // Return zero taxes on error (fail-open for better UX)
-      const zeroLines = this.buildZeroTaxLines(itemLines, shippingLines)
-      this.logger.info(`[stripe-tax] Returning ${zeroLines.length} zero tax lines (error fallback)`)
-      return zeroLines
+      throw new MedusaError(
+        MedusaError.Types.UNEXPECTED_STATE,
+        "Tax could not be calculated. Please try again."
+      )
     }
   }
 

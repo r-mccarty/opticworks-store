@@ -1,0 +1,9 @@
+# Host address comes from BACKEND_HOST (set by scripts/run.py from Infisical or
+# the command line) so a rebuild never requires editing this file.
+all:
+  hosts:
+    backend:
+      ansible_host: "{{ lookup('env', 'BACKEND_HOST') }}"
+      ansible_port: "{{ lookup('env', 'SSH_PORT') | default('8032', true) }}"
+      ansible_user: "{{ lookup('env', 'SSH_USER') | default('ryan', true) }}"
+      ansible_ssh_private_key_file: "{{ lookup('env', 'ANSIBLE_SSH_KEY_FILE') }}"

@@ -1,61 +1,42 @@
----
-# OpticWorks Medusa Backend Configuration
-# This file contains non-sensitive configuration variables
-# Sensitive values should be stored in Infisical or Ansible Vault
+# Non-secret settings. Secrets arrive as environment variables (see scripts/run.py).
 
-# Application
-app_name: opticworks
-app_user: ryan
-app_group: ryan
-app_root: /opt/opticworks/medusa-backend
-medusa_service_dir: "{{ app_root }}"  # app_root IS the backend (deployed standalone)
+timezone: Etc/UTC
+ssh_port: 8032
+admin_user: ryan
+swap_size_mb: 2048
 
-# Repository
-repo_url: https://github.com/r-mccarty/opticworks-store.git
-repo_branch: main
+# Unattended security updates; reboot (if a kernel update needs it) at 10:30 UTC
+# (03:30 Pacific), when store traffic is lowest.
+auto_reboot_time: "10:30"
 
-# Node.js
-nodejs_version: "22"
-pnpm_version: "10.22.0"
+node_major: 22
+pnpm_version: 10.18.1
 
-# PostgreSQL
-postgresql_version: "17"
-postgres_db_name: medusa_db
-postgres_db_user: medusa_user
-# postgres_db_password: Set via Infisical or Ansible Vault
+app_user: medusa
+app_root: /srv/medusa
+app_env_dir: /etc/opticworks
+medusa_server_port: 9000
+medusa_server_memory_max: 1200M
+medusa_worker_memory_max: 900M
 
-# Redis
-redis_port: 6379
-redis_bind_address: "127.0.0.1"
-redis_password: ""  # No password for local-only Redis
+redis_maxmemory: 512mb
 
-# Medusa
-medusa_port: 9000
-medusa_admin_path: "/app"
-medusa_backend_url: "https://api.optic.works"
+public_hostname: backend.optic.works
+storefront_url: https://optic.works
+admin_url: "https://{{ public_hostname }}"
+cloudflare_tunnel_name: opticworks-backend
 
-# Cloudflare Tunnel
-cloudflare_tunnel_name: "opticworks-api"
-tunnel_hostname: "api.optic.works"
-tunnel_service: "http://localhost:{{ medusa_port }}"
-# cloudflare_tunnel_token: Set via Infisical or Ansible Vault
+neon_project_id: jolly-moon-85409114
+neon_branch_id: br-wispy-morning-ak26hpef   # main
+neon_database: medusa
+neon_role: medusa
 
-# PM2
-pm2_app_name: medusa-prod
-pm2_instances: 1
-pm2_max_memory: 512M
+# Medusa file uploads. r2.dev is rate-limited by Cloudflare: switch to a
+# custom domain before public launch.
+files_r2_bucket: opticworks-public
+files_public_url: https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev
 
-# Backup Configuration
-r2_backup_bucket_name: "opticworks-backups"  # Private bucket for backups
-backup_hour: "3"  # 3 AM daily backups
-
-# Fulfillment - Ship From Address (not sensitive)
-# Using EasyPost's documented test address for development
-# Replace with your real warehouse address for production
-ship_from_name: "OpticWorks"
-ship_from_street1: "417 Montgomery Street"
-ship_from_street2: "5th Floor"
-ship_from_city: "San Francisco"
-ship_from_state: "CA"
-ship_from_zip: "94104"
-ship_from_phone: "4153334445"
+backup_r2_bucket: opticworks-backups
+backup_r2_prefix: medusa-v2
+backup_tigris_bucket: opticworks-backend-backups
+backup_alert_to: support@optic.works

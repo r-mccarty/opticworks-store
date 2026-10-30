@@ -1,0 +1,20 @@
+- name: Reload sysctl
+  ansible.builtin.command: sysctl --system
+- name: Restart journald
+  ansible.builtin.systemd:
+    name: systemd-journald
+    state: restarted
+- name: Reload nftables
+  ansible.builtin.systemd:
+    name: nftables
+    state: reloaded
+- name: Reload ssh
+  ansible.builtin.systemd:
+    name: ssh
+    state: reloaded
+- name: Restart fail2ban
+  ansible.builtin.systemd:
+    name: fail2ban
+    state: restarted
+- name: Load audit rules
+  ansible.builtin.command: augenrules --load

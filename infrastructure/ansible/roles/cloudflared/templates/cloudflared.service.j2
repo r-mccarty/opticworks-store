@@ -1,0 +1,28 @@
+# Managed by Ansible.
+[Unit]
+Description=Cloudflare Tunnel ({{ cloudflare_tunnel_name }})
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+User=cloudflared
+Group=cloudflared
+EnvironmentFile={{ app_env_dir }}/cloudflared.env
+ExecStart=/usr/bin/cloudflared --no-autoupdate tunnel --metrics 127.0.0.1:20241 run
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX AF_NETLINK
+CapabilityBoundingSet=
+MemoryMax=256M
+
+[Install]
+WantedBy=multi-user.target

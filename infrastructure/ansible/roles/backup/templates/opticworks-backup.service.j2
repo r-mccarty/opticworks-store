@@ -1,0 +1,12 @@
+[Unit]
+Description=OpticWorks backup (Redis + Neon + config → R2 and Tigris)
+After=network-online.target redis-server.service
+Wants=network-online.target
+OnFailure=opticworks-alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/opticworks-backup
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=2h

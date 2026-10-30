@@ -1,0 +1,7 @@
+#!/bin/bash
+# Managed by Ansible. Fails (triggering an alert) if any core service is down.
+set -euo pipefail
+for svc in redis-server medusa-server medusa-worker cloudflared; do
+  systemctl is-active --quiet "$svc" || { echo "$svc is not active" >&2; exit 1; }
+done
+curl -fsS --max-time 10 -o /dev/null http://127.0.0.1:{{ medusa_server_port }}/health

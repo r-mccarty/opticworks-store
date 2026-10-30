@@ -1,0 +1,176 @@
+- name: Update package lists and apply all upgrades
+  ansible.builtin.apt:
+    update_cache: true
+    upgrade: full
+    autoremove: true
+  register: base_upgrade
+
+- name: Install baseline packages
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+      - needrestart
+      - nftables
+      - fail2ban
+      - chrony
+      - curl
+      - jq
+      - ca-certificates
+      - gnupg
+      - rsync
+      - auditd
+      - restic
+      - postgresql-client-17
+      - redis-tools
+    state: present
+
+- name: Remove packages the server has no use for
+  ansible.builtin.apt:
+    name: [telnet, rsh-client, nfs-common, rpcbind, avahi-daemon, exim4-base]
+    state: absent
+    purge: true
+
+- name: Set timezone
+  community.general.timezone:
+    name: "{{ timezone }}"
+
+- name: Configure unattended upgrades
+  ansible.builtin.template:
+    src: 52unattended-upgrades-local.j2
+    dest: /etc/apt/apt.conf.d/52unattended-upgrades-local
+    mode: "0644"
+
+- name: Enable periodic apt runs
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    mode: "0644"
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::AutocleanInterval "7";
+
+# Swap so `medusa build` (and a memory spike) degrades instead of OOM-killing.
+- name: Create swap file
+  ansible.builtin.command: "fallocate -l {{ swap_size_mb }}M /swapfile"
+  args:
+    creates: /swapfile
+  register: base_swapfile
+
+- name: Format and enable swap
+  when: base_swapfile is changed
+  ansible.builtin.shell: chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+
+- name: Persist swap
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: "/swapfile none swap sw 0 0"
+
+- name: Kernel and network hardening
+  ansible.builtin.copy:
+    src: 90-hardening.conf
+    dest: /etc/sysctl.d/90-hardening.conf
+    mode: "0644"
+  notify: Reload sysctl
+
+- name: Bound and persist the journal
+  ansible.builtin.copy:
+    dest: /etc/systemd/journald.conf.d/90-opticworks.conf
+    mode: "0644"
+    content: |
+      [Journal]
+      Storage=persistent
+      SystemMaxUse=500M
+      MaxRetentionSec=30day
+  notify: Restart journald
+
+- name: Firewall (inbound SSH only; non-root may not reach cloud metadata)
+  ansible.builtin.template:
+    src: nftables.conf.j2
+    dest: /etc/nftables.conf
+    mode: "0600"
+    validate: nft -c -f %s
+  notify: Reload nftables
+
+- name: Enable nftables
+  ansible.builtin.systemd:
+    name: nftables
+    enabled: true
+    state: started
+
+- name: Harden sshd
+  ansible.builtin.template:
+    src: sshd-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/20-hardening.conf
+    mode: "0644"
+    validate: /usr/sbin/sshd -t -f %s
+  notify: Reload ssh
+
+# The hardening drop-in now carries Port/AllowUsers; keeping the cloud-init one
+# would declare Port twice.
+- name: Remove the cloud-init bootstrap sshd drop-in
+  ansible.builtin.file:
+    path: /etc/ssh/sshd_config.d/10-bootstrap.conf
+    state: absent
+  notify: Reload ssh
+
+- name: Validate the complete sshd configuration before any reload
+  ansible.builtin.command: /usr/sbin/sshd -t
+  changed_when: false
+
+- name: Remove weak moduli (< 3072 bits)
+  ansible.builtin.shell: |
+    set -e
+    awk '$5 >= 3071' /etc/ssh/moduli > /etc/ssh/moduli.safe
+    if ! cmp -s /etc/ssh/moduli /etc/ssh/moduli.safe; then mv /etc/ssh/moduli.safe /etc/ssh/moduli; echo changed; else rm /etc/ssh/moduli.safe; fi
+  register: base_moduli
+  changed_when: "'changed' in base_moduli.stdout"
+
+- name: fail2ban for sshd
+  ansible.builtin.copy:
+    dest: /etc/fail2ban/jail.d/sshd.local
+    mode: "0644"
+    content: |
+      [sshd]
+      enabled  = true
+      backend  = systemd
+      port     = {{ ssh_port }}
+      maxretry = 5
+      findtime = 10m
+      bantime  = 1h
+      bantime.increment = true
+  notify: Restart fail2ban
+
+- name: Audit rules for identity, sudo and ssh config changes
+  ansible.builtin.copy:
+    dest: /etc/audit/rules.d/90-opticworks.rules
+    mode: "0640"
+    content: |
+      -w /etc/passwd -p wa -k identity
+      -w /etc/shadow -p wa -k identity
+      -w /etc/group -p wa -k identity
+      -w /etc/sudoers -p wa -k sudo
+      -w /etc/sudoers.d/ -p wa -k sudo
+      -w /etc/ssh/sshd_config -p wa -k sshd
+      -w /etc/ssh/sshd_config.d/ -p wa -k sshd
+      -w {{ app_env_dir }}/ -p wa -k app-secrets
+  notify: Load audit rules
+
+- name: Services enabled
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+  loop: [chrony, fail2ban, auditd, unattended-upgrades]
+
+# Debian has no /var/run/reboot-required; needrestart reports kernel status
+# (KSTA 1 = running the newest kernel, 2/3 = a newer one is installed).
+- name: Check whether a newer kernel is installed
+  ansible.builtin.command: needrestart -k -b
+  register: base_kernel_status
+  changed_when: false
+
+- name: Reboot into the upgraded kernel
+  ansible.builtin.reboot:
+    reboot_timeout: 600
+  when: base_kernel_status.stdout is search('NEEDRESTART-KSTA:\\s*[23]')

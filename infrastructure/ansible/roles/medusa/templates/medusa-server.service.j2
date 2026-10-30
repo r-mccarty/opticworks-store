@@ -1,0 +1,54 @@
+# Managed by Ansible.
+[Unit]
+Description=OpticWorks Medusa API server
+After=network-online.target redis-server.service
+Wants=network-online.target
+Requires=redis-server.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User={{ app_user }}
+Group={{ app_user }}
+WorkingDirectory={{ app_root }}/current/.medusa/server
+EnvironmentFile={{ app_env_dir }}/medusa.env
+Environment=MEDUSA_WORKER_MODE=server
+Environment=DISABLE_MEDUSA_ADMIN=false
+Environment=HOME={{ app_root }}
+Environment=NODE_OPTIONS=--max-old-space-size=768
+ExecStart=/usr/bin/node node_modules/@medusajs/cli/cli.js start -H 127.0.0.1 -p {{ medusa_server_port }}
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+MemoryMax={{ medusa_server_memory_max }}
+LimitNOFILE=65536
+
+# Sandboxing: read-only system, no privilege gain, loopback/outbound only.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths={{ app_root }}/.cache
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RemoveIPC=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+SystemCallArchitectures=native
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged
+CapabilityBoundingSet=
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

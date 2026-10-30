@@ -1,0 +1,38 @@
+# Runtime environment, resolved on the controller from injected variables
+# (scripts/run.py). Missing required values fail at boot via src/lib/env.ts.
+medusa_env:
+  NODE_ENV: production
+  MEDUSA_DISABLE_TELEMETRY: "true"
+  DATABASE_URL: "{{ lookup('env', 'DATABASE_URL_POOLED') }}"
+  REDIS_URL: "redis://medusa:{{ lookup('env', 'REDIS_APP_PASSWORD') }}@127.0.0.1:6379/0"
+  JWT_SECRET: "{{ lookup('env', 'JWT_SECRET') }}"
+  COOKIE_SECRET: "{{ lookup('env', 'COOKIE_SECRET') }}"
+  STORE_CORS: "{{ storefront_url }},https://www.optic.works"
+  ADMIN_CORS: "{{ admin_url }}"
+  AUTH_CORS: "{{ storefront_url }},https://www.optic.works,{{ admin_url }}"
+  MEDUSA_BACKEND_URL: "{{ admin_url }}"
+  STOREFRONT_URL: "{{ storefront_url }}"
+  STRIPE_API_KEY: "{{ lookup('env', 'STRIPE_SECRET_KEY') }}"
+  STRIPE_WEBHOOK_SECRET: "{{ lookup('env', 'STRIPE_WEBHOOK_SECRET') }}"
+  STRIPE_TAX_FROM_COUNTRY: US
+  STRIPE_TAX_FROM_STATE: CA
+  STRIPE_TAX_FROM_CITY: San Diego
+  STRIPE_TAX_FROM_POSTAL: "92117"
+  STRIPE_TAX_SKIP_COMMIT: "{{ 'false' if lookup('env', 'STRIPE_SECRET_KEY').startswith('sk_live_') else 'true' }}"
+  EASYPOST_API_KEY: "{{ lookup('env', 'EASYPOST_API_KEY') }}"
+  SHIP_FROM_NAME: "OpticWorks, Inc."
+  SHIP_FROM_STREET1: 3077B Clairemont Dr
+  SHIP_FROM_STREET2: "#201"
+  SHIP_FROM_CITY: San Diego
+  SHIP_FROM_STATE: CA
+  SHIP_FROM_ZIP: "92117"
+  SHIP_FROM_PHONE: "{{ lookup('env', 'SHIP_FROM_PHONE') }}"
+  RESEND_API_KEY: "{{ lookup('env', 'RESEND_API_KEY') }}"
+  RESEND_FROM_EMAIL: "{{ lookup('env', 'RESEND_FROM_EMAIL') }}"
+  # Dark mode: only company addresses receive mail. Remove at public launch.
+  EMAIL_ALLOWLIST: "@optic.works"
+  R2_ACCESS_KEY_ID: "{{ lookup('env', 'S3_ACCESS_KEY_ID') }}"
+  R2_SECRET_ACCESS_KEY: "{{ lookup('env', 'S3_SECRET_ACCESS_KEY') }}"
+  R2_ENDPOINT_URL: "{{ lookup('env', 'S3_API_ENDPOINT') }}"
+  R2_BUCKET_NAME: "{{ files_r2_bucket }}"
+  R2_PUBLIC_URL: "{{ files_public_url }}"

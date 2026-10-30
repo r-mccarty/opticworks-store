@@ -1,0 +1,3 @@
+user default off
+user medusa on >{{ lookup('env', 'REDIS_APP_PASSWORD') }} ~* &* +@all -flushall -flushdb -config -debug -shutdown -module -save -bgsave -bgrewriteaof -replicaof -slaveof -failover -acl -monitor -migrate -restore -sync -psync -cluster
+user backup on >{{ lookup('env', 'REDIS_BACKUP_PASSWORD') }} ~* &* +@all
