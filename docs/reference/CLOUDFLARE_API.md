@@ -8,7 +8,8 @@ Programmatic access to Cloudflare resources for automation and infrastructure ma
 
 ### Environment Variables
 
-These are configured in GitHub Codespaces secrets:
+Agents get `CLOUDFLARE_API_TOKEN` from Infisical (`ubuntu-pair-node`, `/agents/cloudflare`) via
+`agent-harness2/bin/with-secrets cloudflare -- <command>`. The other variables below are legacy:
 
 | Variable | Description |
 |----------|-------------|

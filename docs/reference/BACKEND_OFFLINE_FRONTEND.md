@@ -58,7 +58,7 @@ Nothing was archived in-tree; git history has it. The removals:
 - **Docs and tooling:** reference docs for the retired backend, checkout, payments, tax,
   fulfillment, webhooks, E2E and devices; postmortems and archived RFDs; Hookdeck
   transformations; storefront secrets scripts; the stale `hammer` review-bot config; and the
-  devcontainer's Hugo, secrets-pull and legacy Hetzner SSH setup.
+  Codespaces devcontainer (`.devcontainer/`).
 - **Cloudflare:** the docs.optic.works Pages project, custom domain and DNS record; the
   storefront's Worker secrets (in a new, undeployed version); the shipping-rates KV namespace;
   and the legacy `/api/shipping|checkout` rate-limit ruleset.
