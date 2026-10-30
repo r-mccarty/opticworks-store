@@ -1,90 +1,58 @@
----
-# Node.js and pnpm Installation
-
-- name: Install Node.js prerequisites
-  become: yes
-  ansible.builtin.apt:
-    name:
-      - curl
-      - ca-certificates
-      - gnupg
-    state: present
-    update_cache: yes
-
-- name: Create keyring directory
-  become: yes
+- name: Keyring directory
   ansible.builtin.file:
     path: /etc/apt/keyrings
     state: directory
-    mode: '0755'
+    mode: "0755"
 
-- name: Download NodeSource GPG key
-  become: yes
-  ansible.builtin.get_url:
-    url: "https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key"
-    dest: /etc/apt/keyrings/nodesource.asc
-    mode: '0644'
+- name: NodeSource signing key (dearmored)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg.new
+    mv /etc/apt/keyrings/nodesource.gpg.new /etc/apt/keyrings/nodesource.gpg
+    chmod 0644 /etc/apt/keyrings/nodesource.gpg
+  args:
+    executable: /bin/bash
+    creates: /etc/apt/keyrings/nodesource.gpg
 
-# Remove any old NodeSource repositories to avoid conflicts
-- name: Find old NodeSource repository files
-  become: yes
-  ansible.builtin.find:
-    paths: /etc/apt/sources.list.d
-    patterns: "nodesource*.list,nodesource*.sources"
-  register: old_nodesource_files
+- name: NodeSource repository (Node {{ node_major }}.x, signed-by its key only)
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/nodesource.sources
+    mode: "0644"
+    content: |
+      Types: deb
+      URIs: https://deb.nodesource.com/node_{{ node_major }}.x
+      Suites: nodistro
+      Components: main
+      Signed-By: /etc/apt/keyrings/nodesource.gpg
+  register: nodejs_repo
 
-- name: Remove old NodeSource repository files
-  become: yes
-  ansible.builtin.file:
-    path: "{{ item.path }}"
-    state: absent
-  loop: "{{ old_nodesource_files.files }}"
-  when: old_nodesource_files.files | length > 0
+- name: Prefer NodeSource for nodejs over Debian's older package
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/nodejs
+    mode: "0644"
+    content: |
+      Package: nodejs
+      Pin: origin deb.nodesource.com
+      Pin-Priority: 600
 
-- name: Add NodeSource repository
-  become: yes
-  ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_{{ nodejs_version }}.x nodistro main"
-    state: present
-    filename: nodesource
-    update_cache: yes
-
-- name: Install or upgrade Node.js
-  become: yes
+- name: Install Node.js
   ansible.builtin.apt:
     name: nodejs
     state: latest
-    update_cache: yes
+    update_cache: "{{ nodejs_repo is changed }}"
 
-- name: Check if pnpm is installed
-  ansible.builtin.command: pnpm --version
-  register: pnpm_check
-  failed_when: false
-  changed_when: false
-
-- name: Install pnpm globally
-  become: yes
-  ansible.builtin.npm:
-    name: pnpm
-    global: yes
-    version: "{{ pnpm_version }}"
-    state: present
-  when: pnpm_check.rc != 0
-
-- name: Verify Node.js installation
+- name: Node.js is the expected major version
   ansible.builtin.command: node --version
-  register: node_version
+  register: nodejs_version
   changed_when: false
+  failed_when: not nodejs_version.stdout.startswith('v' ~ node_major ~ '.')
 
-- name: Verify pnpm installation
-  ansible.builtin.command: pnpm --version
-  register: pnpm_version_check
+- name: Enable corepack and pin pnpm {{ pnpm_version }}
+  ansible.builtin.shell: |
+    set -e
+    corepack enable
+    COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack prepare pnpm@{{ pnpm_version }} --activate
+    pnpm --version
+  register: nodejs_pnpm
   changed_when: false
-
-- name: Display Node.js version
-  ansible.builtin.debug:
-    msg: "Node.js {{ node_version.stdout }} installed"
-
-- name: Display pnpm version
-  ansible.builtin.debug:
-    msg: "pnpm {{ pnpm_version_check.stdout }} installed"
+  failed_when: nodejs_pnpm.stdout_lines[-1] != pnpm_version

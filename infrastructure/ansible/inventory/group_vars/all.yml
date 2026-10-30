@@ -1,0 +1,49 @@
+# Non-secret settings. Secrets arrive as environment variables (see scripts/run.py).
+
+timezone: Etc/UTC
+ssh_port: 8032
+admin_user: ryan
+swap_size_mb: 2048
+
+# Unattended security updates; reboot (if a kernel update needs it) at 10:30 UTC
+# (03:30 Pacific), when store traffic is lowest.
+auto_reboot_time: "10:30"
+
+node_major: 22
+pnpm_version: 10.18.1
+
+# Business line printed on shipping labels; FedEx requires an origin phone.
+ship_from_phone: "6193208332"
+
+app_user: medusa
+app_root: /srv/medusa
+app_env_dir: /etc/opticworks
+medusa_server_port: 9000
+medusa_server_memory_max: 1200M
+medusa_worker_memory_max: 900M
+
+redis_maxmemory: 512mb
+
+public_hostname: backend.optic.works
+storefront_url: https://optic.works
+admin_url: "https://{{ public_hostname }}"
+cloudflare_tunnel_name: opticworks-backend
+
+# staging or original (scripts/run.py --target). Keeps each host's restic
+# snapshots and retention separate in the shared backup repositories.
+backend_target: "{{ lookup('env', 'BACKEND_TARGET') }}"
+
+neon_project_id: jolly-moon-85409114
+# The Neon branch is per target (staging: dev, original: main); see inventory/targets.json.
+neon_database: medusa
+neon_role: medusa
+
+# Medusa file uploads. r2.dev is rate-limited by Cloudflare: switch to a
+# custom domain before public launch.
+files_r2_bucket: opticworks-public
+files_public_url: https://pub-e97850e2b6554798b4b0ec23548c975d.r2.dev
+
+backup_r2_bucket: opticworks-backups
+backup_r2_prefix: medusa-v2
+backup_tigris_bucket: opticworks-backend-backups
+backup_alert_to: support@optic.works

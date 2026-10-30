@@ -1,142 +1,107 @@
-import {
-  AbstractNotificationProviderService,
-  MedusaError,
-} from "@medusajs/framework/utils"
-import { Logger } from "@medusajs/framework/types"
+import crypto from "crypto"
+import type React from "react"
+import { AbstractNotificationProviderService, MedusaError } from "@medusajs/framework/utils"
+import type { Logger, ProviderSendNotificationDTO } from "@medusajs/framework/types"
 import { Resend } from "resend"
-
-// Import email templates
 import { OrderPlacedEmail } from "./emails/order-placed"
-import { OrderShippedEmail } from "./emails/order-shipped"
 import { PasswordResetEmail } from "./emails/password-reset"
 import { CustomerWelcomeEmail } from "./emails/customer-welcome"
 
 type ResendOptions = {
   api_key: string
   from: string
+  // When set, only these addresses (or @domains) receive mail. Used while the
+  // backend is dark so synthetic customers never trigger real deliveries.
+  allowlist?: string[]
 }
 
-type InjectedDependencies = {
-  logger: Logger
+type InjectedDependencies = { logger: Logger }
+
+type Template = {
+  render: (data: Record<string, unknown>) => React.ReactElement
+  subject: (data: Record<string, unknown>) => string
 }
 
-// Template registry mapping template names to React components
-const TEMPLATES: Record<string, (data: Record<string, unknown>) => React.ReactElement> = {
-  "order.placed": OrderPlacedEmail,
-  "order.shipped": OrderShippedEmail,
-  "auth.password_reset": PasswordResetEmail,
-  "customer.welcome": CustomerWelcomeEmail,
-}
-
-// Default subjects for each template
-const TEMPLATE_SUBJECTS: Record<string, string | ((data: Record<string, unknown>) => string)> = {
-  "order.placed": (data) => `Order Confirmation - #${data.display_id || data.id}`,
-  "order.shipped": (data) => `Your Order Has Shipped - #${data.display_id || data.id}`,
-  "auth.password_reset": "Reset Your Password",
-  "customer.welcome": "Welcome to OpticWorks!",
+const TEMPLATES: Record<string, Template> = {
+  "order.placed": {
+    render: OrderPlacedEmail,
+    subject: (d) => `Order Confirmation - #${String(d.display_id ?? d.id)}`,
+  },
+  "auth.password_reset": { render: PasswordResetEmail, subject: () => "Reset Your Password" },
+  "customer.welcome": { render: CustomerWelcomeEmail, subject: () => "Welcome to OpticWorks" },
 }
 
 class ResendNotificationProviderService extends AbstractNotificationProviderService {
   static identifier = "notification-resend"
-  private resendClient: Resend
+
+  private client: Resend
   private options: ResendOptions
   private logger: Logger
 
   constructor({ logger }: InjectedDependencies, options: ResendOptions) {
     super()
-    this.resendClient = new Resend(options.api_key)
+    this.client = new Resend(options.api_key)
     this.options = options
     this.logger = logger
   }
 
   static validateOptions(options: Record<string, unknown>) {
     if (!options.api_key) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "Resend provider requires `api_key` option"
-      )
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "Resend provider requires `api_key`")
     }
     if (!options.from) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "Resend provider requires `from` option"
-      )
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "Resend provider requires `from`")
     }
   }
 
-  async send(notification: {
-    to: string
-    channel: string
-    template: string
-    data: Record<string, unknown>
-  }): Promise<{ id: string }> {
-    const { to, template, data } = notification
-
-    this.logger.info(`[Resend] Sending ${template} email to ${to}`)
-
-    // Get template component
-    const TemplateComponent = TEMPLATES[template]
-    if (!TemplateComponent) {
-      this.logger.warn(`[Resend] No template found for: ${template}, using fallback`)
-      // For unknown templates, send a basic notification
-      return this.sendBasicEmail(to, template, data)
+  async send(notification: ProviderSendNotificationDTO): Promise<{ id: string }> {
+    const { to, template } = notification
+    const data = notification.data ?? {}
+    const spec = TEMPLATES[template]
+    if (!spec) {
+      // No generic fallback: dumping event data into an email can leak tokens.
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, `Unknown email template: ${template}`)
     }
 
-    // Get subject
-    const subjectConfig = TEMPLATE_SUBJECTS[template]
-    const subject =
-      typeof subjectConfig === "function"
-        ? subjectConfig(data)
-        : subjectConfig || "Notification from OpticWorks"
+    if (!this.allowed(to)) {
+      this.logger.info(`[resend] ${template} suppressed by allowlist`)
+      return { id: "suppressed" }
+    }
 
-    try {
-      const { data: result, error } = await this.resendClient.emails.send({
+    // Same template/recipient/payload yields the same key, so an event retry
+    // can't deliver a second copy (Resend deduplicates for 24h).
+    const idempotencyKey = crypto
+      .createHash("sha256")
+      .update(JSON.stringify([template, to, data]))
+      .digest("hex")
+
+    const { data: result, error } = await this.client.emails.send(
+      {
         from: this.options.from,
         to: [to],
-        subject,
-        react: TemplateComponent(data),
-      })
-
-      if (error || !result) {
-        this.logger.error(`[Resend] Failed to send email: ${error?.message}`, error)
-        throw new MedusaError(
-          MedusaError.Types.UNEXPECTED_STATE,
-          `Failed to send email: ${error?.message}`
-        )
-      }
-
-      this.logger.info(`[Resend] Email sent successfully: ${result.id}`)
-      return { id: result.id }
-    } catch (err) {
-      this.logger.error(`[Resend] Error sending email`, err)
-      throw err
-    }
-  }
-
-  /**
-   * Send a basic text email for templates we don't have React components for
-   */
-  private async sendBasicEmail(
-    to: string,
-    template: string,
-    data: Record<string, unknown>
-  ): Promise<{ id: string }> {
-    const { data: result, error } = await this.resendClient.emails.send({
-      from: this.options.from,
-      to: [to],
-      subject: `Notification: ${template}`,
-      text: `You have a new notification.\n\nType: ${template}\n\nDetails:\n${JSON.stringify(data, null, 2)}`,
-    })
-
+        subject: spec.subject(data),
+        react: spec.render(data),
+      },
+      { idempotencyKey }
+    )
     if (error || !result) {
-      this.logger.error(`[Resend] Failed to send basic email: ${error?.message}`)
       throw new MedusaError(
         MedusaError.Types.UNEXPECTED_STATE,
-        `Failed to send email: ${error?.message}`
+        `Resend rejected ${template}: ${error?.name ?? "unknown error"}`
       )
     }
-
+    this.logger.info(`[resend] ${template} sent id=${result.id}`)
     return { id: result.id }
+  }
+
+  private allowed(to: string): boolean {
+    const list = this.options.allowlist
+    if (!list || list.length === 0) return true
+    const addr = to.trim().toLowerCase()
+    return list.some((entry) => {
+      const e = entry.toLowerCase()
+      return e.startsWith("@") ? addr.endsWith(e) : addr === e
+    })
   }
 }
 

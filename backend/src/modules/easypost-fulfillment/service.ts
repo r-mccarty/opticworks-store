@@ -1,92 +1,61 @@
 /**
- * EasyPost Fulfillment Provider Service
+ * EasyPost Fulfillment Provider
  *
- * Implements Medusa's fulfillment provider interface to:
- * - Calculate shipping rates dynamically via EasyPost
- * - Create fulfillments (purchase labels)
- * - Cancel fulfillments (void labels)
+ * Calculates live carrier rates and purchases labels. It fails closed: when a
+ * rate cannot be obtained the option is unavailable, never quoted at $0, and a
+ * fulfillment without a server-selected rate is refused rather than buying the
+ * cheapest label on some carrier.
  */
-
+import crypto from "crypto"
 import { AbstractFulfillmentProviderService, MedusaError } from "@medusajs/framework/utils"
-import { Logger, CreateShippingOptionDTO } from "@medusajs/framework/types"
+import type { CreateShippingOptionDTO, Logger } from "@medusajs/framework/types"
 import { EasyPostClient } from "./client"
 import {
-  EasyPostProviderOptions,
-  EasyPostAddress,
-  EasyPostParcel,
   CARRIER_SERVICES,
   SERVICE_MAP,
+  type EasyPostAddress,
+  type EasyPostParcel,
+  type EasyPostProviderOptions,
 } from "./types"
 
-type InjectedDependencies = {
-  logger: Logger
-}
+type InjectedDependencies = { logger: Logger }
 
-// Default parcel dimensions for products without specific dimensions
-const DEFAULT_PARCEL: EasyPostParcel = {
-  length: 8,
-  width: 6,
-  height: 4,
-  weight: 16, // 1 lb default
-}
+type Rate = { id: string; carrier: string; service: string; rate: string }
+type Label = { tracking_number: string; tracking_url: string; label_url: string }
+
+const DEFAULT_PARCEL: EasyPostParcel = { length: 8, width: 6, height: 4, weight: 16 }
+const QUOTE_TTL_MS = 5 * 60_000
 
 class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderService {
   static identifier = "easypost"
 
   private client: EasyPostClient
   private logger: Logger
-  private originAddress: EasyPostAddress
+  private origin: EasyPostAddress
+  // Short-lived quote cache so listing options doesn't create a shipment per option.
+  private quotes = new Map<string, { at: number; shipmentId: string; rates: Rate[] }>()
 
-  constructor(
-    { logger }: InjectedDependencies,
-    options: EasyPostProviderOptions
-  ) {
+  constructor({ logger }: InjectedDependencies, options: EasyPostProviderOptions) {
     super()
-
+    EasyPostFulfillmentProviderService.validateOptions(options as unknown as Record<string, unknown>)
     this.logger = logger
-
-    if (!options.api_key) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "EasyPost provider requires `api_key` option"
-      )
-    }
-
     this.client = new EasyPostClient(options.api_key)
-
-    // Configure origin/warehouse address
-    // FedEx requires phone number on both addresses to return rates
-    // Default to EasyPost's documented test address (417 Montgomery St, SF)
-    this.originAddress = {
-      name: options.ship_from_name || "OpticWorks",
-      street1: options.ship_from_street1 || "417 Montgomery Street",
-      street2: options.ship_from_street2,
-      city: options.ship_from_city || "San Francisco",
-      state: options.ship_from_state || "CA",
-      zip: options.ship_from_zip || "94104",
-      country: "US",
-      phone: options.ship_from_phone || "4153334445",
-    }
-
-    this.logger.info("[EasyPost] Fulfillment provider initialized")
+    this.origin = options.origin
   }
 
-  /**
-   * Validate provider options
-   */
   static validateOptions(options: Record<string, unknown>) {
+    const origin = options.origin as Partial<EasyPostAddress> | undefined
     if (!options.api_key) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "EasyPost provider requires `api_key` option"
-      )
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "EasyPost provider requires `api_key`")
+    }
+    for (const key of ["name", "street1", "city", "state", "zip"] as const) {
+      if (!origin?.[key]) {
+        throw new MedusaError(MedusaError.Types.INVALID_DATA, `EasyPost provider requires origin.${key}`)
+      }
     }
   }
 
-  /**
-   * Return the list of fulfillment options this provider supports
-   */
-  async getFulfillmentOptions(): Promise<{ id: string; is_return?: boolean; [k: string]: unknown }[]> {
+  async getFulfillmentOptions() {
     return Object.entries(CARRIER_SERVICES).map(([id, config]) => ({
       id,
       name: config.name,
@@ -95,483 +64,201 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     }))
   }
 
-  /**
-   * Validate that a shipping option's data is valid
-   */
   async validateOption(data: Record<string, unknown>): Promise<boolean> {
-    const optionId = data.id as string
-    return optionId in CARRIER_SERVICES
+    return typeof data.id === "string" && data.id in CARRIER_SERVICES
   }
 
-  /**
-   * Validate fulfillment data (shipping address, etc.)
-   * Called when adding a shipping method to a cart.
-   *
-   * IMPORTANT: This method's return value is stored in shipping_method.data
-   * and passed to createFulfillment(). Data set in calculatePrice() is NOT persisted.
-   * Therefore, we create the EasyPost shipment HERE to ensure the shipment_id and
-   * rate_id are available when creating the fulfillment.
-   */
-  async validateFulfillmentData(
-    optionData: Record<string, unknown>,
-    data: Record<string, unknown>,
-    context: Record<string, unknown>
-  ): Promise<Record<string, unknown>> {
-    const optionId = optionData.id as string
-    const carrierConfig = CARRIER_SERVICES[optionId]
-
-    // Extract shipping address from context
-    const shippingAddress = context.shipping_address as Record<string, unknown> | undefined
-
-    if (!shippingAddress) {
-      throw new MedusaError(
-        MedusaError.Types.INVALID_DATA,
-        "Shipping address is required"
-      )
-    }
-
-    // Build destination address with phone (required for FedEx)
-    const toAddress: EasyPostAddress = {
-      name: shippingAddress.first_name
-        ? `${shippingAddress.first_name} ${shippingAddress.last_name || ""}`
-        : "Customer",
-      street1: shippingAddress.address_1 as string,
-      street2: shippingAddress.address_2 as string | undefined,
-      city: shippingAddress.city as string,
-      state: shippingAddress.province as string,
-      zip: shippingAddress.postal_code as string,
-      country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
-      phone: (shippingAddress.phone as string) || "0000000000",
-    }
-
-    // Validate address with EasyPost
-    const validation = await this.client.validateAddress(toAddress)
-
-    if (!validation.success) {
-      this.logger.warn(`[EasyPost] Address validation failed: ${validation.errors?.join(", ")}`)
-      // Don't throw - let the order proceed but log the warning
-    }
-
-    // Create shipment to get rates - this is persisted for later use in createFulfillment
-    const parcel = this.getParcelFromContext(context)
-    let shipmentId: string | undefined
-    let rateId: string | undefined
-    let rateAmount: string | undefined
-
-    if (carrierConfig) {
-      try {
-        this.logger.info(`[EasyPost] Creating shipment in validateFulfillmentData for ${optionId}`)
-        const shipment = await this.client.createShipment(
-          this.originAddress,
-          toAddress,
-          parcel,
-          carrierConfig.carriers
-        )
-
-        shipmentId = shipment.id
-
-        // Find the matching rate for this service
-        const matchingRate = this.findMatchingRate(shipment.rates, optionId)
-        if (matchingRate) {
-          rateId = matchingRate.id
-          rateAmount = matchingRate.rate
-          this.logger.info(`[EasyPost] Shipment created: ${shipmentId}, rate: ${rateId} ($${rateAmount})`)
-        } else {
-          this.logger.warn(`[EasyPost] No matching rate found for ${optionId}`)
-        }
-      } catch (error) {
-        this.logger.error(`[EasyPost] Failed to create shipment in validateFulfillmentData: ${error}`)
-        // Don't throw - we'll fallback to creating shipment in createFulfillment
-      }
-    }
-
-    // Return data that will be stored in shipping_method.data
-    // This data flows to calculatePrice() and createFulfillment()
-    return {
-      ...data,
-      easypost_address: validation.address || toAddress,
-      address_validated: validation.success,
-      easypost_shipment_id: shipmentId,
-      easypost_rate_id: rateId,
-      easypost_rate_amount: rateAmount,
-    }
-  }
-
-  /**
-   * Check if this provider can calculate prices
-   */
   async canCalculate(_data: CreateShippingOptionDTO): Promise<boolean> {
-    // We can calculate prices for all our shipping options
     return true
   }
 
   /**
-   * Calculate the shipping price for a given option.
-   *
-   * This is called in two scenarios:
-   * 1. When listing shipping options (before shipping method is added) - data is from shipping option
-   * 2. When refreshing cart (after shipping method is added) - data is from validateFulfillmentData
-   *
-   * If we have a pre-created shipment from validateFulfillmentData, we use its rate.
-   * Otherwise, we create a new shipment to get the rate.
+   * Runs when a shipping method is added to a cart. The returned object is
+   * persisted as shipping_method.data and later passed to createFulfillment.
+   * Only server-computed keys are returned; client-supplied `data` is ignored
+   * so a caller cannot inject a rate id or amount.
+   */
+  async validateFulfillmentData(
+    optionData: Record<string, unknown>,
+    _data: Record<string, unknown>,
+    context: Record<string, unknown>
+  ): Promise<Record<string, unknown>> {
+    const optionId = this.optionId(optionData)
+    const to = this.destination(context.shipping_address)
+    const { shipmentId, rate } = await this.quote(optionId, to, this.parcel(context.items))
+    return {
+      easypost_shipment_id: shipmentId,
+      easypost_rate_id: rate.id,
+      easypost_rate_amount: rate.rate,
+      easypost_carrier: rate.carrier,
+      easypost_service: rate.service,
+    }
+  }
+
+  /**
+   * Always prices from a server-side quote. `data` may come from the client
+   * (the store calculate endpoint accepts a body), so it is never trusted.
    */
   async calculatePrice(
     optionData: Record<string, unknown>,
-    data: Record<string, unknown>,
+    _data: Record<string, unknown>,
     context: Record<string, unknown>
   ): Promise<{ calculated_amount: number; is_calculated_price_tax_inclusive: boolean }> {
-    const optionId = optionData.id as string
-    const carrierConfig = CARRIER_SERVICES[optionId]
-
-    if (!carrierConfig) {
-      this.logger.warn(`[EasyPost] Unknown shipping option: ${optionId}`)
-      return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
+    const optionId = this.optionId(optionData)
+    const to = this.destination(context.shipping_address)
+    const { rate } = await this.quote(optionId, to, this.parcel(context.items))
+    const amount = Number(rate.rate)
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new MedusaError(MedusaError.Types.UNEXPECTED_STATE, `No valid rate for ${optionId}`)
     }
-
-    // Check if we have a pre-created shipment from validateFulfillmentData
-    const preCreatedRate = data?.easypost_rate_amount as string | undefined
-    if (preCreatedRate) {
-      const rateInDollars = parseFloat(preCreatedRate)
-      this.logger.info(`[EasyPost] Using pre-created rate for ${optionId}: $${preCreatedRate}`)
-      return {
-        calculated_amount: rateInDollars,
-        is_calculated_price_tax_inclusive: false,
-      }
-    }
-
-    // No pre-created shipment - need to create one (happens when listing shipping options)
-    const shippingAddress = context.shipping_address as Record<string, unknown> | undefined
-
-    if (!shippingAddress) {
-      this.logger.warn("[EasyPost] No shipping address in context for price calculation")
-      return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
-    }
-
-    // Build destination address with phone (required for FedEx)
-    const toAddress: EasyPostAddress = {
-      name: shippingAddress.first_name
-        ? `${shippingAddress.first_name} ${shippingAddress.last_name || ""}`
-        : "Customer",
-      street1: shippingAddress.address_1 as string,
-      street2: shippingAddress.address_2 as string | undefined,
-      city: shippingAddress.city as string,
-      state: shippingAddress.province as string,
-      zip: shippingAddress.postal_code as string,
-      country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
-      phone: (shippingAddress.phone as string) || "0000000000",
-    }
-
-    const parcel = this.getParcelFromContext(context)
-
-    this.logger.info(`[EasyPost] Creating shipment for ${optionId} (no pre-created rate available)`)
-
-    try {
-      const shipment = await this.client.createShipment(
-        this.originAddress,
-        toAddress,
-        parcel,
-        carrierConfig.carriers
-      )
-
-      if (shipment.rates.length > 0) {
-        const ratesSummary = shipment.rates.map(r => `${r.carrier}/${r.service}=$${r.rate}`).join(', ')
-        this.logger.info(`[EasyPost] Rates returned for ${optionId}: ${ratesSummary}`)
-      } else {
-        this.logger.warn(`[EasyPost] No rates returned by EasyPost for ${optionId}`)
-      }
-
-      const matchingRate = this.findMatchingRate(shipment.rates, optionId)
-
-      if (!matchingRate) {
-        this.logger.warn(`[EasyPost] No matching rate for ${optionId}`)
-        return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
-      }
-
-      // Medusa v2 uses major units (dollars)
-      const rateInDollars = parseFloat(matchingRate.rate)
-
-      this.logger.info(`[EasyPost] Calculated rate for ${optionId}: $${matchingRate.rate}`)
-
-      return {
-        calculated_amount: rateInDollars,
-        is_calculated_price_tax_inclusive: false,
-      }
-    } catch (error) {
-      this.logger.error(`[EasyPost] Failed to calculate price: ${error}`)
-      return { calculated_amount: 0, is_calculated_price_tax_inclusive: false }
-    }
+    // Medusa v2 amounts are major units (dollars).
+    return { calculated_amount: amount, is_calculated_price_tax_inclusive: false }
   }
 
-  /**
-   * Create a fulfillment (purchase a shipping label)
-   */
   async createFulfillment(
     data: Record<string, unknown>,
-    items: Record<string, unknown>[],
-    order: Record<string, unknown> | undefined,
+    _items: Record<string, unknown>[],
+    _order: Record<string, unknown> | undefined,
     _fulfillment: Record<string, unknown>
-  ): Promise<{ data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] }> {
-    // Debug: Log what data is passed to createFulfillment
-    this.logger.info("[EasyPost] createFulfillment called with data keys: " + Object.keys(data).join(", "))
-    this.logger.info("[EasyPost] createFulfillment data: " + JSON.stringify(data, null, 2))
-
-    const shipmentId = data.easypost_shipment_id as string
-    const rateId = data.easypost_rate_id as string
-
-    this.logger.info(`[EasyPost] createFulfillment - shipmentId: ${shipmentId || "NOT FOUND"}, rateId: ${rateId || "NOT FOUND"}`)
-
-    if (!shipmentId || !rateId) {
-      // If we don't have a pre-created shipment, create one now
-      this.logger.info("[EasyPost] No pre-created shipment, creating new one for fulfillment")
-
-      const shippingAddress = (order as Record<string, unknown>)?.shipping_address as Record<string, unknown>
-      if (!shippingAddress) {
-        throw new MedusaError(
-          MedusaError.Types.INVALID_DATA,
-          "Order shipping address is required for fulfillment"
-        )
-      }
-
-      const toAddress: EasyPostAddress = {
-        name: shippingAddress.first_name
-          ? `${shippingAddress.first_name} ${shippingAddress.last_name || ""}`
-          : "Customer",
-        street1: shippingAddress.address_1 as string,
-        street2: shippingAddress.address_2 as string | undefined,
-        city: shippingAddress.city as string,
-        state: shippingAddress.province as string,
-        zip: shippingAddress.postal_code as string,
-        country: (shippingAddress.country_code as string)?.toUpperCase() || "US",
-        phone: (shippingAddress.phone as string) || "0000000000", // Required for FedEx
-      }
-
-      this.logger.info(`[EasyPost] Fallback shipment creation with to_address: ${JSON.stringify(toAddress)}`)
-
-      const parcel = this.calculateParcelFromItems(items)
-      const shipment = await this.client.createShipment(
-        this.originAddress,
-        toAddress,
-        parcel,
-        ["USPS", "FedEx", "FedExDefault"] // Include FedExDefault for EasyPost Wallet
-      )
-
-      // Use the cheapest rate
-      if (shipment.rates.length === 0) {
-        throw new MedusaError(
-          MedusaError.Types.UNEXPECTED_STATE,
-          "No shipping rates available"
-        )
-      }
-
-      const purchasedLabel = await this.client.purchaseLabel(
-        shipment.id,
-        shipment.rates[0].id
-      )
-
-      return this.formatLabelResponse(purchasedLabel)
-    }
-
-    // Purchase the pre-selected rate
-    try {
-      const purchasedLabel = await this.client.purchaseLabel(shipmentId, rateId)
-      return this.formatLabelResponse(purchasedLabel)
-    } catch (error) {
-      this.logger.error(`[EasyPost] Failed to purchase label: ${error}`)
+  ): Promise<{ data: Record<string, unknown>; labels: Label[] }> {
+    const shipmentId = data.easypost_shipment_id
+    const rateId = data.easypost_rate_id
+    if (typeof shipmentId !== "string" || typeof rateId !== "string") {
       throw new MedusaError(
-        MedusaError.Types.UNEXPECTED_STATE,
-        `Failed to purchase shipping label: ${error instanceof Error ? error.message : "Unknown error"}`
+        MedusaError.Types.INVALID_DATA,
+        "Shipping method has no server-selected EasyPost rate; refusing to buy an arbitrary label"
       )
+    }
+    const purchased = await this.client.purchaseLabel(shipmentId, rateId)
+    const trackingCode = purchased.tracker?.tracking_code || purchased.tracking_code
+    const trackingUrl = purchased.tracker?.public_url || ""
+    const labelUrl = purchased.postage_label?.label_url || ""
+    this.logger.info(`[easypost] label purchased shipment=${purchased.id} carrier=${purchased.selected_rate?.carrier ?? "?"}`)
+    return {
+      data: {
+        easypost_shipment_id: purchased.id,
+        tracking_code: trackingCode,
+        tracking_url: trackingUrl,
+        label_url: labelUrl,
+        label_format: purchased.postage_label?.label_file_type || "PDF",
+        carrier: purchased.selected_rate?.carrier,
+        service: purchased.selected_rate?.service,
+      },
+      labels: [{ tracking_number: trackingCode, tracking_url: trackingUrl, label_url: labelUrl }],
     }
   }
 
-  /**
-   * Create a return fulfillment
-   */
   async createReturnFulfillment(
     _fulfillment: Record<string, unknown>
-  ): Promise<{ data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] }> {
-    // For returns, we'd create a return shipment
-    // For now, return empty - can be implemented later
-    this.logger.info("[EasyPost] Return fulfillment requested - not yet implemented")
-    return { data: {}, labels: [] }
+  ): Promise<{ data: Record<string, unknown>; labels: Label[] }> {
+    throw new MedusaError(MedusaError.Types.NOT_ALLOWED, "Return labels are not supported yet")
   }
 
-  /**
-   * Cancel a fulfillment (void/refund the label)
-   */
   async cancelFulfillment(fulfillment: Record<string, unknown>): Promise<Record<string, unknown>> {
-    const shipmentId = (fulfillment.data as Record<string, unknown>)?.easypost_shipment_id as string
-
-    if (!shipmentId) {
-      this.logger.warn("[EasyPost] No shipment ID found for cancellation")
-      return { cancelled: false, reason: "No shipment ID" }
+    const shipmentId = (fulfillment.data as Record<string, unknown> | undefined)?.easypost_shipment_id
+    if (typeof shipmentId !== "string") {
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "Fulfillment has no EasyPost shipment to void")
     }
-
-    try {
-      const result = await this.client.refundShipment(shipmentId)
-      this.logger.info(`[EasyPost] Shipment ${shipmentId} refund status: ${result.status}`)
-      return { cancelled: true, status: result.status }
-    } catch (error) {
-      this.logger.error(`[EasyPost] Failed to cancel fulfillment: ${error}`)
-      return {
-        cancelled: false,
-        reason: error instanceof Error ? error.message : "Unknown error",
-      }
-    }
+    // Throws on failure so the cancellation isn't recorded while the label stays billable.
+    const result = await this.client.refundShipment(shipmentId)
+    return { refund_status: result.status }
   }
 
-  /**
-   * Get fulfillment documents (labels, packing slips, etc.)
-   * Note: Base class expects never[] but we return actual documents
-   */
-  async getFulfillmentDocuments(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _data: Record<string, unknown>
-  ): Promise<never[]> {
-    // The base class signature expects never[] - documents are accessed via fulfillment data
+  async getFulfillmentDocuments(_data: Record<string, unknown>): Promise<never[]> {
     return []
   }
 
-  /**
-   * Get return documents
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getReturnDocuments(_data: Record<string, unknown>): Promise<never[]> {
     return []
   }
 
-  /**
-   * Get shipment documents
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async getShipmentDocuments(_data: Record<string, unknown>): Promise<never[]> {
     return []
   }
 
-  /**
-   * Retrieve documents by type
-   */
-  async retrieveDocuments(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _fulfillmentData: Record<string, unknown>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    _documentType: string
-  ): Promise<void> {
-    // Documents are stored in fulfillment.data and accessed directly
+  async retrieveDocuments(_fulfillmentData: Record<string, unknown>, _documentType: string): Promise<void> {
     return
   }
 
-  // ============================================================================
-  // Private Helper Methods
-  // ============================================================================
+  // ---------------------------------------------------------------------------
 
-  private getParcelFromContext(context: Record<string, unknown>): EasyPostParcel {
-    // Try to get parcel info from context items
-    const items = context.items as Record<string, unknown>[] | undefined
-
-    if (items && items.length > 0) {
-      return this.calculateParcelFromItems(items)
+  private optionId(optionData: Record<string, unknown>): string {
+    const id = optionData.id
+    if (typeof id !== "string" || !(id in CARRIER_SERVICES)) {
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "Unknown EasyPost shipping option")
     }
-
-    return DEFAULT_PARCEL
+    return id
   }
 
-  private calculateParcelFromItems(items: Record<string, unknown>[]): EasyPostParcel {
-    // Simple box-packing heuristic
-    // In production, you'd want more sophisticated packing algorithms
-    let totalWeight = 0
-    let maxLength = 0
-    let maxWidth = 0
-    let totalHeight = 0
-
-    for (const item of items) {
-      const quantity = (item.quantity as number) || 1
-      const variant = item.variant as Record<string, unknown> | undefined
-
-      // Get weight (convert from grams to ounces if needed)
-      const weightGrams = (variant?.weight as number) || 500 // Default 500g
-      totalWeight += (weightGrams / 28.35) * quantity // Convert to oz
-
-      // Get dimensions or use defaults
-      const length = (variant?.length as number) || 8
-      const width = (variant?.width as number) || 6
-      const height = (variant?.height as number) || 4
-
-      maxLength = Math.max(maxLength, length)
-      maxWidth = Math.max(maxWidth, width)
-      totalHeight += height * quantity
+  private destination(raw: unknown): EasyPostAddress {
+    const a = (raw ?? {}) as Record<string, unknown>
+    const str = (k: string) => (typeof a[k] === "string" ? (a[k] as string).trim() : "")
+    if (!str("address_1") || !str("city") || !str("postal_code") || !str("country_code")) {
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, "A complete shipping address is required")
     }
-
     return {
-      length: maxLength || DEFAULT_PARCEL.length,
-      width: maxWidth || DEFAULT_PARCEL.width,
-      height: Math.min(totalHeight, 24) || DEFAULT_PARCEL.height, // Cap at 24 inches
-      weight: Math.max(totalWeight, 1) || DEFAULT_PARCEL.weight, // Minimum 1 oz
+      name: [str("first_name"), str("last_name")].filter(Boolean).join(" ") || "Customer",
+      street1: str("address_1"),
+      street2: str("address_2") || undefined,
+      city: str("city"),
+      state: str("province"),
+      zip: str("postal_code"),
+      country: str("country_code").toUpperCase(),
+      // FedEx requires a phone number on both addresses to return rates.
+      phone: str("phone") || this.origin.phone || undefined,
     }
   }
 
-  private findMatchingRate(
-    rates: Array<{ id: string; carrier: string; service: string; rate: string }>,
-    optionId: string
-  ): { id: string; rate: string } | undefined {
-    // Find the EasyPost service name that maps to this option ID
-    for (const [easypostService, mappedOptionId] of Object.entries(SERVICE_MAP)) {
-      if (mappedOptionId === optionId) {
-        const rate = rates.find((r) => r.service === easypostService)
-        if (rate) {
-          return { id: rate.id, rate: rate.rate }
-        }
-      }
+  private async quote(
+    optionId: string,
+    to: EasyPostAddress,
+    parcel: EasyPostParcel
+  ): Promise<{ shipmentId: string; rate: Rate }> {
+    const key = crypto.createHash("sha256").update(JSON.stringify([to, parcel])).digest("hex")
+    let entry = this.quotes.get(key)
+    if (!entry || Date.now() - entry.at > QUOTE_TTL_MS) {
+      const shipment = await this.client.createShipment(this.origin, to, parcel)
+      entry = { at: Date.now(), shipmentId: shipment.id, rates: shipment.rates }
+      this.quotes.set(key, entry)
+      this.prune()
     }
-
-    // If no exact match, find by carrier and return cheapest
-    const config = CARRIER_SERVICES[optionId]
-    if (config) {
-      const carrierRates = rates.filter((r) =>
-        config.carriers.some((c) => c.toUpperCase() === r.carrier.toUpperCase())
-      )
-      if (carrierRates.length > 0) {
-        return { id: carrierRates[0].id, rate: carrierRates[0].rate }
-      }
+    const rate = this.matchRate(entry.rates, optionId)
+    if (!rate) {
+      throw new MedusaError(MedusaError.Types.NOT_FOUND, `${CARRIER_SERVICES[optionId].name} is unavailable for this address`)
     }
-
-    return undefined
+    return { shipmentId: entry.shipmentId, rate }
   }
 
-  private formatLabelResponse(purchasedLabel: {
-    id: string
-    tracking_code: string
-    tracker?: { tracking_code: string; public_url: string }
-    postage_label?: { label_url: string; label_file_type: string }
-    selected_rate?: { carrier: string; service: string }
-  }): { data: Record<string, unknown>; labels: { tracking_number: string; tracking_url: string; label_url: string }[] } {
-    const trackingCode = purchasedLabel.tracker?.tracking_code || purchasedLabel.tracking_code
-    const trackingUrl = purchasedLabel.tracker?.public_url || ""
-    const labelUrl = purchasedLabel.postage_label?.label_url || ""
-    const labelFormat = purchasedLabel.postage_label?.label_file_type || "PDF"
+  private prune() {
+    const now = Date.now()
+    for (const [k, v] of this.quotes) if (now - v.at > QUOTE_TTL_MS) this.quotes.delete(k)
+  }
 
-    this.logger.info(
-      `[EasyPost] Label purchased: tracking=${trackingCode}, carrier=${purchasedLabel.selected_rate?.carrier}`
+  /** Exact service match only; never substitute a different service's price. */
+  private matchRate(rates: Rate[], optionId: string): Rate | undefined {
+    const carriers = CARRIER_SERVICES[optionId].carriers.map((c) => c.toUpperCase())
+    return rates.find(
+      (r) => SERVICE_MAP[r.service] === optionId && carriers.includes(r.carrier.toUpperCase())
     )
+  }
 
-    return {
-      data: {
-        easypost_shipment_id: purchasedLabel.id,
-        tracking_code: trackingCode,
-        tracking_url: trackingUrl,
-        label_url: labelUrl,
-        label_format: labelFormat,
-        carrier: purchasedLabel.selected_rate?.carrier,
-        service: purchasedLabel.selected_rate?.service,
-      },
-      labels: [
-        {
-          tracking_number: trackingCode,
-          tracking_url: trackingUrl,
-          label_url: labelUrl,
-        },
-      ],
+  private parcel(rawItems: unknown): EasyPostParcel {
+    const items = Array.isArray(rawItems) ? (rawItems as Record<string, unknown>[]) : []
+    if (items.length === 0) return DEFAULT_PARCEL
+    let weightOz = 0
+    let length = 0
+    let width = 0
+    let height = 0
+    for (const item of items) {
+      const qty = Math.max(1, Number(item.quantity) || 1)
+      const variant = (item.variant ?? {}) as Record<string, unknown>
+      // Medusa variant weight is stored in grams.
+      weightOz += ((Number(variant.weight) || 500) / 28.35) * qty
+      length = Math.max(length, Number(variant.length) || 8)
+      width = Math.max(width, Number(variant.width) || 6)
+      height += (Number(variant.height) || 4) * qty
     }
+    return { length, width, height: Math.min(height, 24), weight: Math.max(weightOz, 1) }
   }
 }
 

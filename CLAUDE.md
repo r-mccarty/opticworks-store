@@ -60,8 +60,8 @@ src/lib/legacy-routes.ts # 410 Gone paths (middleware) and legacy redirects (nex
 src/lib/commerce.ts      # Commerce kill switch
 src/lib/api/medusa*.ts   # Legacy Medusa client (kept for reference)
 src/hooks/               # Zustand stores (useCart, useAuth: legacy)
-backend/                 # Archived Medusa backend (standalone, not built)
-infrastructure/ansible/  # Legacy backend automation
+backend/                 # New Medusa 2.21 backend (Neon + local Redis); dark, behind Cloudflare Access
+infrastructure/ansible/  # Backend host automation (see its README)
 platform/docs-site/      # Hugo source for docs.optic.works
 e2e/                     # Playwright tests for the legacy commerce flow (need backend)
 ```
@@ -81,6 +81,7 @@ e2e/                     # Playwright tests for the legacy commerce flow (need b
 optic.works, www.optic.works          → Worker opticworks-store (this repo)
 *.optic.works/api/*, api.*, medusa.*  → Worker opticworks-backend-offline-20261029 (503)
 docs.optic.works                      → Hugo docs site (platform/docs-site)
+backend.optic.works                   → new Medusa backend via tunnel, Cloudflare Access only (dark)
 ```
 
 Preview URLs: `https://<version-id-prefix>-opticworks-store.ryan-39f.workers.dev`.

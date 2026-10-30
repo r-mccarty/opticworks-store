@@ -1,0 +1,5 @@
+- name: Restart medusa
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: restarted
+  loop: [medusa-server, medusa-worker]

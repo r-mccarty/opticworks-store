@@ -1,0 +1,50 @@
+#!/bin/bash
+# Managed by Ansible. Hourly: Redis snapshot; daily: Neon logical dump.
+# Ships both plus server config to two independent restic repositories.
+set -euo pipefail
+umask 077
+STAGE=/var/backups/opticworks/staging
+CFG=/root/.config/opticworks
+
+# --- Redis: trigger BGSAVE as the backup ACL user and wait for it to land ---
+set -a; . /root/.redis-backup.env; set +a
+rc() { redis-cli --no-auth-warning --user backup "$@"; }
+before=$(rc LASTSAVE)
+rc BGSAVE >/dev/null
+for _ in $(seq 1 120); do
+  [ "$(rc LASTSAVE)" != "$before" ] && break
+  sleep 1
+done
+[ "$(rc LASTSAVE)" != "$before" ] || { echo "redis BGSAVE did not complete" >&2; exit 1; }
+[ "$(rc INFO persistence | tr -d '\r' | awk -F: '/^rdb_last_bgsave_status/{print $2}')" = ok ] \
+  || { echo "redis BGSAVE reported failure" >&2; exit 1; }
+cp /var/lib/redis/dump.rdb "$STAGE/redis/dump.rdb"
+unset REDISCLI_AUTH
+
+# --- Neon: daily custom-format dump (provider PITR covers only hours) ---
+dump="$STAGE/neon/medusa.dump"
+if [ ! -f "$dump" ] || [ -n "$(find "$dump" -mmin +1380)" ]; then
+  set -a; . "$CFG/neon-backup.env"; set +a
+  # verify-full needs a root CA; libpq (>=16) reads "system" as the OS trust store.
+  # Kept out of the URL: node-postgres would treat sslrootcert=system as a file path.
+  PGSSLROOTCERT=system pg_dump --format=custom --no-owner --no-privileges --file="$dump.tmp" "$DATABASE_URL_DIRECT"
+  pg_restore --list "$dump.tmp" >/dev/null   # archive must be readable
+  mv "$dump.tmp" "$dump"
+  unset DATABASE_URL_DIRECT
+fi
+
+# --- Ship to both repositories; one failing does not skip the other ---
+status=0
+for repo in restic-r2 restic-tigris; do
+  (
+    set -a; . "$CFG/$repo.env"; set +a
+    restic backup --quiet --tag opticworks-backend --host opticworks-{{ backend_target }} \
+      "$STAGE" {{ app_env_dir }} /etc/redis /etc/nftables.conf /etc/ssh/sshd_config.d
+    # Retention: 48 hourly, 14 daily, 8 weekly, 12 monthly.
+    if [ "$(date -u +%H)" = "11" ]; then
+      restic forget --quiet --prune --tag opticworks-backend --host opticworks-{{ backend_target }} \
+        --keep-hourly 48 --keep-daily 14 --keep-weekly 8 --keep-monthly 12
+    fi
+  ) || { echo "backup to $repo failed" >&2; status=1; }
+done
+exit $status

@@ -1,42 +1,52 @@
----
-# Redis Installation and Configuration
-
 - name: Install Redis
-  become: yes
   ansible.builtin.apt:
     name: redis-server
     state: present
-    update_cache: yes
 
-- name: Configure Redis to bind to localhost only
-  become: yes
-  ansible.builtin.lineinfile:
-    path: /etc/redis/redis.conf
-    regexp: '^bind '
-    line: 'bind {{ redis_bind_address }}'
-    state: present
-  notify: restart redis
+- name: Redis ACL users (default user disabled)
+  ansible.builtin.template:
+    src: users.acl.j2
+    dest: /etc/redis/users.acl
+    owner: redis
+    group: redis
+    mode: "0600"
+  no_log: true
+  notify: Restart redis
 
-- name: Configure Redis port
-  become: yes
-  ansible.builtin.lineinfile:
-    path: /etc/redis/redis.conf
-    regexp: '^port '
-    line: 'port {{ redis_port }}'
-    state: present
-  notify: restart redis
+- name: Redis configuration
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: redis
+    mode: "0640"
+  notify: Restart redis
 
-- name: Disable Redis password (local-only access)
-  become: yes
-  ansible.builtin.lineinfile:
-    path: /etc/redis/redis.conf
-    regexp: '^requirepass '
-    state: absent
-  notify: restart redis
+- name: Root-only credentials for the backup user
+  ansible.builtin.copy:
+    dest: /root/.redis-backup.env
+    owner: root
+    group: root
+    mode: "0600"
+    content: "REDISCLI_AUTH={{ lookup('env', 'REDIS_BACKUP_PASSWORD') }}\n"
+  no_log: true
 
-- name: Ensure Redis is running
-  become: yes
-  ansible.builtin.service:
+- name: Redis enabled and running
+  ansible.builtin.systemd:
     name: redis-server
+    enabled: true
     state: started
-    enabled: yes
+
+- name: Apply pending Redis restarts now
+  ansible.builtin.meta: flush_handlers
+
+- name: Redis answers as the app user and refuses unauthenticated clients
+  ansible.builtin.shell: |
+    set -e
+    test "$(redis-cli --no-auth-warning --user medusa --pass "$APP" ping)" = PONG
+    redis-cli ping 2>&1 | grep -qi 'NOAUTH\|NOPERM\|WRONGPASS\|auth'
+    ! redis-cli --no-auth-warning --user medusa --pass "$APP" flushall 2>/dev/null | grep -q OK
+  environment:
+    APP: "{{ lookup('env', 'REDIS_APP_PASSWORD') }}"
+  changed_when: false
+  no_log: true

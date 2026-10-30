@@ -1,0 +1,12 @@
+[Unit]
+Description=Verify OpticWorks backup repositories
+After=network-online.target
+Wants=network-online.target
+OnFailure=opticworks-alert@%n.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/opticworks-backup-check
+Nice=15
+IOSchedulingClass=idle
+TimeoutStartSec=4h

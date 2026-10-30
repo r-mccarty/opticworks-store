@@ -1,0 +1,16 @@
+#!/bin/bash
+# Managed by Ansible. Emails a short alert naming the failed unit. Sends no logs
+# (they may contain data); investigate with journalctl on the host.
+set -euo pipefail
+unit="${1:-unknown}"
+set -a; . /root/.config/opticworks/alert.env; set +a
+stamp="/run/opticworks-alert-${unit//[^A-Za-z0-9_.-]/_}"
+# At most one alert per unit per hour.
+if [ -f "$stamp" ] && [ -z "$(find "$stamp" -mmin +60)" ]; then exit 0; fi
+touch "$stamp"
+body=$(jq -n --arg from "$ALERT_FROM" --arg to "$ALERT_TO" --arg u "$unit" --arg h "$(hostname)" \
+  '{from:$from, to:[$to], subject:("[opticworks-backend] " + $u + " failed on " + $h),
+    text:("Unit " + $u + " failed on " + $h + " at " + (now|todate) + ".\nRun: journalctl -u " + $u + " -n 100")}')
+curl -fsS --max-time 20 -X POST https://api.resend.com/emails \
+  -H "Authorization: Bearer $RESEND_API_KEY" -H 'Content-Type: application/json' \
+  --data "$body" >/dev/null

@@ -14,6 +14,7 @@ import {
 } from "./types"
 
 const EASYPOST_API_BASE = "https://api.easypost.com/v2"
+const REQUEST_TIMEOUT_MS = 10_000
 
 export class EasyPostClient {
   private apiKey: string
@@ -47,6 +48,8 @@ export class EasyPostClient {
         "Content-Type": "application/json",
       },
       body: body ? JSON.stringify(body) : undefined,
+      // Never let a slow carrier API hang a checkout request indefinitely.
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
 
     if (!response.ok) {

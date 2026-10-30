@@ -1,0 +1,74 @@
+- name: Backup directories (root only)
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  loop:
+    - /var/backups/opticworks
+    - /var/backups/opticworks/staging
+    - /var/backups/opticworks/staging/redis
+    - /var/backups/opticworks/staging/neon
+    - /root/.config/opticworks
+
+- name: Repository credentials (root 0600, one file per repository)
+  ansible.builtin.template:
+    src: "{{ item }}.env.j2"
+    dest: "/root/.config/opticworks/{{ item }}.env"
+    mode: "0600"
+  loop: [restic-r2, restic-tigris, neon-backup, alert]
+  no_log: true
+
+- name: Backup, check and alert scripts
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/usr/local/sbin/{{ item }}"
+    mode: "0700"
+  loop: [opticworks-backup, opticworks-backup-check, opticworks-alert, opticworks-healthcheck]
+
+- name: Initialise each restic repository (no-op if it exists)
+  ansible.builtin.shell: |
+    set -euo pipefail
+    set -a; . /root/.config/opticworks/{{ item }}.env; set +a
+    restic cat config >/dev/null 2>&1 || restic init
+  args:
+    executable: /bin/bash
+  loop: [restic-r2, restic-tigris]
+  register: backup_init
+  changed_when: "'created restic repository' in backup_init.stdout"
+  no_log: true
+
+- name: systemd units
+  ansible.builtin.template:
+    src: "{{ item }}.j2"
+    dest: "/etc/systemd/system/{{ item }}"
+    mode: "0644"
+  loop:
+    - opticworks-backup.service
+    - opticworks-backup.timer
+    - opticworks-backup-check.service
+    - opticworks-backup-check.timer
+    - opticworks-healthcheck.service
+    - opticworks-healthcheck.timer
+    - opticworks-alert@.service
+
+- name: Timers enabled
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    enabled: true
+    state: started
+    daemon_reload: true
+  loop: [opticworks-backup.timer, opticworks-backup-check.timer, opticworks-healthcheck.timer]
+
+- name: Run a first backup now and require it to succeed
+  ansible.builtin.systemd:
+    name: opticworks-backup.service
+    state: started
+  register: backup_first
+
+- name: First backup completed
+  ansible.builtin.command: systemctl show -p Result --value opticworks-backup.service
+  register: backup_result
+  changed_when: false
+  failed_when: backup_result.stdout != 'success'

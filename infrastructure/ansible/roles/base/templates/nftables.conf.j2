@@ -1,0 +1,26 @@
+#!/usr/sbin/nft -f
+# Managed by Ansible. Inbound: SSH only (the app is reached via an outbound
+# Cloudflare tunnel). The Hetzner Cloud Firewall enforces the same upstream.
+flush ruleset
+
+table inet filter {
+  chain input {
+    type filter hook input priority filter; policy drop;
+    ct state established,related accept
+    ct state invalid drop
+    iif "lo" accept
+    meta l4proto { icmp, ipv6-icmp } limit rate 10/second accept
+    tcp dport {{ ssh_port }} ct state new limit rate 30/minute accept
+  }
+
+  chain forward {
+    type filter hook forward priority filter; policy drop;
+  }
+
+  chain output {
+    type filter hook output priority filter; policy accept;
+    # Cloud-init user data (incl. the bootstrap host key) is served here; only
+    # root may read it, so an app compromise can't lift it.
+    ip daddr 169.254.169.254 meta skuid != 0 drop
+  }
+}
