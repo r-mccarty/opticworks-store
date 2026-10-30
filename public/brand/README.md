@@ -6,5 +6,8 @@ on 2026-10-29. It preserves the source's letter silhouettes, counters, spacing,
 and detached T crossbar. Paper grain is omitted and the fill is warm white for
 the website's dark background. There is no red slash in this version.
 
+The contours are inset by 1.25 SVG units to give the lettering a slightly
+lighter weight while keeping the original overall proportions.
+
 Use the shared `Wordmark` component in the site header and footer. Preserve its
 aspect ratio; do not substitute italic text or add a separate symbol.
