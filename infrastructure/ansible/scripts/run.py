@@ -77,6 +77,8 @@ def target(name):
     """Look up the target by server ID and refuse on any drift from targets.json."""
     if name not in ("staging", "original"):
         sys.exit("--target must be staging or original")
+    if name not in TARGETS:
+        sys.exit(f"no {name} server in inventory/targets.json (staging was deleted in Gate 4, MIGRATION.md)")
     t = TARGETS[name]
     if name == "original" and os.environ.get("OPTICWORKS_CONFIRM_SERVER_ID") != str(t["server_id"]):
         sys.exit(f"refusing the original server {t['server_id']} without owner approval: "

@@ -1,16 +1,5 @@
 {
-  "_comment": "Deploy targets, keyed by Hetzner server ID, never by name. Verified read-only on 2026-10-30. scripts/run.py and scripts/hcloud_audit.py refuse a target whose live type, location or disk drifts from this file. See MIGRATION.md.",
-  "staging": {
-    "server_id": 173582205,
-    "name": "opticworks-backend-1",
-    "server_type": "cpx21",
-    "location": "hil",
-    "primary_disk_gb": 80,
-    "neon_branch_id": "br-lingering-frost-ak09xb0l",
-    "neon_branch_name": "dev",
-    "temporary": true,
-    "note": "Temporary staging/validation host at the current list price (EUR/USD 37.49/mo). Delete in Gate 4, after the original is accepted."
-  },
+  "_comment": "Deploy targets, keyed by Hetzner server ID, never by name. Verified read-only on 2026-10-30. scripts/run.py and scripts/hcloud_audit.py refuse a target whose live type, location or disk drifts from this file. See MIGRATION.md. Staging (173468157, then 173582205) was deleted in Gate 4 on 2026-10-30; hcloud_provision.py can create a new one, then add it back here as `staging`.",
   "original": {
     "server_id": 110578382,
     "name": "debian-2gb-hil-1-test-instance",

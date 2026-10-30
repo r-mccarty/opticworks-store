@@ -178,7 +178,7 @@ but its host key changes); run `hcloud_audit.py`; confirm the invoice still show
       identical. The branch was deleted
 - [x] Firewall `11927072` applied to the original (now shared with staging). SSH verified after
 - [x] agent-harness2 updated (service registry, inventory, host key): agent-harness2 PR #3
-- [ ] Owner: confirm the invoice still shows **$13.99/month** for `110578382`
+- [x] Owner confirmed the invoice still shows **$13.99/month** for `110578382` (2026-10-30)
 - Disk use 5.0 GB of 38 GB; RAM about 1 GB of 3.8 GB
 
 ## Gate 4: cleanup
@@ -188,3 +188,21 @@ server `173582205` along with its primary IPs. **Keep firewall `11927072`: it no
 the original.** Keep the SSH key, DNS, the tunnel and snapshot `449822273`.
 Delete any snapshot made from staging. Confirm billing has stopped, and record
 the final resources and costs here and in the PR.
+
+### Gate 4 result — 2026-10-30 (done)
+
+- [x] Owner approved. Staging `173582205` was deleted after an identity check (ID, name, 80 GB,
+      label). Its auto-delete primary IPs `158978120` / `158978121` went with it. No snapshot or
+      backup image had been made from staging
+- [x] Kept: firewall `11927072` (now protecting the original), SSH key `opticworks-deploy`,
+      tunnel `opticworks-backend`, DNS, Access app, snapshot `449822273` (protected)
+- [x] Records: `staging` removed from `inventory/targets.json`; staging's known_hosts line
+      removed from the controller and from Infisical (`STAGING_SSH_KNOWN_HOSTS`). Staging's
+      restic snapshots (`--host opticworks-staging`) remain in R2/Tigris until retention prunes them
+- [x] Final audit: one server, `110578382` (cpx21, 40 GB, $13.99/mo legacy, protected,
+      firewall `11927072`), with its own two primary IPs. The tunnel is healthy from it only;
+      `/health` 200 through Access
+
+**Final topology:** `backend.optic.works` → Access → tunnel → the original CPX21 `110578382`
+(Medusa 2.21.2 + local Redis) → Neon `main`. Backups hourly/daily to R2 and Tigris. Recurring
+Hetzner cost for the backend is the original's $13.99/month (plus the snapshot's storage).
