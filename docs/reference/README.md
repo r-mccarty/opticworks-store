@@ -2,17 +2,25 @@
 
 Deep-dive documentation for specific topics. Start with `CLAUDE.md` for daily development.
 
-> **Status (2026-10-29): commerce is offline.** The Medusa backend is archived, and its edge
-> routes return `503 BACKEND_OFFLINE`. The backend, checkout, payment, fulfillment, webhook,
-> auth and E2E documents below are **historical reference** for the archived system and
-> for planning future e-commerce. They do not describe the running site. Current state:
+> **Status (2026-10-30): commerce is offline.** The legacy Medusa backend is retired, and its
+> edge routes return `503 BACKEND_OFFLINE`. The backend, checkout, payment, fulfillment,
+> webhook, auth and E2E documents below are **historical reference** for the legacy system
+> and for planning future e-commerce. They do not describe the running site. Current state:
 > [BACKEND_OFFLINE_FRONTEND.md](BACKEND_OFFLINE_FRONTEND.md).
+>
+> A **new Medusa 2.21 backend** runs dark at `backend.optic.works` (Cloudflare Access only)
+> on the original Hetzner CPX21. It is documented in
+> [`infrastructure/ansible/README.md`](../../infrastructure/ansible/README.md) and
+> [`MIGRATION.md`](../../infrastructure/ansible/MIGRATION.md), not in the legacy documents
+> below. `BACKEND_OPERATIONS.md` and `DEPLOYMENT_GUIDE.md` describe the legacy host only.
 
 ---
 
 ## Legacy Backend Archive
 
-The backend was quiesced for a separate VM snapshot on 2026-10-29. Existing frontend pages remain visible; API operations are deliberately offline.
+The legacy backend was quiesced on 2026-10-29 and captured in Hetzner snapshot `449822273`
+(delete-protected). On 2026-10-30 its server was rebuilt in place for the new backend, so the
+snapshot is now the only copy of the legacy host. API operations on the public site stay offline.
 
 | Document | Purpose |
 |----------|---------|
@@ -24,8 +32,8 @@ The backend was quiesced for a separate VM snapshot on 2026-10-29. Existing fron
 | Document | Purpose |
 |----------|---------|
 | [ARCHITECTURE.md](ARCHITECTURE.md) | System overview, data flows, external services |
-| [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md) | SSH access, server logs, Medusa Admin API |
-| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | Ansible playbooks, backup & recovery |
+| [BACKEND_OPERATIONS.md](BACKEND_OPERATIONS.md) | *Legacy host:* SSH access, server logs, Medusa Admin API |
+| [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) | *Legacy host:* Ansible playbooks, backup & recovery. New backend: [`infrastructure/ansible/README.md`](../../infrastructure/ansible/README.md) |
 | [CLOUDFLARE_API.md](CLOUDFLARE_API.md) | R2, Tunnels, DNS, WAF rate limiting |
 
 ---

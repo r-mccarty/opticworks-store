@@ -1,8 +1,14 @@
 # Frontend while the backend is offline
 
-Status as of **2026-10-29**. This describes the running website. For the backend archive,
-the snapshot runbook and the legacy API catalog, see PR #124
-(`docs/reference/LEGACY_BACKEND_SNAPSHOT.md`, `docs/reference/LEGACY_BACKEND_API.md` on that branch).
+Status as of **2026-10-29**, with a backend update on **2026-10-30**. This describes the running
+website. For the legacy backend archive, the snapshot runbook and the legacy API catalog, see
+[LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_SNAPSHOT.md) and [LEGACY_BACKEND_API.md](LEGACY_BACKEND_API.md) (PR #124).
+
+> **Backend update (2026-10-30).** The legacy server was rebuilt in place, so the legacy backend
+> no longer runs anywhere (snapshot `449822273` keeps its state). A new Medusa 2.21 backend
+> runs **dark** at `backend.optic.works` (Cloudflare Access only, test-mode keys, two draft
+> products). See [`infrastructure/ansible/README.md`](../../infrastructure/ansible/README.md).
+> Nothing below changes: the website still doesn't call any backend, and the offline routes stay.
 
 ## Summary
 
@@ -175,8 +181,9 @@ the company site described in the README:
 
 ## Re-enabling commerce (later)
 
-1. Stand up the new backend and decide the API surface. Don't assume the legacy Medusa
-   contract.
+1. ~~Stand up the new backend~~ (done 2026-10-30, dark: core Store/Auth/Admin APIs only, no
+   custom routes). Finish launch readiness (#138), then decide the frontend's API surface. Don't
+   assume the legacy Medusa contract.
 2. Remove or re-point the offline Worker routes deliberately (see PR #124).
 3. Set `COMMERCE_ENABLED = true` and the env flag. Review `src/components/legacy/*`, purchase
    copy and legal terms before deploying.
