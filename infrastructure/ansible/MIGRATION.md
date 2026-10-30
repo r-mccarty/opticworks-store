@@ -139,7 +139,7 @@ seccomp killed `chown` (SIGSYS); a release that couldn't start skipped rollback;
   storefront publishable key is per database, so `main` gets a new one
 - **Firewall:** apply Hetzner firewall `11927072` to the original as defense in depth (it then
   becomes shared: keep it in Gate 4)
-- [ ] **Owner approves:** the window; protection off/on; the in-place rebuild (erases the disk);
+- [x] **Owner approved (2026-10-30):** the window; protection off/on; the in-place rebuild (erases the disk);
       Neon `main` for the original (seed + admin user); applying the firewall
 
 ## Gate 3: cutover (owner-scheduled)
@@ -158,10 +158,33 @@ restore rehearsal (`--host opticworks-original`); apply firewall `11927072`; upd
 scoped SSH/agent-harness references (the `/agents/hetzner` `SSH_HOST` stays `5.78.106.67`,
 but its host key changes); run `hcloud_audit.py`; confirm the invoice still shows $13.99.
 
+### Gate 3 result — 2026-10-30 (cutover done)
+
+- [x] Pre-flight audit clean. `hcloud_rebuild_original.py --apply`: protection off →
+      rebuild from `debian-13` → protection on. Still `110578382`, cpx21, 40 GB, `5.78.106.67`,
+      created 2025-10-11 (same server). Host key pre-trusted, then rotated
+      (`SHA256:3dNLJ8Iu1qEOEz9wSaV0SkfZZL8w8fNC/xQGnLmmyZw`) and recorded in Infisical
+      `/agents/hetzner/config` `SSH_KNOWN_HOSTS`. The login key `SSH_PRIVATE_KEY` is unchanged
+- [x] `stop-tunnel` on staging (0 connections), then `run.py --target original deploy` at
+      `58a4b5a` (ok=72, failed=0; one more fix: release pruning on a first release). The tunnel
+      is healthy from the original's IPv6 only
+- [x] Neon `main`: migrations (deploy); seed run once (region, `OpticWorks Store` channel, two
+      draft products, new storefront publishable key); admin `support@optic.works` created
+- [x] Probes as in Gate 1 pass on the original. Through Access: admin login; EasyPost rates,
+      Stripe Tax and a Stripe test PaymentIntent on a temporary product (deleted again; it and
+      one abandoned test cart remain soft-deleted in `main`)
+- [x] Backups `--host opticworks-original` in R2 and Tigris. Restore rehearsal from a fresh
+      backup into an empty database on a temporary branch of `main`: 147 tables and 694 rows,
+      identical. The branch was deleted
+- [x] Firewall `11927072` applied to the original (now shared with staging). SSH verified after
+- [x] agent-harness2 updated (service registry, inventory, host key): agent-harness2 PR #3
+- [ ] Owner: confirm the invoice still shows **$13.99/month** for `110578382`
+- Disk use 5.0 GB of 38 GB; RAM about 1 GB of 3.8 GB
+
 ## Gate 4: cleanup
 
-After the owner accepts the original, stop `cloudflared` on staging. Delete
-server `173582205` along with its primary IPs, and firewall `11927072` if no
-other server uses it. Keep the SSH key, DNS, the tunnel and snapshot `449822273`.
+After the owner accepts the original (staging's `cloudflared` is already stopped), delete
+server `173582205` along with its primary IPs. **Keep firewall `11927072`: it now protects
+the original.** Keep the SSH key, DNS, the tunnel and snapshot `449822273`.
 Delete any snapshot made from staging. Confirm billing has stopped, and record
 the final resources and costs here and in the PR.
