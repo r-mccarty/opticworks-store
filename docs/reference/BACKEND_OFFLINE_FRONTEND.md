@@ -28,7 +28,7 @@ For the retired legacy backend, see [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_
 | `optic.works/api/*`, `www.optic.works/api/*` | Worker `opticworks-backend-offline-20261029` ([source](../../infrastructure/workers/backend-offline/)) | `503 {"code":"BACKEND_OFFLINE"}` |
 | `api.optic.works/*`, `medusa.optic.works/*` | same | `503 {"code":"BACKEND_OFFLINE"}` |
 | `backend.optic.works` | Cloudflare Access → tunnel → new backend | Owners/service token only |
-| `docs.optic.works` | Pages project `opticworks-docs` (direct upload, last deployed 2025-12-04) | **Stale:** legacy bed-presence-sensor docs. Its source was removed from this repo on 2026-10-30. See open issue 1 |
+| `docs.optic.works` | Nothing | Taken down on 2026-10-30: Pages project `opticworks-docs`, its custom domain and DNS record deleted. The hostname doesn't resolve |
 
 Don't remove or change the four offline routes, and don't resume the paused Hookdeck
 connections, as part of website work. Route IDs are recorded in
@@ -55,6 +55,9 @@ Nothing was archived in-tree; git history has it. The removals:
   fulfillment, webhooks, E2E and devices; postmortems and archived RFDs; Hookdeck
   transformations; storefront secrets scripts; the stale `hammer` review-bot config; and the
   devcontainer's Hugo, secrets-pull and legacy Hetzner SSH setup.
+- **Cloudflare:** the docs.optic.works Pages project, custom domain and DNS record; the
+  storefront's Worker secrets (in a new, undeployed version); the shipping-rates KV namespace;
+  and the legacy `/api/shipping|checkout` rate-limit ruleset.
 
 The legacy API catalog ([LEGACY_BACKEND_API.md](LEGACY_BACKEND_API.md), `legacy-api/`) stays as
 the record of the old contract. When commerce returns, build against the new backend rather than
@@ -62,21 +65,18 @@ restoring the old frontend.
 
 ## Open issues
 
-1. **docs.optic.works is live and stale.** It still serves the legacy "Bed Presence Sensor"
-   docs (sleep/breathing monitoring claims, 24 GHz radar, a mobile app). Take it down or
-   replace it. This needs owner approval; the repo no longer holds its source.
-2. **Legal pages need owner/legal review (#126).** Privacy Policy and Terms still name
+1. **Legal pages need owner/legal review (#126).** Privacy Policy and Terms still name
    "OpticWorks LLC", give `privacy@opticworks.com` / `legal@opticworks.com` (a domain we don't
    control) and contain an `[Address]` placeholder.
-3. **`next lint` is deprecated** (removed in Next 16). Migrate to the ESLint CLI flat config.
-4. **Analytics:** Google Analytics (`G-ZVKN68R4Y7`) loads on every page. Check that consent
+2. **`next lint` is deprecated** (removed in Next 16). Migrate to the ESLint CLI flat config.
+3. **Analytics:** Google Analytics (`G-ZVKN68R4Y7`) loads on every page. Check that consent
    and privacy-policy coverage match the new policy.
-5. **Sentry isn't initialised.** `sentry.client.config.ts` is never imported (that convention
+4. **Sentry isn't initialised.** `sentry.client.config.ts` is never imported (that convention
    belongs to `@sentry/nextjs`, not `@sentry/browser`), so `global-error.tsx`'s
    `captureException` sends nothing.
-6. **No smoke tests.** CI runs lint, typecheck, unit tests and the build. Add browser smoke
+5. **No smoke tests.** CI runs lint, typecheck, unit tests and the build. Add browser smoke
    tests for the public routes (nav, legal, contact, no `/api/*` calls).
-7. **Social links** (X, GitHub org, YouTube, Discord) stay off until there are verified accounts.
+6. **Social links** (X, GitHub org, YouTube, Discord) stay off until there are verified accounts.
 
 ## Re-enabling commerce (later)
 

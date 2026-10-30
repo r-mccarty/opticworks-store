@@ -191,12 +191,8 @@ Rate limiting rules protect API endpoints from abuse and prevent runaway loops f
 
 ### Current Rules
 
-| Ruleset ID | Rule ID | Description |
-|------------|---------|-------------|
-| `d88b83536001478ba826e0fe4c36bb3a` | `e6e4f40f74bf47e092b8f7f95fa45421` | Shipping + Checkout API Rate Limit (**legacy**) |
-
-This rule targets the retired storefront's `/api/shipping` and `/api/checkout` paths, which the
-website no longer has (`/api/*` is answered by the offline Worker). It can be deleted.
+**None.** The retired storefront's ruleset (`d88b8353…`, a 5 req/10 s limit on `/api/shipping`
+and `/api/checkout`) was deleted on 2026-10-30. `/api/*` is answered by the offline Worker.
 
 **Rule Details:**
 - **Expression**: `(http.request.uri.path contains "/api/shipping") or (http.request.uri.path contains "/api/checkout")`
@@ -256,7 +252,7 @@ curl -X GET "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets?kind
 ### Delete Rate Limiting Ruleset
 
 ```bash
-RULESET_ID="d88b83536001478ba826e0fe4c36bb3a"
+RULESET_ID="<ruleset id>"
 
 curl -X DELETE "https://api.cloudflare.com/client/v4/zones/${ZONE_ID}/rulesets/${RULESET_ID}" \
   -H "X-Auth-Email: ${CLOUDFLARE_EMAIL}" \
@@ -288,10 +284,10 @@ When using Cloudflare's **Git integration** (auto-deploy on push to main), secre
 
 ### Current Required Secrets
 
-**None.** Since 2026-10-30 the website has no API routes or commerce code. The retired
-storefront's Worker secrets (`HOOKDECK_WEBHOOK_SECRET`, `STRIPE_SECRET_KEY`,
-`EASYPOST_API_KEY`, `SHIP_FROM_ZIP`, `TURNSTILE_SECRET_KEY`) are unused and can be removed from
-the dashboard.
+**None.** The retired storefront's Worker secrets (`HOOKDECK_WEBHOOK_SECRET`,
+`STRIPE_SECRET_KEY`, `EASYPOST_API_KEY`, `SHIP_FROM_ZIP`, `TURNSTILE_SECRET_KEY`) were removed on
+2026-10-30 with `wrangler versions secret delete`, which creates a new version without deploying
+it. The deployed version keeps them until the next deploy from `main`.
 
 ---
 
@@ -299,9 +295,7 @@ the dashboard.
 
 ### Current Namespaces
 
-| Binding | Namespace ID | Purpose |
-|---------|--------------|---------|
-| `SHIPPING_RATES_CACHE` | `e11813a7581f480ea39633e492a53222` | **Legacy**, no longer bound to the Worker (shipping-rate cache of the retired storefront). Can be deleted |
+**None.** The retired storefront's `SHIPPING_RATES_CACHE` namespace was deleted on 2026-10-30.
 
 ### Create KV Namespace
 
@@ -335,8 +329,6 @@ curl -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_
 | **Backend Tunnel** (`opticworks-backend`, `backend.optic.works`) | `089efe5b-6dfb-4bc8-b3d2-ae9f37e4304a` |
 | **Legacy API Tunnel** (`opticworks-medusa`, down) | `db4738a9-20b7-4dd7-bde2-0760e0188071` |
 | **R2 Endpoint** | `https://39f8fd4a5b0c7558aed585facd57ec3b.r2.cloudflarestorage.com` |
-| **Shipping Cache KV** (legacy, unbound) | `e11813a7581f480ea39633e492a53222` |
-| **Rate Limit Ruleset** | `d88b83536001478ba826e0fe4c36bb3a` |
 
 ---
 

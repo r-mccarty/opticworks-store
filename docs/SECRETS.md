@@ -8,8 +8,8 @@ The website (`src/`, Worker `opticworks-store`) needs **no secrets or environmen
 It calls no backend or third-party API at run time. `wrangler.jsonc` holds only the Worker's
 name, routes and asset binding.
 
-Worker secrets left over from the retired storefront (Medusa, Stripe, Turnstile) are unused and
-can be deleted from the Worker. See [CLOUDFLARE_API.md](reference/CLOUDFLARE_API.md).
+The retired storefront's Worker secrets were removed on 2026-10-30. See
+[CLOUDFLARE_API.md](reference/CLOUDFLARE_API.md).
 
 ## Backend (Medusa 2.21, via Ansible)
 

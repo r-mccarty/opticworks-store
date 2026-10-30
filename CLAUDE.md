@@ -84,7 +84,6 @@ infrastructure/workers/backend-offline/  # Offline /api/* Worker source
 ```
 optic.works, www.optic.works          → Worker opticworks-store (this repo)
 *.optic.works/api/*, api.*, medusa.*  → Worker opticworks-backend-offline-20261029 (503)
-docs.optic.works                      → Pages project opticworks-docs (stale legacy docs; source removed)
 backend.optic.works                   → new Medusa backend via tunnel, Cloudflare Access only (dark)
 ```
 
