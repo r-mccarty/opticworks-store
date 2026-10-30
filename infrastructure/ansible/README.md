@@ -3,6 +3,11 @@
 Builds and operates the dark Medusa backend on Hetzner. Everything on the host
 is managed here; don't edit the server over SSH.
 
+**Topology is in transition.** The final host is the original, grandfathered
+40 GB CPX21 (`110578382`). `opticworks-backend-1` (`173468157`) is temporary
+staging and gets deleted after cutover. Read [MIGRATION.md](MIGRATION.md) before
+any Hetzner action: deleting, recreating or rescaling the original loses its legacy price.
+
 ```
 Browser ──► Cloudflare Access ──► backend.optic.works ──► tunnel (outbound) ──► 127.0.0.1:9000
                                                                                  │
@@ -13,9 +18,9 @@ Browser ──► Cloudflare Access ──► backend.optic.works ──► tunn
 
 | Piece | Where |
 | --- | --- |
-| VM | `opticworks-backend-1`, cpx21, Hillsboro. Hetzner firewall `opticworks-backend`: tcp/8032 + ICMP in, nothing else |
+| VM | `--target staging`: `opticworks-backend-1` (temporary, 80 GB). `--target original`: the grandfathered 40 GB CPX21, after Gate 2 approval. Both are cpx21 in Hillsboro and listed in `inventory/targets.json` by server ID |
 | App | Medusa 2.21.2 from `backend/`, two systemd units (`medusa-server` API on :9000, `medusa-worker` on :9001), both loopback-only |
-| Database | Neon project `opticworks-store` (`jolly-moon-85409114`), branch `main`; `dev` for migrations and tests |
+| Database | Neon project `opticworks-store` (`jolly-moon-85409114`): staging uses branch `dev`, the original uses `main` |
 | Redis | local, ACL users `medusa` (no admin/destructive commands) and `backup`; AOF + RDB; `noeviction` |
 | Edge | tunnel `opticworks-backend`; Access app restricts `backend.optic.works` to the owners. No inbound web ports |
 | Backups | hourly Redis RDB, daily Neon `pg_dump`, config → two restic repos; weekly `restic check` reading 5% of data |
@@ -43,9 +48,12 @@ per run. Provider keys are currently **test mode** (Stripe, EasyPost).
 ```bash
 export INFISICAL_PROFILE=<your profile>          # infisical profile list
 
-# 1. Once: VM (refuses unless the pre-teardown snapshot is available)
+# 0. Any time: read-only check of both servers, the recovery snapshot and staging's resources
+agent-harness2/bin/with-secrets hetzner -- python3 -I infrastructure/ansible/scripts/hcloud_audit.py
+
+# 1. Once (done): the temporary staging VM, from stock debian-13
 agent-harness2/bin/with-secrets hetzner -- python3 -I infrastructure/ansible/scripts/hcloud_provision.py --apply
-python3 -I infrastructure/ansible/scripts/run.py rotate-hostkey   # replace the bootstrap host key
+python3 -I infrastructure/ansible/scripts/run.py --target staging rotate-hostkey   # replace the bootstrap host key
 
 # 2. Once: edge (Access is created before DNS, so the hostname is never public)
 agent-harness2/bin/with-secrets cloudflare -- sh -c \
@@ -55,8 +63,10 @@ agent-harness2/bin/with-secrets cloudflare -- sh -c \
 python3 -I infrastructure/ansible/scripts/generate_secrets.py
 
 # 4. Every change: commit backend/, then converge + deploy
-python3 -I infrastructure/ansible/scripts/run.py deploy            # extra args go to ansible-playbook
-python3 -I infrastructure/ansible/scripts/run.py deploy --check --diff
+python3 -I infrastructure/ansible/scripts/run.py --target staging deploy   # extra args go to ansible-playbook
+python3 -I infrastructure/ansible/scripts/run.py --target staging deploy --check --diff
+# The original only after the owner's Gate 2 approval (MIGRATION.md):
+OPTICWORKS_CONFIRM_SERVER_ID=110578382 python3 -I infrastructure/ansible/scripts/run.py --target original deploy
 ```
 
 A deploy builds the committed `backend/` into `/srv/medusa/releases/<sha>`, runs
@@ -68,7 +78,7 @@ On failure it restores the previous release and fails.
 ```bash
 sudo -i
 set -a; . /root/.config/opticworks/restic-r2.env; set +a      # or restic-tigris.env
-restic snapshots --tag opticworks-backend
+restic snapshots --tag opticworks-backend --host opticworks-staging   # or opticworks-original
 restic restore latest --target /root/restore
 # Neon: pg_restore --no-owner -d "<direct url of a NEW branch>" /root/restore/var/backups/opticworks/staging/neon/medusa.dump
 # Redis: systemctl stop medusa-worker medusa-server redis-server; copy dump.rdb into /var/lib/redis

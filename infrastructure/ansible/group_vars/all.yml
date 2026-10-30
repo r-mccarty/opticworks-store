@@ -29,8 +29,12 @@ storefront_url: https://optic.works
 admin_url: "https://{{ public_hostname }}"
 cloudflare_tunnel_name: opticworks-backend
 
+# staging or original (scripts/run.py --target). Keeps each host's restic
+# snapshots and retention separate in the shared backup repositories.
+backend_target: "{{ lookup('env', 'BACKEND_TARGET') }}"
+
 neon_project_id: jolly-moon-85409114
-neon_branch_id: br-wispy-morning-ak26hpef   # main
+# The Neon branch is per target (staging: dev, original: main); see inventory/targets.json.
 neon_database: medusa
 neon_role: medusa
 

@@ -36,11 +36,11 @@ status=0
 for repo in restic-r2 restic-tigris; do
   (
     set -a; . "$CFG/$repo.env"; set +a
-    restic backup --quiet --tag opticworks-backend --host {{ inventory_hostname }} \
+    restic backup --quiet --tag opticworks-backend --host opticworks-{{ backend_target }} \
       "$STAGE" {{ app_env_dir }} /etc/redis /etc/nftables.conf /etc/ssh/sshd_config.d
     # Retention: 48 hourly, 14 daily, 8 weekly, 12 monthly.
     if [ "$(date -u +%H)" = "11" ]; then
-      restic forget --quiet --prune --tag opticworks-backend \
+      restic forget --quiet --prune --tag opticworks-backend --host opticworks-{{ backend_target }} \
         --keep-hourly 48 --keep-daily 14 --keep-weekly 8 --keep-monthly 12
     fi
   ) || { echo "backup to $repo failed" >&2; status=1; }

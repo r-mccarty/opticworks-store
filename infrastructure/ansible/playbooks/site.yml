@@ -11,6 +11,7 @@
         fail_msg: "Missing required input {{ item }}"
         quiet: true
       loop:
+        - BACKEND_TARGET
         - DATABASE_URL_POOLED
         - DATABASE_URL_DIRECT
         - JWT_SECRET

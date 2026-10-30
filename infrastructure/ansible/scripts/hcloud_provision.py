@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Create the backend VM on Hetzner Cloud with a pre-trusted SSH host key.
+"""Create the TEMPORARY staging VM on Hetzner Cloud with a pre-trusted SSH host key.
+
+This only ever creates `opticworks-backend-1` (targets.json `staging`), a new
+server at the current list price, from the stock `debian-13` image. It does not
+use snapshot 449822273: that snapshot is the recovery artifact of the original
+grandfathered server and is only checked to exist before anything is built.
+The original server is never created, rebuilt or resized here (MIGRATION.md).
 
 Run with the Hetzner folder injected (agent-harness2):
   bin/with-secrets hetzner -- python3 -I infrastructure/ansible/scripts/hcloud_provision.py [--apply]
@@ -32,7 +38,8 @@ FIREWALL = "opticworks-backend"
 SSH_KEY_NAME = "opticworks-deploy"
 # The provider snapshot taken before teardown must exist before we build anything.
 REQUIRED_SNAPSHOT_ID = 449822273
-LABELS = {"app": "opticworks-backend", "managed-by": "ansible"}
+LABELS = {"app": "opticworks-backend", "managed-by": "ansible", "role": "staging", "temporary": "true"}
+TARGETS = json.loads((Path(__file__).resolve().parents[1] / "inventory" / "targets.json").read_text())
 
 API = "https://api.hetzner.cloud/v1"
 
@@ -107,14 +114,16 @@ def main():
     snap = call("GET", f"/images/{REQUIRED_SNAPSHOT_ID}")["image"]
     if snap["status"] != "available":
         sys.exit(f"Snapshot {REQUIRED_SNAPSHOT_ID} is {snap['status']}; refusing to continue")
-    print(f"snapshot {REQUIRED_SNAPSHOT_ID}: available ({snap['created']})")
+    if (snap.get("created_from") or {}).get("id") != TARGETS["original"]["server_id"]:
+        sys.exit(f"Snapshot {REQUIRED_SNAPSHOT_ID} is not from the original server; refusing to continue")
+    print(f"recovery snapshot {REQUIRED_SNAPSHOT_ID} of the original: available ({snap['created']}); not used as the image")
 
     existing = call("GET", f"/servers?name={NAME}")["servers"]
     if existing:
         s = existing[0]
         sys.exit(f"{NAME} already exists (id={s['id']}, ip={s['public_net']['ipv4']['ip']}); nothing to do")
 
-    print(f"plan: create {NAME} {SERVER_TYPE} in {LOCATION} from {IMAGE}, firewall {FIREWALL} (tcp/{port} + icmp only)")
+    print(f"plan: create TEMPORARY staging server {NAME} {SERVER_TYPE} in {LOCATION} from {IMAGE}, firewall {FIREWALL} (tcp/{port} + icmp only)")
     if not apply:
         print("dry run; pass --apply to create")
         return
@@ -172,7 +181,8 @@ def main():
         if status == "running":
             break
         time.sleep(5)
-    print(f"status: {status}. Next: update SSH_HOST in Infisical to {ip}, then run the base playbook.")
+    print(f"status: {status}. Record server id {server['id']} as `staging` in inventory/targets.json, then "
+          "run.py --target staging. Do not change the shared SSH_HOST: it still names the original.")
 
 
 if __name__ == "__main__":
