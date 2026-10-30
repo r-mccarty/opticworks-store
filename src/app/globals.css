@@ -1,214 +1,85 @@
 @import "tailwindcss";
 
+/*
+  OpticWorks visual language — "Optical Superposition"
+  Matte black technical surfaces, a warm PEI/ULTEM amber accent, precise type,
+  thin registration lines and layered geometry. One dark theme only.
+*/
 @theme {
-  /* OpticWorks Design Tokens (light defaults) */
-  --color-background: oklch(0.985 0.005 255);
-  --color-foreground: oklch(0.18 0.02 260);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: var(--color-foreground);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: var(--color-foreground);
-  --color-muted: oklch(0.96 0.01 255);
-  --color-muted-foreground: oklch(0.52 0.02 260);
-  --color-border: oklch(0.9 0.01 255);
-  --color-input: oklch(0.9 0.01 255);
-  --color-ring: oklch(0.69 0.18 55);
-  --color-primary: oklch(0.69 0.18 55);
-  --color-primary-foreground: oklch(0.98 0.005 255);
-  --color-secondary: oklch(0.82 0.19 145);
-  --color-secondary-foreground: oklch(0.18 0.02 260);
-  --color-accent: oklch(0.93 0.02 255);
-  --color-accent-foreground: var(--color-foreground);
-  --color-destructive: oklch(0.63 0.22 29);
-  --color-destructive-foreground: oklch(0.98 0.005 255);
+  /* Surfaces */
+  --color-ink: oklch(0.145 0.004 70);          /* page: matte black */
+  --color-surface: oklch(0.185 0.004 70);      /* raised panel */
+  --color-surface-2: oklch(0.225 0.005 70);    /* hover / inset */
+  --color-line: oklch(1 0 0 / 0.09);           /* hairlines */
+  --color-line-strong: oklch(1 0 0 / 0.18);
 
-  --radius-xs: 0.5rem;
-  --radius-sm: 0.75rem;
-  --radius-md: 1rem;
-  --radius-lg: 1.25rem;
-  --radius-xl: 1.75rem;
+  /* Text */
+  --color-text: oklch(0.94 0.006 80);
+  --color-text-muted: oklch(0.72 0.01 75);
+  --color-text-subtle: oklch(0.56 0.01 75);
 
-  --shadow-elevation-1: 0 1px 2px oklch(0 0 0 / 0.06), 0 6px 16px oklch(0 0 0 / 0.04);
-  --shadow-elevation-2: 0 2px 4px oklch(0 0 0 / 0.08), 0 12px 32px oklch(0 0 0 / 0.06);
-  --shadow-elevation-3: 0 4px 8px oklch(0 0 0 / 0.12), 0 20px 48px oklch(0 0 0 / 0.08);
+  /* Accent: PEI / ULTEM amber */
+  --color-amber: oklch(0.76 0.14 66);
+  --color-amber-strong: oklch(0.82 0.13 72);
+  --color-amber-dim: oklch(0.76 0.14 66 / 0.14);
+
+  /* Semantic tokens kept for retained components (legacy commerce, shadcn ui) */
+  --color-background: var(--color-ink);
+  --color-foreground: var(--color-text);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-text);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-text);
+  --color-muted: var(--color-surface-2);
+  --color-muted-foreground: var(--color-text-muted);
+  --color-border: var(--color-line);
+  --color-input: var(--color-surface-2);
+  --color-ring: var(--color-amber);
+  --color-primary: var(--color-amber);
+  --color-primary-foreground: var(--color-ink);
+  --color-secondary: var(--color-surface-2);
+  --color-secondary-foreground: var(--color-text);
+  --color-accent: var(--color-surface-2);
+  --color-accent-foreground: var(--color-text);
+  --color-destructive: oklch(0.66 0.2 29);
+  --color-destructive-foreground: var(--color-text);
+
+  --radius-xs: 2px;
+  --radius-sm: 3px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+
+  --shadow-elevation-1: 0 1px 0 oklch(1 0 0 / 0.04) inset;
+  --shadow-elevation-2: 0 1px 0 oklch(1 0 0 / 0.05) inset, 0 12px 32px oklch(0 0 0 / 0.35);
+  --shadow-elevation-3: 0 1px 0 oklch(1 0 0 / 0.06) inset, 0 20px 48px oklch(0 0 0 / 0.45);
+
+  --font-sans: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-plex-sans), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* OpticWorks typography: Inter (body), Space Grotesk (display) */
-  --font-sans: var(--font-inter), var(--font-colfax), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-space-grotesk), var(--font-feature), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-
-  --animate-hide: hide 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-slide-down-and-fade: slideDownAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-slide-left-and-fade: slideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-slide-up-and-fade: slideUpAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-slide-right-and-fade: slideRightAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-accordion-open: accordionOpen 150ms cubic-bezier(0.87, 0, 0.13, 1);
-  --animate-accordion-close: accordionClose 150ms cubic-bezier(0.87, 0, 0.13, 1);
-  --animate-dialog-overlay-show: dialogOverlayShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-dialog-content-show: dialogContentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-drawer-slide-left-and-fade: drawerSlideLeftAndFade 150ms cubic-bezier(0.16, 1, 0.3, 1);
-  --animate-drawer-slide-right-and-fade: drawerSlideRightAndFade 150ms ease-in;
-  --animate-dashes: dashes 0.8s linear infinite;
-  --animate-dashes-reverse: dashes 0.8s linear infinite reverse;
-  --animate-hover: hover 4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-  --animate-scan: scan 3s linear infinite;
+  --animate-drift: drift 24s ease-in-out infinite alternate;
+  --animate-drift-reverse: drift 30s ease-in-out infinite alternate-reverse;
+  --animate-scan: scan 9s linear infinite;
+  /* used by retained shadcn/sonner components */
   --animate-pulse-slow: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
-  @keyframes hide {
+  @keyframes drift {
     from {
-      opacity: 1;
+      transform: translate3d(-1.5%, -1%, 0) rotate(-0.6deg);
     }
-
     to {
-      opacity: 0;
-    }
-  }
-
-  @keyframes slideDownAndFade {
-    from {
-      opacity: 0;
-      transform: translateY(-6px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideLeftAndFade {
-    from {
-      opacity: 0;
-      transform: translateX(6px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes slideUpAndFade {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  @keyframes slideRightAndFade {
-    from {
-      opacity: 0;
-      transform: translateX(-6px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes accordionOpen {
-    from {
-      height: 0px;
-    }
-
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  }
-
-  @keyframes accordionClose {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-
-    to {
-      height: 0px;
-    }
-  }
-
-  @keyframes dialogOverlayShow {
-    from {
-      opacity: 0;
-    }
-
-    to {
-      opacity: 1;
-    }
-  }
-
-  @keyframes dialogContentShow {
-    from {
-      opacity: 0;
-      transform: translate(-50%, -45%) scale(0.95);
-    }
-
-    to {
-      opacity: 1;
-      transform: translate(-50%, -50%) scale(1);
-    }
-  }
-
-  @keyframes drawerSlideLeftAndFade {
-    from {
-      opacity: 0;
-      transform: translateX(100%);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes drawerSlideRightAndFade {
-    from {
-      opacity: 1;
-      transform: translateX(0);
-    }
-
-    to {
-      opacity: 0;
-      transform: translateX(100%);
-    }
-  }
-
-  @keyframes dashes {
-    0% {
-      stroke-dashoffset: -7;
-    }
-
-    100% {
-      stroke-dashoffset: 0;
-    }
-  }
-
-  @keyframes hover {
-
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(-10px);
+      transform: translate3d(1.5%, 1%, 0) rotate(0.6deg);
     }
   }
 
   @keyframes scan {
-    0% {
+    from {
       transform: translateY(-100%);
     }
-
-    100% {
+    to {
       transform: translateY(100%);
     }
   }
@@ -218,74 +89,28 @@
     100% {
       opacity: 1;
     }
-
     50% {
       opacity: 0.5;
     }
   }
 }
 
-/* MenuBar Performance Optimizations */
-.nav-link {
-  transition: color 0.15s ease-out;
-}
-
-.nav-link:hover .nav-icon {
-  color: var(--icon-color);
-  transition: color 0.15s ease-out;
-}
-
-.nav-link .nav-icon {
-  transition: color 0.15s ease-out;
-}
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
 @layer base {
   :root {
     color-scheme: dark;
   }
 
-  .dark {
-    color-scheme: dark;
-    /* OpticWorks Dark Theme - Near-black with amber accents */
-    --color-background: oklch(0.07 0.01 250);        /* #0a0a0a */
-    --color-foreground: oklch(0.92 0.005 250);       /* #e5e5e5 */
-    --color-card: oklch(0.12 0.01 250);              /* #171717 / neutral-900 */
-    --color-card-foreground: var(--color-foreground);
-    --color-popover: oklch(0.12 0.01 250);
-    --color-popover-foreground: var(--color-foreground);
-    --color-muted: oklch(0.18 0.01 250);             /* neutral-800 */
-    --color-muted-foreground: oklch(0.60 0.01 250); /* neutral-400 */
-    --color-border: oklch(0.22 0.01 250 / 0.5);     /* white/5 subtle */
-    --color-input: oklch(0.18 0.01 250);
-    --color-ring: oklch(0.78 0.16 80);              /* amber-500 */
-    --color-primary: oklch(0.78 0.16 80);           /* amber-500 #f59e0b */
-    --color-primary-foreground: oklch(0.07 0.01 250); /* near-black on amber */
-    --color-secondary: oklch(0.12 0.01 250);        /* neutral-900 */
-    --color-secondary-foreground: oklch(0.92 0.005 250);
-    --color-accent: oklch(0.15 0.01 250);           /* darker accent */
-    --color-accent-foreground: var(--color-foreground);
-    --color-destructive: oklch(0.68 0.22 29);
-    --color-destructive-foreground: oklch(0.92 0.005 250);
+  html {
+    background-color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--color-ink);
+    color: var(--color-text);
     font-family: var(--font-sans);
-    text-rendering: geometricPrecision;
-  }
-
-  ::selection {
-    background-color: color-mix(in oklch, var(--color-primary) 15%, transparent);
-    color: var(--color-primary);
+    font-feature-settings: "ss02", "tnum";
+    text-rendering: optimizeLegibility;
   }
 
   *,
@@ -293,71 +118,52 @@
   ::before,
   ::backdrop,
   ::file-selector-button {
-    border-color: var(--color-border, currentColor);
+    border-color: var(--color-line, currentColor);
+  }
+
+  ::selection {
+    background-color: var(--color-amber-dim);
+    color: var(--color-amber-strong);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-amber);
+    outline-offset: 3px;
   }
 }
 
-.font-barlow {
-  font-family: var(--font-barlow), ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-
-.font-colfax {
-  font-family: var(--font-colfax), ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-
-.font-feature {
-  font-family: var(--font-feature), ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-
-.font-feature-condensed {
-  font-family: var(--font-feature-condensed), ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
-
-.mask {
-  mask-image: radial-gradient(rgba(0, 0, 0, 1) 0%, transparent 80%);
-}
-
-@keyframes gridMovingLine {
-  0% {
-    transform: translateX(100%);
-    opacity: 0;
+@layer components {
+  /* Technical annotation: small uppercase mono label */
+  .annotation {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-subtle);
   }
 
-  20% {
-    opacity: 100;
+  /* Fine registration grid used behind hero and diagrams */
+  .registration-grid {
+    background-image:
+      linear-gradient(var(--color-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    background-position: -1px -1px;
   }
 
-  100% {
-    transform: translateX(-100%);
-    opacity: 100;
+  .prose-ow p + p {
+    margin-top: 1.1em;
   }
 }
 
-/* SpatialDemo Perspective Grid */
-.perspective-grid {
-  background-image:
-    linear-gradient(rgba(245, 158, 11, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(245, 158, 11, 0.1) 1px, transparent 1px);
-  background-size: 40px 40px;
-  transform: perspective(500px) rotateX(60deg);
-  opacity: 0.2;
-}
-
-/* Radar scan line effect */
-.radar-scan {
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(245, 158, 11, 0.4),
-    transparent
-  );
-  animation: scan 3s linear infinite;
-}
-
-/* Amber glow effect for highlights */
-.amber-glow {
-  box-shadow:
-    0 0 20px rgba(245, 158, 11, 0.3),
-    0 0 40px rgba(245, 158, 11, 0.2),
-    0 0 60px rgba(245, 158, 11, 0.1);
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

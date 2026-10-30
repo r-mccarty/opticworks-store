@@ -13,9 +13,8 @@ import Link from "next/link"
 import { siteConfig } from "@/app/siteConfig"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - OpticWorks Presence Sensors",
-  description: "Learn how OpticWorks handles data for presence hardware, websites, and support systems. GDPR and CCPA compliant.",
-  keywords: ["privacy policy", "presence sensors", "data protection", "GDPR", "CCPA", "privacy"],
+  title: "Privacy Policy",
+  description: "How OpticWorks, Inc. handles personal information.",
 }
 
 export default function PrivacyPolicyPage() {
@@ -281,7 +280,7 @@ export default function PrivacyPolicyPage() {
                         We will respond to your request within 30 days.
                       </p>
                       <Button asChild variant="outline" size="sm">
-                        <Link href={siteConfig.baseLinks.supportContact + "?category=privacy"}>
+                        <Link href={siteConfig.baseLinks.contact + "?category=privacy"}>
                           Submit Privacy Request
                         </Link>
                       </Button>
@@ -356,7 +355,7 @@ export default function PrivacyPolicyPage() {
                   </div>
                   
                   <Button asChild size="lg">
-                    <Link href={siteConfig.baseLinks.supportContact + "?category=privacy"}>
+                    <Link href={siteConfig.baseLinks.contact + "?category=privacy"}>
                       <RiMailLine className="mr-2 h-4 w-4" />
                       Contact Privacy Team
                     </Link>
