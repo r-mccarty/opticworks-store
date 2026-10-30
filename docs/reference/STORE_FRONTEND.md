@@ -1,6 +1,10 @@
 # Store frontend
 
-Status as of **2026-10-30**. The store is built and tested, but it is **off on optic.works**.
+Status as of **2026-10-30**. The store is **switched on for testing** on optic.works and on
+previews: `STORE_MODE=medusa` in `wrangler.jsonc`, so it runs against the dark backend in test
+mode. Checkout stops before payment, and no orders can be placed. Until the Worker has the
+secrets listed in [SECRETS.md](../SECRETS.md#website), the store stays off and logs why. To
+switch it off, set `STORE_MODE` to `off` in `wrangler.jsonc` (both environments) and merge.
 
 ## What it does
 
@@ -24,9 +28,9 @@ pages are `noindex`.
 
 | Mode | Where by default | Prices | Checkout |
 |------|------------------|--------|----------|
-| `off` | `optic.works`, `www.optic.works` (no `STORE_MODE` set) | none | `/store`, `/cart`, `/checkout` return 404 |
+| `off` | `optic.works`, `www.optic.works` when `STORE_MODE` is unset | none | `/store`, `/cart`, `/checkout` return 404 |
 | `mock` | `localhost` and `*.workers.dev` previews | `MOCK_PRICES` in `src/lib/store/mock.ts` | simulated: no network, no payment, `MOCK-…` reference |
-| `medusa` | only when set explicitly | the backend's variant prices | real cart on the backend with address, Stripe Tax and EasyPost rates; stops before payment |
+| `medusa` | set in `wrangler.jsonc` since 2026-10-30 (testing) | the backend's variant prices | real cart on the backend with address, Stripe Tax and EasyPost rates; stops before payment |
 
 An explicit `STORE_MODE` always wins (`src/lib/store/mode.ts`). An unknown value means `off`.
 `medusa` also needs the variables in [SECRETS.md](../SECRETS.md#website); without them the

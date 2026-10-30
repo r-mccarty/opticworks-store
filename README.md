@@ -14,9 +14,10 @@ a company and product site:
 - Public pages: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`,
   `/technology`, `/journal` (+ `/journal/feed.xml`), `/about`, `/contact`, `/support`, and the
   legal pages under `/support/legal/*` (`/legal/*` redirects there temporarily, see #126).
-- A new store (`/store`, `/cart`, `/checkout`, and a buy box on each product page) is built
-  but **off on optic.works**. It runs with mock prices and a simulated checkout on local and
-  preview hosts, or against the new backend with `STORE_MODE=medusa`. See
+- A new store (`/store`, `/cart`, `/checkout`, and a buy box on each product page) is
+  **switched on for testing** (`STORE_MODE=medusa` in `wrangler.jsonc`). It runs against the
+  new backend in test mode, and checkout stops before payment. Local dev uses mock prices and
+  a simulated checkout. See
   [docs/reference/STORE_FRONTEND.md](docs/reference/STORE_FRONTEND.md).
 - Anything else is a 404. There's no account, sign-in or `/api/*` code.
 - Support requests go to **support@optic.works** by email. The site has no working forms.
@@ -77,8 +78,9 @@ pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-The website needs no secrets or environment variables. Locally the store runs in mock mode
-(`STORE_MODE=off pnpm dev` hides it).
+Locally the website needs no secrets: `pnpm dev` runs the store in mock mode. Use
+`STORE_MODE=off pnpm dev` to hide it. The deployed Worker needs the store secrets in
+[docs/SECRETS.md](docs/SECRETS.md).
 
 ## Validation
 

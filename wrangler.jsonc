@@ -43,9 +43,13 @@
     }
   ],
 
-  // Environment variables (secrets set via wrangler secret or dashboard)
+  // Environment variables. Secrets (MEDUSA_PUBLISHABLE_KEY, CLOUDFLARE_BACKEND_ACCESS_ID/_TOKEN)
+  // are set on the Worker, never here: see docs/SECRETS.md.
+  // STORE_MODE=medusa: store enabled for testing against the dark backend (owner, 2026-10-30).
   "vars": {
-    "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
+    "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache",
+    "STORE_MODE": "medusa",
+    "MEDUSA_BACKEND_URL": "https://backend.optic.works"
   },
 
   // Production environment
@@ -86,7 +90,9 @@
         }
       ],
       "vars": {
-        "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache"
+        "NEXT_INC_CACHE_R2_PREFIX": "incremental-cache",
+        "STORE_MODE": "medusa",
+        "MEDUSA_BACKEND_URL": "https://backend.optic.works"
       }
     }
   }

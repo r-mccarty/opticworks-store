@@ -9,13 +9,13 @@ For the retired legacy backend, see [LEGACY_BACKEND_SNAPSHOT.md](LEGACY_BACKEND_
 
 - The site is a **company and product website with no backend dependency** in production.
   It has no account, auth or API code, and it needs no secrets or environment variables.
-- A new **store frontend** is built but off on `optic.works` (`STORE_MODE` unset). Previews
-  and local dev show it with mock prices and a simulated checkout. See
+- A new **store frontend** is switched on for testing (`STORE_MODE=medusa`). It calls the dark
+  backend server-side, in test mode, and stops before payment. See
   [STORE_FRONTEND.md](STORE_FRONTEND.md).
 - Routes: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`, `/technology`,
   `/journal` (+ `/journal/[slug]`, `/journal/feed.xml`), `/about`, `/contact`, `/support`,
-  `/support/legal/privacy`, `/support/legal/terms`. `/store`, `/cart` and `/checkout` exist
-  but 404 while the store is off. Anything else is a 404.
+  `/support/legal/privacy`, `/support/legal/terms`. Store routes: `/store`, `/cart`, `/checkout`
+  and `/checkout/confirmation`. Anything else is a 404.
 - `/legal/privacy` and `/legal/terms` redirect (temporarily) to `/support/legal/*` until the
   legal review (#126). These are the only redirects (`next.config.ts`).
 - Support is by email to **support@optic.works**. The site has no forms.

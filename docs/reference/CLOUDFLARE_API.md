@@ -285,7 +285,10 @@ When using Cloudflare's **Git integration** (auto-deploy on push to main), secre
 
 ### Current Required Secrets
 
-**None.** The retired storefront's Worker secrets (`HOOKDECK_WEBHOOK_SECRET`,
+For the store (`STORE_MODE=medusa`): `MEDUSA_PUBLISHABLE_KEY`, `CLOUDFLARE_BACKEND_ACCESS_ID`,
+`CLOUDFLARE_BACKEND_ACCESS_TOKEN`. See [SECRETS.md](../SECRETS.md#website).
+
+The retired storefront's Worker secrets (`HOOKDECK_WEBHOOK_SECRET`,
 `STRIPE_SECRET_KEY`, `EASYPOST_API_KEY`, `SHIP_FROM_ZIP`, `TURNSTILE_SECRET_KEY`) were removed on
 2026-10-30 with `wrangler versions secret delete`, which creates a new version without deploying
 it. The deployed version keeps them until the next deploy from `main`.

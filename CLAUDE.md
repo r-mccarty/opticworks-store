@@ -22,8 +22,9 @@ Contact: support@optic.works. Canonical site: https://optic.works.
   `/checkout`) is gated by `STORE_MODE`: `off` (default on `optic.works`), `mock`
   (default on localhost and `*.workers.dev` previews: mock prices, simulated checkout) or
   `medusa` (the new backend's Store API; checkout stops before payment). See
-  `docs/reference/STORE_FRONTEND.md`. **Don't set `STORE_MODE` in production** without
-  owner approval.
+  `docs/reference/STORE_FRONTEND.md`. The owner switched production to `STORE_MODE=medusa`
+  for **testing** on 2026-10-30. That mode is test-mode keys only, and checkout stops before
+  payment. Don't connect payment or live keys without owner approval (#144).
 - An edge Worker (`opticworks-backend-offline-20261029`) returns `503 BACKEND_OFFLINE` for
   `optic.works/api/*`, `www.optic.works/api/*`, `api.optic.works/*`, `medusa.optic.works/*`.
   **No same-origin `/api/*` route works in production.** The store uses server actions
