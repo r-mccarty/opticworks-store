@@ -24,17 +24,21 @@ FOLDER = f"{PARENT}/{SERVICE}/credentials"
 PROFILE = os.environ.get("INFISICAL_PROFILE")
 
 
-def infisical(*args, capture=False):
-    cmd = ["infisical", *args, "--projectId", PROJECT, "--env", ENV]
+def infisical(*args, capture=False, show_errors=False):
+    cmd = ["infisical", *args, "--projectId", PROJECT, "--env", ENV, "--silent"]
     if PROFILE:
         cmd += ["--profile", PROFILE]
-    # Output is discarded: `secrets set` echoes values in its result table.
-    return subprocess.run(cmd, stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
-                          stderr=subprocess.DEVNULL, text=True)
+    # stdout is discarded: `secrets set` echoes values in its result table.
+    # stderr is shown only for folder operations, whose errors carry no values.
+    r = subprocess.run(cmd, stdout=subprocess.PIPE if capture else subprocess.DEVNULL,
+                       stderr=subprocess.PIPE, text=True)
+    if r.returncode != 0 and show_errors:
+        print("infisical: " + (r.stderr.strip().splitlines() or ["(no error text)"])[-1], file=sys.stderr)
+    return r
 
 
 def main():
-    listing = infisical("secrets", "folders", "get", "--path", PARENT, capture=True)
+    listing = infisical("secrets", "folders", "get", "--path", PARENT, capture=True, show_errors=True)
     if listing.returncode != 0:
         sys.exit(f"Could not list folders in ubuntu-pair-node/{ENV}{PARENT} (check login and access)")
     if any(f"│ {SERVICE} " in line for line in listing.stdout.splitlines()):
@@ -51,7 +55,7 @@ def main():
     }
 
     for name, parent in ((SERVICE, PARENT), ("config", f"{PARENT}/{SERVICE}"), ("credentials", f"{PARENT}/{SERVICE}")):
-        if infisical("secrets", "folders", "create", "--name", name, "--path", parent).returncode != 0:
+        if infisical("secrets", "folders", "create", "--name", name, "--path", parent, show_errors=True).returncode != 0:
             sys.exit(f"Could not create folder {parent}/{name}")
 
     with tempfile.TemporaryDirectory(prefix="gen-") as d:
