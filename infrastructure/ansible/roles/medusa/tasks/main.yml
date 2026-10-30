@@ -21,6 +21,8 @@
     - { path: "{{ app_root }}", owner: "{{ app_user }}", mode: "0750" }
     - { path: "{{ app_root }}/releases", owner: "{{ app_user }}", mode: "0750" }
     - { path: "{{ app_root }}/.cache", owner: "{{ app_user }}", mode: "0700" }
+    # Medusa's telemetry config store writes here even with telemetry disabled.
+    - { path: "{{ app_root }}/.config", owner: "{{ app_user }}", mode: "0700" }
     # 0751: other service users (cloudflared, backups) may traverse but not list.
     - { path: "{{ app_env_dir }}", owner: root, mode: "0751" }
 
@@ -138,23 +140,31 @@
     force: true
   register: medusa_switch
 
-- name: Restart services when release, environment or units changed
-  ansible.builtin.systemd:
-    name: "{{ item }}"
-    state: restarted
-    enabled: true
-  loop: [medusa-server, medusa-worker]
-  when: medusa_switch is changed or medusa_envfile is changed or medusa_units is changed
+# A crash loop from an earlier failed release trips StartLimitBurst; clear it so
+# this release gets a fresh start.
+- name: Clear any start-limit state
+  ansible.builtin.command: systemctl reset-failed medusa-server medusa-worker
+  changed_when: false
+  failed_when: false
 
-- name: Services enabled
-  ansible.builtin.systemd:
-    name: "{{ item }}"
-    enabled: true
-    state: started
-  loop: [medusa-server, medusa-worker]
-
-- name: Health check
+# Starting is inside the block so a release that can't even start is rolled back too.
+- name: Start and health-check the release
   block:
+    - name: Restart services when release, environment or units changed
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+        enabled: true
+      loop: [medusa-server, medusa-worker]
+      when: medusa_switch is changed or medusa_envfile is changed or medusa_units is changed
+
+    - name: Services enabled
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        enabled: true
+        state: started
+      loop: [medusa-server, medusa-worker]
+
     - name: API server is healthy
       ansible.builtin.uri:
         url: "http://127.0.0.1:{{ medusa_server_port }}/health"
@@ -182,9 +192,16 @@
       loop: [medusa-server, medusa-worker]
       when: medusa_previous.stat.islnk | default(false)
 
+    - name: Stop the services when there is no previous release to fall back to
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: stopped
+      loop: [medusa-server, medusa-worker]
+      when: not (medusa_previous.stat.islnk | default(false))
+
     - name: Fail the deploy
       ansible.builtin.fail:
-        msg: "Release {{ medusa_release }} failed its health check; rolled back. See journalctl -u medusa-server -u medusa-worker"
+        msg: "Release {{ medusa_release }} failed to start or pass its health check; {{ 'rolled back' if medusa_previous.stat.islnk | default(false) else 'no previous release, services stopped' }}. See journalctl -u medusa-server -u medusa-worker"
 
 - name: Keep the three most recent releases
   ansible.builtin.shell: |
