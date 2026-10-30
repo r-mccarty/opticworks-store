@@ -331,6 +331,9 @@ curl -X GET "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_
 | **Backup Bucket** | `opticworks-backups` |
 | **Cache Bucket** | `opticworks-cache` |
 | **Backend Tunnel** (`opticworks-backend`, `backend.optic.works`) | `089efe5b-6dfb-4bc8-b3d2-ae9f37e4304a` |
+| **Access app** `OpticWorks backend (dark)` (`backend.optic.works`: owners + ubuntu-pair-node token) | `4348fff6-5c47-4f1b-a5ce-1b100840faf6` |
+| **Access app** `OpticWorks backend Store API (website)` (`backend.optic.works/store`: website token + the above) | `5b60fc9d-fb7c-450d-a8a8-27d10e148d09` |
+| **Access service token** `opticworks-store-worker` (Worker only, expires 2027-10-30) | `687852f3-fc63-4d67-aa4e-22319bd2d7e4` |
 | **Legacy API Tunnel** (`opticworks-medusa`, down) | `db4738a9-20b7-4dd7-bde2-0760e0188071` |
 | **R2 Endpoint** | `https://39f8fd4a5b0c7558aed585facd57ec3b.r2.cloudflarestorage.com` |
 

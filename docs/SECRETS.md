@@ -6,16 +6,18 @@ Never commit secrets, `.env*` files or `backend/.env`. Inject values at run time
 
 The Worker `opticworks-store` runs the store with `STORE_MODE=medusa`, which calls the new
 backend server-side. Plain settings are in `wrangler.jsonc`. The three secrets live on the
-Worker and are never written in the repo. Set them with `wrangler versions secret put` (this
-creates a version without deploying it; later deploys inherit it) or in the dashboard. Local
-dev and mock mode need none of them.
+Worker and are never written in the repo. Their source is Infisical `ubuntu-pair-node`/`dev`
+`/agents/opticworks-store/{config,credentials}`. The agent-harness2 service is
+`opticworks-store`. Push them to the Worker with `wrangler versions secret put`, which creates a
+version without deploying it; later deploys inherit it. Local dev and mock mode need none of
+them.
 
 | Variable | Kind | Value |
 |----------|------|-------|
 | `STORE_MODE` | `wrangler.jsonc` | `medusa` (see [STORE_FRONTEND.md](reference/STORE_FRONTEND.md)) |
 | `MEDUSA_BACKEND_URL` | `wrangler.jsonc` | `https://backend.optic.works` |
-| `MEDUSA_PUBLISHABLE_KEY` | Worker secret | Admin → Settings → Publishable API Keys → "optic.works storefront" (public, per database) |
-| `CLOUDFLARE_BACKEND_ACCESS_ID` / `_TOKEN` | Worker secret | Access service token while the backend is dark (`/agents/opticworks-backend/credentials`) |
+| `MEDUSA_PUBLISHABLE_KEY` | Worker secret | "optic.works storefront" publishable key (public, per database); copy in `/agents/opticworks-store/config` |
+| `CLOUDFLARE_BACKEND_ACCESS_ID` / `_TOKEN` | Worker secret | Access service token `opticworks-store-worker`, used only by the Worker. Its Access app (`OpticWorks backend Store API (website)`) covers `backend.optic.works/store` only, so it can't reach `/admin`, `/auth`, `/app` or `/health`. **Expires 2027-10-30**: rotate before then |
 
 The retired storefront's Worker secrets were removed on 2026-10-30. See
 [CLOUDFLARE_API.md](reference/CLOUDFLARE_API.md).
