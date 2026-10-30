@@ -25,7 +25,9 @@ unset REDISCLI_AUTH
 dump="$STAGE/neon/medusa.dump"
 if [ ! -f "$dump" ] || [ -n "$(find "$dump" -mmin +1380)" ]; then
   set -a; . "$CFG/neon-backup.env"; set +a
-  pg_dump --format=custom --no-owner --no-privileges --file="$dump.tmp" "$DATABASE_URL_DIRECT"
+  # verify-full needs a root CA; libpq (>=16) reads "system" as the OS trust store.
+  # Kept out of the URL: node-postgres would treat sslrootcert=system as a file path.
+  PGSSLROOTCERT=system pg_dump --format=custom --no-owner --no-privileges --file="$dump.tmp" "$DATABASE_URL_DIRECT"
   pg_restore --list "$dump.tmp" >/dev/null   # archive must be readable
   mv "$dump.tmp" "$dump"
   unset DATABASE_URL_DIRECT

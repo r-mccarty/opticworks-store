@@ -80,7 +80,7 @@ sudo -i
 set -a; . /root/.config/opticworks/restic-r2.env; set +a      # or restic-tigris.env
 restic snapshots --tag opticworks-backend --host opticworks-staging   # or opticworks-original
 restic restore latest --target /root/restore
-# Neon: pg_restore --no-owner -d "<direct url of a NEW branch>" /root/restore/var/backups/opticworks/staging/neon/medusa.dump
+# Neon: PGSSLROOTCERT=system pg_restore --no-owner -d "<direct url of a NEW branch>" /root/restore/var/backups/opticworks/staging/neon/medusa.dump
 # Redis: systemctl stop medusa-worker medusa-server redis-server; copy dump.rdb into /var/lib/redis
 #        (move appendonlydir aside); start redis, then the services
 ```
