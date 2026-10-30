@@ -4,7 +4,7 @@ Builds and operates the dark Medusa backend on Hetzner. Everything on the host
 is managed here; don't edit the server over SSH.
 
 **Topology is in transition.** The final host is the original, grandfathered
-40 GB CPX21 (`110578382`). `opticworks-backend-1` (`173468157`) is temporary
+40 GB CPX21 (`110578382`). `opticworks-backend-1` (`173582205`) is temporary
 staging and gets deleted after cutover. Read [MIGRATION.md](MIGRATION.md) before
 any Hetzner action: deleting, recreating or rescaling the original loses its legacy price.
 

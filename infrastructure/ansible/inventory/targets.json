@@ -1,7 +1,7 @@
 {
   "_comment": "Deploy targets, keyed by Hetzner server ID, never by name. Verified read-only on 2026-10-30. scripts/run.py and scripts/hcloud_audit.py refuse a target whose live type, location or disk drifts from this file. See MIGRATION.md.",
   "staging": {
-    "server_id": 173468157,
+    "server_id": 173582205,
     "name": "opticworks-backend-1",
     "server_type": "cpx21",
     "location": "hil",

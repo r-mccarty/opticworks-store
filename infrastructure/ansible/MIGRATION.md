@@ -8,7 +8,7 @@ and validate the stack, then delete it. Owner direction: PR #137 comments of
 | Role | Server ID | Name | Disk | Price | Fate |
 | --- | --- | --- | --- | --- | --- |
 | `original` | `110578382` | `debian-2gb-hil-1-test-instance` | 40 GB | $13.99/mo (legacy) | Rebuild in place, keep forever |
-| `staging` | `173468157` | `opticworks-backend-1` | 80 GB | $37.49/mo (current) | Delete in Gate 4 |
+| `staging` | `173582205` | `opticworks-backend-1` | 80 GB | $37.49/mo (current) | Delete in Gate 4 |
 
 Both are listed in [`inventory/targets.json`](inventory/targets.json). Scripts resolve
 servers **by ID** and stop on drift. Check with
@@ -53,12 +53,12 @@ Done using only the Hetzner, Neon and Cloudflare APIs:
   `5.78.106.67`, created 2025-10-11. Delete and rebuild protection are on. No Hetzner
   firewall, volumes, floating IPs, or backups attached. It is still the shared
   `SSH_HOST` in Infisical `/agents/hetzner/config` (unchanged).
-- **Staging** `173468157`: running, cpx21 / hil, 80 GB, IPv4 `5.78.211.217`, no
+- **Staging** `173582205`: running, cpx21 / hil, 80 GB, IPv4 `5.78.211.217`, no
   protection. Exclusive resources: firewall `opticworks-backend` (`11927072`, applied
-  only to staging) and primary IPs `158816851` / `158816854` (auto-delete).
+  only to staging) and primary IPs `158978120` / `158978121` (auto-delete).
   The SSH key `opticworks-deploy` (`131963477`) is shared: keep it.
 - **Snapshot** `449822273`: available, 40 GB (2.3 GB used), created from the original
-  on 2026-10-30. **No delete protection.** Recommend enabling it (owner decision).
+  on 2026-10-30. Delete protection on (owner, 2026-10-30).
 - **Neon** `jolly-moon-85409114`: `main` (`br-wispy-morning-ak26hpef`, default) and
   `dev` (`br-lingering-frost-ak09xb0l`). Neither is protected.
 - **Cloudflare**: tunnel `opticworks-backend` is inactive (no connector yet).
@@ -72,10 +72,14 @@ Done using only the Hetzner, Neon and Cloudflare APIs:
 
 ## Gate 1: staging (`--target staging`)
 
+Staging was recreated on 2026-10-30 (old ID `173468157`, deleted before anything
+was deployed): its pre-trusted host key had never been recorded on this
+controller. The new server got the same IPv4.
+
 Deploy, run dark end-to-end tests, and rehearse a restore, all on staging only.
 Staging uses Neon `dev`. Live commerce and webhooks stay off.
 
-- [ ] `generate_secrets.py` succeeds (blocked; see the PR)
+- [x] `generate_secrets.py` succeeded (2026-10-30)
 - [ ] `run.py --target staging deploy`, then `run.py --target staging rotate-hostkey`
 - [ ] Through Access: health, admin login, auth, rate limits, seeded drafts hidden
 - [ ] Email/test integrations; first backups in R2 **and** Tigris (`--host opticworks-staging`)
@@ -112,7 +116,7 @@ a restore. Update only scoped SSH/agent-harness references. Run
 ## Gate 4: cleanup
 
 After the owner accepts the original, stop `cloudflared` on staging. Delete
-server `173468157` along with its primary IPs, and firewall `11927072` if no
+server `173582205` along with its primary IPs, and firewall `11927072` if no
 other server uses it. Keep the SSH key, DNS, the tunnel and snapshot `449822273`.
 Delete any snapshot made from staging. Confirm billing has stopped, and record
 the final resources and costs here and in the PR.
