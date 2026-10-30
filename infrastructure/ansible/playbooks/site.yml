@@ -21,7 +21,6 @@
         - STRIPE_SECRET_KEY
         - STRIPE_WEBHOOK_SECRET
         - EASYPOST_API_KEY
-        - SHIP_FROM_PHONE
         - RESEND_API_KEY
         - RESEND_FROM_EMAIL
         - S3_ACCESS_KEY_ID

@@ -12,6 +12,9 @@ auto_reboot_time: "10:30"
 node_major: 22
 pnpm_version: 10.18.1
 
+# Business line printed on shipping labels; FedEx requires an origin phone.
+ship_from_phone: "6193208332"
+
 app_user: medusa
 app_root: /srv/medusa
 app_env_dir: /etc/opticworks

@@ -50,7 +50,9 @@ const schema = z.object({
   SHIP_FROM_CITY: z.string().min(1),
   SHIP_FROM_STATE: z.string().min(2),
   SHIP_FROM_ZIP: z.string().min(5),
-  SHIP_FROM_PHONE: z.string().min(10),
+  // Optional: FedEx needs an origin phone to return rates; without it FedEx
+  // options are unavailable and USPS still works.
+  SHIP_FROM_PHONE: z.string().min(10).optional(),
 
   RESEND_API_KEY: z.string().startsWith("re_"),
   RESEND_FROM_EMAIL: z.string().min(3),

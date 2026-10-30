@@ -48,7 +48,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
     if (!options.api_key) {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "EasyPost provider requires `api_key`")
     }
-    for (const key of ["name", "street1", "city", "state", "zip", "phone"] as const) {
+    for (const key of ["name", "street1", "city", "state", "zip"] as const) {
       if (!origin?.[key]) {
         throw new MedusaError(MedusaError.Types.INVALID_DATA, `EasyPost provider requires origin.${key}`)
       }
@@ -205,7 +205,7 @@ class EasyPostFulfillmentProviderService extends AbstractFulfillmentProviderServ
       zip: str("postal_code"),
       country: str("country_code").toUpperCase(),
       // FedEx requires a phone number on both addresses to return rates.
-      phone: str("phone") || this.origin.phone,
+      phone: str("phone") || this.origin.phone || undefined,
     }
   }
 

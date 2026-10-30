@@ -26,7 +26,7 @@ medusa_env:
   SHIP_FROM_CITY: San Diego
   SHIP_FROM_STATE: CA
   SHIP_FROM_ZIP: "92117"
-  SHIP_FROM_PHONE: "{{ lookup('env', 'SHIP_FROM_PHONE') }}"
+  SHIP_FROM_PHONE: "{{ lookup('env', 'SHIP_FROM_PHONE') | default(ship_from_phone, true) }}"
   RESEND_API_KEY: "{{ lookup('env', 'RESEND_API_KEY') }}"
   RESEND_FROM_EMAIL: "{{ lookup('env', 'RESEND_FROM_EMAIL') }}"
   # Dark mode: only company addresses receive mail. Remove at public launch.
