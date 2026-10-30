@@ -41,20 +41,24 @@ cat .env.local | head -5
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Turnstile widget site key (public) |
 | `TURNSTILE_SECRET_KEY` | Turnstile server-side validation secret |
 
-### Backend (via Ansible)
+### Backend (new Medusa 2.21, via Ansible)
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `POSTGRES_PASSWORD` | Raw PostgreSQL password (URL-encoded in DATABASE_URL) |
-| `REDIS_URL` | Redis connection string |
-| `JWT_SECRET` | Auth token signing |
-| `COOKIE_SECRET` | Session cookie encryption |
-| `MEDUSA_SECRET_KEY` | Medusa backend secret key |
-| `MEDUSA_ADMIN_EMAIL` | Admin dashboard login |
-| `MEDUSA_ADMIN_PASSWORD` | Admin dashboard password |
-| `MEDUSA_ADMIN_CORS` | Allowed origins for admin API |
-| `MEDUSA_STORE_CORS` | Allowed origins for store API |
+The new backend does **not** use the `OpticWorks` Infisical project. Its values live in project
+`ubuntu-pair-node`, environment `dev`, under `/agents/<service>/{config,credentials}`. See
+[Backend Secrets (Ansible)](#backend-secrets-ansible) below.
+
+| Variable | Folder | Purpose |
+|----------|--------|---------|
+| `JWT_SECRET`, `COOKIE_SECRET` | `/agents/opticworks-backend/credentials` | Auth token signing, session cookies |
+| `REDIS_APP_PASSWORD`, `REDIS_BACKUP_PASSWORD` | same | Local Redis ACL users `medusa` and `backup` |
+| `RESTIC_PASSWORD` | same | Backup encryption. **Never regenerate:** existing backups become unreadable |
+| `STRIPE_WEBHOOK_SECRET` | same | Placeholder until a Stripe webhook exists (#138) |
+| `MEDUSA_ADMIN_EMAIL` / `MEDUSA_ADMIN_PASSWORD` | `/agents/opticworks-backend/{config,credentials}` | Admin login (`support@optic.works`) |
+| `CLOUDFLARE_BACKEND_ACCESS_ID` / `_TOKEN` | same | Cloudflare Access service token for `backend.optic.works` |
+| `SSH_HOST`, `SSH_KNOWN_HOSTS`, `SSH_PRIVATE_KEY`, `HETZNER_API_KEY` | `/agents/hetzner` | Host address, pinned host key, deploy key, Hetzner API |
+
+Database URLs (Neon) and the tunnel token aren't stored. `run.py` fetches them from the provider
+APIs on each run. Legacy variables (`DATABASE_URL`, `POSTGRES_PASSWORD`, `MEDUSA_*_CORS`, …) belonged to the retired backend.
 
 ### Cloudflare
 
@@ -169,15 +173,19 @@ Project: OpticWorks
 
 ## Backend Secrets (Ansible)
 
-Backend secrets are pulled by Ansible during deployment:
+`infrastructure/ansible/scripts/run.py` injects secrets from Infisical (`ubuntu-pair-node`, `dev`)
+into the Ansible process at run time. Nothing is written to `group_vars` or to disk on the
+controller, apart from an ephemeral SSH key in a 0700 temp dir:
 
 ```bash
-cd infrastructure/ansible
-bash scripts/generate-secrets-from-infisical.sh  # Writes group_vars/secrets.yml
-ansible-playbook -i inventory/production.ini playbooks/medusa-deploy.yml
+export INFISICAL_PROFILE=<your profile> OPTICWORKS_CONFIRM_SERVER_ID=110578382
+python3 -I infrastructure/ansible/scripts/run.py --target original deploy
 ```
 
-Never edit `group_vars/secrets.yml` directly - regenerate from Infisical.
+The backend's own values were created once with `scripts/generate_secrets.py` (it refuses to
+overwrite). Rotate individual values deliberately in Infisical. Full runbook:
+[`infrastructure/ansible/README.md`](../infrastructure/ansible/README.md). The old
+`generate-secrets-from-infisical.sh` / `group_vars/secrets.yml` flow belonged to the retired backend.
 
 ## Adding New Secrets
 
@@ -223,7 +231,9 @@ rm .env.local
 pnpm run secrets:pull
 ```
 
-**Backend: "Pg connection failed" / KnexTimeoutError**
+**Legacy backend (retired): "Pg connection failed" / KnexTimeoutError**
+
+*Applies only to the retired self-hosted Postgres backend. The new backend uses Neon.*
 
 This issue was caused by passwords containing URL-unsafe characters (`/`, `+`, `=`).
 

@@ -9,8 +9,8 @@ OpenNext. Public pages need no backend.
 
 ## Current state (since 2026-10-29)
 
-**Online commerce is offline.** The legacy Medusa v2 backend on Hetzner has been archived and
-stopped. The website is a company and product site:
+**Online commerce is offline.** The legacy Medusa v2 backend has been retired. The website is
+a company and product site:
 
 - Public pages: `/`, `/products`, `/products/vmc`, `/products/mach-1`, `/platform`,
   `/technology`, `/journal` (+ `/journal/feed.xml`), `/about`, `/contact`, `/support`, and the
@@ -28,11 +28,32 @@ stopped. The website is a company and product site:
 
 Details, route inventory and remaining issues:
 [docs/reference/BACKEND_OFFLINE_FRONTEND.md](docs/reference/BACKEND_OFFLINE_FRONTEND.md).
-The backend archive, the snapshot runbook and the legacy API catalog are in PR #124.
+The legacy backend archive, snapshot runbook and API catalog (PR #124) are in
+[docs/reference/LEGACY_BACKEND_SNAPSHOT.md](docs/reference/LEGACY_BACKEND_SNAPSHOT.md) and
+[docs/reference/LEGACY_BACKEND_API.md](docs/reference/LEGACY_BACKEND_API.md).
+
+### New backend (dark, since 2026-10-30)
+
+A from-scratch **Medusa 2.21** backend ([`backend/`](backend/)) is deployed but not used by the
+website:
+
+| | |
+|---|---|
+| Host | The original grandfathered Hetzner CPX21 (`110578382`, 40 GB, $13.99/month), rebuilt in place. Never delete, recreate or rescale it |
+| Database / cache | Neon Postgres `opticworks-store` branch `main`; local Redis |
+| Edge | `backend.optic.works` via Cloudflare Tunnel, **Cloudflare Access only** (no public access) |
+| Catalog | Two **draft, unpriced** products (`vmc`, `mach-1`). Nothing is for sale |
+| Providers | Stripe, Stripe Tax and EasyPost in **test mode**; Resend email limited to `@optic.works` |
+| Backups | Hourly/daily to R2 and Tigris (restic); restore rehearsed 2026-10-30 |
+| Operations | [infrastructure/ansible/README.md](infrastructure/ansible/README.md); migration record in [MIGRATION.md](infrastructure/ansible/MIGRATION.md) |
+
+Launch readiness is tracked in **#138**: a bucket-scoped R2 token, a real Stripe webhook, a
+custom file domain, live keys, and removing the email allowlist. Connecting the website is a
+separate step after that (see "Re-enabling commerce" in the status doc).
 
 Retired Presence/CyberShade pages (OW-1 product, install guides, FAQ, warranty,
 compatibility, tinting laws) answer **410 Gone** from `src/middleware.ts`; old support URLs
-redirect (`src/lib/legacy-routes.ts`). E-commerce will return later on a new backend.
+redirect (`src/lib/legacy-routes.ts`). E-commerce will return on the new backend after launch.
 
 ## Content
 
@@ -99,8 +120,8 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 | `src/components/legacy/`, `src/components/store/` | Archived commerce/account UI; not imported by any route |
 | `src/lib/commerce.ts` | Commerce kill switch |
 | `src/lib/api/medusa*.ts`, `src/hooks/useCart.ts`, `src/hooks/useAuth.ts` | Legacy Medusa client and stores, kept for reference |
-| `backend/` | Archived Medusa v2 backend source (standalone; not built or deployed) |
-| `infrastructure/ansible/` | Legacy Hetzner backend automation (backend changes only via Ansible) |
+| `backend/` | New Medusa 2.21 backend (standalone pnpm project; deployed dark, see above) |
+| `infrastructure/ansible/` | Backend host automation and runbooks (backend host changes only via Ansible) |
 | `platform/docs-site/` | Hugo source for docs.optic.works (see audit in the status doc) |
 | `docs/reference/` | Reference docs. Backend/checkout docs are historical |
 
@@ -110,5 +131,7 @@ Production was still serving version `690cf649` (deployed 2026-01-22) as of 2026
 |----------|---------|
 | [AGENTS.md](AGENTS.md) / [CLAUDE.md](CLAUDE.md) | Agent context and constraints |
 | [docs/reference/BACKEND_OFFLINE_FRONTEND.md](docs/reference/BACKEND_OFFLINE_FRONTEND.md) | Current state, route inventory, remaining issues |
+| [infrastructure/ansible/README.md](infrastructure/ansible/README.md) | New backend host: topology, secrets, deploy/restore runbook |
+| [infrastructure/ansible/MIGRATION.md](infrastructure/ansible/MIGRATION.md) | Move onto the grandfathered CPX21 (gates 0–4, all complete) and legacy-pricing rules |
 | [docs/reference/README.md](docs/reference/README.md) | Reference index (legacy backend docs marked historical) |
-| [docs/SECRETS.md](docs/SECRETS.md) | Environment variables (mostly legacy commerce) |
+| [docs/SECRETS.md](docs/SECRETS.md) | Environment variables; where the new backend's secrets live |
