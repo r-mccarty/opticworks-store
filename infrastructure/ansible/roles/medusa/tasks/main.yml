@@ -208,7 +208,8 @@
     set -euo pipefail
     cd {{ app_root }}/releases
     live=$(basename "$(readlink -f {{ app_root }}/current)")
-    ls -1t | grep -vx "$live" | tail -n +3 | xargs -r rm -rf --
+    # grep exits 1 when the live release is the only one; that is not an error.
+    ls -1t | { grep -vx "$live" || true; } | tail -n +3 | xargs -r rm -rf --
   args:
     executable: /bin/bash
   changed_when: false
