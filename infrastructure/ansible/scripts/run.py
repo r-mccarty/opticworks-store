@@ -4,8 +4,8 @@
   python3 -I infrastructure/ansible/scripts/run.py deploy [ansible-playbook args...]
   python3 -I infrastructure/ansible/scripts/run.py rotate-hostkey
 
-Secrets are pulled at run time with `infisical run` (opticworks-store/prod/backend
-plus the agent-harness service folders) and live only in this process tree:
+Secrets are pulled at run time with `infisical run` from the ubuntu-pair-node
+project (the agent-harness service folders, including opticworks-backend) and live only in this process tree:
 nothing is written to disk except the SSH key, in a 0700 temp dir removed on exit.
 The release is `git archive` of the committed backend/ tree; uncommitted
 changes are refused so what's deployed is always reproducible.
@@ -26,9 +26,8 @@ HERE = Path(__file__).resolve().parent
 ANSIBLE = HERE.parent
 REPO = ANSIBLE.parent.parent
 
-STORE_PROJECT = "42e9e77c-88fa-4cbb-925b-5064c8e3b18c"   # opticworks-store
 HARNESS_PROJECT = "b291efe7-518d-448a-9388-984e715a5b9e"  # ubuntu-pair-node
-HARNESS_PATHS = [f"/agents/{s}/{k}" for s in ("neon", "stripe", "easypost", "resend", "cloudflare", "tigris", "hetzner")
+HARNESS_PATHS = [f"/agents/{s}/{k}" for s in ("opticworks-backend", "neon", "stripe", "easypost", "resend", "cloudflare", "tigris", "hetzner")
                  for k in ("config", "credentials")]
 SERVER_NAME = "opticworks-backend-1"
 TUNNEL = "opticworks-backend"
@@ -37,11 +36,10 @@ NEON_BRANCH = "br-wispy-morning-ak26hpef"  # main
 
 
 def outer(argv):
-    """Re-exec under two nested `infisical run`s, one per project."""
+    """Re-exec under `infisical run` with every needed folder."""
     profile = ["--profile", os.environ["INFISICAL_PROFILE"]] if os.environ.get("INFISICAL_PROFILE") else []
     common = ["--include-imports=false", "--expand=false", "--silent", *profile]
-    cmd = ["infisical", "run", f"--projectId={STORE_PROJECT}", "--env=prod", "--path=/backend", *common, "--",
-           "infisical", "run", f"--projectId={HARNESS_PROJECT}", "--env=dev",
+    cmd = ["infisical", "run", f"--projectId={HARNESS_PROJECT}", "--env=dev",
            *[f"--path={p}" for p in HARNESS_PATHS], *common, "--",
            sys.executable, "-I", __file__, "--inner", *argv]
     os.execvp(cmd[0], cmd)

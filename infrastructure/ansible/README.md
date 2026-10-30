@@ -26,13 +26,14 @@ Browser ──► Cloudflare Access ──► backend.optic.works ──► tunn
 Nothing secret is stored in this repo or written on the controller. `scripts/run.py`
 reads at run time from Infisical:
 
-- `opticworks-store` / `prod` / `/backend`: `JWT_SECRET`, `COOKIE_SECRET`,
+All secrets live in Infisical project `ubuntu-pair-node`, environment `dev`:
+
+- `/agents/opticworks-backend/credentials`: `JWT_SECRET`, `COOKIE_SECRET`,
   `REDIS_APP_PASSWORD`, `REDIS_BACKUP_PASSWORD`, `RESTIC_PASSWORD`,
-  `STRIPE_WEBHOOK_SECRET`, `SHIP_FROM_PHONE`. Create once with
-  `scripts/generate_secrets.py` (refuses to overwrite: a new `RESTIC_PASSWORD`
-  would orphan every backup). Add `SHIP_FROM_PHONE` by hand.
-- `ubuntu-pair-node` / `dev` / `/agents/{neon,stripe,easypost,resend,cloudflare,tigris,hetzner}`:
-  provider keys and the deploy SSH key.
+  `STRIPE_WEBHOOK_SECRET`. Create once with `scripts/generate_secrets.py`
+  (refuses to overwrite: a new `RESTIC_PASSWORD` would orphan every backup).
+- `/agents/{neon,stripe,easypost,resend,cloudflare,tigris,hetzner}`: provider
+  keys and the deploy SSH key.
 
 Neon connection strings and the tunnel token are fetched from the provider APIs
 per run. Provider keys are currently **test mode** (Stripe, EasyPost).

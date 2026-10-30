@@ -3,8 +3,9 @@
 
   python3 -I infrastructure/ansible/scripts/generate_secrets.py
 
-Writes to project opticworks-store, environment prod, folder /backend. Refuses
-to run if that folder already exists: regenerating RESTIC_PASSWORD would make
+Writes to project ubuntu-pair-node, environment dev, folder
+/agents/opticworks-backend/credentials (the agent-harness convention). Refuses
+to run if /agents/opticworks-backend already exists: regenerating RESTIC_PASSWORD would make
 every existing backup unreadable, and new JWT/cookie secrets log everyone out.
 Rotate individual values deliberately in Infisical instead. Prints no values.
 """
@@ -15,9 +16,11 @@ import sys
 import tempfile
 from pathlib import Path
 
-PROJECT = "42e9e77c-88fa-4cbb-925b-5064c8e3b18c"  # opticworks-store
-ENV = "prod"
-FOLDER = "backend"
+PROJECT = "b291efe7-518d-448a-9388-984e715a5b9e"  # ubuntu-pair-node
+ENV = "dev"
+PARENT = "/agents"
+SERVICE = "opticworks-backend"
+FOLDER = f"{PARENT}/{SERVICE}/credentials"
 PROFILE = os.environ.get("INFISICAL_PROFILE")
 
 
@@ -31,11 +34,11 @@ def infisical(*args, capture=False):
 
 
 def main():
-    listing = infisical("secrets", "folders", "get", "--path", "/", capture=True)
+    listing = infisical("secrets", "folders", "get", "--path", PARENT, capture=True)
     if listing.returncode != 0:
-        sys.exit("Could not list folders in opticworks-store/prod (check login and access)")
-    if any(f"│ {FOLDER} " in line for line in listing.stdout.splitlines()):
-        sys.exit(f"/{FOLDER} already exists in opticworks-store/prod; refusing to regenerate secrets")
+        sys.exit(f"Could not list folders in ubuntu-pair-node/{ENV}{PARENT} (check login and access)")
+    if any(f"│ {SERVICE} " in line for line in listing.stdout.splitlines()):
+        sys.exit(f"{PARENT}/{SERVICE} already exists in ubuntu-pair-node/{ENV}; refusing to regenerate secrets")
 
     values = {
         "JWT_SECRET": secrets.token_urlsafe(48),
@@ -47,8 +50,9 @@ def main():
         "STRIPE_WEBHOOK_SECRET": "whsec_" + secrets.token_urlsafe(32),
     }
 
-    if infisical("secrets", "folders", "create", "--name", FOLDER, "--path", "/").returncode != 0:
-        sys.exit(f"Could not create folder /{FOLDER}")
+    for name, parent in ((SERVICE, PARENT), ("config", f"{PARENT}/{SERVICE}"), ("credentials", f"{PARENT}/{SERVICE}")):
+        if infisical("secrets", "folders", "create", "--name", name, "--path", parent).returncode != 0:
+            sys.exit(f"Could not create folder {parent}/{name}")
 
     with tempfile.TemporaryDirectory(prefix="gen-") as d:
         os.chmod(d, 0o700)
@@ -56,10 +60,10 @@ def main():
         fd = os.open(f, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
         with os.fdopen(fd, "w") as out:
             out.writelines(f"{k}={v}\n" for k, v in values.items())
-        result = infisical("secrets", "set", "--path", f"/{FOLDER}", "--file", str(f))
+        result = infisical("secrets", "set", "--path", FOLDER, "--file", str(f))
     if result.returncode != 0:
         sys.exit("infisical secrets set failed; the folder exists but may be incomplete; inspect it in the dashboard")
-    print(f"stored {len(values)} secrets in opticworks-store/{ENV}/{FOLDER}: {', '.join(values)}")
+    print(f"stored {len(values)} secrets in ubuntu-pair-node/{ENV}{FOLDER}: {', '.join(values)}")
 
 
 if __name__ == "__main__":
