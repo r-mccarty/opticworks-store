@@ -23,7 +23,7 @@ export default function HomePage() {
             <p className="annotation">{siteConfig.company.name} · San Diego</p>
             <h1
               id="hero-title"
-              className="mt-8 text-balance text-[2.75rem] font-light leading-[1.05] tracking-tight text-text sm:text-6xl lg:text-7xl"
+              className="mt-8 text-balance font-cta text-[2.75rem] font-normal uppercase leading-[1.05] tracking-tight text-text sm:text-6xl lg:text-7xl"
             >
               Expand what you can perceive.{" "}
               <span className="text-amber">And what you can make.</span>

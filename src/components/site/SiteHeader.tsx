@@ -39,7 +39,7 @@ export function SiteHeader() {
           ))}
           <Link
             href={siteConfig.baseLinks.contact}
-            className="rounded-sm border border-line-strong px-4 py-2 text-sm text-text transition-colors hover:border-amber hover:text-amber-strong"
+            className="rounded-sm border border-line-strong px-4 py-2 font-cta text-sm font-medium uppercase tracking-[0.08em] text-text transition-colors hover:border-amber hover:text-amber-strong"
           >
             Contact
           </Link>
@@ -71,7 +71,10 @@ export function SiteHeader() {
               <Link
                 href={item.href}
                 aria-current={isActive(item.href) ? "page" : undefined}
-                className="flex items-center justify-between py-4 text-lg text-text"
+                className={cx(
+                  "flex items-center justify-between py-4 text-lg text-text",
+                  item.href === siteConfig.baseLinks.contact && "font-cta font-medium uppercase tracking-[0.08em]",
+                )}
               >
                 {item.label}
                 <span aria-hidden className="text-text-subtle">→</span>
