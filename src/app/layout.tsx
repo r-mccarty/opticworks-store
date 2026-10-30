@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next"
-import { IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google"
+import { IBM_Plex_Mono } from "next/font/google"
+import localFont from "next/font/local"
 import "./globals.css"
 
 import { GoogleAnalytics } from "@/components/GoogleAnalytics"
@@ -7,10 +8,21 @@ import { SiteFooter } from "@/components/site/SiteFooter"
 import { SiteHeader } from "@/components/site/SiteHeader"
 import { siteConfig } from "./siteConfig"
 
-const plexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  variable: "--font-plex-sans",
+const colfax = localFont({
+  src: [
+    { path: "../../public/fonts/ColfaxWebRegular-ffe8279204a8eb350c1a8320336a8e1a.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/ColfaxWebMedium-5cd963f45f4bd8647a4e41a58ca9c4d3.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-colfax",
+  display: "swap",
+})
+
+const barlow = localFont({
+  src: [
+    { path: "../../public/fonts/barlow-latin-400-normal-7fa387951673abf164b13dd1b45c70e3.woff2", weight: "400", style: "normal" },
+    { path: "../../public/fonts/barlow-latin-500-normal-50adbbfa3bfe480bf4246ff5bad7ad06.woff2", weight: "500", style: "normal" },
+  ],
+  variable: "--font-barlow",
   display: "swap",
 })
 
@@ -64,7 +76,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${plexSans.variable} ${plexMono.variable}`}>
+    <html lang="en" className={`${colfax.variable} ${barlow.variable} ${plexMono.variable}`}>
       <body className="min-h-screen bg-ink font-sans text-text antialiased">
         <GoogleAnalytics measurementId="G-ZVKN68R4Y7" />
         <a

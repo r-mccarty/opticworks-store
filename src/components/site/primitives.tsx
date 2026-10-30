@@ -92,7 +92,7 @@ export function ArrowLink({
     <Link
       href={href}
       className={cx(
-        "group inline-flex items-center gap-2 rounded-sm text-sm font-medium transition-colors duration-200",
+        "group inline-flex items-center gap-2 rounded-sm font-cta text-sm font-medium uppercase tracking-[0.08em] transition-colors duration-200",
         styles,
         className,
       )}
